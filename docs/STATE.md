@@ -7,8 +7,13 @@ Updated: 2026-09-01
 - Phase 0 bootstrap complete; its lint/format/test gate is green.
 - Repository initialized on `main`; reproducible Python package skeleton and
   one-command bootstrap/test/dev scripts are present.
-- First green test: 2 deterministic smoke tests on Python 3.12.11.
-- Phase 1 core protocol/state/cancellation/event work is next.
+- Phase 1 complete: protocol v1 models, bounded event bus, idempotent
+  cancellation registry, and deterministic multi-signal turn state machine.
+- Quality gate: Ruff lint/format plus 30 tests green on Python 3.12.11.
+- Voice simulations cover normal endpointing, mid-sentence pauses, sustained
+  interruption, credible-content interruption, cough/backchannel/echo recovery,
+  false endpoint resume, STT revision, minimum speech, and audio loss.
+- Phase 2 Ollama/provider-neutral conversational text loop is next.
 
 ## Environment
 
@@ -23,7 +28,11 @@ Updated: 2026-09-01
 
 - Python package: `src/zev_ambient` with core, adapters, and supervisor seams.
 - Supervisor/update authority stays separate from conversational runtime.
-- Cancellation correlations propagate through protocol fields.
+- Protocol envelopes reject unsupported versions and carry relevant correlation
+  and cancellation IDs.
+- Durable events backpressure; stale audio-level visualization events may drop.
+- Cancellation is idempotent and interruption cancellation keeps the prior
+  generation identity separate from the provisional next user turn.
 - Cloud fallback defaults off and will be enforced outside the model.
 - No third-party source has been copied or vendored.
 
