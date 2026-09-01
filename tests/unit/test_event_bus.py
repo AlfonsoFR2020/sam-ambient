@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from zev_ambient.core.protocol import EventBus, EventType, ProtocolEvent, SubscriptionClosed
+from sam_ambient.core.protocol import EventBus, EventType, ProtocolEvent, SubscriptionClosed
 
 
 def event(event_type: str, timestamp: int) -> ProtocolEvent:

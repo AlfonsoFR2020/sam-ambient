@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from zev_ambient.core.protocol import EventType, ProtocolError, ProtocolEvent
+from sam_ambient.core.protocol import EventType, ProtocolError, ProtocolEvent
 
 
 def test_protocol_event_round_trip_preserves_correlations() -> None:

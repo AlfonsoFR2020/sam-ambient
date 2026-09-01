@@ -89,7 +89,7 @@ wheels = [
 ]
 
 [[package]]
-name = "zev-ambient"
+name = "sam-ambient"
 version = "0.1.0"
 source = { editable = "." }
 

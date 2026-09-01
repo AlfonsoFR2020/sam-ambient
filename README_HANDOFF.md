@@ -1,6 +1,6 @@
-# Zev Ambient — Codex Handoff Bundle
+# Sam — Codex Handoff Bundle
 
-Use `ZEV_AMBIENT_CODEX_SPEC.md` as the master specification.
+Use `SAM_AMBIENT_CODEX_SPEC.md` as the master specification.
 
 For the lowest-friction start:
 1. Put this bundle in the directory where you want the project.

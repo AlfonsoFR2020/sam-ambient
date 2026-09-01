@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [project]
-name = "zev-ambient"
+name = "sam-ambient"
 version = "0.1.0"
 description = "Sam: a local-first ambient voice computer interface"
 readme = "README.md"
@@ -11,8 +11,8 @@ requires-python = ">=3.12"
 dependencies = []
 
 [project.scripts]
-sam = "zev_ambient.cli:main"
-zev-ambient = "zev_ambient.cli:main"
+sam = "sam_ambient.cli:main"
+sam-ambient = "sam_ambient.cli:main"
 
 [dependency-groups]
 dev = [
@@ -21,7 +21,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/zev_ambient"]
+packages = ["src/sam_ambient"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers -p no:cacheprovider"

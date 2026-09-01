@@ -1,4 +1,4 @@
-# ZEV AMBIENT — Codex Engineering Specification
+# SAM — Codex Engineering Specification
 Version: 1.0
 Status: MVP implementation specification
 Primary target: Linux desktop
@@ -7,6 +7,11 @@ Owner role: Executive product owner
 Implementation agent: OpenAI Codex
 License intent: Commercial-use-friendly project; default project license Apache-2.0 OR MIT, subject to final owner choice
 Source of truth: This file
+
+Naming amendment (2026-09-01): the product and user-facing name is **Sam**;
+use `sam-ambient` for the repository/project, `sam_ambient` for the Python
+package, and `sam-core`, `sam-ui`, and `sam-supervisor` for future components.
+Zev remains only as a historical/provenance reference.
 
 ---
 
@@ -46,7 +51,7 @@ Token-economy rule for Codex:
 
 ## 1.1 Product
 
-Zev Ambient is an ambient, voice-first AI computer interface.
+Sam is an ambient, voice-first AI computer interface.
 
 The user should feel that they are speaking **to the computer itself**, not to a conventional chat window.
 
@@ -218,7 +223,7 @@ Recommended topology:
                                  │ typed local IPC
                                  ▼
 ┌────────────────────────────────────────────────────────────┐
-│                    Zev Core Runtime                         │
+│                    Sam Core Runtime                         │
 │                                                            │
 │ Session  Turn Manager  Provider Router  Tool Registry      │
 │ Voice Pipeline  Event Bus  Policy Engine  State Store      │
@@ -242,7 +247,7 @@ Recommended topology:
 
 MVP preferred processes:
 
-1. `zev-supervisor`
+1. `sam-supervisor`
    - tiny,
    - stable,
    - no model reasoning,
@@ -251,7 +256,7 @@ MVP preferred processes:
    - performs safe update activation/rollback,
    - owns last-known-good version metadata.
 
-2. `zev-core`
+2. `sam-core`
    - conversational state machine,
    - voice orchestration,
    - provider routing,
@@ -260,7 +265,7 @@ MVP preferred processes:
    - durable state,
    - update proposals but not unconditional activation.
 
-3. `zev-ui`
+3. `sam-ui`
    - Tauri application/webview,
    - presentation only,
    - never owns authoritative conversation state.
@@ -1076,7 +1081,7 @@ Codex may learn architectural ideas from reference projects but must create an i
 Codex should create approximately:
 
 ```text
-zev-ambient/
+sam-ambient/
 ├── AGENTS.md
 ├── README.md
 ├── LICENSE
@@ -1249,7 +1254,7 @@ Never log:
 - raw microphone buffers,
 - full sensitive file contents by default.
 
-Provide a `zev doctor` equivalent:
+Provide a `sam doctor` equivalent:
 - version,
 - supervisor health,
 - audio devices,
@@ -1437,7 +1442,7 @@ Deliver:
 MVP is done when all are true:
 
 1. Fresh Linux installation can be bootstrapped with documented minimal steps.
-2. User can launch Zev Ambient.
+2. User can launch Sam.
 3. User sees ambient responsive interface.
 4. User can talk without push-to-talk.
 5. Normal pauses do not frequently prematurely commit.
@@ -1539,7 +1544,7 @@ Target:
 
 ```text
 $ codex
-> Read ZEV_AMBIENT_CODEX_SPEC.md and build the project autonomously.
+> Read SAM_AMBIENT_CODEX_SPEC.md and build the project autonomously.
 ```
 
 Codex should then:
@@ -1552,7 +1557,7 @@ Codex should then:
 For the actual end user after packaging:
 
 ```text
-zev-ambient
+sam-ambient
 ```
 
 Expected:

@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from zev_ambient.core.turns import CancellationRegistry, CancellationToken, OperationCancelled
+from sam_ambient.core.turns import CancellationRegistry, CancellationToken, OperationCancelled
 
 
 def test_cancellation_is_idempotent_and_preserves_first_reason() -> None:

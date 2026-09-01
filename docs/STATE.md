@@ -26,7 +26,9 @@ Updated: 2026-09-01
 
 ## Architecture/invariants
 
-- Python package: `src/zev_ambient` with core, adapters, and supervisor seams.
+- Product/project/package naming is `Sam` / `sam-ambient` / `sam_ambient`.
+- Future process names are `sam-core`, `sam-ui`, and `sam-supervisor`.
+- Python package: `src/sam_ambient` with core, adapters, and supervisor seams.
 - Supervisor/update authority stays separate from conversational runtime.
 - Protocol envelopes reject unsupported versions and carry relevant correlation
   and cancellation IDs.

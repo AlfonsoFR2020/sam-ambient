@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 
-from zev_ambient.core.protocol import EventType
-from zev_ambient.core.turns import InterruptionMode, TurnConfig, TurnManager, VoiceState
+from sam_ambient.core.protocol import EventType
+from sam_ambient.core.turns import InterruptionMode, TurnConfig, TurnManager, VoiceState
 
 
 def make_manager(config: TurnConfig | None = None) -> TurnManager:

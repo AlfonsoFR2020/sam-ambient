@@ -1,5 +1,5 @@
-from zev_ambient import __version__
-from zev_ambient.cli import main
+from sam_ambient import __version__
+from sam_ambient.cli import main
 
 
 def test_package_has_version() -> None:

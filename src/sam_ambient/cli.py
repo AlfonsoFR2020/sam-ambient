@@ -5,13 +5,13 @@ from __future__ import annotations
 import argparse
 from collections.abc import Sequence
 
-from zev_ambient import __version__
+from sam_ambient import __version__
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sam",
-        description="Sam (Zev Ambient) development harness",
+        description="Sam development harness",
     )
     parser.add_argument("--version", action="version", version=f"Sam {__version__}")
     return parser

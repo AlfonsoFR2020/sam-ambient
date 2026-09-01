@@ -1,8 +1,8 @@
-# AGENTS.md — Zev Ambient
+# AGENTS.md — Sam
 
 ## Mission
 
-Build Zev Ambient (Sam) according to `ZEV\_AMBIENT\_CODEX\_SPEC.md`.
+Build Sam according to `SAM_AMBIENT_CODEX_SPEC.md`.
 
 ## Operating style
 
@@ -46,4 +46,3 @@ Before marking a milestone complete:
 4. update `docs/STATE.md`,
 5. update `THIRD\_PARTY.md` if dependencies changed,
 6. commit a coherent green slice.
-

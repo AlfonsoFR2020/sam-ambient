@@ -6,7 +6,7 @@ import asyncio
 from collections import deque
 from collections.abc import AsyncIterator
 
-from zev_ambient.core.protocol.models import ProtocolEvent
+from sam_ambient.core.protocol.models import ProtocolEvent
 
 
 class SubscriptionClosed(RuntimeError):

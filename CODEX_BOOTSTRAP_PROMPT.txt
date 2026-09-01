@@ -1,6 +1,6 @@
-You are the implementation agent for Zev Ambient, an app that will be known and labelled as "Sam".
+You are the implementation agent for Sam.
 
-Read `AGENTS.md` and `ZEV_AMBIENT_CODEX_SPEC.md`. Treat the specification as the source of truth.
+Read `AGENTS.md` and `SAM_AMBIENT_CODEX_SPEC.md`. Treat the specification as the source of truth.
 
 Work autonomously and economize context/tokens: do not restate the specification, do not ask me to perform routine setup, and keep cross-session state compact in `docs/STATE.md`.
 

@@ -6,7 +6,7 @@ master specification are recorded here.
 ## D-001 — Python package layout
 
 - **Status:** accepted, 2026-09-01
-- **Decision:** Put the Python modular monolith under `src/zev_ambient` rather
+- **Decision:** Put the Python modular monolith under `src/sam_ambient` rather
   than creating importable top-level packages named `core` and `supervisor`.
 - **Reason:** Namespaced packages avoid collisions and make one distributable
   core while preserving explicit core, adapter, and supervisor boundaries.
@@ -33,3 +33,12 @@ master specification are recorded here.
 - **Consequence:** Preserve behavior such as local detection and configurable
   Ollama URLs, but not historical internals.
 
+## D-004 — Sam naming amendment
+
+- **Status:** owner-directed, 2026-09-01
+- **Decision:** The product and user-facing name is `Sam`; project/package names
+  are `sam-ambient` and `sam_ambient`, with future processes `sam-core`,
+  `sam-ui`, and `sam-supervisor`.
+- **Reason:** The owner renamed the product before downstream packaging and IPC
+  names became expensive to migrate.
+- **Consequence:** Zev remains only in historical source/provenance references.

@@ -1,7 +1,7 @@
 # Sam
 
-Sam is the product name for Zev Ambient, a local-first, voice-first computer
-interface. The implementation follows `ZEV_AMBIENT_CODEX_SPEC.md`.
+Sam is a local-first, voice-first computer interface. The implementation follows
+`SAM_AMBIENT_CODEX_SPEC.md`.
 
 ## Development
 
@@ -25,12 +25,11 @@ Run the current development harness with `./scripts/dev.ps1` or
 
 ## Architecture boundaries
 
-- `zev_ambient.core` owns provider-neutral conversational state and protocol.
-- `zev_ambient.adapters` owns platform and service integrations.
-- `zev_ambient.supervisor` is a separate authority boundary and never depends
+- `sam_ambient.core` owns provider-neutral conversational state and protocol.
+- `sam_ambient.adapters` owns platform and service integrations.
+- `sam_ambient.supervisor` is a separate authority boundary and never depends
   on model reasoning.
 - `ui` is presentation-only and will become the Tauri shell in Phase 5.
 
 The project license is temporarily reserved pending the owner's specified
 MIT-vs-Apache-2.0 selection. See `LICENSE`.
-

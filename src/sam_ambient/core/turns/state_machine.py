@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from uuid import uuid4
 
-from zev_ambient.core.protocol import EventType, ProtocolEvent
+from sam_ambient.core.protocol import EventType, ProtocolEvent
 
 
 class VoiceState(StrEnum):

@@ -1,11 +1,11 @@
 """Turn state machine and cancellation domain."""
 
-from zev_ambient.core.turns.cancellation import (
+from sam_ambient.core.turns.cancellation import (
     CancellationRegistry,
     CancellationToken,
     OperationCancelled,
 )
-from zev_ambient.core.turns.state_machine import (
+from sam_ambient.core.turns.state_machine import (
     InterruptionMode,
     TurnConfig,
     TurnManager,

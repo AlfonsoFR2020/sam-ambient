@@ -1,7 +1,7 @@
 import asyncio
 
-from zev_ambient.core.protocol import EventBus, EventType
-from zev_ambient.core.turns import CancellationRegistry, TurnManager
+from sam_ambient.core.protocol import EventBus, EventType
+from sam_ambient.core.turns import CancellationRegistry, TurnManager
 
 
 def test_turn_events_flow_through_bounded_bus_in_order() -> None:
