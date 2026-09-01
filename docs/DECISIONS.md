@@ -42,3 +42,14 @@ master specification are recorded here.
 - **Reason:** The owner renamed the product before downstream packaging and IPC
   names became expensive to migrate.
 - **Consequence:** Zev remains only in historical source/provenance references.
+
+## D-005 — HTTPX for provider transport
+
+- **Status:** accepted, 2026-09-01
+- **Decision:** Use HTTPX `AsyncClient.stream()` for provider HTTP rather than a
+  custom urllib/thread transport.
+- **Reason:** Mature async streaming, connection pooling, timeouts, and native
+  task cancellation reduce custom maintenance and socket-lifecycle risk.
+- **Consequence:** HTTPX and transitive licenses are recorded in
+  `THIRD_PARTY.md`; certifi is unmodified MPL-2.0 data/dependency. Cancellation
+  cancels the consuming task and the response context closes the stream.

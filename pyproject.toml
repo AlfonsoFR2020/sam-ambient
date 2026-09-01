@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "Sam: a local-first ambient voice computer interface"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "httpx>=0.28,<1",
+]
 
 [project.scripts]
 sam = "sam_ambient.cli:main"
@@ -26,6 +28,7 @@ packages = ["src/sam_ambient"]
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers -p no:cacheprovider"
 testpaths = ["tests"]
+markers = ["live_ollama: optional test against a separately installed live Ollama service"]
 
 [tool.ruff]
 line-length = 100

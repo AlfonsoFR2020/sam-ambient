@@ -23,6 +23,19 @@ On Linux or macOS:
 Run the current development harness with `./scripts/dev.ps1` or
 `./scripts/dev.sh`.
 
+Phase 2 text mode uses Ollama's native local API and never requires an API key:
+
+```powershell
+uv run sam doctor
+uv run sam models
+uv run sam chat --model <installed-model> "Hello Sam"
+```
+
+Omit the prompt for an interactive session. A generic OpenAI-compatible
+endpoint can be selected explicitly with `--provider openai-compatible
+--base-url <url>`; its key is read from the environment variable named by
+`--api-key-env`, never from a command-line value or repository file.
+
 ## Architecture boundaries
 
 - `sam_ambient.core` owns provider-neutral conversational state and protocol.

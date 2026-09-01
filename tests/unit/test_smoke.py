@@ -8,4 +8,4 @@ def test_package_has_version() -> None:
 
 def test_cli_reports_ready(capsys: object) -> None:
     assert main([]) == 0
-    assert "Sam core is ready" in capsys.readouterr().out  # type: ignore[attr-defined]
+    assert "chat" in capsys.readouterr().out  # type: ignore[attr-defined]

@@ -36,11 +36,19 @@ class CancellationToken:
     def reason(self) -> str | None:
         return self._reason
 
-    def add_callback(self, callback: Callable[[str], None]) -> None:
+    def add_callback(self, callback: Callable[[str], None]) -> Callable[[], None]:
         if self.is_cancelled:
             callback(self._reason or "cancelled")
-            return
+            return lambda: None
         self._callbacks.append(callback)
+
+        def remove() -> None:
+            try:
+                self._callbacks.remove(callback)
+            except ValueError:
+                pass
+
+        return remove
 
     def cancel(self, reason: str = "cancelled") -> bool:
         """Cancel once, preserving the first reason and callback execution."""

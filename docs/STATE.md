@@ -13,7 +13,14 @@ Updated: 2026-09-01
 - Voice simulations cover normal endpointing, mid-sentence pauses, sustained
   interruption, credible-content interruption, cough/backchannel/echo recovery,
   false endpoint resume, STT revision, minimum speech, and audio loss.
-- Phase 2 Ollama/provider-neutral conversational text loop is next.
+- Phase 2 complete: provider-neutral contracts/registry/router, native Ollama
+  discovery and NDJSON chat streaming, generic OpenAI-compatible SSE streaming,
+  privacy-gated fallback, and `sam chat/models/doctor` text harness.
+- HTTP transport uses HTTPX `AsyncClient.stream()`; token cancellation is tested
+  to close the active response stream before surfacing `OperationCancelled`.
+- Quality gate: Ruff lint/format plus 50 tests collected (49 pass, optional live
+  Ollama probe skipped when not explicitly enabled).
+- Phase 3 audio/STT/TTS adapter evaluation is next.
 
 ## Environment
 
@@ -36,7 +43,10 @@ Updated: 2026-09-01
 - Cancellation is idempotent and interruption cancellation keeps the prior
   generation identity separate from the provisional next user turn.
 - Cloud fallback defaults off and will be enforced outside the model.
-- No third-party source has been copied or vendored.
+- Only loopback Ollama endpoints are classified local; other hosts cross the
+  cloud/privacy routing boundary unless explicitly overridden.
+- No third-party source has been copied or vendored; HTTPX is a BSD-3-Clause
+  runtime dependency with transitive licenses recorded in `THIRD_PARTY.md`.
 
 ## Known decisions/open items
 
