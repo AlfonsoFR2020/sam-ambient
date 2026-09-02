@@ -34,9 +34,14 @@ class EventType(StrEnum):
     TTS_COMPLETED = "tts.completed"
     TTS_CANCELLED = "tts.cancelled"
     TOOL_REQUESTED = "tool.requested"
+    TOOL_AUTHORIZING = "tool.authorizing"
+    TOOL_APPROVAL_REQUESTED = "tool.approval_requested"
     TOOL_STARTED = "tool.started"
     TOOL_COMPLETED = "tool.completed"
     TOOL_FAILED = "tool.failed"
+    TOOL_CANCELLED = "tool.cancelled"
+    TOOL_DENIED = "tool.denied"
+    CAPABILITY_AUTHORITY_CHANGED = "capability.authority_changed"
     UPDATE_STATE_CHANGED = "update.state_changed"
     CONTROL_ACKNOWLEDGED = "control.acknowledged"
     CONTROL_REJECTED = "control.rejected"
@@ -47,6 +52,10 @@ class ControlCommandType(StrEnum):
     TTS_OUTPUT_SET = "control.tts_output.set"
     STOP_SPEAKING = "control.stop_speaking"
     EMERGENCY_STOP = "control.emergency_stop"
+    USER_MESSAGE_SUBMIT = "control.user_message.submit"
+    TOOL_APPROVE = "control.tool.approve"
+    TOOL_DENY = "control.tool.deny"
+    CAPABILITIES_REVOKE_ALL = "control.capabilities.revoke_all"
 
 
 LOSSY_EVENT_TYPES: Final[frozenset[str]] = frozenset({EventType.VOICE_LEVEL, EventType.TTS_LEVEL})
@@ -160,12 +169,14 @@ class ControlCommand:
     turn_id: str | None = None
     generation_id: str | None = None
     cancellation_id: str | None = None
+    tool_call_id: str | None = None
 
     _OPTIONAL_IDS: ClassVar[tuple[str, ...]] = (
         "session_id",
         "turn_id",
         "generation_id",
         "cancellation_id",
+        "tool_call_id",
     )
 
     def __post_init__(self) -> None:

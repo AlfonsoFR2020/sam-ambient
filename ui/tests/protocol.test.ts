@@ -23,4 +23,24 @@ describe("protocol decoding", () => {
       decodeProtocolEvent({ protocol: 1, type: "ready", monotonic_ms: -1, payload: [] }),
     ).toThrowError(ProtocolDecodeError);
   });
+
+  it("requires correlation identifiers for tool lifecycle events", () => {
+    expect(() =>
+      decodeProtocolEvent({
+        protocol: 1,
+        type: "tool.started",
+        monotonic_ms: 1,
+        payload: { tool_id: "system.info" },
+      }),
+    ).toThrow("tool events require tool_call_id");
+    expect(
+      decodeProtocolEvent({
+        protocol: 1,
+        type: "tool.started",
+        monotonic_ms: 1,
+        tool_call_id: "call-1",
+        payload: { tool_id: "system.info" },
+      }).tool_call_id,
+    ).toBe("call-1");
+  });
 });

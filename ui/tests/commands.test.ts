@@ -76,4 +76,63 @@ describe("control command protocol", () => {
       commandForAction({ type: "reduced_motion.set", enabled: true }, INITIAL_UI_STATE, runtime),
     ).toBeNull();
   });
+
+  it("serializes text requests and correlated tool approval decisions", () => {
+    const request = commandForAction(
+      { type: "user_message.submit", text: "List the project files" },
+      { ...INITIAL_UI_STATE, sessionId: "session", turnId: "turn" },
+      runtime,
+    );
+    const approval = commandForAction(
+      { type: "tool.approve", toolCallId: "tool-call-1" },
+      { ...INITIAL_UI_STATE, sessionId: "session", generationId: "generation" },
+      runtime,
+    );
+    const denial = commandForAction(
+      { type: "tool.deny", toolCallId: "tool-call-2" },
+      INITIAL_UI_STATE,
+      runtime,
+    );
+
+    expect(request).toMatchObject({
+      type: "control.user_message.submit",
+      payload: { text: "List the project files" },
+    });
+    expect(approval).toMatchObject({
+      type: "control.tool.approve",
+      tool_call_id: "tool-call-1",
+      generation_id: "generation",
+    });
+    expect(denial).toMatchObject({
+      type: "control.tool.deny",
+      tool_call_id: "tool-call-2",
+    });
+    if (!approval) throw new Error("expected approval command");
+    expect(decodeControlCommand(JSON.parse(serializeControlCommand(approval)))).toEqual(approval);
+  });
+
+  it("rejects a blank tool correlation id", () => {
+    expect(() =>
+      decodeControlCommand({
+        protocol: 1,
+        type: "control.tool.approve",
+        command_id: "approval",
+        monotonic_ms: 1,
+        payload: {},
+        tool_call_id: " ",
+      }),
+    ).toThrow("tool_call_id must be a non-blank string");
+  });
+
+  it("encodes the trusted global capability kill switch without model-selected targets", () => {
+    expect(
+      commandForAction({ type: "capabilities.revoke_all" }, INITIAL_UI_STATE, runtime),
+    ).toEqual({
+      protocol: 1,
+      type: "control.capabilities.revoke_all",
+      command_id: "command-1",
+      monotonic_ms: 123,
+      payload: {},
+    });
+  });
 });

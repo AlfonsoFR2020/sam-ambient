@@ -4,7 +4,7 @@ Updated: 2026-09-02
 
 ## Current milestone
 
-- Phases 0–4 and Phase 5 are complete as green vertical slices.
+- Phases 0–5 and Phase 6A are complete as green vertical slices.
 - Phase 0 established the reproducible Python package, scripts, protocol seam,
   supervisor/update separation, and rollback-oriented filesystem skeleton.
 - Repository initialized on `main`; reproducible Python package skeleton and
@@ -82,6 +82,38 @@ Updated: 2026-09-02
   live Ollama test skips. Biome format/lint, TypeScript typecheck, 21 Vitest
   tests, Vite production build, browser demo, and browser-to-Python WebSocket
   command/acknowledgement smoke test pass.
+- Phase 6A complete: `sam runtime --root <workspace>` composes the EventBus,
+  cancellation registry, voice turn state machine, provider router/Ollama,
+  static tool registry, policy/executor, capability authority, controls, and
+  loopback UI bridge. The deterministic bridge/demo remains available.
+- Registered tools are bounded `files.list/read/search`, fixed-schema
+  `system.info`, approval-gated `clipboard.read/write`, and adapter-validated
+  `app.open`. Policy auto-allows registered reads in configured roots, requires
+  approval for sensitive reads/reversible writes, and denies external,
+  privileged, and destructive classes; `app.open` is not executable yet. No
+  general shell or file-write/delete capability exists.
+- Tool requests carry session/turn/generation/cancellation/tool-call IDs through
+  authorization and one terminal result. Provider fragments are bounded and
+  assembled before validation; results are bounded untrusted data, and local
+  tool content cannot fall through to a cloud provider.
+- Filesystem authority is root-ID based with separate read/write scope. Paths
+  reject absolute/drive/UNC/device, parent traversal, NUL, Windows ADS and
+  reserved names, then resolve canonically and must remain under the root.
+  Listing/search do not recurse through links; all output and traversal are
+  bounded, and blocking file work runs off the asyncio event loop.
+- Approval is distinct from capability authority. An epoch lease binds the
+  exact frozen invocation; global revoke invalidates leases and pending
+  approvals, blocks new starts, and cancels cancellable tools. Protocol exposes
+  a one-way trusted revoke command; only a non-tool runtime API can restore
+  authority, and old epochs remain invalid.
+- Windows containment includes an unprivileged junction/reparse escape test and
+  UNC/device/ADS/reserved-name cases. Direct symlink creation is skipped on this
+  host because it lacks symlink privilege; strict canonical containment uses
+  the same rejection path. Portable check-then-open retains a small local
+  TOCTOU window pending target-specific hardening.
+- Phase 6A quality gate: Ruff format/lint, 167 Python tests pass with the optional
+  live Ollama and host-privileged symlink probes skipped; Biome format/lint,
+  TypeScript typecheck, 34 Vitest tests, and Vite production build pass.
 
 ## Environment
 
@@ -141,15 +173,21 @@ Updated: 2026-09-02
   platform packaging. Windows additionally needs MSVC C++ Build Tools; Linux or
   WSL is the preferred route to evaluate first because Linux is the primary
   deployment target.
-- The development bridge intentionally has no remote binding/authentication and
-  the CLI producer is deterministic demo mode until the full conversational
-  lifecycle composition entry point exists. Native shell work remains deferred.
-- Exact next step: Phase 6 basic tools (file, shell policy, clipboard, app-open,
-  and risk classification) without weakening the external tool-policy boundary.
+- The development bridge intentionally has no remote binding/authentication.
+  The real runtime supports text/provider/tool flow; physical voice capture/TTS
+  is not started by this CLI. Capability revocation is process-local and has no
+  OS-global shortcut or persistence yet; Phase 6B must preserve it when adding
+  higher-risk grants.
+- The replaceable live clipboard adapter relies on Tk and is not yet verified on
+  headless target Linux; `app.open` remains policy-disabled in Phase 6A.
+- Exact next step: Phase 6B dedicated privileged/destructive shell and desktop
+  capability threat/policy review following the documented AT-SPI-first Linux
+  direction. No such capability is currently implemented.
 
 ## Commands
 
 - Bootstrap: `scripts/bootstrap.ps1` or `scripts/bootstrap.sh`.
 - Quality gate: `scripts/test.ps1` or `scripts/test.sh`.
 - Development harness: `scripts/dev.ps1` or `scripts/dev.sh`.
-- Browser + real Python bridge: `scripts/ui-dev.ps1` or `scripts/ui-dev.sh`.
+- Browser + real composed Python runtime: `scripts/ui-dev.ps1` or
+  `scripts/ui-dev.sh`.

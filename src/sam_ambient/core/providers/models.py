@@ -29,13 +29,16 @@ class Message:
     content: str
     name: str | None = None
     tool_call_id: str | None = None
+    tool_calls: tuple[Mapping[str, Any], ...] = ()
 
-    def to_wire(self) -> dict[str, str]:
-        result = {"role": self.role, "content": self.content}
+    def to_wire(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"role": self.role, "content": self.content}
         if self.name is not None:
             result["name"] = self.name
         if self.tool_call_id is not None:
             result["tool_call_id"] = self.tool_call_id
+        if self.tool_calls:
+            result["tool_calls"] = [dict(tool_call) for tool_call in self.tool_calls]
         return result
 
 

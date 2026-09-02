@@ -22,6 +22,10 @@ export type ControlAction =
   | { type: "tts_output.set"; enabled: boolean }
   | { type: "stop_speaking" }
   | { type: "emergency_stop" }
+  | { type: "user_message.submit"; text: string }
+  | { type: "tool.approve"; toolCallId: string }
+  | { type: "tool.deny"; toolCallId: string }
+  | { type: "capabilities.revoke_all" }
   | { type: "transcript.set"; visible: boolean }
   | { type: "reduced_motion.set"; enabled: boolean }
   | { type: "brightness.set"; value: number };
@@ -57,6 +61,26 @@ export function commandForAction(
       state,
       runtime,
     );
+  }
+  if (action.type === "user_message.submit") {
+    return createControlCommand(
+      "control.user_message.submit",
+      { text: action.text },
+      state,
+      runtime,
+    );
+  }
+  if (action.type === "tool.approve" || action.type === "tool.deny") {
+    return createControlCommand(
+      action.type === "tool.approve" ? "control.tool.approve" : "control.tool.deny",
+      {},
+      state,
+      runtime,
+      action.toolCallId,
+    );
+  }
+  if (action.type === "capabilities.revoke_all") {
+    return createControlCommand("control.capabilities.revoke_all", {}, state, runtime);
   }
   return null;
 }

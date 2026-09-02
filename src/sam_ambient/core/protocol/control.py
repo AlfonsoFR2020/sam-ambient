@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import time
 from collections import OrderedDict
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -25,6 +25,9 @@ class CancellationTarget(StrEnum):
 
 SetEnabled = Callable[[bool], Awaitable[None]]
 CancelActive = Callable[[frozenset[CancellationTarget], str], Awaitable[None]]
+SubmitUserMessage = Callable[[str, ControlCommand], Awaitable[None]]
+ResolveToolApproval = Callable[[ControlCommand, bool], Awaitable[bool]]
+RevokeCapabilities = Callable[[str], Awaitable[Mapping[str, object]]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,6 +35,9 @@ class CoreControlBindings:
     set_microphone_enabled: SetEnabled
     set_tts_output_enabled: SetEnabled
     cancel_active: CancelActive
+    submit_user_message: SubmitUserMessage | None = None
+    resolve_tool_approval: ResolveToolApproval | None = None
+    revoke_capabilities: RevokeCapabilities | None = None
 
 
 class ControlDispatcher:
@@ -93,6 +99,30 @@ class ControlDispatcher:
             targets = frozenset(CancellationTarget)
             await self._bindings.cancel_active(targets, "ui_emergency_stop")
             payload["requested_targets"] = sorted(target.value for target in targets)
+        elif command_type is ControlCommandType.USER_MESSAGE_SUBMIT:
+            text = command.payload.get("text")
+            if not isinstance(text, str) or not text.strip():
+                raise ValueError("user message requires non-blank payload.text")
+            if len(text) > 4_000:
+                raise ValueError("user message exceeds 4000 characters")
+            if self._bindings.submit_user_message is None:
+                raise RuntimeError("user message submission is unavailable")
+            await self._bindings.submit_user_message(text.strip(), command)
+        elif command_type in {ControlCommandType.TOOL_APPROVE, ControlCommandType.TOOL_DENY}:
+            if not command.tool_call_id:
+                raise ValueError("tool approval requires tool_call_id")
+            if self._bindings.resolve_tool_approval is None:
+                raise RuntimeError("tool approval is unavailable")
+            approved = command_type is ControlCommandType.TOOL_APPROVE
+            if not await self._bindings.resolve_tool_approval(command, approved):
+                raise ValueError("tool approval is not pending")
+            payload["approved"] = approved
+        elif command_type is ControlCommandType.CAPABILITIES_REVOKE_ALL:
+            if command.payload:
+                raise ValueError("global capability revocation does not accept model data")
+            if self._bindings.revoke_capabilities is None:
+                raise RuntimeError("global capability revocation is unavailable")
+            payload.update(await self._bindings.revoke_capabilities("ui_global_capability_revoke"))
         return self._event(EventType.CONTROL_ACKNOWLEDGED, command, payload)
 
     def _event(
@@ -108,6 +138,7 @@ class ControlDispatcher:
             turn_id=command.turn_id,
             generation_id=command.generation_id,
             cancellation_id=command.cancellation_id,
+            tool_call_id=command.tool_call_id,
             payload={
                 "command_id": command.command_id,
                 "command_type": command.type,

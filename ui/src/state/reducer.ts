@@ -3,6 +3,10 @@ import {
   INITIAL_UI_STATE,
   isConversationalState,
   type ProtocolEvent,
+  TOOL_EVENT_TYPES,
+  type ToolActivity,
+  type ToolApprovalRequest,
+  type ToolEventType,
   type TranscriptEntry,
   type UiState,
 } from "../protocol/types";
@@ -23,8 +27,59 @@ const isStaleGeneration = (state: UiState, event: ProtocolEvent): boolean =>
     state.generationId &&
       event.generation_id &&
       event.generation_id !== state.generationId &&
-      (event.type.startsWith("model.") || event.type.startsWith("tts.")),
+      (event.type.startsWith("model.") ||
+        event.type.startsWith("tts.") ||
+        event.type.startsWith("tool.")),
   );
+
+const isToolEvent = (type: string): type is ToolEventType =>
+  (TOOL_EVENT_TYPES as readonly string[]).includes(type);
+
+const boundedText = (value: unknown, maximum = 240): string | undefined => {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  const normalized = value.trim();
+  return normalized.length <= maximum ? normalized : `${normalized.slice(0, maximum - 1)}…`;
+};
+
+const authorityEpoch = (value: unknown): number | null =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
+
+const authoritativeCapabilityState = (
+  active: boolean,
+  epoch: number,
+  incomingActive: unknown,
+  incomingEpoch: number | null,
+): { active: boolean; epoch: number } => {
+  if (typeof incomingActive !== "boolean" || incomingEpoch === null || incomingEpoch < epoch) {
+    return { active, epoch };
+  }
+  if (incomingEpoch === epoch) return { active: active && incomingActive, epoch };
+  return { active: incomingActive, epoch: incomingEpoch };
+};
+
+const toolActivityFrom = (event: ProtocolEvent): ToolActivity => ({
+  toolCallId: event.tool_call_id ?? "uncorrelated",
+  toolId: boundedText(event.payload.tool_id, 80) ?? "unknown tool",
+  eventType: event.type as ToolEventType,
+  riskClass: boundedText(event.payload.risk_class, 40),
+  detail: boundedText(event.payload.message) ?? boundedText(event.payload.error),
+  monotonicMs: event.monotonic_ms,
+});
+
+const approvalFrom = (event: ProtocolEvent): ToolApprovalRequest | null => {
+  if (!event.tool_call_id) return null;
+  const toolId = boundedText(event.payload.tool_id, 80) ?? "unknown tool";
+  return {
+    toolCallId: event.tool_call_id,
+    toolId,
+    description:
+      boundedText(event.payload.description) ??
+      boundedText(event.payload.summary) ??
+      `Allow Sam to use ${toolId}?`,
+    riskClass: boundedText(event.payload.risk_class, 40),
+    monotonicMs: event.monotonic_ms,
+  };
+};
 
 export function withConnection(state: UiState, connection: ConnectionState): UiState {
   if (
@@ -44,6 +99,7 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
       conversationalState: "OFFLINE",
       metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
       pendingCommandIds: [],
+      pendingToolApproval: null,
     };
   }
   return { ...state, connection };
@@ -69,11 +125,22 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
   }
   if (isStaleGeneration(state, event)) return state;
 
+  const carriesConversationCorrelation =
+    !event.type.startsWith("control.") && event.type !== "capability.authority_changed";
+  const startsNewGeneration = Boolean(
+    carriesConversationCorrelation &&
+      event.generation_id &&
+      event.generation_id !== state.generationId,
+  );
+
   let next: UiState = {
     ...state,
     sessionId: event.session_id ?? state.sessionId,
-    turnId: event.turn_id ?? state.turnId,
-    generationId: event.generation_id ?? state.generationId,
+    turnId: carriesConversationCorrelation ? (event.turn_id ?? state.turnId) : state.turnId,
+    generationId: carriesConversationCorrelation
+      ? (event.generation_id ?? state.generationId)
+      : state.generationId,
+    ...(startsNewGeneration ? { latestToolActivity: null, pendingToolApproval: null } : {}),
     lastMonotonicByType: {
       ...state.lastMonotonicByType,
       [event.type]: event.monotonic_ms,
@@ -82,6 +149,21 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
 
   if (event.type === "system.ready") {
     const readyState = isConversationalState(event.payload.state) ? event.payload.state : "IDLE";
+    const readyAuthorityEpoch = authorityEpoch(event.payload.capability_authority_epoch);
+    const readyAuthority = startsNewSession
+      ? {
+          active:
+            typeof event.payload.capability_authority_active === "boolean"
+              ? event.payload.capability_authority_active
+              : next.capabilityAuthorityActive,
+          epoch: readyAuthorityEpoch ?? next.capabilityAuthorityEpoch,
+        }
+      : authoritativeCapabilityState(
+          next.capabilityAuthorityActive,
+          next.capabilityAuthorityEpoch,
+          event.payload.capability_authority_active,
+          readyAuthorityEpoch,
+        );
     return {
       ...next,
       connection: "connected",
@@ -94,6 +176,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         typeof event.payload.tts_output_enabled === "boolean"
           ? event.payload.tts_output_enabled
           : next.ttsOutputEnabled,
+      capabilityAuthorityActive: readyAuthority.active,
+      capabilityAuthorityEpoch: readyAuthority.epoch,
+      latestToolActivity: readyAuthority.active ? next.latestToolActivity : null,
+      pendingToolApproval: readyAuthority.active ? next.pendingToolApproval : null,
       ...(startsNewSession
         ? {
             sessionId: event.session_id,
@@ -102,11 +188,58 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
             provisionalTranscript: null,
             lastMonotonicByType: { [event.type]: event.monotonic_ms },
             metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
+            latestToolActivity: null,
+            pendingToolApproval: null,
+            capabilityAuthorityReason: undefined,
           }
         : {}),
     };
   }
-  if (event.type === "voice.state_changed" && isConversationalState(event.payload.to)) {
+  if (event.type === "capability.authority_changed") {
+    const changedEpoch = authorityEpoch(event.payload.epoch);
+    const applies =
+      changedEpoch !== null &&
+      changedEpoch >= next.capabilityAuthorityEpoch &&
+      typeof event.payload.active === "boolean";
+    if (applies) {
+      const authority = authoritativeCapabilityState(
+        next.capabilityAuthorityActive,
+        next.capabilityAuthorityEpoch,
+        event.payload.active,
+        changedEpoch,
+      );
+      next = {
+        ...next,
+        capabilityAuthorityActive: authority.active,
+        capabilityAuthorityEpoch: authority.epoch,
+        capabilityAuthorityReason: authority.active
+          ? undefined
+          : boundedText(event.payload.reason, 120),
+        latestToolActivity: authority.active ? next.latestToolActivity : null,
+        pendingToolApproval: authority.active ? next.pendingToolApproval : null,
+      };
+    }
+  } else if (isToolEvent(event.type)) {
+    const latestToolActivity = toolActivityFrom(event);
+    const terminal = new Set<ToolEventType>([
+      "tool.started",
+      "tool.completed",
+      "tool.failed",
+      "tool.cancelled",
+      "tool.denied",
+    ]);
+    next = {
+      ...next,
+      latestToolActivity,
+      pendingToolApproval:
+        event.type === "tool.approval_requested"
+          ? approvalFrom(event)
+          : terminal.has(event.type) &&
+              next.pendingToolApproval?.toolCallId === latestToolActivity.toolCallId
+            ? null
+            : next.pendingToolApproval,
+    };
+  } else if (event.type === "voice.state_changed" && isConversationalState(event.payload.to)) {
     next = {
       ...next,
       priorConversationalState: next.conversationalState,
@@ -183,6 +316,20 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     };
   } else if (event.type === "control.acknowledged" || event.type === "control.rejected") {
     const commandId = event.payload.command_id;
+    const acknowledgedAuthorityEpoch = authorityEpoch(event.payload.capability_authority_epoch);
+    const updatesCapabilityAuthority =
+      event.type === "control.acknowledged" &&
+      acknowledgedAuthorityEpoch !== null &&
+      acknowledgedAuthorityEpoch >= next.capabilityAuthorityEpoch &&
+      typeof event.payload.capability_authority_active === "boolean";
+    const acknowledgedAuthority = updatesCapabilityAuthority
+      ? authoritativeCapabilityState(
+          next.capabilityAuthorityActive,
+          next.capabilityAuthorityEpoch,
+          event.payload.capability_authority_active,
+          acknowledgedAuthorityEpoch,
+        )
+      : null;
     next = {
       ...next,
       pendingCommandIds:
@@ -197,6 +344,11 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         typeof event.payload.tts_output_enabled === "boolean"
           ? event.payload.tts_output_enabled
           : next.ttsOutputEnabled,
+      capabilityAuthorityActive: acknowledgedAuthority?.active ?? next.capabilityAuthorityActive,
+      capabilityAuthorityEpoch: acknowledgedAuthority?.epoch ?? next.capabilityAuthorityEpoch,
+      latestToolActivity: acknowledgedAuthority?.active === false ? null : next.latestToolActivity,
+      pendingToolApproval:
+        acknowledgedAuthority?.active === false ? null : next.pendingToolApproval,
       protocolError:
         event.type === "control.rejected" && typeof event.payload.error === "string"
           ? event.payload.error

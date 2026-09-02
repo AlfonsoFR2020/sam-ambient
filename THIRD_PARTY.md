@@ -61,3 +61,8 @@ Dependencies are linked/imported packages, not copied project code.
   route pulls `phonemizer-fork`/eSpeak-NG under GPL-3.0-family terms. No Kokoro
   runtime, phonemizer, binary, model, or voice asset is present; the production
   TTS engine remains deliberately unselected.
+- Pelorus (`https://github.com/linuxserver/pelorus`) is a Phase 6B architecture
+  reference only; its current license must be verified before any source reuse.
+  Nidara Desktop (`https://github.com/nidara-project/nidara-desktop`) is GPL-3.0
+  and is likewise conceptual reference material only. No source from either
+  project is present.

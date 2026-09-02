@@ -13,16 +13,16 @@ pnpm dev
 ```
 
 The default is the in-memory demo. To exercise the real localhost WebSocket
-boundary against the Python deterministic core producer, run from the project
-root:
+boundary against the composed Python runtime, run from the project root:
 
 ```powershell
 scripts/ui-dev.ps1
 ```
 
-or `scripts/ui-dev.sh`. This starts `sam bridge --demo` and Vite together; the
-frontend still receives ordinary production protocol events and sends ordinary
-versioned control commands. `?transport=core` selects the bridge manually.
+or `scripts/ui-dev.sh`. This starts `sam runtime --root <project>` and Vite
+together; the frontend receives production protocol/tool events and sends
+versioned controls, including exact-invocation approval and global capability
+revocation. `?transport=core` selects the bridge manually.
 
 The native Tauri host metadata is intentionally only a scaffold until Rust and
 the target platform build prerequisites are available.

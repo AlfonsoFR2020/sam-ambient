@@ -19,9 +19,19 @@ dropping.
 
 UI control commands use the same protocol version and correlation IDs, with
 required `command_id`, `monotonic_ms`, `type`, and `payload` fields. Version 1
-defines microphone and TTS-output toggles, stop-speaking, and emergency-stop.
-The latter requests cancellation of model generation, queued TTS, and playback;
-the core acknowledges or rejects every deduplicated command as a protocol event.
+defines microphone and TTS-output toggles, stop-speaking, emergency-stop, text
+submission, per-invocation tool approve/deny, and global capability revocation.
+Emergency stop cancels model generation, queued TTS, and playback; global
+revocation instead invalidates computer-action authority, pending approvals,
+and cancellable active tool work. There is no model/tool command that restores
+authority. The core acknowledges or rejects every deduplicated command.
+
+Tool events use `tool.requested`, `tool.authorizing`,
+`tool.approval_requested`, `tool.started`, and one applicable terminal event
+(`completed`, `failed`, `cancelled`, or `denied`). Approval responses must match
+the pending session, turn, generation, and tool-call correlation. The
+`capability.authority_changed` event and ready/ack payloads expose the trusted
+authority epoch so stale messages cannot win.
 
 The development bridge uses subprotocol `sam.protocol.v1` over a bounded
 WebSocket bound to `127.0.0.1` by default. It checks browser origins, refuses

@@ -18,6 +18,9 @@ class RecordingBindings:
         self.microphone: list[bool] = []
         self.tts_output: list[bool] = []
         self.cancellations: list[tuple[frozenset[CancellationTarget], str]] = []
+        self.messages: list[str] = []
+        self.approvals: list[tuple[str, bool]] = []
+        self.revocations: list[str] = []
 
     async def set_microphone(self, enabled: bool) -> None:
         self.microphone.append(enabled)
@@ -31,6 +34,22 @@ class RecordingBindings:
         reason: str,
     ) -> None:
         self.cancellations.append((targets, reason))
+
+    async def submit(self, text: str, _command: ControlCommand) -> None:
+        self.messages.append(text)
+
+    async def resolve_approval(self, command: ControlCommand, approved: bool) -> bool:
+        if command.tool_call_id != "pending-tool":
+            return False
+        self.approvals.append((command.tool_call_id, approved))
+        return True
+
+    async def revoke_capabilities(self, reason: str) -> dict[str, object]:
+        self.revocations.append(reason)
+        return {
+            "capability_authority_active": False,
+            "capability_authority_epoch": 1,
+        }
 
 
 def command(
@@ -110,5 +129,84 @@ def test_dispatcher_rejects_invalid_toggle_without_calling_adapter() -> None:
         )
         assert rejected.type == EventType.CONTROL_REJECTED
         assert recording.tts_output == []
+
+    asyncio.run(scenario())
+
+
+def test_dispatcher_routes_text_exact_approval_and_global_revocation() -> None:
+    async def scenario() -> None:
+        recording = RecordingBindings()
+        dispatcher = ControlDispatcher(
+            CoreControlBindings(
+                set_microphone_enabled=recording.set_microphone,
+                set_tts_output_enabled=recording.set_tts_output,
+                cancel_active=recording.cancel,
+                submit_user_message=recording.submit,
+                resolve_tool_approval=recording.resolve_approval,
+                revoke_capabilities=recording.revoke_capabilities,
+            ),
+            clock_ms=lambda: 50,
+        )
+        submitted = await dispatcher.dispatch(
+            command(ControlCommandType.USER_MESSAGE_SUBMIT, "message", {"text": "  hello  "})
+        )
+        approval = ControlCommand(
+            type=ControlCommandType.TOOL_APPROVE,
+            command_id="approval",
+            monotonic_ms=10,
+            session_id="session",
+            generation_id="generation",
+            tool_call_id="pending-tool",
+        )
+        approved = await dispatcher.dispatch(approval)
+        revoked = await dispatcher.dispatch(
+            command(ControlCommandType.CAPABILITIES_REVOKE_ALL, "revoke")
+        )
+
+        assert submitted.type == EventType.CONTROL_ACKNOWLEDGED
+        assert recording.messages == ["hello"]
+        assert approved.type == EventType.CONTROL_ACKNOWLEDGED
+        assert approved.tool_call_id == "pending-tool"
+        assert recording.approvals == [("pending-tool", True)]
+        assert revoked.type == EventType.CONTROL_ACKNOWLEDGED
+        assert revoked.payload["capability_authority_active"] is False
+        assert recording.revocations == ["ui_global_capability_revoke"]
+
+    asyncio.run(scenario())
+
+
+def test_global_revocation_rejects_payload_and_mismatched_approval() -> None:
+    async def scenario() -> None:
+        recording = RecordingBindings()
+        dispatcher = ControlDispatcher(
+            CoreControlBindings(
+                recording.set_microphone,
+                recording.set_tts_output,
+                recording.cancel,
+                resolve_tool_approval=recording.resolve_approval,
+                revoke_capabilities=recording.revoke_capabilities,
+            )
+        )
+        bad_revoke = await dispatcher.dispatch(
+            command(
+                ControlCommandType.CAPABILITIES_REVOKE_ALL,
+                "bad-revoke",
+                {"restore": True},
+            )
+        )
+        wrong_approval = await dispatcher.dispatch(
+            ControlCommand(
+                type=ControlCommandType.TOOL_APPROVE,
+                command_id="wrong-approval",
+                monotonic_ms=10,
+                session_id="session",
+                tool_call_id="not-pending",
+            )
+        )
+
+        assert bad_revoke.type == EventType.CONTROL_REJECTED
+        assert wrong_approval.type == EventType.CONTROL_REJECTED
+        assert recording.revocations == []
+        assert recording.approvals == []
 
     asyncio.run(scenario())

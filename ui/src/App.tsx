@@ -64,6 +64,64 @@ function Transcript({ state }: { state: UiState }) {
   );
 }
 
+const TOOL_STATUS_LABELS: Readonly<Record<string, string>> = {
+  "tool.requested": "requested",
+  "tool.authorizing": "checking access",
+  "tool.approval_requested": "needs approval",
+  "tool.started": "running",
+  "tool.completed": "completed",
+  "tool.failed": "failed",
+  "tool.cancelled": "cancelled",
+  "tool.denied": "denied",
+};
+
+function ToolActivity({
+  state,
+  applyAction,
+}: {
+  state: UiState;
+  applyAction: (action: ControlAction) => void;
+}) {
+  const activity = state.latestToolActivity;
+  const approval = state.pendingToolApproval;
+  if (!activity && !approval) return null;
+  const pending = state.pendingCommandIds.length > 0;
+  return (
+    <aside className="tool-activity" aria-live="polite">
+      {activity && (
+        <p>
+          <span>Capability</span>
+          <strong>{activity.toolId}</strong>
+          <small>{TOOL_STATUS_LABELS[activity.eventType] ?? activity.eventType}</small>
+          {activity.detail && <em>{activity.detail}</em>}
+        </p>
+      )}
+      {approval && (
+        <div className="tool-approval">
+          <p>{approval.description}</p>
+          {approval.riskClass && <small>{approval.riskClass}</small>}
+          <div>
+            <button
+              type="button"
+              disabled={pending || state.connection !== "connected"}
+              onClick={() => applyAction({ type: "tool.approve", toolCallId: approval.toolCallId })}
+            >
+              Allow
+            </button>
+            <button
+              type="button"
+              disabled={pending || state.connection !== "connected"}
+              onClick={() => applyAction({ type: "tool.deny", toolCallId: approval.toolCallId })}
+            >
+              Deny
+            </button>
+          </div>
+        </div>
+      )}
+    </aside>
+  );
+}
+
 export default function App() {
   const controlsId = useId();
   const transport = useMemo(chooseTransport, []);
@@ -76,6 +134,7 @@ export default function App() {
   }));
   const [controlsOpen, setControlsOpen] = useState(false);
   const [commandError, setCommandError] = useState<string>();
+  const [textRequest, setTextRequest] = useState("");
   const visual = toAmbientVisualModel(state, preferences.brightness / 100);
   stateRef.current = state;
 
@@ -109,7 +168,13 @@ export default function App() {
       if (event.key === "Escape") {
         setControlsOpen(false);
         if (document.fullscreenElement) void document.exitFullscreen();
-      } else if (event.key.toLowerCase() === "m" && !event.ctrlKey && !event.metaKey) {
+      } else if (
+        event.key.toLowerCase() === "m" &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !(event.target instanceof HTMLInputElement) &&
+        !(event.target instanceof HTMLTextAreaElement)
+      ) {
         applyAction({ type: "microphone.set", enabled: !stateRef.current.microphoneEnabled });
       } else if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "x") {
         event.preventDefault();
@@ -129,8 +194,14 @@ export default function App() {
         <strong>Sam</strong>
         <span>{visual.label}</span>
         <small>{transport.name}</small>
+        {!state.capabilityAuthorityActive && (
+          <small className="status__authority" title={state.capabilityAuthorityReason}>
+            capabilities disabled
+          </small>
+        )}
       </header>
       {preferences.transcriptVisible && <Transcript state={state} />}
+      <ToolActivity state={state} applyAction={applyAction} />
       <button
         className="controls-reveal"
         type="button"
@@ -142,6 +213,34 @@ export default function App() {
       </button>
       {controlsOpen && (
         <section className="controls" id={controlsId} aria-label="Sam controls">
+          <form
+            className="controls__request"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const text = textRequest.trim();
+              if (!text || state.connection !== "connected") return;
+              applyAction({ type: "user_message.submit", text });
+              setTextRequest("");
+            }}
+          >
+            <label htmlFor={`${controlsId}-request`}>Text request</label>
+            <div>
+              <input
+                id={`${controlsId}-request`}
+                type="text"
+                value={textRequest}
+                maxLength={4000}
+                placeholder="Ask Sam…"
+                onChange={(event) => setTextRequest(event.currentTarget.value)}
+              />
+              <button
+                type="submit"
+                disabled={!textRequest.trim() || pending || state.connection !== "connected"}
+              >
+                Send
+              </button>
+            </div>
+          </form>
           <button
             type="button"
             disabled={pending || state.connection !== "connected"}
@@ -174,6 +273,16 @@ export default function App() {
             onClick={() => applyAction({ type: "emergency_stop" })}
           >
             Emergency stop
+          </button>
+          <button
+            className="controls__capability-revoke"
+            type="button"
+            disabled={
+              pending || state.connection !== "connected" || !state.capabilityAuthorityActive
+            }
+            onClick={() => applyAction({ type: "capabilities.revoke_all" })}
+          >
+            {state.capabilityAuthorityActive ? "Disable all capabilities" : "Capabilities disabled"}
           </button>
           <button
             type="button"

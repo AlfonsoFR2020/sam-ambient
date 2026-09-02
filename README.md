@@ -23,6 +23,15 @@ On Linux or macOS:
 Run the current development harness with `./scripts/dev.ps1` or
 `./scripts/dev.sh`.
 
+Run the browser UI with the composed local runtime (Ollama, policy, bounded
+tools, and loopback protocol bridge) using `./scripts/ui-dev.ps1` or
+`./scripts/ui-dev.sh`. The runtime can also be started with an explicit
+authorized root:
+
+```powershell
+uv run sam runtime --root .
+```
+
 Phase 2 text mode uses Ollama's native local API and never requires an API key:
 
 ```powershell
@@ -42,7 +51,8 @@ endpoint can be selected explicitly with `--provider openai-compatible
 - `sam_ambient.adapters` owns platform and service integrations.
 - `sam_ambient.supervisor` is a separate authority boundary and never depends
   on model reasoning.
-- `ui` is presentation-only and will become the Tauri shell in Phase 5.
+- `ui` is presentation-only behind a replaceable transport and remains ready
+  for the deferred Tauri native shell.
 
 The project license is temporarily reserved pending the owner's specified
 MIT-vs-Apache-2.0 selection. See `LICENSE`.

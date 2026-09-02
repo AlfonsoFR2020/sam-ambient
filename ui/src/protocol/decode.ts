@@ -53,5 +53,8 @@ export function decodeProtocolEvent(raw: unknown): ProtocolEvent {
       event[key] = value;
     }
   }
+  if (event.type.startsWith("tool.") && !event.tool_call_id) {
+    throw new ProtocolDecodeError("tool events require tool_call_id");
+  }
   return event;
 }

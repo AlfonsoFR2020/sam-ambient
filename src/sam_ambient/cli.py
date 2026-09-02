@@ -7,6 +7,7 @@ import asyncio
 import os
 import sys
 from collections.abc import Callable, Sequence
+from pathlib import Path
 
 from sam_ambient import __version__
 from sam_ambient.adapters.ollama import (
@@ -25,6 +26,7 @@ from sam_ambient.core.providers import (
     ProviderError,
 )
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
+from sam_ambient.runtime import RuntimeConfig, SamRuntime
 
 
 def _add_provider_arguments(parser: argparse.ArgumentParser) -> None:
@@ -68,6 +70,20 @@ def build_parser() -> argparse.ArgumentParser:
     bridge = subparsers.add_parser("bridge", help="Serve the local UI protocol bridge")
     bridge.add_argument("--demo", action="store_true", help="Publish deterministic core events")
     bridge.add_argument("--port", type=int, default=8765, help="Loopback WebSocket port")
+
+    runtime = subparsers.add_parser("runtime", help="Serve the composed local Sam runtime")
+    _add_provider_arguments(runtime)
+    runtime.add_argument("--port", type=int, default=8765, help="Loopback WebSocket port")
+    runtime.add_argument(
+        "--root",
+        required=True,
+        help="Authorized workspace root exposed as the read-only 'workspace' capability root",
+    )
+    runtime.add_argument(
+        "--allow-cloud",
+        action="store_true",
+        help="Permit the explicitly configured cloud provider before private tool data exists",
+    )
     return parser
 
 
@@ -196,6 +212,26 @@ async def run_doctor(args: argparse.Namespace) -> int:
         await provider.aclose()
 
 
+async def run_runtime(args: argparse.Namespace) -> int:
+    provider = create_provider(args)
+    runtime = SamRuntime(
+        provider,
+        RuntimeConfig(
+            workspace_root=Path(args.root),
+            port=args.port,
+            model=args.model,
+            allow_cloud=args.allow_cloud,
+        ),
+    )
+    try:
+        await runtime.start()
+        print(f"Sam runtime listening on ws://127.0.0.1:{runtime.bridge.port}")
+        await runtime.serve_forever()
+        return 0
+    finally:
+        await runtime.close()
+
+
 async def _dispatch(args: argparse.Namespace) -> int:
     if args.command == "chat":
         return await run_chat(args)
@@ -208,6 +244,8 @@ async def _dispatch(args: argparse.Namespace) -> int:
             raise ValueError("bridge currently requires --demo until the core lifecycle is wired")
         await run_demo_bridge(args.port)
         return 0
+    if args.command == "runtime":
+        return await run_runtime(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

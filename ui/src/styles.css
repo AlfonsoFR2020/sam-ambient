@@ -148,6 +148,14 @@ input {
   font-size: 0.66rem;
 }
 
+.status .status__authority {
+  margin-left: 6px;
+  border: 1px solid #d1a87826;
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: #c2a27e;
+}
+
 .status__mark {
   width: 8px;
   height: 8px;
@@ -238,6 +246,38 @@ input {
   backdrop-filter: blur(18px);
 }
 
+.controls__request {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.controls__request > label {
+  color: #8590a5;
+  font-size: 0.7rem;
+}
+
+.controls__request > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.controls__request input {
+  min-width: 0;
+  border: 1px solid #c1cce020;
+  border-radius: 11px;
+  padding: 9px 10px;
+  color: #dbe2ef;
+  outline: none;
+  background: #0509128c;
+}
+
+.controls__request input:focus {
+  border-color: #9eb8df66;
+}
+
 .controls button {
   border: 1px solid #c1cce020;
   border-radius: 11px;
@@ -260,6 +300,10 @@ input {
 
 .controls .controls__emergency {
   color: #e4b1ac;
+}
+
+.controls .controls__capability-revoke {
+  color: #d8b98f;
 }
 
 .brightness {
@@ -291,6 +335,88 @@ input {
   max-width: min(420px, 70vw);
   color: #e5b0aa;
   font-size: 0.75rem;
+}
+
+.tool-activity {
+  position: absolute;
+  right: clamp(24px, 5vw, 64px);
+  bottom: clamp(22px, 4vh, 48px);
+  z-index: 2;
+  width: min(320px, calc(100vw - 48px));
+  padding: 10px 12px;
+  border: 1px solid #b4c3de18;
+  border-radius: 14px;
+  color: #9ba7bc;
+  background: #0c111dc9;
+  box-shadow: 0 12px 40px #0005;
+  backdrop-filter: blur(14px);
+}
+
+.tool-activity p {
+  margin: 0;
+  font-size: 0.73rem;
+}
+
+.tool-activity p > span {
+  margin-right: 8px;
+  color: #68758c;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tool-activity p > strong {
+  margin-right: 8px;
+  color: #cdd5e4;
+  font-weight: 600;
+}
+
+.tool-activity p > small {
+  color: #809bb3;
+}
+
+.tool-activity p > em {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: #8792a6;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-approval {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid #b4c3de14;
+}
+
+.tool-approval > small {
+  display: block;
+  margin-top: 4px;
+  color: #ba9f8a;
+  font-size: 0.63rem;
+  text-transform: lowercase;
+}
+
+.tool-approval > div {
+  display: flex;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.tool-approval button {
+  border: 1px solid #b8cae52d;
+  border-radius: 999px;
+  padding: 5px 12px;
+  color: #b9c5d8;
+  background: #aabbd70d;
+  cursor: pointer;
+}
+
+.tool-approval button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 @keyframes breathe {
@@ -333,5 +459,10 @@ input {
   .controls,
   .controls-reveal {
     left: 20px;
+  }
+
+  .tool-activity {
+    right: 20px;
+    bottom: 72px;
   }
 }

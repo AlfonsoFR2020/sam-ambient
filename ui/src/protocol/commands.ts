@@ -26,6 +26,7 @@ export function createControlCommand(
   payload: Record<string, unknown>,
   state: Pick<UiState, "sessionId" | "turnId" | "generationId">,
   runtime: CommandRuntime = browserCommandRuntime,
+  toolCallId?: string,
 ): ControlCommand {
   const command: ControlCommand = {
     protocol: PROTOCOL_VERSION,
@@ -37,6 +38,7 @@ export function createControlCommand(
   if (state.sessionId) command.session_id = state.sessionId;
   if (state.turnId) command.turn_id = state.turnId;
   if (state.generationId) command.generation_id = state.generationId;
+  if (toolCallId) command.tool_call_id = toolCallId;
   return command;
 }
 
@@ -60,6 +62,18 @@ export function decodeControlCommand(raw: unknown): ControlCommand {
     throw new Error("monotonic_ms must be a non-negative safe integer");
   }
   if (!isObject(raw.payload)) throw new Error("command payload must be an object");
+  for (const key of [
+    "session_id",
+    "turn_id",
+    "generation_id",
+    "cancellation_id",
+    "tool_call_id",
+  ] as const) {
+    const value = raw[key];
+    if (value !== undefined && (typeof value !== "string" || !value.trim())) {
+      throw new Error(`${key} must be a non-blank string`);
+    }
+  }
   return raw as unknown as ControlCommand;
 }
 

@@ -35,6 +35,10 @@ export const CONTROL_COMMAND_TYPES = [
   "control.tts_output.set",
   "control.stop_speaking",
   "control.emergency_stop",
+  "control.user_message.submit",
+  "control.tool.approve",
+  "control.tool.deny",
+  "control.capabilities.revoke_all",
 ] as const;
 
 export type ControlCommandType = (typeof CONTROL_COMMAND_TYPES)[number];
@@ -49,6 +53,37 @@ export interface ControlCommand {
   turn_id?: string;
   generation_id?: string;
   cancellation_id?: string;
+  tool_call_id?: string;
+}
+
+export const TOOL_EVENT_TYPES = [
+  "tool.requested",
+  "tool.authorizing",
+  "tool.approval_requested",
+  "tool.started",
+  "tool.completed",
+  "tool.failed",
+  "tool.cancelled",
+  "tool.denied",
+] as const;
+
+export type ToolEventType = (typeof TOOL_EVENT_TYPES)[number];
+
+export interface ToolActivity {
+  toolCallId: string;
+  toolId: string;
+  eventType: ToolEventType;
+  riskClass?: string;
+  detail?: string;
+  monotonicMs: number;
+}
+
+export interface ToolApprovalRequest {
+  toolCallId: string;
+  toolId: string;
+  description: string;
+  riskClass?: string;
+  monotonicMs: number;
 }
 
 export interface TranscriptEntry {
@@ -80,7 +115,12 @@ export interface UiState {
   droppedVisualizationEvents: number;
   microphoneEnabled: boolean;
   ttsOutputEnabled: boolean;
+  capabilityAuthorityActive: boolean;
+  capabilityAuthorityEpoch: number;
+  capabilityAuthorityReason?: string;
   pendingCommandIds: readonly string[];
+  latestToolActivity: ToolActivity | null;
+  pendingToolApproval: ToolApprovalRequest | null;
   protocolError?: string;
 }
 
@@ -95,7 +135,11 @@ export const INITIAL_UI_STATE: UiState = {
   droppedVisualizationEvents: 0,
   microphoneEnabled: true,
   ttsOutputEnabled: true,
+  capabilityAuthorityActive: true,
+  capabilityAuthorityEpoch: 0,
   pendingCommandIds: [],
+  latestToolActivity: null,
+  pendingToolApproval: null,
 };
 
 export const isConversationalState = (value: unknown): value is ConversationalState =>

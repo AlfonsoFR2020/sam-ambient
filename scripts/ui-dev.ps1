@@ -7,7 +7,7 @@ $env:UV_CACHE_DIR = Join-Path $projectRoot ".cache/uv"
 $env:VITE_SAM_TRANSPORT = "core"
 
 $bridge = Start-Process -FilePath $uvCommand `
-    -ArgumentList @("run", "sam", "bridge", "--demo") `
+    -ArgumentList @("run", "sam", "runtime", "--root", $projectRoot) `
     -WorkingDirectory $projectRoot `
     -WindowStyle Hidden `
     -PassThru

@@ -126,3 +126,36 @@ master specification are recorded here.
 - **Consequence:** Browser development exercises the same versioned event and
   command envelopes as the future injected Tauri adapter. Remote binding and
   authentication remain deliberately unsupported.
+
+## D-011 — Runtime-owned capabilities and epoch revocation
+
+- **Status:** accepted, 2026-09-02
+- **Decision:** Project immutable registered tool descriptors into provider
+  schemas, but keep risk authorization, root scope, approval, execution, and a
+  process-local epoch-based capability authority exclusively in trusted core
+  code. A global revoke invalidates leases and pending approvals and cancels
+  cancellable active tools; only a non-tool trusted runtime API can restore it.
+- **Reason:** Model output and retrieved data are untrusted requests/data, never
+  authority. Separating per-call approval, policy authority, and global revoke
+  prevents prompt text or stale UI responses from escalating permissions.
+- **Consequence:** Phase 6A auto-allows bounded reads in configured roots, asks
+  for clipboard access/write, and denies external, privileged, and destructive
+  actions. `app.open` is registered and adapter-tested but policy-disabled.
+
+## D-012 — Phase 6B Linux desktop-control direction
+
+- **Status:** planned architecture only, 2026-09-02
+- **Decision:** Prefer AT-SPI semantic inspection/action, then desktop-native
+  KWin/D-Bus/XDG portal APIs, then constrained coordinate actions, with
+  screenshot/vision-derived targeting last. Keep read-only perception
+  (`desktop.inspect`, window/element reads), action (element/type/pointer), and
+  privacy-sensitive screenshot capabilities separate; perception never grants
+  action authority.
+- **Reason:** Structured accessible/native actions are more reliable and
+  governable than raw coordinates or vision, and capability visibility plus an
+  external global kill switch must precede desktop control.
+- **Consequence:** [Pelorus](https://github.com/linuxserver/pelorus) is
+  reference-only pending explicit license verification before any reuse.
+  [Nidara Desktop](https://github.com/nidara-project/nidara-desktop) is
+  architecture-only because it is GPL-3.0; no Nidara code may enter Sam. Phase
+  6A implements none of these desktop capabilities.
