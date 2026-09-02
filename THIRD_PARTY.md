@@ -1,7 +1,7 @@
 # Third-party software
 
 This inventory records dependencies, external services, and any copied code.
-Versions are pinned by `uv.lock` where applicable.
+Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 
 | Name | Version | License | Source | Purpose | Integration | Notices |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -29,14 +29,25 @@ Versions are pinned by `uv.lock` where applicable.
 | pluggy | 1.6.0 | MIT | https://github.com/pytest-dev/pluggy | pytest plugin system | Transitive development dependency | MIT notice |
 | Pygments | 2.21.0 | BSD-2-Clause | https://github.com/pygments/pygments | pytest failure highlighting | Transitive development dependency | BSD notice |
 | whisper.cpp | External/current | MIT | https://github.com/ggml-org/whisper.cpp | Separately managed local STT server | HTTP adapter only; not installed or bundled | Model files are separate assets and require their own provenance/license review |
+| Node.js | 24.19.0 (bundled development runtime) | MIT and bundled component notices | https://nodejs.org/ | Frontend development runtime | External developer tool | Retain upstream notices if redistributed |
+| pnpm | 11.19.0 | MIT | https://pnpm.io/ | Lockfile-based frontend package manager | External developer tool | None |
+| React / React DOM | 19.1.1 | MIT | https://react.dev/ | Ambient UI rendering | Frontend runtime dependency | Retain MIT notice |
+| Vite / React plugin | 7.1.5 / 5.0.2 | MIT | https://vite.dev/ | Frontend development and production build | Development dependencies | Retain MIT notices |
+| TypeScript | 5.9.2 | Apache-2.0 | https://www.typescriptlang.org/ | Typed frontend compilation | Development dependency | Retain Apache-2.0 notice |
+| Vitest | 3.2.4 | MIT | https://vitest.dev/ | Deterministic frontend tests | Development dependency | Retain MIT notice |
+| Biome | 2.2.3 | MIT OR Apache-2.0 | https://biomejs.dev/ | Frontend formatting and linting | Development dependency with native CLI | Retain selected license notice |
+| esbuild / Rollup / Babel | 0.25.12 / 4.63.1 / 7.29.x | MIT | https://github.com/evanw/esbuild | Transpilation and bundling used by Vite/Vitest | Transitive development dependencies, including platform binaries | Retain MIT notices |
+| caniuse-lite | 1.0.30001810 | CC-BY-4.0 | https://github.com/browserslist/caniuse-lite | Browser compatibility data used by build tooling | Transitive development data | Preserve attribution and CC-BY-4.0 notice |
 
 No third-party source has been copied or vendored. Dependency wheels may carry
 the native components explicitly inventoried above; no model or voice asset is
 stored in the repository.
 
 All resolved Python runtime and development package versions above are
-hash-pinned in `uv.lock`; licenses were checked from installed package metadata
-before use. Dependencies are linked/imported packages, not copied project code.
+hash-pinned in `uv.lock`. Frontend packages are pinned in `ui/pnpm-lock.yaml`;
+the resolved license set was checked from installed pnpm metadata and contains
+only MIT, MIT/Apache-2.0, Apache-2.0, BSD-3-Clause, ISC, and CC-BY-4.0 terms.
+Dependencies are linked/imported packages, not copied project code.
 
 ## References not reused
 

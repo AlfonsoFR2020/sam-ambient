@@ -96,3 +96,19 @@ master specification are recorded here.
   preserve the response queue. Confirmed candidates retain their STT identity
   as the next user turn. Logical cancellation occurs synchronously before event
   bus backpressure; physical stop latency still requires target-hardware tests.
+
+## D-009 — Shell-neutral Phase 5A frontend
+
+- **Status:** accepted, 2026-09-02
+- **Decision:** Keep the React presentation behind a `ProtocolTransport`
+  boundary. In-memory demo and browser-event transports implement the same
+  protocol path; a tiny injected `NativeEventSource` is the only future Tauri
+  seam. Lossy voice/playback metrics coalesce once per animation frame while
+  durable state and transcript events reduce immediately.
+- **Reason:** This makes protocol, state, reconnection, and visual behavior
+  independently testable without pretending a missing native toolchain is a
+  valid Tauri build. It also preserves the specification's future local/mobile
+  transport replacement path.
+- **Consequence:** Phase 5A ships a browser build and Tauri 2 metadata only. The
+  Rust host and concrete Python-core bridge remain Phase 5B work; no direct
+  Tauri API import leaks into presentation components.

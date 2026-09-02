@@ -4,7 +4,7 @@ Updated: 2026-09-02
 
 ## Current milestone
 
-- Phases 0–4 are complete and committed as green vertical slices.
+- Phases 0–4 and Phase 5A are complete and committed as green vertical slices.
 - Phase 0 established the reproducible Python package, scripts, protocol seam,
   supervisor/update separation, and rollback-oriented filesystem skeleton.
 - Repository initialized on `main`; reproducible Python package skeleton and
@@ -52,6 +52,19 @@ Updated: 2026-09-02
   unheard text separately; false recovery leaves the next unplayed chunk intact.
 - Quality gate: Ruff lint/format plus 104 tests collected (103 pass, optional
   live Ollama probe skipped unless explicitly enabled) on Python 3.12.11.
+- Phase 5A complete: React/TypeScript/Vite ambient frontend, protocol-v1 decoder,
+  authoritative UI reducer, stale-event rejection, animation-frame coalescing
+  for lossy metrics, reconnect-safe client, and replaceable transport boundary.
+- The browser demo uses production protocol envelopes and deterministically
+  exercises a normal turn, true interruption, false interruption/recovery,
+  disconnect/reconnect, provisional/final transcripts, and burst voice levels.
+- CSS variables driven by normalized RMS, peak, speech probability, playback
+  envelope, and conversational state render the ambient field. Reduced-motion,
+  visual intensity, interrupted transcript, and connection/offline presentation
+  are included without Three.js or a frontend state-management dependency.
+- Phase 5A quality gate: Biome format/lint, TypeScript typecheck, 13 Vitest tests,
+  and Vite production browser build pass. The existing Python deterministic
+  suite remains the separate core gate.
 
 ## Environment
 
@@ -59,8 +72,12 @@ Updated: 2026-09-02
 - Git: 2.55.0.windows.5.
 - Python: 3.12.11 and 3.14.2 available; project targets Python >=3.12.
 - uv: 0.9.26.
-- Node/Rust/Tauri toolchains are not installed and are not needed before UI
-  Phase 5.
+- Bundled Node.js 24.19.0 and pnpm 11.19.0 drive the frontend. No privileged
+  system toolchain installation was performed.
+- Rust is still required for the native host. A Windows Tauri build additionally
+  requires MSVC C++ Build Tools; both are intentionally deferred. Because Linux
+  is the primary deployment target, a Linux/WSL native build route may be
+  evaluated before changing this Windows host.
 
 ## Architecture/invariants
 
@@ -101,10 +118,11 @@ Updated: 2026-09-02
 - The upstream sounddevice Windows wheel contains inactive ASIO-enabled DLLs;
   Sam does not load them, and a distributable bundle must exclude or separately
   approve them.
-- Tauri/Node/Rust installation is deferred until the UI phase to avoid unused
-  toolchain cost.
-- Exact next step: Phase 5 ambient UI consuming authoritative protocol/state and
-  real audio metrics. Do not begin it as part of the Phase 4 milestone.
+- Tauri 2 identity/build metadata is scaffolded, but no native build is claimed.
+  The future host must implement the injected `NativeEventSource` and the actual
+  local Python-core transport while preserving durable/lossy event semantics.
+- Exact next step: Phase 5B native Tauri host/core bridge plus essential ambient
+  controls and accessibility polish. Do not begin Phase 6 before that slice.
 
 ## Commands
 
