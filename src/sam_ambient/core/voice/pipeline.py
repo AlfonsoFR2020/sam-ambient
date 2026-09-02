@@ -1,0 +1,192 @@
+"""Event-driven microphone/VAD/STT orchestration for one user turn."""
+
+from __future__ import annotations
+
+import math
+import sys
+from array import array
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
+
+from sam_ambient.core.protocol import EventType, ProtocolEvent
+from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
+from sam_ambient.core.voice.interfaces import AudioInput, SpeechToText, VoiceActivityDetector
+from sam_ambient.core.voice.models import AudioFrame, SampleFormat, Transcript, VoiceStreamContext
+
+
+class VoicePipelineEnded(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class VoiceInputResult:
+    transcript: Transcript
+    audio_frames: int
+
+
+EventPublisher = Callable[[ProtocolEvent], Awaitable[None]]
+
+
+class VoiceInputPipeline:
+    """Capture exactly one committed user turn while publishing protocol events."""
+
+    def __init__(
+        self,
+        *,
+        capture: AudioInput,
+        vad: VoiceActivityDetector,
+        stt: SpeechToText,
+        turn_manager: TurnManager,
+        publish: EventPublisher,
+        language: str = "auto",
+        unknown_confidence: float = 0.5,
+    ) -> None:
+        if not language.strip():
+            raise ValueError("language must be non-blank")
+        if not 0.0 <= unknown_confidence <= 1.0:
+            raise ValueError("unknown_confidence must be between 0 and 1")
+        self._capture = capture
+        self._vad = vad
+        self._stt = stt
+        self._turn_manager = turn_manager
+        self._publish = publish
+        self._language = language
+        self._unknown_confidence = unknown_confidence
+
+    async def run(self, cancellation: CancellationToken) -> VoiceInputResult:
+        if self._turn_manager.state is not VoiceState.IDLE:
+            raise RuntimeError("voice input pipeline must start from IDLE")
+
+        stt_stream = None
+        candidate_since_ms: int | None = None
+        final_transcript: Transcript | None = None
+        last_partial: Transcript | None = None
+        audio_frames = 0
+        frame_stream = self._capture.frames(cancellation)
+        try:
+            async for frame in frame_stream:
+                if stt_stream is None:
+                    await self._publish_all(
+                        self._turn_manager.start_listening(
+                            frame.monotonic_ms,
+                            cancellation_id=cancellation.cancellation_id,
+                        )
+                    )
+                    context = VoiceStreamContext(
+                        session_id=self._turn_manager.session_id,
+                        turn_id=self._require_id(self._turn_manager.turn_id, "turn_id"),
+                        cancellation_id=cancellation.cancellation_id,
+                        language=self._language,
+                    )
+                    stt_stream = await self._stt.start_stream(context, cancellation)
+
+                await stt_stream.push_audio(frame, cancellation)
+                audio_frames += 1
+                await self._publish(self._level_event(frame))
+
+                vad_result = self._vad.analyze(frame)
+                vad_events = self._turn_manager.on_vad(
+                    frame.monotonic_ms,
+                    vad_result.speech_probability,
+                )
+                await self._publish_all(vad_events)
+                if self._turn_manager.state is VoiceState.ENDPOINT_CANDIDATE:
+                    if candidate_since_ms is None:
+                        candidate_since_ms = frame.monotonic_ms
+                else:
+                    candidate_since_ms = None
+
+                partial = await stt_stream.partial_transcript()
+                if partial is not None and partial != last_partial:
+                    await self._publish_transcript(frame.monotonic_ms, partial)
+                    last_partial = partial
+
+                if self._should_finalize(frame.monotonic_ms, candidate_since_ms):
+                    final_transcript = await stt_stream.finalize(cancellation)
+                    if final_transcript != last_partial:
+                        await self._publish_transcript(frame.monotonic_ms, final_transcript)
+                        last_partial = final_transcript
+
+                time_events = self._turn_manager.on_time(frame.monotonic_ms)
+                await self._publish_all(time_events)
+                if any(event.type == EventType.TURN_COMMITTED for event in time_events):
+                    if final_transcript is None:
+                        final_transcript = await stt_stream.finalize(cancellation)
+                    return VoiceInputResult(final_transcript, audio_frames)
+        finally:
+            try:
+                close_frames = getattr(frame_stream, "aclose", None)
+                if close_frames is not None:
+                    await close_frames()
+            finally:
+                if stt_stream is not None and final_transcript is None:
+                    await stt_stream.cancel(
+                        cancellation.cancellation_id,
+                        "voice_pipeline_stopped",
+                    )
+        raise VoicePipelineEnded("audio input ended before a user turn was committed")
+
+    def _should_finalize(self, at_ms: int, candidate_since_ms: int | None) -> bool:
+        if candidate_since_ms is None:
+            return False
+        return at_ms - candidate_since_ms >= self._turn_manager.endpoint_threshold_ms
+
+    async def _publish_transcript(self, at_ms: int, transcript: Transcript) -> None:
+        confidence = (
+            transcript.confidence if transcript.confidence is not None else self._unknown_confidence
+        )
+        await self._publish_all(
+            self._turn_manager.on_transcript(
+                at_ms,
+                transcript.text,
+                is_final=transcript.is_final,
+                confidence=confidence,
+            )
+        )
+
+    async def _publish_all(self, events: tuple[ProtocolEvent, ...]) -> None:
+        for event in events:
+            await self._publish(event)
+
+    def _level_event(self, frame: AudioFrame) -> ProtocolEvent:
+        return ProtocolEvent(
+            type=EventType.VOICE_LEVEL,
+            monotonic_ms=frame.monotonic_ms,
+            session_id=self._turn_manager.session_id,
+            turn_id=self._turn_manager.turn_id,
+            cancellation_id=self._turn_manager.cancellation_id,
+            payload={
+                "level": normalized_audio_level(frame),
+                "sequence": frame.sequence,
+                "dropped_before": frame.dropped_before,
+            },
+        )
+
+    @staticmethod
+    def _require_id(value: str | None, name: str) -> str:
+        if value is None:
+            raise RuntimeError(f"turn manager did not assign {name}")
+        return value
+
+
+def normalized_audio_level(frame: AudioFrame) -> float:
+    """Return an RMS level in [0, 1] for supported PCM frame formats."""
+
+    if frame.format.channels != 1:
+        raise ValueError("audio level currently requires mono PCM")
+    if frame.format.sample_format is SampleFormat.PCM_S16LE:
+        samples = array("h")
+        samples.frombytes(frame.data)
+        if sys.byteorder != "little":
+            samples.byteswap()
+        scale = 32_768.0
+    elif frame.format.sample_format is SampleFormat.PCM_F32LE:
+        samples = array("f")
+        samples.frombytes(frame.data)
+        if sys.byteorder != "little":
+            samples.byteswap()
+        scale = 1.0
+    else:  # pragma: no cover - SampleFormat is exhaustive
+        raise ValueError("unsupported sample format")
+    mean_square = sum(float(sample) ** 2 for sample in samples) / len(samples)
+    return min(1.0, math.sqrt(mean_square) / scale)

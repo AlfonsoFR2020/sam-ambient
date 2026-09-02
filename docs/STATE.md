@@ -1,15 +1,16 @@
 # Sam implementation state
 
-Updated: 2026-09-01
+Updated: 2026-09-02
 
 ## Current milestone
 
-- Phase 0 bootstrap complete; its lint/format/test gate is green.
+- Phases 0–3 are complete and committed as green vertical slices.
+- Phase 0 established the reproducible Python package, scripts, protocol seam,
+  supervisor/update separation, and rollback-oriented filesystem skeleton.
 - Repository initialized on `main`; reproducible Python package skeleton and
   one-command bootstrap/test/dev scripts are present.
 - Phase 1 complete: protocol v1 models, bounded event bus, idempotent
   cancellation registry, and deterministic multi-signal turn state machine.
-- Quality gate: Ruff lint/format plus 30 tests green on Python 3.12.11.
 - Voice simulations cover normal endpointing, mid-sentence pauses, sustained
   interruption, credible-content interruption, cough/backchannel/echo recovery,
   false endpoint resume, STT revision, minimum speech, and audio loss.
@@ -18,9 +19,20 @@ Updated: 2026-09-01
   privacy-gated fallback, and `sam chat/models/doctor` text harness.
 - HTTP transport uses HTTPX `AsyncClient.stream()`; token cancellation is tested
   to close the active response stream before surfacing `OperationCancelled`.
-- Quality gate: Ruff lint/format plus 50 tests collected (49 pass, optional live
-  Ollama probe skipped when not explicitly enabled).
-- Phase 3 audio/STT/TTS adapter evaluation is next.
+- Phase 3 complete: validated bounded PCM frames; provider-neutral `AudioInput`,
+  `AudioOutput`, VAD, streaming STT, and streaming TTS contracts; deterministic
+  sentence chunking; cancellable audio/STT/TTS flows; and one-turn voice event
+  orchestration ready for Phase 4.
+- Concrete Phase 3 adapters are sounddevice/PortAudio fixed-frame I/O, WebRTC
+  VAD, and a local-only-by-default whisper.cpp server adapter. Audio flows by
+  direct async iteration (strict backpressure); native overflow and adapter
+  failures are surfaced. Existing bounded event-bus queues preserve durable
+  events and may drop only stale voice-level visualization events.
+- Production TTS is intentionally deferred. The neutral contract and
+  deterministic fake are green; the evaluated Kokoro Python route was rejected
+  because its current phonemizer/eSpeak dependency chain introduces GPL terms.
+- Quality gate: Ruff lint/format plus 71 tests collected (70 pass, optional live
+  Ollama probe skipped unless explicitly enabled) on Python 3.12.11.
 
 ## Environment
 
@@ -45,16 +57,28 @@ Updated: 2026-09-01
 - Cloud fallback defaults off and will be enforced outside the model.
 - Only loopback Ollama endpoints are classified local; other hosts cross the
   cloud/privacy routing boundary unless explicitly overridden.
-- No third-party source has been copied or vendored; HTTPX is a BSD-3-Clause
-  runtime dependency with transitive licenses recorded in `THIRD_PARTY.md`.
+- No third-party source, model, voice, or downloaded binary is stored in the
+  repository; dependency/native license details are recorded in
+  `THIRD_PARTY.md`.
 
 ## Known decisions/open items
 
 - See `docs/DECISIONS.md`.
 - Owner's MIT-vs-Apache-2.0 project license selection remains pending; this is
   not blocking internal implementation.
+- whisper.cpp STT currently emits final transcripts only; its live server/model
+  and physical audio devices are not required by deterministic CI and remain
+  unverified on target Linux hardware.
+- No production TTS backend/voice is selected, so end-to-end spoken output is
+  not enabled yet. Text-only `sam chat/models/doctor` remains available without
+  opening audio hardware.
+- The upstream sounddevice Windows wheel contains inactive ASIO-enabled DLLs;
+  Sam does not load them, and a distributable bundle must exclude or separately
+  approve them.
 - Tauri/Node/Rust installation is deferred until the UI phase to avoid unused
   toolchain cost.
+- Exact next step: Phase 4 barge-in using the established cancellation and voice
+  component boundaries. Do not begin it as part of the Phase 3 milestone.
 
 ## Commands
 

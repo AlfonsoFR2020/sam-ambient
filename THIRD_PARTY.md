@@ -8,6 +8,12 @@ Versions are pinned by `uv.lock` where applicable.
 | uv | 0.9.26 (bootstrap environment) | MIT OR Apache-2.0 | https://github.com/astral-sh/uv | Reproducible development environment | External developer tool | None |
 | CPython | 3.12.11 / 3.14.2 available at bootstrap | Python-2.0 | https://www.python.org/ | Runtime/toolchain | External runtime | PSF license applies |
 | HTTPX | 0.28.1 | BSD-3-Clause | https://github.com/encode/httpx | Async HTTP, streaming, timeouts, connection pooling | Runtime dependency | Retain BSD notice |
+| sounddevice | 0.5.6 | MIT | https://github.com/spatialaudio/python-sounddevice | Fixed-frame microphone capture and playback | Runtime dependency | Retain MIT notice; Windows wheel also contains PortAudio binaries |
+| PortAudio | V19.7.0-devel in current Windows wheel | MIT | https://github.com/PortAudio/portaudio | Native audio device transport used by sounddevice | Transitive native runtime | Retain MIT notice |
+| Steinberg ASIO SDK artifacts | Upstream sounddevice Windows wheel variants | Proprietary SDK terms | https://www.steinberg.net/developers/ | Optional ASIO-enabled PortAudio DLL variants | Inactive upstream wheel artifacts; Sam does not set `SD_ENABLE_ASIO` | Exclude from a redistributable Sam bundle unless separately reviewed and approved |
+| webrtcvad-wheels | 2.0.14 | MIT wrapper; BSD-3-Clause WebRTC VAD | https://github.com/daanzu/py-webrtcvad-wheels | Proven local VAD | Runtime dependency with native extension | Retain MIT and embedded WebRTC BSD notices |
+| CFFI | 2.1.1 | MIT-0 | https://github.com/python-cffi/cffi | sounddevice native binding | Transitive runtime dependency | Retain MIT-0 notice |
+| pycparser | 3.0 | BSD-3-Clause | https://github.com/eliben/pycparser | CFFI parser support | Transitive runtime dependency | Retain BSD notice |
 | AnyIO | 4.14.2 | MIT | https://github.com/agronholm/anyio | HTTPX async compatibility | Transitive runtime dependency | MIT notice |
 | certifi | 2026.7.22 | MPL-2.0 | https://github.com/certifi/python-certifi | HTTPS CA bundle | Transitive runtime dependency | Include MPL-2.0 notice and source URL when redistributed; modifications remain MPL-2.0 |
 | h11 | 0.16.0 | MIT | https://github.com/python-hyper/h11 | HTTP/1.1 protocol for HTTP Core | Transitive runtime dependency | MIT notice |
@@ -22,8 +28,11 @@ Versions are pinned by `uv.lock` where applicable.
 | packaging | 26.3 | Apache-2.0 OR BSD-2-Clause | https://github.com/pypa/packaging | pytest version/marker handling | Transitive development dependency | License choice notices |
 | pluggy | 1.6.0 | MIT | https://github.com/pytest-dev/pluggy | pytest plugin system | Transitive development dependency | MIT notice |
 | Pygments | 2.21.0 | BSD-2-Clause | https://github.com/pygments/pygments | pytest failure highlighting | Transitive development dependency | BSD notice |
+| whisper.cpp | External/current | MIT | https://github.com/ggml-org/whisper.cpp | Separately managed local STT server | HTTP adapter only; not installed or bundled | Model files are separate assets and require their own provenance/license review |
 
-No third-party source has been copied or vendored.
+No third-party source has been copied or vendored. Dependency wheels may carry
+the native components explicitly inventoried above; no model or voice asset is
+stored in the repository.
 
 All resolved Python runtime and development package versions above are
 hash-pinned in `uv.lock`; licenses were checked from installed package metadata
@@ -36,3 +45,7 @@ before use. Dependencies are linked/imported packages, not copied project code.
   Sam uses an independently structured provider-neutral core.
 - AGPL/GPL reference projects named by the specification are not dependencies
   and no code from them is included.
+- `kokoro-onnx` was evaluated but not included. Its current Python dependency
+  route pulls `phonemizer-fork`/eSpeak-NG under GPL-3.0-family terms. No Kokoro
+  runtime, phonemizer, binary, model, or voice asset is present; the production
+  TTS engine remains deliberately unselected.

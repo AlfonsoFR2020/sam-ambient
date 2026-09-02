@@ -297,6 +297,12 @@ class TurnManager:
                 )
         return ()
 
+    @property
+    def endpoint_threshold_ms(self) -> int:
+        """Current silence threshold, exposed for STT finalization coordination."""
+
+        return self._endpoint_threshold_ms()
+
     def on_model_started(
         self,
         at_ms: int,

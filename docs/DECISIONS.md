@@ -53,3 +53,29 @@ master specification are recorded here.
 - **Consequence:** HTTPX and transitive licenses are recorded in
   `THIRD_PARTY.md`; certifi is unmodified MPL-2.0 data/dependency. Cancellation
   cancels the consuming task and the response context closes the stream.
+
+## D-006 — Phase 3 local voice adapters
+
+- **Status:** accepted, 2026-09-02
+- **Decision:** Use sounddevice/PortAudio for fixed-frame audio I/O, WebRTC VAD,
+  and an HTTP adapter to a separately managed loopback whisper.cpp server.
+- **Reason:** These are mature, replaceable implementations behind neutral
+  `AudioInput`, `AudioOutput`, `VAD`, and `STT` contracts. Direct async iteration
+  applies backpressure without another audio queue; native overflow is surfaced
+  as an error rather than hiding lost audio.
+- **Consequence:** STT is finalize-only for now and models stay external. Windows
+  packages must exclude or separately approve the unused ASIO-enabled DLLs
+  included in upstream sounddevice wheels.
+
+## D-007 — Production TTS selection deferred
+
+- **Status:** accepted, 2026-09-02
+- **Decision:** Complete Phase 3 with the provider-neutral streaming TTS
+  contract, deterministic sentence chunking, cancellation tests, and a test
+  double; do not ship a production TTS engine yet.
+- **Reason:** The evaluated Kokoro Python route currently pulls
+  `phonemizer-fork`/eSpeak-NG GPL dependencies. Building speech synthesis or
+  phonemization from scratch would add unjustified maintenance and license risk.
+- **Consequence:** No Kokoro/Piper runtime, model, voice, or reciprocal-license
+  code is included. Phase 4 can integrate against the stable TTS cancellation
+  boundary while a commercially acceptable backend is selected separately.
