@@ -1,6 +1,17 @@
 """Voice pipeline domain interfaces."""
 
 from sam_ambient.core.voice.chunker import SentenceChunker
+from sam_ambient.core.voice.delivery import (
+    AssistantDeliveryLedger,
+    BoundedSpeechQueue,
+    DeliveredChunk,
+    DeliveryLimitExceeded,
+    DeliverySnapshot,
+    InterruptionCoordinator,
+    InterruptionEffects,
+    SpeechChunk,
+    SpeechChunkState,
+)
 from sam_ambient.core.voice.interfaces import (
     AudioInput,
     AudioOutput,
@@ -18,6 +29,8 @@ from sam_ambient.core.voice.models import (
     VoiceStreamContext,
 )
 from sam_ambient.core.voice.pipeline import (
+    BargeInController,
+    BargeInResult,
     VoiceInputPipeline,
     VoiceInputResult,
     VoicePipelineEnded,
@@ -25,12 +38,23 @@ from sam_ambient.core.voice.pipeline import (
 )
 
 __all__ = [
+    "AssistantDeliveryLedger",
     "AudioFormat",
     "AudioFrame",
     "AudioInput",
     "AudioOutput",
+    "BargeInController",
+    "BargeInResult",
+    "BoundedSpeechQueue",
+    "DeliveredChunk",
+    "DeliveryLimitExceeded",
+    "DeliverySnapshot",
+    "InterruptionCoordinator",
+    "InterruptionEffects",
     "SampleFormat",
     "SentenceChunker",
+    "SpeechChunk",
+    "SpeechChunkState",
     "SpeechToText",
     "SpeechToTextStream",
     "TextToSpeech",

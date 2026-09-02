@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from sam_ambient.core.protocol import EventType, ProtocolEvent
 from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
+from sam_ambient.core.voice.delivery import InterruptionCoordinator, InterruptionEffects
 from sam_ambient.core.voice.interfaces import AudioInput, SpeechToText, VoiceActivityDetector
 from sam_ambient.core.voice.models import AudioFrame, SampleFormat, Transcript, VoiceStreamContext
 
@@ -24,7 +25,80 @@ class VoiceInputResult:
     audio_frames: int
 
 
+@dataclass(frozen=True, slots=True)
+class BargeInResult:
+    events: tuple[ProtocolEvent, ...]
+    effects: InterruptionEffects
+
+
 EventPublisher = Callable[[ProtocolEvent], Awaitable[None]]
+
+
+class BargeInController:
+    """Turn continuous VAD/STT evidence into authoritative interruption effects."""
+
+    _ACTIVE_STATES = frozenset(
+        {
+            VoiceState.THINKING,
+            VoiceState.SPEAKING,
+            VoiceState.INTERRUPTION_CANDIDATE,
+            VoiceState.RECOVERING,
+        }
+    )
+
+    def __init__(
+        self,
+        *,
+        vad: VoiceActivityDetector,
+        turn_manager: TurnManager,
+        interruptions: InterruptionCoordinator,
+        publish: EventPublisher,
+    ) -> None:
+        self._vad = vad
+        self._turn_manager = turn_manager
+        self._interruptions = interruptions
+        self._publish = publish
+
+    async def process_audio_frame(self, frame: AudioFrame) -> BargeInResult:
+        if self._turn_manager.state not in self._ACTIVE_STATES:
+            raise RuntimeError(f"barge-in controller is inactive in {self._turn_manager.state}")
+        vad = self._vad.analyze(frame)
+        events = self._turn_manager.on_vad(frame.monotonic_ms, vad.speech_probability)
+        events += self._turn_manager.on_time(frame.monotonic_ms)
+        return await self._apply_and_publish(events)
+
+    async def process_transcript(
+        self,
+        at_ms: int,
+        transcript: Transcript,
+        *,
+        cancellation_id: str,
+    ) -> BargeInResult:
+        if cancellation_id != self._turn_manager.candidate_cancellation_id:
+            return await self._apply_and_publish(())
+        if self._turn_manager.state not in {
+            VoiceState.INTERRUPTION_CANDIDATE,
+            VoiceState.RECOVERING,
+        }:
+            raise RuntimeError("candidate transcript received without an interruption candidate")
+        confidence = transcript.confidence if transcript.confidence is not None else 0.5
+        events = self._turn_manager.on_transcript(
+            at_ms,
+            transcript.text,
+            is_final=transcript.is_final,
+            confidence=confidence,
+        )
+        return await self._apply_and_publish(events)
+
+    async def _apply_and_publish(
+        self,
+        events: tuple[ProtocolEvent, ...],
+    ) -> BargeInResult:
+        # Apply cancellation before any subscriber backpressure can delay audio stop.
+        effects = self._interruptions.apply(events)
+        for event in events:
+            await self._publish(event)
+        return BargeInResult(events=events, effects=effects)
 
 
 class VoiceInputPipeline:

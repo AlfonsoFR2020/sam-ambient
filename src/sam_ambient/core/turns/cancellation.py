@@ -23,6 +23,7 @@ class CancellationToken:
     _event: asyncio.Event = field(default_factory=asyncio.Event, init=False, repr=False)
     _reason: str | None = field(default=None, init=False, repr=False)
     _callbacks: list[Callable[[str], None]] = field(default_factory=list, init=False, repr=False)
+    _callback_errors: list[Exception] = field(default_factory=list, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if not self.cancellation_id.strip():
@@ -36,9 +37,13 @@ class CancellationToken:
     def reason(self) -> str | None:
         return self._reason
 
+    @property
+    def callback_errors(self) -> tuple[Exception, ...]:
+        return tuple(self._callback_errors)
+
     def add_callback(self, callback: Callable[[str], None]) -> Callable[[], None]:
         if self.is_cancelled:
-            callback(self._reason or "cancelled")
+            self._invoke_callback(callback, self._reason or "cancelled")
             return lambda: None
         self._callbacks.append(callback)
 
@@ -60,8 +65,15 @@ class CancellationToken:
         self._event.set()
         callbacks, self._callbacks = self._callbacks, []
         for callback in callbacks:
-            callback(normalized_reason)
+            self._invoke_callback(callback, normalized_reason)
         return True
+
+    def _invoke_callback(self, callback: Callable[[str], None], reason: str) -> None:
+        try:
+            callback(reason)
+        except Exception as error:
+            # One faulty adapter must not prevent cancellation of the others.
+            self._callback_errors.append(error)
 
     async def wait(self) -> str:
         await self._event.wait()
@@ -91,8 +103,21 @@ class CancellationRegistry:
             token = self.create(cancellation_id)
         return token
 
+    def get(self, cancellation_id: str) -> CancellationToken | None:
+        return self._tokens.get(cancellation_id)
+
     def cancel(self, cancellation_id: str, reason: str = "cancelled") -> bool:
         return self.get_or_create(cancellation_id).cancel(reason)
+
+    def cancel_if_registered(
+        self,
+        cancellation_id: str,
+        reason: str = "cancelled",
+    ) -> bool:
+        """Cancel a known operation without materializing stale identities."""
+
+        token = self._tokens.get(cancellation_id)
+        return False if token is None else token.cancel(reason)
 
     def discard(self, cancellation_id: str) -> CancellationToken | None:
         return self._tokens.pop(cancellation_id, None)

@@ -39,7 +39,7 @@ def test_interruption_event_cancels_bound_pipeline_identity() -> None:
     manager.on_vad(500, 0.0)
     manager.on_time(850)
     manager.on_model_started(851, generation_id="generation-1", cancellation_id="cancel-1")
-    manager.on_tts_started(852)
+    manager.on_tts_started(852, generation_id="generation-1")
     manager.on_vad(900, 0.9)
 
     events = manager.on_time(1080)

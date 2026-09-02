@@ -40,3 +40,29 @@ def test_registry_propagates_unknown_cancellation_once() -> None:
     assert registry.cancel("cancel-remote", "remote request") is True
     assert registry.cancel("cancel-remote", "duplicate") is False
     assert registry.get_or_create("cancel-remote").reason == "remote request"
+
+
+def test_callback_failure_does_not_block_other_component_cancellation() -> None:
+    token = CancellationToken("cancel-components")
+    callbacks: list[str] = []
+
+    def broken(_reason: str) -> None:
+        callbacks.append("model")
+        raise RuntimeError("model callback failed")
+
+    token.add_callback(broken)
+    token.add_callback(lambda _reason: callbacks.append("tts"))
+    token.add_callback(lambda _reason: callbacks.append("audio"))
+
+    assert token.cancel("barge-in")
+    assert callbacks == ["model", "tts", "audio"]
+    assert len(token.callback_errors) == 1
+
+
+def test_cancel_if_registered_does_not_recreate_finished_identity() -> None:
+    registry = CancellationRegistry()
+    registry.create("finished")
+    registry.discard("finished")
+
+    assert registry.cancel_if_registered("finished", "late") is False
+    assert registry.get("finished") is None

@@ -4,7 +4,7 @@ Updated: 2026-09-02
 
 ## Current milestone
 
-- Phases 0–3 are complete and committed as green vertical slices.
+- Phases 0–4 are complete and committed as green vertical slices.
 - Phase 0 established the reproducible Python package, scripts, protocol seam,
   supervisor/update separation, and rollback-oriented filesystem skeleton.
 - Repository initialized on `main`; reproducible Python package skeleton and
@@ -33,6 +33,25 @@ Updated: 2026-09-02
   because its current phonemizer/eSpeak dependency chain introduces GPL terms.
 - Quality gate: Ruff lint/format plus 71 tests collected (70 pass, optional live
   Ollama probe skipped unless explicitly enabled) on Python 3.12.11.
+- Phase 4 complete: continuous VAD/optional transcript evidence enters a
+  reversible `INTERRUPTION_CANDIDATE`; sustained or credible speech confirms,
+  while coughs, backchannels, short noise, and false candidates recover without
+  replaying or cancelling remaining response audio.
+- Interruption policy modes share one implementation: aggressive/balanced/
+  conservative use 108/180/288 ms sustained-speech thresholds. Credible-text
+  confidence thresholds are 0.55/0.65/0.80 (conservative requires final STT);
+  false candidates recover after 900 ms and known backchannels require 3x the
+  duration threshold before duration-only confirmation.
+- Confirmed interruption synchronously cancels the generation token before
+  publishing events, propagating to model streaming, TTS production/queue, and
+  playback. Callback failures are isolated, cancellation is idempotent, stale
+  generation events are ignored, and provisional STT is cancelled only when a
+  candidate is rejected or abandoned.
+- A bounded speech queue and bounded delivery history record generated, queued,
+  playing, spoken, and cancelled chunks. Interrupted history exposes heard and
+  unheard text separately; false recovery leaves the next unplayed chunk intact.
+- Quality gate: Ruff lint/format plus 104 tests collected (103 pass, optional
+  live Ollama probe skipped unless explicitly enabled) on Python 3.12.11.
 
 ## Environment
 
@@ -72,13 +91,20 @@ Updated: 2026-09-02
 - No production TTS backend/voice is selected, so end-to-end spoken output is
   not enabled yet. Text-only `sam chat/models/doctor` remains available without
   opening audio hardware.
+- Interruption stop is 0 ms in deterministic logical-time simulations because
+  token cancellation precedes event publication. The <250 ms physical target,
+  acoustic echo cancellation, microphone/speaker coupling, and false-trigger
+  tuning still require target-hardware measurement; no custom AEC was added.
+- Delivery accounting is sentence/chunk-level. A partially played chunk at
+  cancellation is conservatively treated as unspoken; word-level alignment is
+  intentionally deferred.
 - The upstream sounddevice Windows wheel contains inactive ASIO-enabled DLLs;
   Sam does not load them, and a distributable bundle must exclude or separately
   approve them.
 - Tauri/Node/Rust installation is deferred until the UI phase to avoid unused
   toolchain cost.
-- Exact next step: Phase 4 barge-in using the established cancellation and voice
-  component boundaries. Do not begin it as part of the Phase 3 milestone.
+- Exact next step: Phase 5 ambient UI consuming authoritative protocol/state and
+  real audio metrics. Do not begin it as part of the Phase 4 milestone.
 
 ## Commands
 

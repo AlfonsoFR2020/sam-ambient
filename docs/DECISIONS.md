@@ -79,3 +79,20 @@ master specification are recorded here.
 - **Consequence:** No Kokoro/Piper runtime, model, voice, or reciprocal-license
   code is included. Phase 4 can integrate against the stable TTS cancellation
   boundary while a commercially acceptable backend is selected separately.
+
+## D-008 — Generation-scoped barge-in and delivery truth
+
+- **Status:** accepted, 2026-09-02
+- **Decision:** Keep `TurnManager` as the authoritative timestamp-driven state
+  machine; use a small `BargeInController` to feed continuous VAD/optional STT
+  evidence and an `InterruptionCoordinator` to cancel bound work before event
+  publication. Track generated, queued, playing, spoken, and cancelled text in
+  a bounded generation/chunk ledger and durable bounded TTS queue.
+- **Reason:** This makes candidate interruption reversible while confirmation
+  atomically stops the shared model/TTS/audio cancellation identity. Generation
+  checks reject stale completions, and chunk-level delivery truth prevents
+  conversation history from claiming unheard text without word alignment.
+- **Consequence:** False candidates cancel only their provisional STT token and
+  preserve the response queue. Confirmed candidates retain their STT identity
+  as the next user turn. Logical cancellation occurs synchronously before event
+  bus backpressure; physical stop latency still requires target-hardware tests.
