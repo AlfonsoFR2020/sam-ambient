@@ -67,7 +67,12 @@ describe("protocol state reduction", () => {
     );
     state = reduceProtocolEvent(
       state,
-      event("tts.cancelled", 30, { interrupted: true }, { generation_id: "g1" }),
+      event(
+        "tts.cancelled",
+        30,
+        { interrupted: true, spoken_text: "I was" },
+        { generation_id: "g1" },
+      ),
     );
     state = reduceProtocolEvent(
       state,
@@ -75,6 +80,20 @@ describe("protocol state reduction", () => {
     );
     expect(state.conversationalState).toBe("INTERRUPTED");
     expect(state.transcript[0]?.interrupted).toBe(true);
+    expect(state.transcript[0]?.text).toBe("I was");
+  });
+
+  it("accumulates assistant streaming deltas without committing generated text", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("model.delta", 10, { text: "Hello " }, { generation_id: "g1" }),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event("model.delta", 11, { text: "there" }, { generation_id: "g1" }),
+    );
+    expect(state.provisionalTranscript?.text).toBe("Hello there");
+    expect(state.transcript).toHaveLength(0);
   });
 
   it("moves offline without losing the prior conversational state", () => {

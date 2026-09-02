@@ -6,7 +6,7 @@ import math
 import sys
 from array import array
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from sam_ambient.core.protocol import EventType, ProtocolEvent
 from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
@@ -96,6 +96,22 @@ class BargeInController:
     ) -> BargeInResult:
         # Apply cancellation before any subscriber backpressure can delay audio stop.
         effects = self._interruptions.apply(events)
+        if effects.delivery is not None:
+            delivery = effects.delivery
+            events = tuple(
+                replace(
+                    event,
+                    payload={
+                        **event.payload,
+                        "spoken_text": delivery.spoken_text,
+                        "unspoken_text": delivery.unspoken_text,
+                    },
+                )
+                if event.type == EventType.TTS_CANCELLED
+                and event.generation_id == delivery.generation_id
+                else event
+                for event in events
+            )
         for event in events:
             await self._publish(event)
         return BargeInResult(events=events, effects=effects)
@@ -156,9 +172,8 @@ class VoiceInputPipeline:
 
                 await stt_stream.push_audio(frame, cancellation)
                 audio_frames += 1
-                await self._publish(self._level_event(frame))
-
                 vad_result = self._vad.analyze(frame)
+                await self._publish(self._level_event(frame, vad_result.speech_probability))
                 vad_events = self._turn_manager.on_vad(
                     frame.monotonic_ms,
                     vad_result.speech_probability,
@@ -222,7 +237,8 @@ class VoiceInputPipeline:
         for event in events:
             await self._publish(event)
 
-    def _level_event(self, frame: AudioFrame) -> ProtocolEvent:
+    def _level_event(self, frame: AudioFrame, speech_probability: float) -> ProtocolEvent:
+        rms, peak = normalized_audio_metrics(frame)
         return ProtocolEvent(
             type=EventType.VOICE_LEVEL,
             monotonic_ms=frame.monotonic_ms,
@@ -230,7 +246,10 @@ class VoiceInputPipeline:
             turn_id=self._turn_manager.turn_id,
             cancellation_id=self._turn_manager.cancellation_id,
             payload={
-                "level": normalized_audio_level(frame),
+                "level": rms,
+                "rms": rms,
+                "peak": peak,
+                "speech_probability": speech_probability,
                 "sequence": frame.sequence,
                 "dropped_before": frame.dropped_before,
             },
@@ -245,6 +264,12 @@ class VoiceInputPipeline:
 
 def normalized_audio_level(frame: AudioFrame) -> float:
     """Return an RMS level in [0, 1] for supported PCM frame formats."""
+
+    return normalized_audio_metrics(frame)[0]
+
+
+def normalized_audio_metrics(frame: AudioFrame) -> tuple[float, float]:
+    """Return normalized RMS and peak without exporting raw microphone audio."""
 
     if frame.format.channels != 1:
         raise ValueError("audio level currently requires mono PCM")
@@ -263,4 +288,6 @@ def normalized_audio_level(frame: AudioFrame) -> float:
     else:  # pragma: no cover - SampleFormat is exhaustive
         raise ValueError("unsupported sample format")
     mean_square = sum(float(sample) ** 2 for sample in samples) / len(samples)
-    return min(1.0, math.sqrt(mean_square) / scale)
+    rms = min(1.0, math.sqrt(mean_square) / scale)
+    peak = min(1.0, max(abs(float(sample)) for sample in samples) / scale)
+    return rms, peak

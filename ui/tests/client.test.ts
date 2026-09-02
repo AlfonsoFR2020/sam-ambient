@@ -37,10 +37,16 @@ class ManualScheduler implements RuntimeScheduler {
 class ControlledTransport implements ProtocolTransport {
   readonly name = "controlled";
   observers: TransportObserver[] = [];
+  sent: unknown[] = [];
 
   async connect(observer: TransportObserver): Promise<TransportSession> {
     this.observers.push(observer);
-    return { close() {} };
+    return {
+      send: (message) => {
+        this.sent.push(message);
+      },
+      close() {},
+    };
   }
 }
 
@@ -115,6 +121,31 @@ describe("protocol client", () => {
     scheduler.runFrame();
     expect(client.getSnapshot().metrics.rms).toBe(1);
     expect(client.getSnapshot().droppedVisualizationEvents).toBe(19);
+    client.stop();
+  });
+
+  it("sends emergency control through the active session and clears it on acknowledgement", async () => {
+    const transport = new ControlledTransport();
+    const scheduler = new ManualScheduler();
+    const client = new ProtocolClient(transport, scheduler);
+    client.start();
+    await flushPromises();
+    await client.sendControl({
+      protocol: 1,
+      type: "control.emergency_stop",
+      command_id: "emergency",
+      monotonic_ms: 10,
+      payload: { targets: ["model_generation", "tts_queue", "playback"] },
+    });
+    expect(transport.sent).toHaveLength(1);
+    expect(client.getSnapshot().pendingCommandIds).toEqual(["emergency"]);
+    transport.observers[0]?.onEvent({
+      protocol: 1,
+      type: "control.acknowledged",
+      monotonic_ms: 11,
+      payload: { command_id: "emergency", status: "applied" },
+    });
+    expect(client.getSnapshot().pendingCommandIds).toHaveLength(0);
     client.stop();
   });
 });

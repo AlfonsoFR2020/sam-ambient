@@ -15,6 +15,7 @@ from sam_ambient.adapters.ollama import (
     find_ollama_executable,
 )
 from sam_ambient.adapters.openai_compatible import OpenAICompatibleProvider
+from sam_ambient.adapters.ui.demo import run_demo_bridge
 from sam_ambient.core.providers import (
     DataBoundary,
     LLMProvider,
@@ -63,6 +64,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     doctor = subparsers.add_parser("doctor", help="Check Ollama text-mode readiness")
     doctor.add_argument("--base-url", help="Ollama API base URL")
+
+    bridge = subparsers.add_parser("bridge", help="Serve the local UI protocol bridge")
+    bridge.add_argument("--demo", action="store_true", help="Publish deterministic core events")
+    bridge.add_argument("--port", type=int, default=8765, help="Loopback WebSocket port")
     return parser
 
 
@@ -198,6 +203,11 @@ async def _dispatch(args: argparse.Namespace) -> int:
         return await run_models(args)
     if args.command == "doctor":
         return await run_doctor(args)
+    if args.command == "bridge":
+        if not args.demo:
+            raise ValueError("bridge currently requires --demo until the core lifecycle is wired")
+        await run_demo_bridge(args.port)
+        return 0
     raise AssertionError(f"unhandled command: {args.command}")
 
 

@@ -112,3 +112,17 @@ master specification are recorded here.
 - **Consequence:** Phase 5A ships a browser build and Tauri 2 metadata only. The
   Rust host and concrete Python-core bridge remain Phase 5B work; no direct
   Tauri API import leaks into presentation components.
+
+## D-010 — Loopback development bridge and split controls
+
+- **Status:** accepted, 2026-09-02
+- **Decision:** Use a bounded, origin-checked localhost WebSocket as the
+  development core/UI transport. Keep microphone, output, stop-speaking, and
+  emergency-stop commands authoritative in Python; keep transcript visibility,
+  motion, brightness, and fullscreen local to the presentation.
+- **Reason:** `websockets` provides mature cancellation, connection, and
+  backpressure behavior under BSD-3-Clause with less custom networking code.
+  The split avoids duplicating conversation or runtime policy in React.
+- **Consequence:** Browser development exercises the same versioned event and
+  command envelopes as the future injected Tauri adapter. Remote binding and
+  authentication remain deliberately unsupported.

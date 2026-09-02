@@ -4,6 +4,7 @@ export interface TransportObserver {
 }
 
 export interface TransportSession {
+  send(message: unknown): void | Promise<void>;
   close(): void | Promise<void>;
 }
 

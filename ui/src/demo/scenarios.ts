@@ -1,3 +1,4 @@
+import { decodeControlCommand } from "../protocol/commands";
 import type { ProtocolEvent } from "../protocol/types";
 import type {
   ProtocolTransport,
@@ -215,6 +216,22 @@ const firstConnection: DemoStep[] = [
       }),
     }),
   ),
+  {
+    afterMs: 10_750,
+    event: event("tts.level", 10_750, { envelope: 0.24 }, { generation_id: "gen-2" }),
+  },
+  {
+    afterMs: 10_900,
+    event: event("tts.level", 10_900, { envelope: 0.81 }, { generation_id: "gen-2" }),
+  },
+  {
+    afterMs: 11_150,
+    event: event("component.error", 11_150, { component: "demo", recoverable: true }),
+  },
+  {
+    afterMs: 11_650,
+    event: event("system.ready", 11_650, { state: "IDLE", recovered: true }),
+  },
   { afterMs: 12_000, disconnect: true },
 ];
 
@@ -240,6 +257,22 @@ export class DemoTransport implements ProtocolTransport {
       }, step.afterMs),
     );
     return {
+      send: (raw) => {
+        const command = decodeControlCommand(raw);
+        observer.onEvent(
+          event("control.acknowledged", command.monotonic_ms + 1, {
+            command_id: command.command_id,
+            command_type: command.type,
+            status: "applied",
+            ...(command.type === "control.microphone.set"
+              ? { microphone_enabled: command.payload.enabled }
+              : {}),
+            ...(command.type === "control.tts_output.set"
+              ? { tts_output_enabled: command.payload.enabled }
+              : {}),
+          }),
+        );
+      },
       close: () =>
         cancel.forEach((dispose) => {
           dispose();

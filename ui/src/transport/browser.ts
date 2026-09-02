@@ -2,6 +2,7 @@ import type { ProtocolTransport, TransportObserver, TransportSession } from "./t
 
 export const BROWSER_PROTOCOL_EVENT = "sam-protocol-event";
 export const BROWSER_DISCONNECT_EVENT = "sam-protocol-disconnect";
+export const BROWSER_CONTROL_EVENT = "sam-control-command";
 
 /** Browser/dev seam for harnesses that dispatch protocol messages as CustomEvents. */
 export class BrowserEventTransport implements ProtocolTransport {
@@ -13,6 +14,9 @@ export class BrowserEventTransport implements ProtocolTransport {
     window.addEventListener(BROWSER_PROTOCOL_EVENT, onEvent);
     window.addEventListener(BROWSER_DISCONNECT_EVENT, onDisconnect);
     return {
+      send: (message) => {
+        window.dispatchEvent(new CustomEvent(BROWSER_CONTROL_EVENT, { detail: message }));
+      },
       close: () => {
         window.removeEventListener(BROWSER_PROTOCOL_EVENT, onEvent);
         window.removeEventListener(BROWSER_DISCONNECT_EVENT, onDisconnect);

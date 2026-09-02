@@ -12,6 +12,7 @@ dependencies = [
     "httpx>=0.28,<1",
     "sounddevice>=0.5.5,<0.6",
     "webrtcvad-wheels>=2.0.14,<3",
+    "websockets>=17,<18",
 ]
 
 [project.scripts]

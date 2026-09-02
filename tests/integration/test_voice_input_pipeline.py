@@ -99,6 +99,10 @@ def test_voice_input_pipeline_emits_levels_transcript_and_committed_turn() -> No
         assert manager.state is VoiceState.COMMITTING
         assert stt.stream is not None and stt.stream.pushed == len(frames)
         assert sum(event.type == EventType.VOICE_LEVEL for event in events) == len(frames)
+        first_level = next(event for event in events if event.type == EventType.VOICE_LEVEL)
+        assert first_level.payload["rms"] == 0.0
+        assert first_level.payload["peak"] == 0.0
+        assert first_level.payload["speech_probability"] == 0.0
         transcript_index = next(
             index for index, event in enumerate(events) if event.type == EventType.TRANSCRIPT_FINAL
         )

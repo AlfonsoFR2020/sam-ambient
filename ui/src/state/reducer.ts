@@ -43,6 +43,7 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
           : state.conversationalState,
       conversationalState: "OFFLINE",
       metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
+      pendingCommandIds: [],
     };
   }
   return { ...state, connection };
@@ -85,6 +86,14 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ...next,
       connection: "connected",
       conversationalState: readyState,
+      microphoneEnabled:
+        typeof event.payload.microphone_enabled === "boolean"
+          ? event.payload.microphone_enabled
+          : next.microphoneEnabled,
+      ttsOutputEnabled:
+        typeof event.payload.tts_output_enabled === "boolean"
+          ? event.payload.tts_output_enabled
+          : next.ttsOutputEnabled,
       ...(startsNewSession
         ? {
             sessionId: event.session_id,
@@ -150,9 +159,49 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
   } else if (event.type === "tts.cancelled") {
     const transcript = [...next.transcript];
     const last = transcript.at(-1);
-    if (last?.role === "assistant")
-      transcript[transcript.length - 1] = { ...last, interrupted: true };
+    if (last?.role === "assistant") {
+      const spokenText = event.payload.spoken_text;
+      if (typeof spokenText === "string" && !spokenText.trim()) transcript.pop();
+      else {
+        transcript[transcript.length - 1] = {
+          ...last,
+          text: typeof spokenText === "string" ? spokenText.trim() : last.text,
+          interrupted: true,
+        };
+      }
+    }
     next = { ...next, transcript };
+  } else if (event.type === "model.delta" && typeof event.payload.text === "string") {
+    const current = next.provisionalTranscript;
+    next = {
+      ...next,
+      provisionalTranscript: {
+        role: "assistant",
+        text: `${current?.role === "assistant" ? current.text : ""}${event.payload.text}`,
+        monotonicMs: event.monotonic_ms,
+      },
+    };
+  } else if (event.type === "control.acknowledged" || event.type === "control.rejected") {
+    const commandId = event.payload.command_id;
+    next = {
+      ...next,
+      pendingCommandIds:
+        typeof commandId === "string"
+          ? next.pendingCommandIds.filter((pending) => pending !== commandId)
+          : next.pendingCommandIds,
+      microphoneEnabled:
+        typeof event.payload.microphone_enabled === "boolean"
+          ? event.payload.microphone_enabled
+          : next.microphoneEnabled,
+      ttsOutputEnabled:
+        typeof event.payload.tts_output_enabled === "boolean"
+          ? event.payload.tts_output_enabled
+          : next.ttsOutputEnabled,
+      protocolError:
+        event.type === "control.rejected" && typeof event.payload.error === "string"
+          ? event.payload.error
+          : next.protocolError,
+    };
   } else if (event.type === "component.error") {
     next = {
       ...next,

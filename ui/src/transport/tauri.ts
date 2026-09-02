@@ -12,6 +12,7 @@ export interface NativeEventSource {
     topic: "sam://core-disconnected",
     listener: (payload: unknown) => void,
   ): Promise<NativeUnlisten>;
+  send(topic: "sam://control-command", payload: unknown): Promise<void>;
 }
 
 export class TauriLocalTransport implements ProtocolTransport {
@@ -25,6 +26,7 @@ export class TauriLocalTransport implements ProtocolTransport {
       observer.onDisconnect(typeof reason === "string" ? reason : "core disconnected"),
     );
     return {
+      send: (message) => this.source.send("sam://control-command", message),
       close: async () => {
         await unlistenEvent();
         await unlistenDisconnect();

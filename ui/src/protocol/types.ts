@@ -30,6 +30,27 @@ export interface ProtocolEvent {
   update_tx_id?: string;
 }
 
+export const CONTROL_COMMAND_TYPES = [
+  "control.microphone.set",
+  "control.tts_output.set",
+  "control.stop_speaking",
+  "control.emergency_stop",
+] as const;
+
+export type ControlCommandType = (typeof CONTROL_COMMAND_TYPES)[number];
+
+export interface ControlCommand {
+  protocol: typeof PROTOCOL_VERSION;
+  type: ControlCommandType;
+  command_id: string;
+  monotonic_ms: number;
+  payload: Record<string, unknown>;
+  session_id?: string;
+  turn_id?: string;
+  generation_id?: string;
+  cancellation_id?: string;
+}
+
 export interface TranscriptEntry {
   id: string;
   role: "user" | "assistant";
@@ -57,6 +78,9 @@ export interface UiState {
   generationId?: string;
   lastMonotonicByType: Readonly<Record<string, number>>;
   droppedVisualizationEvents: number;
+  microphoneEnabled: boolean;
+  ttsOutputEnabled: boolean;
+  pendingCommandIds: readonly string[];
   protocolError?: string;
 }
 
@@ -69,6 +93,9 @@ export const INITIAL_UI_STATE: UiState = {
   transcript: [],
   lastMonotonicByType: {},
   droppedVisualizationEvents: 0,
+  microphoneEnabled: true,
+  ttsOutputEnabled: true,
+  pendingCommandIds: [],
 };
 
 export const isConversationalState = (value: unknown): value is ConversationalState =>

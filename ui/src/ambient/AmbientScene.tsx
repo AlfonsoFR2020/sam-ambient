@@ -3,9 +3,10 @@ import type { AmbientVisualModel } from "./model";
 
 interface AmbientSceneProps {
   model: AmbientVisualModel;
+  reducedMotion: boolean;
 }
 
-export function AmbientScene({ model }: AmbientSceneProps) {
+export function AmbientScene({ model, reducedMotion }: AmbientSceneProps) {
   const style = {
     "--sam-hue": model.hue,
     "--sam-intensity": model.intensity,
@@ -18,6 +19,7 @@ export function AmbientScene({ model }: AmbientSceneProps) {
     <div
       className="ambient-scene"
       data-state={model.state.toLowerCase()}
+      data-reduced-motion={reducedMotion || undefined}
       style={style}
       aria-hidden="true"
     >

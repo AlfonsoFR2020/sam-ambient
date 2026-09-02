@@ -23,6 +23,8 @@ describe("deterministic demo protocol scenarios", () => {
       ]),
     );
     expect(firstEvents.filter((event) => event.type === "voice.level").length).toBeGreaterThan(30);
+    expect(firstEvents.some((event) => event.type === "component.error")).toBe(true);
+    expect(firstEvents.filter((event) => event.type === "tts.level").length).toBeGreaterThan(3);
     expect(DEMO_SCENARIOS.firstConnection.some((step) => step.disconnect)).toBe(true);
     expect(DEMO_SCENARIOS.reconnected[0]?.event?.type).toBe("system.ready");
   });

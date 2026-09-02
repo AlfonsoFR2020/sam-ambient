@@ -1,5 +1,6 @@
 import { decodeProtocolEvent, ProtocolDecodeError } from "../protocol/decode";
 import {
+  type ControlCommand,
   INITIAL_UI_STATE,
   isVisualizationEvent,
   type ProtocolEvent,
@@ -54,6 +55,30 @@ export class ProtocolClient {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   };
+
+  async sendControl(command: ControlCommand): Promise<void> {
+    if (!this.running || !this.session || this.state.connection !== "connected") {
+      throw new Error("Sam core is offline");
+    }
+    this.setState({
+      ...this.state,
+      pendingCommandIds: [...this.state.pendingCommandIds, command.command_id],
+      protocolError: undefined,
+    });
+    try {
+      await this.session.send(command);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "control command failed";
+      this.setState({
+        ...this.state,
+        pendingCommandIds: this.state.pendingCommandIds.filter(
+          (commandId) => commandId !== command.command_id,
+        ),
+        protocolError: message,
+      });
+      throw error;
+    }
+  }
 
   start(): void {
     if (this.running) return;

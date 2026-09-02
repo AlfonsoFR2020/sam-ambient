@@ -35,6 +35,7 @@ from sam_ambient.core.voice.pipeline import (
     VoiceInputResult,
     VoicePipelineEnded,
     normalized_audio_level,
+    normalized_audio_metrics,
 )
 
 __all__ = [
@@ -66,4 +67,5 @@ __all__ = [
     "VoicePipelineEnded",
     "VoiceStreamContext",
     "normalized_audio_level",
+    "normalized_audio_metrics",
 ]

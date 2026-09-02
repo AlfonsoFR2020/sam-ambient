@@ -8,6 +8,7 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | uv | 0.9.26 (bootstrap environment) | MIT OR Apache-2.0 | https://github.com/astral-sh/uv | Reproducible development environment | External developer tool | None |
 | CPython | 3.12.11 / 3.14.2 available at bootstrap | Python-2.0 | https://www.python.org/ | Runtime/toolchain | External runtime | PSF license applies |
 | HTTPX | 0.28.1 | BSD-3-Clause | https://github.com/encode/httpx | Async HTTP, streaming, timeouts, connection pooling | Runtime dependency | Retain BSD notice |
+| websockets | 17.1 | BSD-3-Clause | https://github.com/python-websockets/websockets | Bounded localhost development bridge | Runtime dependency; no required transitive packages | Retain BSD notice |
 | sounddevice | 0.5.6 | MIT | https://github.com/spatialaudio/python-sounddevice | Fixed-frame microphone capture and playback | Runtime dependency | Retain MIT notice; Windows wheel also contains PortAudio binaries |
 | PortAudio | V19.7.0-devel in current Windows wheel | MIT | https://github.com/PortAudio/portaudio | Native audio device transport used by sounddevice | Transitive native runtime | Retain MIT notice |
 | Steinberg ASIO SDK artifacts | Upstream sounddevice Windows wheel variants | Proprietary SDK terms | https://www.steinberg.net/developers/ | Optional ASIO-enabled PortAudio DLL variants | Inactive upstream wheel artifacts; Sam does not set `SD_ENABLE_ASIO` | Exclude from a redistributable Sam bundle unless separately reviewed and approved |

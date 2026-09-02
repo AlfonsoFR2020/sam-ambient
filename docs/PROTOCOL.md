@@ -17,3 +17,15 @@ backpressure. Conversation, model, tool, health, and update events are durable
 within the local bounded transport and apply backpressure instead of silently
 dropping.
 
+UI control commands use the same protocol version and correlation IDs, with
+required `command_id`, `monotonic_ms`, `type`, and `payload` fields. Version 1
+defines microphone and TTS-output toggles, stop-speaking, and emergency-stop.
+The latter requests cancellation of model generation, queued TTS, and playback;
+the core acknowledges or rejects every deduplicated command as a protocol event.
+
+The development bridge uses subprotocol `sam.protocol.v1` over a bounded
+WebSocket bound to `127.0.0.1` by default. It checks browser origins, refuses
+non-loopback bindings, limits message and queue sizes, and carries EventBus
+events rather than maintaining a second conversation state. The future Tauri
+adapter may replace this transport without changing presentation or core
+protocol semantics.

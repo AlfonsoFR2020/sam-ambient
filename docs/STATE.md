@@ -4,7 +4,7 @@ Updated: 2026-09-02
 
 ## Current milestone
 
-- Phases 0–4 and Phase 5A are complete and committed as green vertical slices.
+- Phases 0–4 and Phase 5 are complete as green vertical slices.
 - Phase 0 established the reproducible Python package, scripts, protocol seam,
   supervisor/update separation, and rollback-oriented filesystem skeleton.
 - Repository initialized on `main`; reproducible Python package skeleton and
@@ -65,6 +65,23 @@ Updated: 2026-09-02
 - Phase 5A quality gate: Biome format/lint, TypeScript typecheck, 13 Vitest tests,
   and Vite production browser build pass. The existing Python deterministic
   suite remains the separate core gate.
+- Phase 5B complete: a BSD-3-Clause `websockets` bridge binds to loopback only,
+  applies origin/message/queue bounds, forwards the real EventBus protocol to
+  the UI, and routes versioned commands back through an authoritative Python
+  `ControlDispatcher`. Commands are deduplicated and acknowledged/rejected as
+  protocol events; no conversation state is duplicated in the bridge.
+- Core controls cover microphone, TTS output, stop-speaking, and emergency stop
+  (model generation + queued TTS + playback). Transcript visibility, reduced
+  motion, brightness, and fullscreen stay local. Interrupted TTS events expose
+  chunk-level spoken/unspoken text so the transcript shows only delivered text.
+- The ambient presentation has one restrained visual language, CSS-smoothed
+  audio/playback response, a concealed control panel, keyboard mute/emergency/
+  escape actions, streaming/provisional transcript treatment, and preserved
+  offline history. Demo/browser/WebSocket/Tauri seams use the same reducer.
+- Phase 5B quality gate: Ruff format/lint; 108 Python tests pass and one optional
+  live Ollama test skips. Biome format/lint, TypeScript typecheck, 21 Vitest
+  tests, Vite production build, browser demo, and browser-to-Python WebSocket
+  command/acknowledgement smoke test pass.
 
 ## Environment
 
@@ -118,14 +135,21 @@ Updated: 2026-09-02
 - The upstream sounddevice Windows wheel contains inactive ASIO-enabled DLLs;
   Sam does not load them, and a distributable bundle must exclude or separately
   approve them.
-- Tauri 2 identity/build metadata is scaffolded, but no native build is claimed.
-  The future host must implement the injected `NativeEventSource` and the actual
-  local Python-core transport while preserving durable/lossy event semantics.
-- Exact next step: Phase 5B native Tauri host/core bridge plus essential ambient
-  controls and accessibility polish. Do not begin Phase 6 before that slice.
+- Tauri 2 identity/build metadata and the injected `NativeEventSource` boundary
+  are scaffolded, but no native build is claimed. Remaining native work is
+  Rust/Cargo setup, host implementation, Python-core lifecycle integration, and
+  platform packaging. Windows additionally needs MSVC C++ Build Tools; Linux or
+  WSL is the preferred route to evaluate first because Linux is the primary
+  deployment target.
+- The development bridge intentionally has no remote binding/authentication and
+  the CLI producer is deterministic demo mode until the full conversational
+  lifecycle composition entry point exists. Native shell work remains deferred.
+- Exact next step: Phase 6 basic tools (file, shell policy, clipboard, app-open,
+  and risk classification) without weakening the external tool-policy boundary.
 
 ## Commands
 
 - Bootstrap: `scripts/bootstrap.ps1` or `scripts/bootstrap.sh`.
 - Quality gate: `scripts/test.ps1` or `scripts/test.sh`.
 - Development harness: `scripts/dev.ps1` or `scripts/dev.sh`.
+- Browser + real Python bridge: `scripts/ui-dev.ps1` or `scripts/ui-dev.sh`.

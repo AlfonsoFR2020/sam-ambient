@@ -97,6 +97,11 @@ def test_continuous_audio_confirms_barge_in_and_cancels_before_publish() -> None
         assert result.effects.candidate_cancellation_applied is False
         assert result.effects.logical_stop_latency_ms == 0
         assert cancellation_seen_by_publish == [True, True]
+        tts_cancelled = next(
+            event for event in result.events if event.type == EventType.TTS_CANCELLED
+        )
+        assert tts_cancelled.payload["spoken_text"] == ""
+        assert tts_cancelled.payload["unspoken_text"] == ""
 
     asyncio.run(scenario())
 
