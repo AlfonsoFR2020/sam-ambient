@@ -18,6 +18,7 @@ dependencies = [
 [project.scripts]
 sam = "sam_ambient.cli:main"
 sam-ambient = "sam_ambient.cli:main"
+sam-supervisor = "sam_ambient.supervisor.cli:main"
 
 [dependency-groups]
 dev = [

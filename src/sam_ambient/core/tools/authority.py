@@ -38,10 +38,20 @@ class CapabilityAuthoritySnapshot:
 class CapabilityAuthority:
     """Trusted runtime authority; it is deliberately absent from the tool registry."""
 
-    def __init__(self) -> None:
-        self._active = True
-        self._epoch = 0
-        self._reason: str | None = None
+    def __init__(
+        self,
+        *,
+        active: bool = True,
+        epoch: int = 0,
+        reason: str | None = None,
+    ) -> None:
+        if epoch < 0:
+            raise ValueError("capability authority epoch must be non-negative")
+        if active and reason is not None:
+            raise ValueError("active capability authority cannot have a revocation reason")
+        self._active = active
+        self._epoch = epoch
+        self._reason = reason if not active else None
         self._callbacks: list[RevocationCallback] = []
         self._callback_errors: list[Exception] = []
 

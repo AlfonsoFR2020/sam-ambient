@@ -174,3 +174,20 @@ master specification are recorded here.
 - **Consequence:** There is no shell-string mode, elevation, destructive command
   class, or OS sandbox claim. Windows descendant-tree guarantees require a
   future native Job Object adapter if needed.
+
+## D-014 — Trusted bounded supervisor with fail-closed recovery
+
+- **Status:** accepted, 2026-09-03
+- **Decision:** Run `sam-core` under a small LLM-independent `sam-supervisor`
+  using trusted argv, an explicit stdout readiness record, bounded exponential
+  restarts, and SQLite operational state. A critical failure persists a new
+  capability epoch before restart; three failures within the default 60-second
+  window stop restarts and persist safe mode.
+- **Reason:** Process liveness alone is not readiness, and a restarted core must
+  not revive pre-crash leases or approvals. Keeping launch, crash policy, and
+  recovery state outside the conversational runtime makes recovery independent
+  of provider, UI, and model availability.
+- **Consequence:** A local console can inspect status or explicitly restore
+  capability authority after diagnosis; neither action is in the UI/model
+  protocol. Browser dev UI remains independently restartable until a packaged
+  `sam-ui` process exists. Phase 8 may use these seams but adds no updater here.

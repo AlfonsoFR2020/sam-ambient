@@ -4,33 +4,16 @@ Updated: 2026-09-03
 
 ## Current milestone
 
-- Phases 0–6 are complete as green vertical slices.
-- Phase 0 established the reproducible Python package, scripts, protocol seam,
-  supervisor/update separation, and rollback-oriented filesystem skeleton.
-- Phase 1 complete: protocol v1 models, bounded event bus, idempotent
-  cancellation registry, and deterministic multi-signal turn state machine.
-- Voice simulations cover normal endpointing, mid-sentence pauses, sustained
-  interruption, credible-content interruption, cough/backchannel/echo recovery,
-  false endpoint resume, STT revision, minimum speech, and audio loss.
-- Phase 2 complete: provider-neutral contracts/registry/router, native Ollama
-  discovery and NDJSON chat streaming, generic OpenAI-compatible SSE streaming,
-  privacy-gated fallback, and `sam chat/models/doctor` text harness.
-- HTTP transport uses HTTPX `AsyncClient.stream()`; token cancellation is tested
-  to close the active response stream before surfacing `OperationCancelled`.
-- Phase 3 complete: validated bounded PCM frames; provider-neutral `AudioInput`,
-  `AudioOutput`, VAD, streaming STT, and streaming TTS contracts; deterministic
-  sentence chunking; cancellable audio/STT/TTS flows; and one-turn voice event
-  orchestration ready for Phase 4.
-- Concrete Phase 3 adapters are sounddevice/PortAudio fixed-frame I/O, WebRTC
-  VAD, and a local-only-by-default whisper.cpp server adapter. Audio flows by
-  direct async iteration (strict backpressure); native overflow and adapter
-  failures are surfaced. Existing bounded event-bus queues preserve durable
-  events and may drop only stale voice-level visualization events.
+- Phases 0–7 are complete as green vertical slices.
+- Phases 0–3 established the reproducible Python package, protocol/event and
+  cancellation seams, deterministic turn manager, provider-neutral Ollama and
+  OpenAI-compatible streaming, privacy routing, and bounded voice contracts.
+- Local voice adapters are sounddevice/PortAudio fixed-frame I/O, WebRTC VAD,
+  and local-only whisper.cpp final STT. Audio uses direct async backpressure;
+  overflow, cancellation, and adapter failure remain explicit.
 - Production TTS is intentionally deferred. The neutral contract and
   deterministic fake are green; the evaluated Kokoro Python route was rejected
   because its current phonemizer/eSpeak dependency chain introduces GPL terms.
-- Quality gate: Ruff lint/format plus 71 tests collected (70 pass, optional live
-  Ollama probe skipped unless explicitly enabled) on Python 3.12.11.
 - Phase 4 complete: continuous VAD/optional transcript evidence enters a
   reversible `INTERRUPTION_CANDIDATE`; sustained or credible speech confirms,
   while coughs, backchannels, short noise, and false candidates recover without
@@ -48,8 +31,6 @@ Updated: 2026-09-03
 - A bounded speech queue and bounded delivery history record generated, queued,
   playing, spoken, and cancelled chunks. Interrupted history exposes heard and
   unheard text separately; false recovery leaves the next unplayed chunk intact.
-- Quality gate: Ruff lint/format plus 104 tests collected (103 pass, optional
-  live Ollama probe skipped unless explicitly enabled) on Python 3.12.11.
 - Phase 5A complete: React/TypeScript/Vite ambient frontend, protocol-v1 decoder,
   authoritative UI reducer, stale-event rejection, animation-frame coalescing
   for lossy metrics, reconnect-safe client, and replaceable transport boundary.
@@ -60,9 +41,6 @@ Updated: 2026-09-03
   envelope, and conversational state render the ambient field. Reduced-motion,
   visual intensity, interrupted transcript, and connection/offline presentation
   are included without Three.js or a frontend state-management dependency.
-- Phase 5A quality gate: Biome format/lint, TypeScript typecheck, 13 Vitest tests,
-  and Vite production browser build pass. The existing Python deterministic
-  suite remains the separate core gate.
 - Phase 5B complete: a BSD-3-Clause `websockets` bridge binds to loopback only,
   applies origin/message/queue bounds, forwards the real EventBus protocol to
   the UI, and routes versioned commands back through an authoritative Python
@@ -76,10 +54,6 @@ Updated: 2026-09-03
   audio/playback response, a concealed control panel, keyboard mute/emergency/
   escape actions, streaming/provisional transcript treatment, and preserved
   offline history. Demo/browser/WebSocket/Tauri seams use the same reducer.
-- Phase 5B quality gate: Ruff format/lint; 108 Python tests pass and one optional
-  live Ollama test skips. Biome format/lint, TypeScript typecheck, 21 Vitest
-  tests, Vite production build, browser demo, and browser-to-Python WebSocket
-  command/acknowledgement smoke test pass.
 - Phase 6A complete: `sam runtime --root <workspace>` composes the EventBus,
   cancellation registry, voice turn state machine, provider router/Ollama,
   static tool registry, policy/executor, capability authority, controls, and
@@ -112,7 +86,6 @@ Updated: 2026-09-03
 - Phase 6A quality gate: Ruff format/lint, 167 Python tests pass with the optional
   live Ollama and host-privileged symlink probes skipped; Biome format/lint,
   TypeScript typecheck, 34 Vitest tests, and Vite production build pass.
-- Phase 6A is committed as `43ce3a1`.
 - Phase 6B adds approval-only `process.run`: an explicit executable plus bounded
   argv, authorized cwd, `shell=False`, sanitized child environment, per-stream
   output caps, timeout, cancellation, and POSIX process-group/direct Windows
@@ -127,6 +100,27 @@ Updated: 2026-09-03
 - Phase 6B quality gate: Ruff format/lint, 184 Python tests pass with the same two
   justified skips; Biome format/lint, TypeScript typecheck, 35 Vitest tests, and
   Vite production build pass.
+- Phase 7 complete: the dedicated `sam-supervisor` entry point launches only
+  trusted `shell=False` argv, monitors `sam-core`, and is independent of the
+  LLM, providers, UI, and cloud. Browser UI remains independently restartable
+  and reconstructs current core state through the existing reconnect protocol.
+- Health is explicit (`STARTING`, `HEALTHY`, `DEGRADED`, `UNHEALTHY`, `STOPPED`,
+  `CRASH_LOOP`, `SAFE_MODE`). A bounded stdout `SAM_READY` record distinguishes
+  initialization from liveness; provider unavailability reports `DEGRADED`
+  without causing a core restart.
+- Restart defaults are configurable: 15-second startup deadline, 0.5-to-8-second
+  exponential delay, and three failures in a rolling 60-second window. The
+  threshold stops the loop and persists safe mode; normal shutdown is bounded
+  and idempotent.
+- Every critical failure persists a new capability epoch and revoked state
+  before restart. Fresh core instances start with that epoch and no authority,
+  so old leases/approvals cannot revive. Safe mode stays revoked until an
+  explicit trusted local-console restore; the model and UI have no such command.
+- SQLite retains stable session identity, bounded committed text, current
+  component status, security state, and the latest 200 bounded crash records.
+  Raw microphone audio is absent by design; corrupt security/state data fails
+  closed. Quality gate: Ruff plus 204 Python tests pass and two justified tests
+  skip; frontend remains at 35 passing tests with its prior green build.
 
 ## Environment
 
@@ -181,8 +175,9 @@ Updated: 2026-09-03
   WSL is the preferred route to evaluate first because Linux is the primary
   deployment target.
 - The development bridge intentionally has no remote binding/authentication;
-  physical voice capture/TTS is not started by this CLI. Capability revocation
-  remains process-local with no OS-global shortcut or persistence.
+  physical voice capture/TTS is not started by this CLI. Active cancellation is
+  process-local, while the supervisor persists capability revocation/epoch;
+  there is still no OS-global shortcut.
 - The replaceable live clipboard adapter relies on Tk and is not yet verified on
   headless target Linux.
 - `process.run` is not an OS filesystem sandbox: exact argv is owner-approved,
@@ -190,11 +185,16 @@ Updated: 2026-09-03
   process group; Windows stops the direct child but not independently detached
   descendants without a Job Object. No shell-string mode, stdin, environment
   override, elevation, destructive operation, or desktop automation exists.
-- Exact next step: Phase 7 supervisor/resilience. Post-MVP desktop control keeps
-  the documented AT-SPI-first direction and is not part of Phase 6B.
+- The portable supervisor uses POSIX process groups on Linux. Windows can
+  guarantee direct-child termination only; detached descendant cleanup would
+  need a future Job Object adapter. The browser dev UI is not a supervised
+  process until the packaged native host exists.
+- Exact next step: Phase 8 staged update/rollback. No update activation or
+  self-modification was implemented in Phase 7.
 
 ## Commands
 
 - Bootstrap/test/dev: `scripts/{bootstrap,test,dev}.ps1` or matching `.sh`.
 - Browser + real composed Python runtime: `scripts/ui-dev.ps1` or
   `scripts/ui-dev.sh`.
+- Supervised core + browser UI: `scripts/sam-dev.ps1` or `scripts/sam-dev.sh`.

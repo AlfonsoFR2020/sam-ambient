@@ -32,6 +32,7 @@ from sam_ambient.core.providers import (
     ProviderRouter,
     RoutingPolicy,
 )
+from sam_ambient.core.storage import SQLiteSessionStore
 from sam_ambient.core.tools import (
     AppOpenTool,
     ApprovalBroker,
@@ -75,6 +76,11 @@ class RuntimeConfig:
     max_tool_rounds: int = 4
     allow_cloud: bool = False
     workspace_writable: bool = False
+    runtime_instance_id: str | None = None
+    capability_epoch: int = 0
+    capabilities_active: bool = True
+    capability_reason: str | None = None
+    state_db: Path | None = None
 
     def __post_init__(self) -> None:
         canonical = self.workspace_root.resolve(strict=True)
@@ -84,7 +90,15 @@ class RuntimeConfig:
             raise ValueError("runtime port must be between 0 and 65535")
         if not 1 <= self.max_tool_rounds <= 8:
             raise ValueError("max_tool_rounds must be between 1 and 8")
+        if self.capability_epoch < 0:
+            raise ValueError("capability_epoch must be non-negative")
+        if self.capabilities_active and self.capability_reason is not None:
+            raise ValueError("active capabilities cannot have a revocation reason")
+        if self.runtime_instance_id is not None and not self.runtime_instance_id.strip():
+            raise ValueError("runtime_instance_id must be non-blank when present")
         object.__setattr__(self, "workspace_root", canonical)
+        if self.state_db is not None:
+            object.__setattr__(self, "state_db", self.state_db.resolve(strict=False))
 
 
 @dataclass(slots=True)
@@ -227,7 +241,11 @@ class SamRuntime:
     ) -> None:
         self.provider = provider
         self.config = config
-        self.session_id = str(uuid4())
+        self.state = SQLiteSessionStore(config.state_db) if config.state_db is not None else None
+        self.session_id = self.state.session_id() if self.state is not None else str(uuid4())
+        self._recovered_message_count = (
+            len(self.state.recent(limit=50)) if self.state is not None else 0
+        )
         self.events = events or EventBus()
         self.cancellations = CancellationRegistry()
         self.voice_turns = TurnManager(self.session_id)
@@ -246,7 +264,11 @@ class SamRuntime:
         )
         self.tools = registry or self._default_tools()
         self.approvals = ApprovalBroker()
-        self.capability_authority = CapabilityAuthority()
+        self.capability_authority = CapabilityAuthority(
+            active=config.capabilities_active,
+            epoch=config.capability_epoch,
+            reason=config.capability_reason,
+        )
         self._active_generation_id: str | None = None
         self._active_token: CancellationToken | None = None
         self._tasks: set[asyncio.Task[None]] = set()
@@ -365,6 +387,15 @@ class SamRuntime:
         cancellation: CancellationToken,
     ) -> None:
         try:
+            if self.state is not None:
+                await asyncio.to_thread(
+                    self.state.append,
+                    session_id=session_id,
+                    turn_id=turn_id,
+                    role="user",
+                    content=text,
+                    committed_at_ms=time.time_ns() // 1_000_000,
+                )
             await self._publish_generation(
                 EventType.TRANSCRIPT_FINAL,
                 generation_id,
@@ -436,6 +467,15 @@ class SamRuntime:
                         contains_private_context = True
                     continue
                 assistant_text = "".join(assistant_parts)
+                if self.state is not None:
+                    await asyncio.to_thread(
+                        self.state.append,
+                        session_id=session_id,
+                        turn_id=turn_id,
+                        role="assistant",
+                        content=assistant_text,
+                        committed_at_ms=time.time_ns() // 1_000_000,
+                    )
                 await self._publish_generation(
                     EventType.TRANSCRIPT_FINAL,
                     generation_id,
@@ -589,6 +629,8 @@ class SamRuntime:
                 "tools": [descriptor.id for descriptor in self.tools.descriptors()],
                 "capability_authority_active": authority.active,
                 "capability_authority_epoch": authority.epoch,
+                "runtime_instance_id": self.config.runtime_instance_id,
+                "recovered_message_count": self._recovered_message_count,
             },
         )
 

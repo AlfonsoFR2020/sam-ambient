@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 import sys
 from collections.abc import Callable, Sequence
@@ -89,6 +90,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Permit the explicitly configured cloud provider before private tool data exists",
     )
+    runtime.add_argument("--runtime-instance-id", help=argparse.SUPPRESS)
+    runtime.add_argument("--capability-epoch", type=int, default=0, help=argparse.SUPPRESS)
+    runtime.add_argument("--capabilities-revoked", action="store_true", help=argparse.SUPPRESS)
+    runtime.add_argument("--safe-mode", action="store_true", help=argparse.SUPPRESS)
+    runtime.add_argument("--state-db", help=argparse.SUPPRESS)
     return parser
 
 
@@ -227,10 +233,50 @@ async def run_runtime(args: argparse.Namespace) -> int:
             model=args.model,
             allow_cloud=args.allow_cloud,
             workspace_writable=args.allow_workspace_write,
+            runtime_instance_id=args.runtime_instance_id,
+            capability_epoch=args.capability_epoch,
+            capabilities_active=not (args.capabilities_revoked or args.safe_mode),
+            capability_reason=(
+                "supervisor_safe_mode"
+                if args.safe_mode
+                else "supervisor_revoked_after_failure"
+                if args.capabilities_revoked
+                else None
+            ),
+            state_db=Path(args.state_db) if args.state_db else None,
         ),
     )
     try:
         await runtime.start()
+        health_state = "HEALTHY"
+        health_detail = "runtime ready"
+        try:
+            async with asyncio.timeout(3):
+                provider_health = await provider.health(CancellationToken())
+            if not provider_health.available:
+                health_state = "DEGRADED"
+                health_detail = f"provider unavailable: {provider_health.detail}"[:500]
+        except Exception as error:
+            health_state = "DEGRADED"
+            health_detail = f"provider health failed: {type(error).__name__}"[:500]
+        if not runtime.capability_authority.snapshot.active:
+            health_state = "DEGRADED"
+            health_detail = "runtime ready with computer-action capabilities revoked"
+        if args.runtime_instance_id:
+            print(
+                "SAM_READY "
+                + json.dumps(
+                    {
+                        "health": health_state,
+                        "instance_id": args.runtime_instance_id,
+                        "detail": health_detail,
+                        "port": runtime.bridge.port,
+                    },
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
         print(f"Sam runtime listening on ws://127.0.0.1:{runtime.bridge.port}")
         await runtime.serve_forever()
         return 0
