@@ -22,10 +22,16 @@ class AuthorizationDecision:
 
 
 class CapabilityPolicy:
-    """Phase 6A policy: reads auto-run; writes ask; higher risks are denied."""
+    """Reads auto-run; writes ask; optional external actions ask; higher risks deny."""
 
-    def __init__(self, platform_id: str | None = None) -> None:
+    def __init__(
+        self,
+        platform_id: str | None = None,
+        *,
+        allow_external_side_effects: bool = False,
+    ) -> None:
         self.platform_id = platform_id or _current_platform_id()
+        self.allow_external_side_effects = allow_external_side_effects
 
     def authorize(self, descriptor: ToolDescriptor) -> AuthorizationDecision:
         if self.platform_id not in descriptor.platforms:
@@ -45,9 +51,14 @@ class CapabilityPolicy:
                 AuthorizationKind.REQUIRE_APPROVAL,
                 "reversible local write requires owner approval",
             )
+        if descriptor.risk is RiskClass.EXTERNAL_SIDE_EFFECT and self.allow_external_side_effects:
+            return AuthorizationDecision(
+                AuthorizationKind.REQUIRE_APPROVAL,
+                "external process/application action requires owner approval",
+            )
         return AuthorizationDecision(
             AuthorizationKind.DENY,
-            f"{descriptor.risk} capabilities are disabled in Phase 6A",
+            f"{descriptor.risk} capability is disabled by runtime policy",
         )
 
 

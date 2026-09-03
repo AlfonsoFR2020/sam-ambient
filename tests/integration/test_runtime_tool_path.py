@@ -1,5 +1,6 @@
 import asyncio
 import json
+import sys
 from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
 
@@ -80,6 +81,47 @@ class ToolCallingProvider(LLMProvider):
 
     async def aclose(self) -> None:
         self.closed = True
+
+
+class ProcessCallingProvider(ToolCallingProvider):
+    async def stream_chat(
+        self,
+        messages: Sequence[Message],
+        tools: Sequence[ToolSchema],
+        *,
+        model: str,
+        cancellation: CancellationToken,
+    ) -> AsyncIterator[ModelEvent]:
+        cancellation.raise_if_cancelled()
+        assert model == "runtime-model"
+        self.requests.append((tuple(messages), tuple(tools)))
+        if len(self.requests) == 1:
+            names = {tool.name for tool in tools}
+            assert {"process.run", "files.write"}.issubset(names)
+            yield ModelEvent(
+                ModelEventKind.TOOL_CALL,
+                payload={
+                    "id": "provider-process-1",
+                    "function": {
+                        "name": "process.run",
+                        "arguments": {
+                            "root": "workspace",
+                            "cwd": ".",
+                            "executable": sys.executable,
+                            "args": ["-c", "print('runtime process')"],
+                            "timeout_s": 2,
+                        },
+                    },
+                },
+            )
+        else:
+            tool_message = next(message for message in messages if message.role is MessageRole.TOOL)
+            result = json.loads(tool_message.content)
+            assert result["content_trust"] == "untrusted_data"
+            assert result["result"]["exit_code"] == 0
+            assert result["result"]["stdout"].strip() == "runtime process"
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, "Process completed safely.")
+        yield ModelEvent(ModelEventKind.COMPLETED)
 
 
 def test_ui_to_runtime_provider_tool_policy_event_path_and_global_revoke(
@@ -165,5 +207,77 @@ def test_ui_to_runtime_provider_tool_policy_event_path_and_global_revoke(
         finally:
             await runtime.close()
         assert provider.closed is True
+
+    asyncio.run(scenario())
+
+
+def test_ui_approval_runs_structured_process_through_composed_runtime(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        provider = ProcessCallingProvider()
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(
+                workspace_root=tmp_path,
+                workspace_writable=True,
+                port=0,
+                model="runtime-model",
+            ),
+        )
+        await runtime.start()
+        try:
+            async with connect(
+                f"ws://127.0.0.1:{runtime.bridge.port}",
+                origin="http://127.0.0.1:1420",
+                subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
+                proxy=None,
+            ) as socket:
+                ready = ProtocolEvent.from_json(await socket.recv())
+                await socket.send(
+                    ControlCommand(
+                        type=ControlCommandType.USER_MESSAGE_SUBMIT,
+                        command_id="process-request",
+                        monotonic_ms=1,
+                        session_id=ready.session_id,
+                        payload={"text": "Run the harmless runtime process"},
+                    ).to_json()
+                )
+                events: list[ProtocolEvent] = []
+                approval: ProtocolEvent | None = None
+                async with asyncio.timeout(3):
+                    while approval is None:
+                        event = ProtocolEvent.from_json(await socket.recv())
+                        events.append(event)
+                        if event.type == EventType.TOOL_APPROVAL_REQUESTED:
+                            approval = event
+
+                assert approval.tool_call_id == "provider-process-1"
+                assert sys.executable in approval.payload["summary"]
+                await socket.send(
+                    ControlCommand(
+                        type=ControlCommandType.TOOL_APPROVE,
+                        command_id="approve-process",
+                        monotonic_ms=2,
+                        session_id=approval.session_id,
+                        turn_id=approval.turn_id,
+                        generation_id=approval.generation_id,
+                        cancellation_id=approval.cancellation_id,
+                        tool_call_id=approval.tool_call_id,
+                    ).to_json()
+                )
+                async with asyncio.timeout(3):
+                    while not any(event.type == EventType.MODEL_COMPLETED for event in events):
+                        events.append(ProtocolEvent.from_json(await socket.recv()))
+
+                assert [event.type for event in events if event.type.startswith("tool.")] == [
+                    EventType.TOOL_REQUESTED,
+                    EventType.TOOL_AUTHORIZING,
+                    EventType.TOOL_APPROVAL_REQUESTED,
+                    EventType.TOOL_STARTED,
+                    EventType.TOOL_COMPLETED,
+                ]
+                assert (tmp_path / "runtime-process-unexpected").exists() is False
+                assert len(provider.requests) == 2
+        finally:
+            await runtime.close()
 
     asyncio.run(scenario())

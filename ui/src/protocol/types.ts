@@ -82,6 +82,7 @@ export interface ToolApprovalRequest {
   toolCallId: string;
   toolId: string;
   description: string;
+  details?: string;
   riskClass?: string;
   monotonicMs: number;
 }

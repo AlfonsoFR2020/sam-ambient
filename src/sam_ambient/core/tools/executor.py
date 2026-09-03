@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable, Mapping
@@ -315,8 +316,9 @@ class ToolExecutor:
             {
                 "tool_id": invocation.tool_id,
                 "description": descriptor.description,
+                "summary": _approval_summary(invocation),
                 "risk_class": descriptor.risk,
-                "arguments": _bounded_arguments(invocation.arguments),
+                "arguments": _approval_arguments(invocation),
             },
         )
         try:
@@ -387,13 +389,78 @@ def _bounded_arguments(arguments: Mapping[str, Any]) -> dict[str, Any]:
         if index >= 16:
             summary["_truncated"] = True
             break
-        if isinstance(value, str):
+        if name in {"content", "text"} and isinstance(value, str):
+            summary[name] = f"<{len(value)} characters>"
+        elif isinstance(value, str):
             summary[name] = value if len(value) <= 160 else f"{value[:157]}..."
+        elif isinstance(value, list) and all(isinstance(item, str) for item in value):
+            summary[name] = [item if len(item) <= 80 else f"{item[:77]}..." for item in value[:8]]
+            if len(value) > 8:
+                summary[f"{name}_truncated"] = True
         elif isinstance(value, (bool, int, float)) or value is None:
             summary[name] = value
         else:
             summary[name] = f"<{type(value).__name__}>"
     return summary
+
+
+def _approval_arguments(invocation: ToolInvocation) -> dict[str, Any]:
+    arguments = invocation.arguments
+    if invocation.tool_id == "process.run":
+        return {
+            name: value
+            for name, value in arguments.items()
+            if name
+            in {
+                "executable",
+                "args",
+                "root",
+                "cwd",
+                "timeout_s",
+                "stdout_limit",
+                "stderr_limit",
+            }
+        }
+    if invocation.tool_id == "files.write":
+        content = arguments.get("content", "")
+        return {
+            "root": arguments.get("root"),
+            "path": arguments.get("path"),
+            "overwrite": arguments.get("overwrite", False),
+            "content": f"<{len(content)} characters>" if isinstance(content, str) else "<invalid>",
+        }
+    return _bounded_arguments(arguments)
+
+
+def _approval_summary(invocation: ToolInvocation) -> str:
+    arguments = invocation.arguments
+    root = str(arguments.get("root", "?"))
+    if invocation.tool_id == "process.run":
+        executable = str(arguments.get("executable", "?"))
+        raw_args = arguments.get("args", ())
+        argv = raw_args if isinstance(raw_args, list) else ()
+        preview = " ".join(
+            json.dumps(item if len(item) <= 80 else f"{item[:77]}...")
+            for item in argv[:6]
+            if isinstance(item, str)
+        )
+        if len(argv) > 6:
+            preview = f"{preview} …"
+        command = f"{executable} {preview}".strip()
+        cwd = str(arguments.get("cwd", "."))
+        return f"Run {command} in {root}:{cwd}"[:400]
+    if invocation.tool_id == "files.write":
+        action = "Replace" if arguments.get("overwrite") is True else "Create"
+        return f"{action} {root}:{arguments.get('path', '?')}"[:400]
+    if invocation.tool_id == "app.open":
+        return f"Open {root}:{arguments.get('path', '?')}"[:400]
+    if invocation.tool_id == "clipboard.write":
+        text = arguments.get("text", "")
+        length = len(text) if isinstance(text, str) else 0
+        return f"Replace the clipboard with {length} characters"
+    if invocation.tool_id == "clipboard.read":
+        return "Read the current clipboard text"
+    return f"Allow {invocation.tool_id}"[:400]
 
 
 def _invocation_key(invocation: ToolInvocation) -> InvocationKey:

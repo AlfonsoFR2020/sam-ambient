@@ -1,4 +1,4 @@
-"""Authorized-root, bounded read-only filesystem capabilities."""
+"""Authorized-root, bounded filesystem capabilities."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import asyncio
 import fnmatch
 import os
 import re
+import tempfile
 from collections import deque
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -278,6 +279,80 @@ class FilesReadTool:
         )
 
 
+class FilesWriteTool:
+    """Create or atomically replace bounded UTF-8 text inside a writable root."""
+
+    descriptor = ToolDescriptor(
+        id="files.write",
+        description=(
+            "Create or atomically replace one bounded UTF-8 text file inside an explicitly "
+            "writable root after owner approval."
+        ),
+        input_schema=_base_schema(
+            {
+                "content": {"type": "string", "maxLength": 60_000},
+                "overwrite": {"type": "boolean"},
+            },
+            required=("path", "content"),
+        ),
+        result_schema=_OBJECT_RESULT,
+        risk=RiskClass.REVERSIBLE_WRITE,
+        platforms=_PLATFORMS,
+        requires_confirmation=True,
+        supports_cancellation=False,
+        timeout_s=5.0,
+        side_effect=SideEffect.LOCAL_STATE,
+    )
+
+    def __init__(self, paths: AuthorizedPaths) -> None:
+        self.paths = paths
+
+    async def execute(
+        self,
+        arguments: Mapping[str, Any],
+        cancellation: CancellationToken,
+    ) -> ToolResult:
+        root_id = str(arguments["root"])
+        target = self.paths.resolve(
+            root_id,
+            str(arguments["path"]),
+            write=True,
+            must_exist=False,
+        )
+        if not target.parent.is_dir():
+            raise ToolError("files.write parent directory does not exist")
+        if target.exists() and not target.is_file():
+            raise ToolError("files.write target must be a regular file")
+        content = str(arguments["content"])
+        encoded = content.encode("utf-8")
+        if len(encoded) > 64 * 1024:
+            raise ToolError("files.write UTF-8 content exceeds 64 KiB")
+        cancellation.raise_if_cancelled()
+        try:
+            created = await asyncio.to_thread(
+                _atomic_write_utf8,
+                target,
+                encoded,
+                bool(arguments.get("overwrite", False)),
+            )
+        except FileExistsError as error:
+            raise ToolError("files.write target already exists; set overwrite=true") from error
+        except OSError as error:
+            raise ToolError("files.write atomic replacement failed") from error
+        cancellation.raise_if_cancelled()
+        return ToolResult(
+            {
+                "root": root_id,
+                "path": self.paths.relative(root_id, target),
+                "bytes_written": len(encoded),
+                "created": created,
+                "overwritten": not created,
+                "encoding": "utf-8",
+                "atomic_replace": True,
+            }
+        )
+
+
 class FilesSearchTool:
     descriptor = ToolDescriptor(
         id="files.search",
@@ -459,6 +534,31 @@ def _read_file_with_limit(path: Path, maximum_bytes: int) -> bytes | None:
     with path.open("rb") as handle:
         raw = handle.read(maximum_bytes + 1)
     return None if len(raw) > maximum_bytes else raw
+
+
+def _atomic_write_utf8(target: Path, content: bytes, overwrite: bool) -> bool:
+    existed = target.exists()
+    if existed and not overwrite:
+        raise FileExistsError(target)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=".sam-write-",
+        suffix=".tmp",
+        dir=target.parent,
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        if overwrite:
+            os.replace(temporary, target)
+        else:
+            os.link(temporary, target)
+            temporary.unlink()
+        return not existed
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def _validate_windows_relative_path(raw: str) -> None:

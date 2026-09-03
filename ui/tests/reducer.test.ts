@@ -116,6 +116,7 @@ describe("protocol state reduction", () => {
           tool_id: "clipboard.write",
           risk_class: "REVERSIBLE_WRITE",
           description: "Write the prepared text to the clipboard?",
+          summary: "Replace the clipboard with 12 characters",
         },
         { generation_id: "g1", tool_call_id: "call-1" },
       ),
@@ -125,9 +126,7 @@ describe("protocol state reduction", () => {
       toolId: "clipboard.write",
       eventType: "tool.approval_requested",
     });
-    expect(state.pendingToolApproval?.description).toBe(
-      "Write the prepared text to the clipboard?",
-    );
+    expect(state.pendingToolApproval?.description).toBe("Replace the clipboard with 12 characters");
 
     state = reduceProtocolEvent(
       state,
@@ -140,6 +139,33 @@ describe("protocol state reduction", () => {
     );
     expect(state.pendingToolApproval).toBeNull();
     expect(state.latestToolActivity?.eventType).toBe("tool.started");
+  });
+
+  it("preserves exact structured process details for owner review", () => {
+    const state = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "tool.approval_requested",
+        12,
+        {
+          tool_id: "process.run",
+          risk_class: "EXTERNAL_SIDE_EFFECT",
+          summary: "Run python in workspace:.",
+          arguments: {
+            executable: "python",
+            args: ["-c", "print('literal; not shell')"],
+            root: "workspace",
+            cwd: ".",
+          },
+        },
+        { generation_id: "g1", tool_call_id: "process-1" },
+      ),
+    );
+
+    expect(state.pendingToolApproval?.details).toContain(
+      'Command: "python" "-c" "print(\'literal; not shell\')"',
+    );
+    expect(state.pendingToolApproval?.details).toContain("Working directory: workspace:.");
   });
 
   it("rejects stale tool results from a previous generation", () => {

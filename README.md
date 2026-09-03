@@ -29,8 +29,12 @@ tools, and loopback protocol bridge) using `./scripts/ui-dev.ps1` or
 authorized root:
 
 ```powershell
-uv run sam runtime --root .
+uv run sam runtime --root . --allow-workspace-write
 ```
+
+The flag exposes approval-gated atomic `files.write` only for that root.
+Structured `process.run` and `app.open` also require explicit owner approval;
+process execution never enables shell parsing or privilege elevation.
 
 Phase 2 text mode uses Ollama's native local API and never requires an API key:
 

@@ -26,6 +26,7 @@ from sam_ambient.core.tools.filesystem import (
     FilesListTool,
     FilesReadTool,
     FilesSearchTool,
+    FilesWriteTool,
     PathAuthorizationError,
 )
 from sam_ambient.core.tools.models import (
@@ -44,6 +45,11 @@ from sam_ambient.core.tools.policy import (
     AuthorizationDecision,
     AuthorizationKind,
     CapabilityPolicy,
+)
+from sam_ambient.core.tools.process import (
+    ProcessAdapter,
+    ProcessOutcome,
+    ProcessRunTool,
 )
 from sam_ambient.core.tools.registry import FunctionTool, ToolHandler, ToolRegistry
 
@@ -67,9 +73,13 @@ __all__ = [
     "FilesListTool",
     "FilesReadTool",
     "FilesSearchTool",
+    "FilesWriteTool",
     "FunctionTool",
     "MalformedToolArguments",
     "PathAuthorizationError",
+    "ProcessAdapter",
+    "ProcessOutcome",
+    "ProcessRunTool",
     "RiskClass",
     "SideEffect",
     "SystemInfoTool",

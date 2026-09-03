@@ -142,7 +142,7 @@ master specification are recorded here.
   for clipboard access/write, and denies external, privileged, and destructive
   actions. `app.open` is registered and adapter-tested but policy-disabled.
 
-## D-012 — Phase 6B Linux desktop-control direction
+## D-012 — Post-MVP Linux desktop-control direction
 
 - **Status:** planned architecture only, 2026-09-02
 - **Decision:** Prefer AT-SPI semantic inspection/action, then desktop-native
@@ -158,4 +158,19 @@ master specification are recorded here.
   reference-only pending explicit license verification before any reuse.
   [Nidara Desktop](https://github.com/nidara-project/nidara-desktop) is
   architecture-only because it is GPL-3.0; no Nidara code may enter Sam. Phase
-  6A implements none of these desktop capabilities.
+  6A/6B implement none of these desktop capabilities.
+
+## D-013 — Structured process execution and explicit atomic writes
+
+- **Status:** accepted, 2026-09-03
+- **Decision:** Use one approval-only `process.run` capability with an executable
+  and argv passed to `shell=False`, an authorized cwd, a sanitized inherited
+  environment, bounded output, and cooperative timeout/revocation cleanup. Make
+  `files.write` visible only for an explicitly writable root and use bounded
+  UTF-8 temporary-file plus atomic activation semantics.
+- **Reason:** Structured argv avoids accidental shell interpretation while exact
+  approval remains the boundary for programs that retain normal user authority.
+  Atomic replacement prevents cancellation/failure from exposing partial files.
+- **Consequence:** There is no shell-string mode, elevation, destructive command
+  class, or OS sandbox claim. Windows descendant-tree guarantees require a
+  future native Job Object adapter if needed.

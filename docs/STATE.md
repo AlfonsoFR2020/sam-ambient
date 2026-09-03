@@ -1,14 +1,12 @@
 # Sam implementation state
 
-Updated: 2026-09-02
+Updated: 2026-09-03
 
 ## Current milestone
 
-- Phases 0–5 and Phase 6A are complete as green vertical slices.
+- Phases 0–6 are complete as green vertical slices.
 - Phase 0 established the reproducible Python package, scripts, protocol seam,
   supervisor/update separation, and rollback-oriented filesystem skeleton.
-- Repository initialized on `main`; reproducible Python package skeleton and
-  one-command bootstrap/test/dev scripts are present.
 - Phase 1 complete: protocol v1 models, bounded event bus, idempotent
   cancellation registry, and deterministic multi-signal turn state machine.
 - Voice simulations cover normal endpointing, mid-sentence pauses, sustained
@@ -114,15 +112,27 @@ Updated: 2026-09-02
 - Phase 6A quality gate: Ruff format/lint, 167 Python tests pass with the optional
   live Ollama and host-privileged symlink probes skipped; Biome format/lint,
   TypeScript typecheck, 34 Vitest tests, and Vite production build pass.
+- Phase 6A is committed as `43ce3a1`.
+- Phase 6B adds approval-only `process.run`: an explicit executable plus bounded
+  argv, authorized cwd, `shell=False`, sanitized child environment, per-stream
+  output caps, timeout, cancellation, and POSIX process-group/direct Windows
+  child cleanup. Results remain bounded untrusted data.
+- `files.write` is exposed only when the workspace root is explicitly writable.
+  It creates without clobbering by default or atomically replaces when
+  `overwrite=true`; UTF-8 input is capped at 64 KiB and every write needs exact
+  owner approval. Runtime `app.open` is likewise approval-only.
+- Global revoke invalidates Phase 6B leases/approvals, blocks new work, and
+  cancels an active process. The UI shows risk plus expandable exact command or
+  target details before approval.
+- Phase 6B quality gate: Ruff format/lint, 184 Python tests pass with the same two
+  justified skips; Biome format/lint, TypeScript typecheck, 35 Vitest tests, and
+  Vite production build pass.
 
 ## Environment
 
 - Host: Windows development machine; primary product target remains Linux.
-- Git: 2.55.0.windows.5.
-- Python: 3.12.11 and 3.14.2 available; project targets Python >=3.12.
-- uv: 0.9.26.
-- Bundled Node.js 24.19.0 and pnpm 11.19.0 drive the frontend. No privileged
-  system toolchain installation was performed.
+- Python 3.12.11/3.14.2, uv 0.9.26, bundled Node.js 24.19.0, and pnpm 11.19.0
+  are available; the project targets Python >=3.12. No privileged install ran.
 - Rust is still required for the native host. A Windows Tauri build additionally
   requires MSVC C++ Build Tools; both are intentionally deferred. Because Linux
   is the primary deployment target, a Linux/WSL native build route may be
@@ -164,30 +174,27 @@ Updated: 2026-09-02
 - Delivery accounting is sentence/chunk-level. A partially played chunk at
   cancellation is conservatively treated as unspoken; word-level alignment is
   intentionally deferred.
-- The upstream sounddevice Windows wheel contains inactive ASIO-enabled DLLs;
-  Sam does not load them, and a distributable bundle must exclude or separately
-  approve them.
 - Tauri 2 identity/build metadata and the injected `NativeEventSource` boundary
   are scaffolded, but no native build is claimed. Remaining native work is
   Rust/Cargo setup, host implementation, Python-core lifecycle integration, and
   platform packaging. Windows additionally needs MSVC C++ Build Tools; Linux or
   WSL is the preferred route to evaluate first because Linux is the primary
   deployment target.
-- The development bridge intentionally has no remote binding/authentication.
-  The real runtime supports text/provider/tool flow; physical voice capture/TTS
-  is not started by this CLI. Capability revocation is process-local and has no
-  OS-global shortcut or persistence yet; Phase 6B must preserve it when adding
-  higher-risk grants.
+- The development bridge intentionally has no remote binding/authentication;
+  physical voice capture/TTS is not started by this CLI. Capability revocation
+  remains process-local with no OS-global shortcut or persistence.
 - The replaceable live clipboard adapter relies on Tk and is not yet verified on
-  headless target Linux; `app.open` remains policy-disabled in Phase 6A.
-- Exact next step: Phase 6B dedicated privileged/destructive shell and desktop
-  capability threat/policy review following the documented AT-SPI-first Linux
-  direction. No such capability is currently implemented.
+  headless target Linux.
+- `process.run` is not an OS filesystem sandbox: exact argv is owner-approved,
+  but programs retain normal user authority. POSIX cancellation targets the
+  process group; Windows stops the direct child but not independently detached
+  descendants without a Job Object. No shell-string mode, stdin, environment
+  override, elevation, destructive operation, or desktop automation exists.
+- Exact next step: Phase 7 supervisor/resilience. Post-MVP desktop control keeps
+  the documented AT-SPI-first direction and is not part of Phase 6B.
 
 ## Commands
 
-- Bootstrap: `scripts/bootstrap.ps1` or `scripts/bootstrap.sh`.
-- Quality gate: `scripts/test.ps1` or `scripts/test.sh`.
-- Development harness: `scripts/dev.ps1` or `scripts/dev.sh`.
+- Bootstrap/test/dev: `scripts/{bootstrap,test,dev}.ps1` or matching `.sh`.
 - Browser + real composed Python runtime: `scripts/ui-dev.ps1` or
   `scripts/ui-dev.sh`.

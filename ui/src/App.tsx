@@ -100,6 +100,12 @@ function ToolActivity({
         <div className="tool-approval">
           <p>{approval.description}</p>
           {approval.riskClass && <small>{approval.riskClass}</small>}
+          {approval.details && (
+            <details>
+              <summary>Review request</summary>
+              <code>{approval.details}</code>
+            </details>
+          )}
           <div>
             <button
               type="button"

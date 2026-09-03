@@ -12,6 +12,7 @@ from typing import Any
 from uuid import uuid4
 
 from sam_ambient.adapters.computer import PlatformAppOpenAdapter, TkClipboardAdapter
+from sam_ambient.adapters.process import SubprocessAdapter
 from sam_ambient.adapters.ui import DEFAULT_UI_BRIDGE_PORT, WebSocketCoreBridge
 from sam_ambient.core.protocol import (
     CancellationTarget,
@@ -44,6 +45,8 @@ from sam_ambient.core.tools import (
     FilesListTool,
     FilesReadTool,
     FilesSearchTool,
+    FilesWriteTool,
+    ProcessRunTool,
     SystemInfoTool,
     ToolExecution,
     ToolExecutor,
@@ -71,6 +74,7 @@ class RuntimeConfig:
     model: str | None = None
     max_tool_rounds: int = 4
     allow_cloud: bool = False
+    workspace_writable: bool = False
 
     def __post_init__(self) -> None:
         canonical = self.workspace_root.resolve(strict=True)
@@ -231,7 +235,15 @@ class SamRuntime:
         provider_registry.register(provider)
         self.providers = provider_registry
         self.router = ProviderRouter(provider_registry)
-        self.paths = AuthorizedPaths((AuthorizedRoot("workspace", config.workspace_root),))
+        self.paths = AuthorizedPaths(
+            (
+                AuthorizedRoot(
+                    "workspace",
+                    config.workspace_root,
+                    writable=config.workspace_writable,
+                ),
+            )
+        )
         self.tools = registry or self._default_tools()
         self.approvals = ApprovalBroker()
         self.capability_authority = CapabilityAuthority()
@@ -243,7 +255,7 @@ class SamRuntime:
         self._closed = False
         self.tool_executor = ToolExecutor(
             self.tools,
-            CapabilityPolicy(),
+            CapabilityPolicy(allow_external_side_effects=True),
             self.approvals,
             self.events.publish,
             is_current=self._is_current_tool,
@@ -274,15 +286,18 @@ class SamRuntime:
 
     def _default_tools(self) -> ToolRegistry:
         clipboard = TkClipboardAdapter()
+        write_tools = (FilesWriteTool(self.paths),) if self.config.workspace_writable else ()
         return ToolRegistry(
             (
                 FilesListTool(self.paths),
                 FilesReadTool(self.paths),
                 FilesSearchTool(self.paths),
+                *write_tools,
                 SystemInfoTool(),
                 ClipboardReadTool(clipboard),
                 ClipboardWriteTool(clipboard),
                 AppOpenTool(self.paths, PlatformAppOpenAdapter()),
+                ProcessRunTool(self.paths, SubprocessAdapter()),
             )
         )
 

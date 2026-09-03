@@ -399,6 +399,24 @@ input {
   text-transform: lowercase;
 }
 
+.tool-approval details {
+  margin-top: 8px;
+  color: #9eabc0;
+  font-size: 0.68rem;
+}
+
+.tool-approval code {
+  display: block;
+  max-height: 9rem;
+  margin-top: 6px;
+  overflow: auto;
+  color: #aeb9ca;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .tool-approval > div {
   display: flex;
   gap: 7px;

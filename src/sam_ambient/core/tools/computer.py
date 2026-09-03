@@ -146,7 +146,7 @@ class ClipboardWriteTool:
 class AppOpenTool:
     descriptor = ToolDescriptor(
         id="app.open",
-        description="Open an authorized local path; disabled by Phase 6A policy.",
+        description="Open an authorized local path after explicit owner approval.",
         input_schema={
             "type": "object",
             "properties": {

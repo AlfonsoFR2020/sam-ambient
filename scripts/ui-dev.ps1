@@ -5,9 +5,10 @@ $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $uvCommand = (Get-Command uv -ErrorAction Stop).Source
 $env:UV_CACHE_DIR = Join-Path $projectRoot ".cache/uv"
 $env:VITE_SAM_TRANSPORT = "core"
+$quotedProjectRoot = '"' + $projectRoot + '"'
 
 $bridge = Start-Process -FilePath $uvCommand `
-    -ArgumentList @("run", "sam", "runtime", "--root", $projectRoot) `
+    -ArgumentList @("run", "sam", "runtime", "--root", $quotedProjectRoot, "--allow-workspace-write") `
     -WorkingDirectory $projectRoot `
     -WindowStyle Hidden `
     -PassThru

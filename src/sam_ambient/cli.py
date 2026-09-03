@@ -77,7 +77,12 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument(
         "--root",
         required=True,
-        help="Authorized workspace root exposed as the read-only 'workspace' capability root",
+        help="Authorized workspace root exposed as the 'workspace' capability root",
+    )
+    runtime.add_argument(
+        "--allow-workspace-write",
+        action="store_true",
+        help="Permit approval-gated files.write within the authorized workspace root",
     )
     runtime.add_argument(
         "--allow-cloud",
@@ -221,6 +226,7 @@ async def run_runtime(args: argparse.Namespace) -> int:
             port=args.port,
             model=args.model,
             allow_cloud=args.allow_cloud,
+            workspace_writable=args.allow_workspace_write,
         ),
     )
     try:

@@ -15,6 +15,7 @@ from sam_ambient.core.providers import (
     ToolSchema,
 )
 from sam_ambient.core.tools import (
+    AuthorizationKind,
     FunctionTool,
     RiskClass,
     SideEffect,
@@ -127,3 +128,37 @@ def test_provider_tool_call_id_is_rejected_before_protocol_propagation() -> None
                 "function": {"name": "test.read", "arguments": {}},
             }
         )
+
+
+def test_composed_runtime_registers_phase6b_tools_with_explicit_write_scope(tmp_path) -> None:
+    runtime = SamRuntime(
+        RepeatingToolProvider(),
+        RuntimeConfig(
+            workspace_root=tmp_path,
+            model="bounded-model",
+            workspace_writable=True,
+        ),
+    )
+    try:
+        descriptors = {item.id: item for item in runtime.tools.descriptors()}
+        assert {"files.write", "process.run", "app.open"}.issubset(descriptors)
+        assert runtime.paths.root("workspace", write=True).writable is True
+        assert (
+            runtime.tool_executor.policy.authorize(descriptors["process.run"]).kind
+            is AuthorizationKind.REQUIRE_APPROVAL
+        )
+        assert (
+            runtime.tool_executor.policy.authorize(descriptors["files.write"]).kind
+            is AuthorizationKind.REQUIRE_APPROVAL
+        )
+    finally:
+        asyncio.run(runtime.close())
+
+    read_only_runtime = SamRuntime(
+        RepeatingToolProvider(),
+        RuntimeConfig(workspace_root=tmp_path, model="bounded-model"),
+    )
+    try:
+        assert "files.write" not in {item.id for item in read_only_runtime.tools.descriptors()}
+    finally:
+        asyncio.run(read_only_runtime.close())

@@ -66,6 +66,28 @@ const toolActivityFrom = (event: ProtocolEvent): ToolActivity => ({
   monotonicMs: event.monotonic_ms,
 });
 
+const approvalDetails = (toolId: string, value: unknown): string | undefined => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
+  const arguments_ = value as Record<string, unknown>;
+  const root = typeof arguments_.root === "string" ? arguments_.root : "?";
+  if (toolId === "process.run" && typeof arguments_.executable === "string") {
+    const args = Array.isArray(arguments_.args)
+      ? arguments_.args.filter((item): item is string => typeof item === "string")
+      : [];
+    const command = [arguments_.executable, ...args].map((item) => JSON.stringify(item)).join(" ");
+    const cwd = typeof arguments_.cwd === "string" ? arguments_.cwd : ".";
+    return boundedText(`Command: ${command}\nWorking directory: ${root}:${cwd}`, 30_000);
+  }
+  if (toolId === "files.write" && typeof arguments_.path === "string") {
+    const mode = arguments_.overwrite === true ? "replace or create" : "create only";
+    return boundedText(`Target: ${root}:${arguments_.path}\nMode: ${mode}`, 5_000);
+  }
+  if (toolId === "app.open" && typeof arguments_.path === "string") {
+    return boundedText(`Target: ${root}:${arguments_.path}`, 5_000);
+  }
+  return undefined;
+};
+
 const approvalFrom = (event: ProtocolEvent): ToolApprovalRequest | null => {
   if (!event.tool_call_id) return null;
   const toolId = boundedText(event.payload.tool_id, 80) ?? "unknown tool";
@@ -73,9 +95,10 @@ const approvalFrom = (event: ProtocolEvent): ToolApprovalRequest | null => {
     toolCallId: event.tool_call_id,
     toolId,
     description:
-      boundedText(event.payload.description) ??
       boundedText(event.payload.summary) ??
+      boundedText(event.payload.description) ??
       `Allow Sam to use ${toolId}?`,
+    details: approvalDetails(toolId, event.payload.arguments),
     riskClass: boundedText(event.payload.risk_class, 40),
     monotonicMs: event.monotonic_ms,
   };

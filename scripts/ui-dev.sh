@@ -7,7 +7,7 @@ export UV_CACHE_DIR="$PROJECT_ROOT/.cache/uv"
 export VITE_SAM_TRANSPORT=core
 
 cd "$PROJECT_ROOT"
-uv run sam runtime --root "$PROJECT_ROOT" &
+uv run sam runtime --root "$PROJECT_ROOT" --allow-workspace-write &
 BRIDGE_PID=$!
 trap 'kill "$BRIDGE_PID" 2>/dev/null || true; wait "$BRIDGE_PID" 2>/dev/null || true' EXIT INT TERM
 

@@ -32,6 +32,8 @@ Tool events use `tool.requested`, `tool.authorizing`,
 the pending session, turn, generation, and tool-call correlation. The
 `capability.authority_changed` event and ready/ack payloads expose the trusted
 authority epoch so stale messages cannot win.
+Approval requests include a bounded human summary and structured review fields;
+process argv and write/open targets remain visible before the owner decides.
 
 The development bridge uses subprotocol `sam.protocol.v1` over a bounded
 WebSocket bound to `127.0.0.1` by default. It checks browser origins, refuses
