@@ -87,6 +87,14 @@ export interface ToolApprovalRequest {
   monotonicMs: number;
 }
 
+export interface UpdateActivity {
+  transactionId: string;
+  componentId: string;
+  state: string;
+  candidateVersion?: string;
+  error?: string;
+}
+
 export interface TranscriptEntry {
   id: string;
   role: "user" | "assistant";
@@ -122,6 +130,7 @@ export interface UiState {
   pendingCommandIds: readonly string[];
   latestToolActivity: ToolActivity | null;
   pendingToolApproval: ToolApprovalRequest | null;
+  updateActivity: UpdateActivity | null;
   protocolError?: string;
 }
 
@@ -141,6 +150,7 @@ export const INITIAL_UI_STATE: UiState = {
   pendingCommandIds: [],
   latestToolActivity: null,
   pendingToolApproval: null,
+  updateActivity: null,
 };
 
 export const isConversationalState = (value: unknown): value is ConversationalState =>

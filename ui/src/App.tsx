@@ -205,6 +205,11 @@ export default function App() {
             capabilities disabled
           </small>
         )}
+        {state.updateActivity && (
+          <small className="status__update" title={state.updateActivity.error}>
+            {state.updateActivity.componentId} · {state.updateActivity.state.toLowerCase()}
+          </small>
+        )}
       </header>
       {preferences.transcriptVisible && <Transcript state={state} />}
       <ToolActivity state={state} applyAction={applyAction} />

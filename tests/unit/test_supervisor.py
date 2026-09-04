@@ -208,6 +208,32 @@ def test_crash_restarts_with_bounded_backoff_and_fresh_instance(tmp_path: Path) 
     asyncio.run(scenario())
 
 
+def test_trusted_planned_restart_changes_instance_without_counting_a_crash(
+    tmp_path: Path,
+) -> None:
+    async def scenario() -> None:
+        first, second = healthy(22), healthy(23)
+        launcher = FakeLauncher([first, second])
+        store = SupervisorStore(tmp_path / "state.db")
+        supervisor = Supervisor(
+            (spec(tmp_path),), launcher, store, clock=VirtualClock()
+        )
+        await supervisor.start()
+        await eventually(lambda: supervisor.health is HealthState.HEALTHY)
+        prior = supervisor.statuses["sam-core"].instance_id
+        await supervisor.restart_component("sam-core")
+        await eventually(lambda: launcher.launch_count == 2)
+        await eventually(lambda: supervisor.health is HealthState.HEALTHY)
+
+        assert supervisor.statuses["sam-core"].instance_id != prior
+        assert supervisor.statuses["sam-core"].restart_count == 0
+        assert store.crashes() == ()
+        assert store.security_state().capabilities_revoked is False
+        await supervisor.shutdown()
+
+    asyncio.run(scenario())
+
+
 def test_repeated_critical_crashes_enter_safe_mode_without_infinite_restart(
     tmp_path: Path,
 ) -> None:

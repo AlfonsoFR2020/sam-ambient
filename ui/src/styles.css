@@ -156,6 +156,14 @@ input {
   color: #c2a27e;
 }
 
+.status .status__update {
+  margin-left: 2px;
+  border: 1px solid #87a9d629;
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: #9db7d5;
+}
+
 .status__mark {
   width: 8px;
   height: 8px;

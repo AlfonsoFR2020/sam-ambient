@@ -375,4 +375,34 @@ describe("protocol state reduction", () => {
     expect(state.pendingToolApproval).toBeNull();
     expect(state.latestToolActivity).toBeNull();
   });
+
+  it("shows correlated update progress and rejects an out-of-order update event", () => {
+    const observing = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "update.state_changed",
+        50,
+        { component_id: "sam-core", state: "OBSERVING", candidate_version: "2.0" },
+        { update_tx_id: "update-1" },
+      ),
+    );
+    expect(observing.updateActivity).toEqual({
+      transactionId: "update-1",
+      componentId: "sam-core",
+      state: "OBSERVING",
+      candidateVersion: "2.0",
+      error: undefined,
+    });
+
+    const stale = reduceProtocolEvent(
+      observing,
+      event(
+        "update.state_changed",
+        49,
+        { component_id: "sam-core", state: "ACTIVATING" },
+        { update_tx_id: "update-1" },
+      ),
+    );
+    expect(stale).toBe(observing);
+  });
 });

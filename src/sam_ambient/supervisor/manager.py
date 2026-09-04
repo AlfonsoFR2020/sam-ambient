@@ -68,6 +68,7 @@ class Supervisor:
         self._tasks: dict[str, asyncio.Task[None]] = {}
         self._shutdown = asyncio.Event()
         self._shutdown_lock = asyncio.Lock()
+        self._planned_restarts: set[str] = set()
         self._started = False
 
     @property
@@ -110,6 +111,18 @@ class Supervisor:
     def accepts_event(self, component_id: str, instance_id: str) -> bool:
         status = self.statuses.get(component_id)
         return status is not None and status.instance_id == instance_id
+
+    async def restart_component(self, component_id: str) -> None:
+        """Request one trusted planned restart without counting it as a crash."""
+
+        if component_id not in self.statuses:
+            raise ValueError("unknown supervised component")
+        process = self._processes.get(component_id)
+        if process is None:
+            raise RuntimeError("component is not currently running")
+        spec = next(item for item in self.components if item.component_id == component_id)
+        self._planned_restarts.add(component_id)
+        await process.stop(spec.restart.shutdown_timeout_s)
 
     async def shutdown(self) -> None:
         async with self._shutdown_lock:
@@ -203,6 +216,13 @@ class Supervisor:
                 status.health = HealthState.STOPPED
                 self.store.save_status(status)
                 return
+
+            if spec.component_id in self._planned_restarts:
+                self._planned_restarts.discard(spec.component_id)
+                status.health = HealthState.STOPPED
+                status.last_exit_reason = "planned_restart"
+                self.store.save_status(status)
+                continue
 
             now = self.clock.monotonic_ms()
             if ready_at is not None and now - ready_at >= int(spec.restart.stable_after_s * 1000):

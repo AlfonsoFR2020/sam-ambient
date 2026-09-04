@@ -9,6 +9,7 @@ import {
   type ToolEventType,
   type TranscriptEntry,
   type UiState,
+  type UpdateActivity,
 } from "../protocol/types";
 
 const clamp = (value: unknown): number =>
@@ -101,6 +102,19 @@ const approvalFrom = (event: ProtocolEvent): ToolApprovalRequest | null => {
     details: approvalDetails(toolId, event.payload.arguments),
     riskClass: boundedText(event.payload.risk_class, 40),
     monotonicMs: event.monotonic_ms,
+  };
+};
+
+const updateFrom = (event: ProtocolEvent): UpdateActivity | null => {
+  const componentId = boundedText(event.payload.component_id, 64);
+  const state = boundedText(event.payload.state, 40);
+  if (!event.update_tx_id || !componentId || !state) return null;
+  return {
+    transactionId: event.update_tx_id,
+    componentId,
+    state,
+    candidateVersion: boundedText(event.payload.candidate_version, 128),
+    error: boundedText(event.payload.error, 240),
   };
 };
 
@@ -262,6 +276,8 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
             ? null
             : next.pendingToolApproval,
     };
+  } else if (event.type === "update.state_changed") {
+    next = { ...next, updateActivity: updateFrom(event) ?? next.updateActivity };
   } else if (event.type === "voice.state_changed" && isConversationalState(event.payload.to)) {
     next = {
       ...next,

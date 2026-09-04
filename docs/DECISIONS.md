@@ -191,3 +191,18 @@ master specification are recorded here.
   capability authority after diagnosis; neither action is in the UI/model
   protocol. Browser dev UI remains independently restartable until a packaged
   `sam-ui` process exists. Phase 8 may use these seams but adds no updater here.
+
+## D-015 — Versioned staged activation with manifest pointer
+
+- **Status:** accepted, 2026-09-04
+- **Decision:** Keep update authority in the trusted supervisor layer. Stage
+  component-neutral local artifacts under version directories, validate them
+  with bounded structured commands, and atomically replace a small `active.json`
+  manifest before a planned component restart and stable health observation.
+- **Reason:** A manifest pointer gives Windows and POSIX the same unprivileged,
+  recoverable activation transaction without overwriting the running version or
+  assuming every future component is Python or repository-owned.
+- **Consequence:** Capability authority is revoked for activation and rollback;
+  last-known-good advances only after observation, ambiguous recovery rolls back,
+  and double failure enters safe mode. The stable packaged launcher that reads
+  the manifest and supervisor self-update bootstrap remain Phase 9 work.

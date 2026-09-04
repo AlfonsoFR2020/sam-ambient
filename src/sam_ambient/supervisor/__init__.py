@@ -19,22 +19,57 @@ from sam_ambient.supervisor.persistence import (
     SupervisorStore,
 )
 from sam_ambient.supervisor.process import ManagedProcess, ProcessLauncher, SubprocessLauncher
+from sam_ambient.supervisor.update_layout import StagedArtifact, VersionLayout
+from sam_ambient.supervisor.update_models import (
+    CandidateRequest,
+    ComponentVersionState,
+    HealthObservation,
+    InvalidUpdateTransition,
+    UpdatableComponent,
+    UpdateError,
+    UpdateState,
+    UpdateTransaction,
+    ValidationStep,
+)
+from sam_ambient.supervisor.update_store import UpdateStore
+from sam_ambient.supervisor.updater import (
+    StructuredValidator,
+    SupervisorUpdateRuntime,
+    UpdateCoordinator,
+    UpdateRuntime,
+)
 
 __all__ = [
+    "CandidateRequest",
     "Clock",
     "ComponentSpec",
     "ComponentStatus",
+    "ComponentVersionState",
     "CrashRecord",
+    "HealthObservation",
     "HealthReport",
     "HealthState",
+    "InvalidUpdateTransition",
     "LaunchContext",
     "ManagedProcess",
     "ProcessLauncher",
     "RestartPolicy",
     "SecurityState",
+    "StagedArtifact",
+    "StructuredValidator",
     "SubprocessLauncher",
     "Supervisor",
     "SupervisorStateError",
     "SupervisorStore",
+    "SupervisorUpdateRuntime",
     "SystemClock",
+    "UpdatableComponent",
+    "UpdateCoordinator",
+    "UpdateError",
+    "UpdateRuntime",
+    "UpdateState",
+    "UpdateStore",
+    "UpdateTransaction",
+    "ValidationStep",
+    "VersionLayout",
 ]
