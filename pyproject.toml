@@ -17,7 +17,7 @@ dependencies = [
 
 [project.scripts]
 sam = "sam_ambient.cli:main"
-sam-ambient = "sam_ambient.cli:main"
+sam-ambient = "sam_ambient.launcher:main"
 sam-supervisor = "sam_ambient.supervisor.cli:main"
 
 [dependency-groups]
@@ -28,6 +28,10 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sam_ambient"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"THIRD_PARTY.md" = "sam_ambient/THIRD_PARTY.md"
+"config/sam.example.toml" = "sam_ambient/sam.example.toml"
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers -p no:cacheprovider"

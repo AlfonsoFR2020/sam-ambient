@@ -23,6 +23,8 @@ SAM_PROTOCOL_SUBPROTOCOL = "sam.protocol.v1"
 DEFAULT_ALLOWED_ORIGINS: tuple[str, ...] = (
     "http://127.0.0.1:1420",
     "http://localhost:1420",
+    "http://127.0.0.1:8766",
+    "http://localhost:8766",
     "tauri://localhost",
 )
 

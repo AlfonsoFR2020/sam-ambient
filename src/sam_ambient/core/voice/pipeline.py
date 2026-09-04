@@ -152,25 +152,18 @@ class VoiceInputPipeline:
         final_transcript: Transcript | None = None
         last_partial: Transcript | None = None
         audio_frames = 0
+        listening_started = False
         frame_stream = self._capture.frames(cancellation)
         try:
             async for frame in frame_stream:
-                if stt_stream is None:
+                if not listening_started:
                     await self._publish_all(
                         self._turn_manager.start_listening(
                             frame.monotonic_ms,
                             cancellation_id=cancellation.cancellation_id,
                         )
                     )
-                    context = VoiceStreamContext(
-                        session_id=self._turn_manager.session_id,
-                        turn_id=self._require_id(self._turn_manager.turn_id, "turn_id"),
-                        cancellation_id=cancellation.cancellation_id,
-                        language=self._language,
-                    )
-                    stt_stream = await self._stt.start_stream(context, cancellation)
-
-                await stt_stream.push_audio(frame, cancellation)
+                    listening_started = True
                 audio_frames += 1
                 vad_result = self._vad.analyze(frame)
                 await self._publish(self._level_event(frame, vad_result.speech_probability))
@@ -179,18 +172,30 @@ class VoiceInputPipeline:
                     vad_result.speech_probability,
                 )
                 await self._publish_all(vad_events)
+                if stt_stream is None and self._turn_manager.state is VoiceState.USER_SPEAKING:
+                    context = VoiceStreamContext(
+                        session_id=self._turn_manager.session_id,
+                        turn_id=self._require_id(self._turn_manager.turn_id, "turn_id"),
+                        cancellation_id=cancellation.cancellation_id,
+                        language=self._language,
+                    )
+                    stt_stream = await self._stt.start_stream(context, cancellation)
+                if stt_stream is not None:
+                    await stt_stream.push_audio(frame, cancellation)
                 if self._turn_manager.state is VoiceState.ENDPOINT_CANDIDATE:
                     if candidate_since_ms is None:
                         candidate_since_ms = frame.monotonic_ms
                 else:
                     candidate_since_ms = None
 
-                partial = await stt_stream.partial_transcript()
+                partial = await stt_stream.partial_transcript() if stt_stream is not None else None
                 if partial is not None and partial != last_partial:
                     await self._publish_transcript(frame.monotonic_ms, partial)
                     last_partial = partial
 
-                if self._should_finalize(frame.monotonic_ms, candidate_since_ms):
+                if stt_stream is not None and self._should_finalize(
+                    frame.monotonic_ms, candidate_since_ms
+                ):
                     final_transcript = await stt_stream.finalize(cancellation)
                     if final_transcript != last_partial:
                         await self._publish_transcript(frame.monotonic_ms, final_transcript)
@@ -199,8 +204,10 @@ class VoiceInputPipeline:
                 time_events = self._turn_manager.on_time(frame.monotonic_ms)
                 await self._publish_all(time_events)
                 if any(event.type == EventType.TURN_COMMITTED for event in time_events):
-                    if final_transcript is None:
+                    if final_transcript is None and stt_stream is not None:
                         final_transcript = await stt_stream.finalize(cancellation)
+                    if final_transcript is None:
+                        raise VoicePipelineEnded("speech committed without an STT stream")
                     return VoiceInputResult(final_transcript, audio_frames)
         finally:
             try:

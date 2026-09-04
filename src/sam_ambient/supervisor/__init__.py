@@ -19,7 +19,7 @@ from sam_ambient.supervisor.persistence import (
     SupervisorStore,
 )
 from sam_ambient.supervisor.process import ManagedProcess, ProcessLauncher, SubprocessLauncher
-from sam_ambient.supervisor.update_layout import StagedArtifact, VersionLayout
+from sam_ambient.supervisor.update_layout import StagedArtifact, VersionLayout, read_active_pointer
 from sam_ambient.supervisor.update_models import (
     CandidateRequest,
     ComponentVersionState,
@@ -72,4 +72,5 @@ __all__ = [
     "UpdateTransaction",
     "ValidationStep",
     "VersionLayout",
+    "read_active_pointer",
 ]

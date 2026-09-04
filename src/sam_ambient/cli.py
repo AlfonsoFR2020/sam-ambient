@@ -8,16 +8,24 @@ import json
 import os
 import sys
 from collections.abc import Callable, Sequence
+from importlib.resources import files
 from pathlib import Path
+from urllib.parse import urlsplit
+
+import sounddevice
 
 from sam_ambient import __version__
+from sam_ambient.adapters.audio import SoundDeviceCapture, SoundDeviceOutput
 from sam_ambient.adapters.ollama import (
     DEFAULT_OLLAMA_BASE_URL,
     OllamaProvider,
     find_ollama_executable,
 )
 from sam_ambient.adapters.openai_compatible import OpenAICompatibleProvider
+from sam_ambient.adapters.stt import DEFAULT_WHISPER_CPP_URL, WhisperCppServerSTT
+from sam_ambient.adapters.tts import SystemTextToSpeech, TextToSpeechUnavailable
 from sam_ambient.adapters.ui.demo import run_demo_bridge
+from sam_ambient.adapters.vad import WebRtcVoiceActivityDetector
 from sam_ambient.core.providers import (
     DataBoundary,
     LLMProvider,
@@ -27,7 +35,9 @@ from sam_ambient.core.providers import (
     ProviderError,
 )
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
-from sam_ambient.runtime import RuntimeConfig, SamRuntime
+from sam_ambient.runtime import RuntimeConfig, RuntimeVoiceAdapters, SamRuntime
+from sam_ambient.static_server import StaticUiServer, StaticUiUnavailable
+from sam_ambient.supervisor import SupervisorStore, UpdateError, UpdateStore, read_active_pointer
 
 
 def _add_provider_arguments(parser: argparse.ArgumentParser) -> None:
@@ -65,8 +75,12 @@ def build_parser() -> argparse.ArgumentParser:
     models = subparsers.add_parser("models", help="List provider models")
     _add_provider_arguments(models)
 
-    doctor = subparsers.add_parser("doctor", help="Check Ollama text-mode readiness")
+    doctor = subparsers.add_parser("doctor", help="Check complete local MVP readiness")
     doctor.add_argument("--base-url", help="Ollama API base URL")
+    doctor.add_argument("--root", default=".", help="Sam workspace/authorized root")
+    doctor.add_argument("--state-db", help="Operational SQLite path")
+    doctor.add_argument("--stt-url", default=DEFAULT_WHISPER_CPP_URL)
+    doctor.add_argument("--json", action="store_true", help="Print machine-readable diagnostics")
 
     bridge = subparsers.add_parser("bridge", help="Serve the local UI protocol bridge")
     bridge.add_argument("--demo", action="store_true", help="Publish deterministic core events")
@@ -95,6 +109,14 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--capabilities-revoked", action="store_true", help=argparse.SUPPRESS)
     runtime.add_argument("--safe-mode", action="store_true", help=argparse.SUPPRESS)
     runtime.add_argument("--state-db", help=argparse.SUPPRESS)
+    runtime.add_argument("--no-voice", action="store_true", help="Disable microphone/VAD/STT")
+    runtime.add_argument("--no-tts", action="store_true", help="Disable spoken output")
+    runtime.add_argument("--stt-url", default=DEFAULT_WHISPER_CPP_URL)
+
+    ui = subparsers.add_parser("ui", help="Serve the packaged ambient UI on loopback")
+    ui.add_argument("--port", type=int, default=8766, help="Loopback HTTP port")
+    ui.add_argument("--open-browser", action="store_true")
+    ui.add_argument("--runtime-instance-id", help=argparse.SUPPRESS)
     return parser
 
 
@@ -203,28 +225,161 @@ async def run_models(args: argparse.Namespace) -> int:
 async def run_doctor(args: argparse.Namespace) -> int:
     base_url = args.base_url or os.environ.get("OLLAMA_HOST") or DEFAULT_OLLAMA_BASE_URL
     provider = OllamaProvider(base_url=base_url)
+    root, state_db = _doctor_paths(args)
+    report: dict[str, object] = {"sam_version": __version__, "authorized_roots": [str(root)]}
     try:
         cancellation = CancellationToken()
         executable = find_ollama_executable()
         health = await provider.health(cancellation)
-        print(f"Sam {__version__}")
-        print(f"Ollama executable: {executable or 'not found'}")
-        print(
-            f"Ollama service: {'healthy' if health.available else 'unavailable'} ({health.detail})"
-        )
-        if health.version:
-            print(f"Ollama version: {health.version}")
-        if not health.available:
-            return 1
-        models = await provider.list_models(cancellation)
-        print(f"Installed models: {len(models)}")
-        return 0 if models else 1
+        models = await provider.list_models(cancellation) if health.available else []
+        report["provider"] = {
+            "id": provider.id,
+            "available": health.available,
+            "detail": health.detail,
+            "version": health.version,
+            "executable": executable,
+            "models": [model.id for model in models],
+        }
+        try:
+            devices = await asyncio.to_thread(sounddevice.query_devices)
+            device_names = [str(device["name"])[:200] for device in devices]
+            default_devices = list(sounddevice.default.device)
+            report["audio"] = {
+                "available": bool(device_names),
+                "devices": device_names[:32],
+                "truncated": len(device_names) > 32,
+                "default": default_devices,
+            }
+        except Exception as error:
+            report["audio"] = {"available": False, "detail": str(error)[:300]}
+
+        tts_available = False
+        tts_detail = "unavailable"
+        try:
+            tts = SystemTextToSpeech()
+            try:
+                await tts.probe()
+                tts_available = True
+                tts_detail = tts.backend_id
+            finally:
+                await tts.aclose()
+        except Exception as error:
+            tts_detail = str(error)[:300]
+        report["tts"] = {"available": tts_available, "backend": tts_detail}
+
+        try:
+            parsed_stt = urlsplit(args.stt_url)
+            stt_host = parsed_stt.hostname or "127.0.0.1"
+            stt_port = parsed_stt.port or (443 if parsed_stt.scheme == "https" else 80)
+            async with asyncio.timeout(2):
+                _reader, writer = await asyncio.open_connection(stt_host, stt_port)
+            writer.close()
+            await writer.wait_closed()
+            stt_available = True
+            stt_detail = "TCP reachable"
+        except Exception as error:
+            stt_available = False
+            stt_detail = f"{type(error).__name__}: {error}"[:300]
+        report["stt"] = {
+            "available": stt_available,
+            "endpoint": args.stt_url,
+            "detail": stt_detail,
+        }
+
+        ui_index = files("sam_ambient").joinpath("static/index.html")
+        report["ui"] = {"available": ui_index.is_file(), "transport": "localhost-websocket"}
+        component_root = root / ".sam/components/sam-core"
+        active: dict[str, object] = {"version": "installed", "source": "python-package"}
+        if (component_root / "active.json").exists():
+            try:
+                pointer = read_active_pointer("sam-core", component_root)
+                active = {
+                    "version": pointer["version"],
+                    "artifact_hash": pointer["artifact_hash"],
+                    "source": "active.json",
+                }
+            except UpdateError as error:
+                active = {"error": str(error), "source": "invalid-active.json"}
+        report["active_component"] = active
+
+        if state_db.is_file():
+            report["supervisor"] = SupervisorStore(state_db).diagnostic_snapshot()
+            try:
+                report["updates"] = [
+                    {
+                        "update_tx_id": item.update_tx_id,
+                        "component_id": item.component_id,
+                        "state": item.state,
+                    }
+                    for item in UpdateStore(state_db).incomplete()
+                ]
+            except UpdateError as error:
+                report["updates"] = {"error": str(error)}
+        else:
+            report["supervisor"] = {"state": "not_started", "state_db": str(state_db)}
+            report["updates"] = []
+
+        if args.json:
+            print(json.dumps(report, indent=2, sort_keys=True, default=str))
+        else:
+            _print_doctor(report)
+        return 0 if health.available and bool(models) and ui_index.is_file() else 1
     finally:
         await provider.aclose()
 
 
+def _doctor_paths(args: argparse.Namespace) -> tuple[Path, Path]:
+    root = Path(args.root).resolve(strict=True)
+    state_db = (
+        Path(args.state_db).resolve(strict=False) if args.state_db else root / ".sam/state.db"
+    )
+    return root, state_db
+
+
+def _print_doctor(report: dict[str, object]) -> None:
+    provider = report["provider"]
+    audio = report["audio"]
+    tts = report["tts"]
+    stt = report["stt"]
+    ui = report["ui"]
+    active = report["active_component"]
+    assert isinstance(provider, dict)
+    assert isinstance(audio, dict)
+    assert isinstance(tts, dict)
+    assert isinstance(stt, dict)
+    assert isinstance(ui, dict)
+    assert isinstance(active, dict)
+    print(f"Sam {report['sam_version']}")
+    print(f"Supervisor: {'available' if report['supervisor'] else 'not started'}")
+    print(f"Active core: {active.get('version', active.get('error', 'unknown'))}")
+    print(f"Packaged UI: {'ready' if ui['available'] else 'missing'}")
+    print(f"Audio devices: {len(audio.get('devices', [])) if audio.get('available') else 0}")
+    print(f"STT: {'reachable' if stt['available'] else 'unavailable'} ({stt['detail']})")
+    print(f"TTS: {'ready' if tts['available'] else 'unavailable'} ({tts['backend']})")
+    print(
+        f"Ollama: {'healthy' if provider['available'] else 'unavailable'} "
+        f"({provider['detail']}); models={len(provider['models'])}"
+    )
+    print(f"Authorized roots: {', '.join(report['authorized_roots'])}")
+
+
 async def run_runtime(args: argparse.Namespace) -> int:
     provider = create_provider(args)
+    tts = None
+    output = None
+    if not args.no_tts:
+        try:
+            tts = SystemTextToSpeech()
+            output = SoundDeviceOutput(tts.audio_format)
+        except TextToSpeechUnavailable:
+            pass
+    voice = None
+    if not args.no_voice:
+        voice = RuntimeVoiceAdapters(
+            SoundDeviceCapture(),
+            WebRtcVoiceActivityDetector(),
+            WhisperCppServerSTT(base_url=args.stt_url),
+        )
     runtime = SamRuntime(
         provider,
         RuntimeConfig(
@@ -245,6 +400,9 @@ async def run_runtime(args: argparse.Namespace) -> int:
             ),
             state_db=Path(args.state_db) if args.state_db else None,
         ),
+        voice=voice,
+        tts=tts,
+        audio_output=output,
     )
     try:
         await runtime.start()
@@ -284,6 +442,34 @@ async def run_runtime(args: argparse.Namespace) -> int:
         await runtime.close()
 
 
+async def run_ui(args: argparse.Namespace) -> int:
+    server = StaticUiServer(port=args.port)
+    try:
+        await server.start()
+        if args.runtime_instance_id:
+            print(
+                "SAM_READY "
+                + json.dumps(
+                    {
+                        "health": "HEALTHY",
+                        "instance_id": args.runtime_instance_id,
+                        "detail": "packaged ambient UI ready",
+                        "port": server.port,
+                    },
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
+        print(f"Sam UI listening on http://127.0.0.1:{server.port}")
+        if args.open_browser:
+            await asyncio.to_thread(server.open_browser)
+        await server.serve_forever()
+        return 0
+    finally:
+        await server.close()
+
+
 async def _dispatch(args: argparse.Namespace) -> int:
     if args.command == "chat":
         return await run_chat(args)
@@ -298,6 +484,8 @@ async def _dispatch(args: argparse.Namespace) -> int:
         return 0
     if args.command == "runtime":
         return await run_runtime(args)
+    if args.command == "ui":
+        return await run_ui(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 
@@ -312,7 +500,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except OperationCancelled:
         print("Cancelled.", file=sys.stderr)
         return 130
-    except (ProviderError, ValueError) as error:
+    except (ProviderError, StaticUiUnavailable, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 2
     except KeyboardInterrupt:

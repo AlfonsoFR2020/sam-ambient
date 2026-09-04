@@ -30,6 +30,8 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | pluggy | 1.6.0 | MIT | https://github.com/pytest-dev/pluggy | pytest plugin system | Transitive development dependency | MIT notice |
 | Pygments | 2.21.0 | BSD-2-Clause | https://github.com/pygments/pygments | pytest failure highlighting | Transitive development dependency | BSD notice |
 | whisper.cpp | External/current | MIT | https://github.com/ggml-org/whisper.cpp | Separately managed local STT server | HTTP adapter only; not installed or bundled | Model files are separate assets and require their own provenance/license review |
+| Windows System.Speech | Windows OS component | Microsoft Windows terms | https://learn.microsoft.com/dotnet/api/system.speech.synthesis | Local MVP TTS on Windows | Invoked through a fixed bundled PowerShell adapter; no Windows runtime or voice asset redistributed | Available only where the Windows component/voices are installed |
+| eSpeak / eSpeak NG | External/current | GPL-3.0-or-later | https://github.com/espeak-ng/espeak-ng | Optional local MVP TTS on Linux | Separately installed executable invoked with structured argv; not linked, copied, or bundled | Distribution remains the OS/vendor's responsibility; Sam contains no eSpeak code or voice data |
 | Node.js | 24.19.0 (bundled development runtime) | MIT and bundled component notices | https://nodejs.org/ | Frontend development runtime | External developer tool | Retain upstream notices if redistributed |
 | pnpm | 11.19.0 | MIT | https://pnpm.io/ | Lockfile-based frontend package manager | External developer tool | None |
 | React / React DOM | 19.1.1 | MIT | https://react.dev/ | Ambient UI rendering | Frontend runtime dependency | Retain MIT notice |
@@ -59,8 +61,8 @@ Dependencies are linked/imported packages, not copied project code.
   and no code from them is included.
 - `kokoro-onnx` was evaluated but not included. Its current Python dependency
   route pulls `phonemizer-fork`/eSpeak-NG under GPL-3.0-family terms. No Kokoro
-  runtime, phonemizer, binary, model, or voice asset is present; the production
-  TTS engine remains deliberately unselected.
+  runtime, phonemizer, binary, model, or voice asset is present. MVP speech uses
+  an OS/external-process adapter instead.
 - Pelorus (`https://github.com/linuxserver/pelorus`) is a Phase 6B architecture
   reference only; its current license must be verified before any source reuse.
   Nidara Desktop (`https://github.com/nidara-project/nidara-desktop`) is GPL-3.0

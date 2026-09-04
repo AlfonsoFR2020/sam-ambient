@@ -215,9 +215,7 @@ def test_trusted_planned_restart_changes_instance_without_counting_a_crash(
         first, second = healthy(22), healthy(23)
         launcher = FakeLauncher([first, second])
         store = SupervisorStore(tmp_path / "state.db")
-        supervisor = Supervisor(
-            (spec(tmp_path),), launcher, store, clock=VirtualClock()
-        )
+        supervisor = Supervisor((spec(tmp_path),), launcher, store, clock=VirtualClock())
         await supervisor.start()
         await eventually(lambda: supervisor.health is HealthState.HEALTHY)
         prior = supervisor.statuses["sam-core"].instance_id

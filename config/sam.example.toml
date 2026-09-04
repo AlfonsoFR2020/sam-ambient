@@ -1,0 +1,17 @@
+[voice]
+mode = "balanced"
+input_device = "default"
+output_device = "default"
+stt_url = "http://127.0.0.1:8080"
+tts_backend = "system"
+
+[llm]
+provider = "ollama"
+base_url = "http://127.0.0.1:11434"
+model = ""
+
+[privacy]
+allow_cloud_fallback = false
+
+[capabilities]
+workspace_write = false

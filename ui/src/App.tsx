@@ -34,7 +34,7 @@ const chooseTransport = (): ProtocolTransport => {
     return new TauriLocalTransport(window.__SAM_NATIVE_EVENT_SOURCE__);
   }
   const queryMode = new URLSearchParams(window.location.search).get("transport");
-  const mode = queryMode ?? import.meta.env.VITE_SAM_TRANSPORT ?? "demo";
+  const mode = queryMode ?? import.meta.env.VITE_SAM_TRANSPORT ?? "core";
   if (mode === "core") return new WebSocketTransport();
   if (mode === "browser") return new BrowserEventTransport();
   return new DemoTransport(browserScheduler);

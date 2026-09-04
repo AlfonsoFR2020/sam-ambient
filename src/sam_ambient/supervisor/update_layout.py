@@ -98,23 +98,7 @@ class VersionLayout:
         return StagedArtifact(version, path, artifact_hash, files, size)
 
     def active(self) -> dict[str, object]:
-        try:
-            payload = json.loads(self.active_pointer.read_text(encoding="utf-8"))
-            if payload.get("component_id") != self.component.component_id:
-                raise UpdateError("active component pointer has the wrong identity")
-            version = payload["version"]
-            artifact_hash = payload["artifact_hash"]
-            if not isinstance(version, str) or not isinstance(artifact_hash, str):
-                raise UpdateError("active component pointer metadata is invalid")
-            path = Path(str(payload["path"])).resolve(strict=True)
-            if not path.is_relative_to(self.versions.resolve(strict=True)):
-                raise UpdateError("active component pointer escapes versions root")
-            artifact = self.artifact(version)
-            if path != artifact.path or artifact_hash != artifact.artifact_hash:
-                raise UpdateError("active component pointer does not match its artifact")
-            return payload
-        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
-            raise UpdateError("active component pointer is invalid") from error
+        return read_active_pointer(self.component.component_id, self.component.component_root)
 
     def cleanup_failed(self, *, keep_versions: set[str], maximum_failed: int = 2) -> None:
         if maximum_failed < 0:
@@ -141,6 +125,33 @@ class VersionLayout:
             raise UpdateError("candidate has no valid component.json identity") from error
         if manifest != {"component_id": self.component.component_id, "version": version}:
             raise UpdateError("candidate component identity/version does not match request")
+
+
+def read_active_pointer(component_id: str, component_root: Path) -> dict[str, object]:
+    """Resolve and re-hash a trusted component activation manifest."""
+
+    versions = component_root.resolve(strict=True) / "versions"
+    active_pointer = component_root / "active.json"
+    try:
+        payload = json.loads(active_pointer.read_text(encoding="utf-8"))
+        if payload.get("component_id") != component_id:
+            raise UpdateError("active component pointer has the wrong identity")
+        version = payload["version"]
+        artifact_hash = payload["artifact_hash"]
+        if not isinstance(version, str) or not isinstance(artifact_hash, str):
+            raise UpdateError("active component pointer metadata is invalid")
+        path = Path(str(payload["path"])).resolve(strict=True)
+        if path != _contained(versions, version, strict=True):
+            raise UpdateError("active component pointer path does not match its version")
+        manifest = json.loads((path / "component.json").read_text(encoding="utf-8"))
+        if manifest != {"component_id": component_id, "version": version}:
+            raise UpdateError("active component identity/version does not match its pointer")
+        current_hash, _, _ = _tree_hash(path)
+        if artifact_hash != current_hash:
+            raise UpdateError("active component pointer does not match its artifact")
+        return payload
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+        raise UpdateError("active component pointer is invalid") from error
 
 
 def _contained(root: Path, raw: str, *, strict: bool) -> Path:

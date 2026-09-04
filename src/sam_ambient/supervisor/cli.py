@@ -25,9 +25,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--root", required=True, help="Trusted Sam workspace root")
     parser.add_argument("--state-db", help="Operational SQLite path")
     parser.add_argument("--port", type=int, default=8765, help="Core loopback UI port")
+    parser.add_argument("--ui-port", type=int, default=8766, help="Packaged UI HTTP port")
+    parser.add_argument("--open-ui", action="store_true", help="Open the packaged UI in a browser")
+    parser.add_argument("--no-ui", action="store_true", help="Run only the supervised core")
     parser.add_argument("--model", help="Optional local model id")
     parser.add_argument("--base-url", help="Optional Ollama base URL")
     parser.add_argument("--allow-workspace-write", action="store_true")
+    parser.add_argument("--no-voice", action="store_true")
+    parser.add_argument("--no-tts", action="store_true")
+    parser.add_argument("--stt-url", default="http://127.0.0.1:8080")
     action = parser.add_mutually_exclusive_group()
     action.add_argument(
         "--status", action="store_true", help="Print persisted diagnostics and exit"
@@ -44,8 +50,10 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
     command = [
         sys.executable,
         "-m",
-        "sam_ambient",
-        "runtime",
+        "sam_ambient.supervisor.component_launcher",
+        "--component-root",
+        str(root / ".sam/components/sam-core"),
+        "--",
         "--root",
         str(root),
         "--port",
@@ -57,6 +65,26 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
         command.extend(("--base-url", args.base_url))
     if args.allow_workspace_write:
         command.append("--allow-workspace-write")
+    if args.no_voice:
+        command.append("--no-voice")
+    if args.no_tts:
+        command.append("--no-tts")
+    if args.stt_url:
+        command.extend(("--stt-url", args.stt_url))
+    return tuple(command)
+
+
+def _trusted_ui_command(args: argparse.Namespace) -> tuple[str, ...]:
+    command = [
+        sys.executable,
+        "-m",
+        "sam_ambient",
+        "ui",
+        "--port",
+        str(args.ui_port),
+    ]
+    if args.open_ui:
+        command.append("--open-browser")
     return tuple(command)
 
 
@@ -80,13 +108,25 @@ async def run(args: argparse.Namespace) -> int:
     if args.status:
         print(json.dumps(store.diagnostic_snapshot(), indent=2, sort_keys=True))
         return 0
-    spec = ComponentSpec(
-        "sam-core",
-        _trusted_core_command(args, root),
-        root,
-        restart=RestartPolicy(),
-    )
-    supervisor = Supervisor((spec,), SubprocessLauncher(), store)
+    components = [
+        ComponentSpec(
+            "sam-core",
+            _trusted_core_command(args, root),
+            root,
+            restart=RestartPolicy(),
+        )
+    ]
+    if not args.no_ui:
+        components.append(
+            ComponentSpec(
+                "sam-ui",
+                _trusted_ui_command(args),
+                root,
+                critical=False,
+                restart=RestartPolicy(),
+            )
+        )
+    supervisor = Supervisor(tuple(components), SubprocessLauncher(), store)
     loop = asyncio.get_running_loop()
     for requested in (signal.SIGINT, signal.SIGTERM):
         try:

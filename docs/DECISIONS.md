@@ -204,5 +204,19 @@ master specification are recorded here.
   assuming every future component is Python or repository-owned.
 - **Consequence:** Capability authority is revoked for activation and rollback;
   last-known-good advances only after observation, ambiguous recovery rolls back,
-  and double failure enters safe mode. The stable packaged launcher that reads
-  the manifest and supervisor self-update bootstrap remain Phase 9 work.
+  and double failure enters safe mode. Phase 9 supplies the stable packaged
+  manifest launcher; supervisor self-update still needs a separate bootstrap.
+
+## D-016 — Browser-packaged MVP and system speech
+
+- **Status:** accepted, 2026-09-04
+- **Decision:** Ship 0.1.0 as a Python wheel containing the production Vite
+  assets and a loopback-only supervised static server. Use Windows
+  System.Speech or a separately installed Linux eSpeak executable behind the
+  existing TTS contract; keep native Tauri packaging deferred.
+- **Reason:** This creates one installable, spoken, end-to-end MVP without a
+  Rust/MSVC toolchain or a questionable bundled phonemizer/voice chain.
+- **Consequence:** `sam-ambient` supervises core plus UI and resolves versioned
+  `active.json` on every core start. Linux speech quality and native desktop
+  integration remain replaceable post-MVP concerns; external eSpeak is not
+  bundled and retains its own GPL terms.

@@ -55,6 +55,8 @@ class SubprocessLauncher:
                 command.append("--capabilities-revoked")
             if context.safe_mode:
                 command.append("--safe-mode")
+        elif spec.component_id == "sam-ui":
+            command.extend(("--runtime-instance-id", context.instance_id))
         process = await asyncio.create_subprocess_exec(
             *command,
             cwd=spec.cwd,
