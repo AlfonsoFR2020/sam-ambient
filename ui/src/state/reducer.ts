@@ -161,6 +161,12 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     return state;
   }
   if (isStaleGeneration(state, event)) return state;
+  if (
+    event.type === "system.stopping" ||
+    (event.type === "control.acknowledged" && event.payload.application_stopping === true)
+  ) {
+    return { ...withConnection(state, "offline"), applicationStopped: true };
+  }
 
   const carriesConversationCorrelation =
     !event.type.startsWith("control.") && event.type !== "capability.authority_changed";
@@ -204,6 +210,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     return {
       ...next,
       connection: "connected",
+      applicationStopped: false,
+      provider: boundedText(event.payload.provider),
+      model: boundedText(event.payload.model),
+      selectionReason: boundedText(event.payload.selection_reason, 500),
       conversationalState: readyState,
       microphoneEnabled:
         typeof event.payload.microphone_enabled === "boolean"

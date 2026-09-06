@@ -5,12 +5,15 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import signal
 import sys
 from collections.abc import Sequence
 from dataclasses import asdict
 from pathlib import Path
 
+from sam_ambient import __version__
+from sam_ambient.logging_config import add_logging_arguments, configure_logging
 from sam_ambient.supervisor import (
     ComponentSpec,
     RestartPolicy,
@@ -18,6 +21,9 @@ from sam_ambient.supervisor import (
     Supervisor,
     SupervisorStore,
 )
+from sam_ambient.supervisor.browser import BrowserHandoff
+
+log = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -30,6 +36,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-ui", action="store_true", help="Run only the supervised core")
     parser.add_argument("--model", help="Optional local model id")
     parser.add_argument("--base-url", help="Optional Ollama base URL")
+    parser.add_argument(
+        "--provider", choices=("auto", "ollama", "lm-studio", "openai-compatible"), default="auto"
+    )
+    parser.add_argument("--local-compatible-url", help="Additional loopback compatible endpoint")
+    add_logging_arguments(parser)
     parser.add_argument("--allow-workspace-write", action="store_true")
     parser.add_argument("--no-voice", action="store_true")
     parser.add_argument("--no-tts", action="store_true")
@@ -58,11 +69,19 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
         str(root),
         "--port",
         str(args.port),
+        "--provider",
+        args.provider,
+        "--log-level",
+        "DEBUG" if args.verbose else args.log_level,
     ]
     if args.model:
         command.extend(("--model", args.model))
     if args.base_url:
         command.extend(("--base-url", args.base_url))
+    if args.provider == "openai-compatible":
+        command.append("--compatible-is-local")
+    if args.local_compatible_url:
+        command.extend(("--local-compatible-url", args.local_compatible_url))
     if args.allow_workspace_write:
         command.append("--allow-workspace-write")
     if args.no_voice:
@@ -82,9 +101,9 @@ def _trusted_ui_command(args: argparse.Namespace) -> tuple[str, ...]:
         "ui",
         "--port",
         str(args.ui_port),
+        "--log-level",
+        "DEBUG" if args.verbose else args.log_level,
     ]
-    if args.open_ui:
-        command.append("--open-browser")
     return tuple(command)
 
 
@@ -126,22 +145,56 @@ async def run(args: argparse.Namespace) -> int:
                 restart=RestartPolicy(),
             )
         )
-    supervisor = Supervisor(tuple(components), SubprocessLauncher(), store)
+    log.info("Sam %s starting", __version__)
+    browser = BrowserHandoff(args.ui_port)
+    browser_task = None
+
+    def ready(_component_id: str) -> None:
+        nonlocal browser_task
+        # A ready callback may fire repeatedly as components restart. The browser
+        # belongs to this supervisor lifetime, never to a component lifetime.
+        core = supervisor.statuses["sam-core"]
+        ui = supervisor.statuses.get("sam-ui")
+        if args.open_ui and ui is not None and browser_task is None:
+            if core.health in {"HEALTHY", "DEGRADED", "SAFE_MODE"} and ui.health == "HEALTHY":
+                browser_task = asyncio.create_task(browser.open_once())
+
+    shutdown_task = None
+
+    def request_shutdown() -> None:
+        nonlocal shutdown_task
+        if shutdown_task is None:
+            shutdown_task = asyncio.create_task(supervisor.shutdown())
+
+    supervisor = Supervisor(
+        tuple(components),
+        SubprocessLauncher(request_shutdown=request_shutdown),
+        store,
+        on_ready=ready,
+    )
+    if not args.no_ui:
+        log.info("UI address: http://127.0.0.1:%d", args.ui_port)
     loop = asyncio.get_running_loop()
     for requested in (signal.SIGINT, signal.SIGTERM):
         try:
-            loop.add_signal_handler(requested, lambda: asyncio.create_task(supervisor.shutdown()))
+            loop.add_signal_handler(requested, request_shutdown)
         except NotImplementedError:
             pass
     try:
         await supervisor.run_forever()
     finally:
         await supervisor.shutdown()
+        if shutdown_task is not None:
+            await shutdown_task
+        if browser_task is not None:
+            browser_task.cancel()
+            await asyncio.gather(browser_task, return_exceptions=True)
     return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    configure_logging(args)
     try:
         return asyncio.run(run(args))
     except (OSError, ValueError) as error:

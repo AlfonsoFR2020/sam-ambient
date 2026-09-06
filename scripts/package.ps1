@@ -7,7 +7,7 @@ $localTsc = Join-Path $uiRoot "node_modules/.bin/tsc.cmd"
 $localVite = Join-Path $uiRoot "node_modules/.bin/vite.cmd"
 
 if (-not (Test-Path -LiteralPath $localTsc) -or -not (Test-Path -LiteralPath $localVite)) {
-    throw "Frontend dependencies are missing. Run scripts/bootstrap.ps1 first."
+    throw "Frontend dependencies are missing. Run pnpm install --frozen-lockfile in ui/ first."
 }
 
 Push-Location $uiRoot

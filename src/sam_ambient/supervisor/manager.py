@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import logging
 import time
 from collections.abc import Callable
 from typing import Protocol
@@ -17,6 +18,8 @@ from sam_ambient.supervisor.models import (
 )
 from sam_ambient.supervisor.persistence import CrashRecord, SupervisorStore
 from sam_ambient.supervisor.process import ManagedProcess, ProcessLauncher
+
+log = logging.getLogger(__name__)
 
 
 class Clock(Protocol):
@@ -49,6 +52,7 @@ class Supervisor:
         *,
         clock: Clock | None = None,
         revoke_capabilities: Callable[[str], object] | None = None,
+        on_ready: Callable[[str], None] | None = None,
     ) -> None:
         ids = [item.component_id for item in components]
         if len(ids) != len(set(ids)):
@@ -58,6 +62,7 @@ class Supervisor:
         self.store = store
         self.clock = clock or SystemClock()
         self.revoke_capabilities = revoke_capabilities
+        self.on_ready = on_ready
         self.statuses = {
             item.component_id: store.load_status(item.component_id)
             or ComponentStatus(item.component_id)
@@ -90,6 +95,7 @@ class Supervisor:
         if self._started:
             return
         self._started = True
+        log.info("Supervisor started%s", " in safe mode" if self.safe_mode else "")
         for spec in self.components:
             if self.safe_mode and spec.critical:
                 status = self.statuses[spec.component_id]
@@ -129,6 +135,7 @@ class Supervisor:
             if self._shutdown.is_set():
                 return
             self._shutdown.set()
+            log.info("Shutting down Sam managed components")
             for spec in reversed(self.components):
                 process = self._processes.get(spec.component_id)
                 if process is not None:
@@ -138,6 +145,7 @@ class Supervisor:
                 if status.health not in {HealthState.CRASH_LOOP, HealthState.SAFE_MODE}:
                     status.health = HealthState.STOPPED
                     self.store.save_status(status)
+            log.info("Sam stopped")
 
     async def _monitor(self, spec: ComponentSpec) -> None:
         status = self.statuses[spec.component_id]
@@ -168,6 +176,7 @@ class Supervisor:
             ready_at: int | None = None
             exit_code: int | None = None
             reason = "startup_failed"
+            log.info("Starting %s (restart count %d)", spec.component_id, status.restart_count)
             try:
                 process = await self.launcher.launch(spec, context)
                 self._processes[spec.component_id] = process
@@ -204,6 +213,9 @@ class Supervisor:
                             status.health = report.state
                             status.last_healthy_ms = ready_at
                             self.store.save_status(status)
+                            log.info("%s ready: %s", spec.component_id, report.state)
+                            if self.on_ready is not None:
+                                self.on_ready(spec.component_id)
                             exit_code = await exit_task
                             reason = "unexpected_exit"
             except (OSError, RuntimeError) as error:
@@ -261,10 +273,18 @@ class Supervisor:
                 )
             )
             if crash_loop:
+                log.error("%s crash loop: %s", spec.component_id, action)
                 return
+            log.warning(
+                "%s failed (%s); restart in %.1fs",
+                spec.component_id,
+                reason,
+                spec.restart.delay_for(status.restart_count),
+            )
             await self._sleep_or_shutdown(spec.restart.delay_for(status.restart_count))
 
     async def _revoke(self, reason: str) -> None:
+        log.warning("Capabilities revoked: %s", reason)
         self.store.revoke_capabilities(reason)
         if self.revoke_capabilities is None:
             return

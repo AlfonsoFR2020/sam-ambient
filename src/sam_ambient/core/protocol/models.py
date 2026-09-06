@@ -17,6 +17,7 @@ class ProtocolError(ValueError):
 
 class EventType(StrEnum):
     SYSTEM_READY = "system.ready"
+    SYSTEM_STOPPING = "system.stopping"
     COMPONENT_HEALTH = "component.health"
     COMPONENT_ERROR = "component.error"
     VOICE_LEVEL = "voice.level"
@@ -56,6 +57,7 @@ class ControlCommandType(StrEnum):
     TOOL_APPROVE = "control.tool.approve"
     TOOL_DENY = "control.tool.deny"
     CAPABILITIES_REVOKE_ALL = "control.capabilities.revoke_all"
+    APPLICATION_QUIT = "control.application.quit"
 
 
 LOSSY_EVENT_TYPES: Final[frozenset[str]] = frozenset({EventType.VOICE_LEVEL, EventType.TTS_LEVEL})

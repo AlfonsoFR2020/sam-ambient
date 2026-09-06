@@ -56,6 +56,39 @@ const flushPromises = async () => {
 };
 
 describe("protocol client", () => {
+  it("stops reconnecting after acknowledged application shutdown", async () => {
+    const transport = new ControlledTransport();
+    const scheduler = new ManualScheduler();
+    const client = new ProtocolClient(transport, scheduler, 5);
+    client.start();
+    await flushPromises();
+    transport.observers[0]?.onEvent({
+      protocol: 1,
+      type: "system.ready",
+      monotonic_ms: 1,
+      session_id: "session",
+      payload: {
+        state: "IDLE",
+        provider: "lm-studio",
+        model: "local-model",
+        selection_reason: "local priority",
+      },
+    });
+    expect(client.getSnapshot()).toMatchObject({ provider: "lm-studio", model: "local-model" });
+    transport.observers[0]?.onEvent({
+      protocol: 1,
+      type: "control.acknowledged",
+      monotonic_ms: 2,
+      session_id: "session",
+      payload: { application_stopping: true },
+    });
+    transport.observers[0]?.onDisconnect("closed");
+    scheduler.runDelay();
+    await flushPromises();
+    expect(client.getSnapshot()).toMatchObject({ connection: "offline", applicationStopped: true });
+    expect(scheduler.delays).toHaveLength(0);
+    expect(transport.observers).toHaveLength(1);
+  });
   it("coalesces a high-frequency visualization burst to the newest frame", () => {
     const coalescer = new VisualizationCoalescer();
     for (let index = 0; index < 100; index += 1) {

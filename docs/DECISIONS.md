@@ -220,3 +220,16 @@ master specification are recorded here.
   `active.json` on every core start. Linux speech quality and native desktop
   integration remain replaceable post-MVP concerns; external eSpeak is not
   bundled and retains its own GPL terms.
+
+## D-017 — First-run lifecycle and passive provider selection
+
+- **Accepted:** 2026-09-06. Open the browser once after readiness, outside managed
+  component lifetime; direct owner Quit uses an instance-bound lifecycle message,
+  never an LLM tool. Windows version launch stays in the monitored child because
+  CRT `exec` creates a descendant and can break graceful shutdown ownership.
+- Discovery uses bounded known loopback endpoints/status-only CLI calls; explicit
+  configuration wins, otherwise deterministic local priority. Never wake a model
+  daemon, download assets or switch to cloud. Protocol support, not port/vendor
+  identity, preserves future transparent local-router compatibility (e.g. PAIR).
+- Owner selected unmodified Apache-2.0 for original Sam code, with named NOTICE;
+  incorporated frontend MIT notices and external-runtime licenses stay separate.

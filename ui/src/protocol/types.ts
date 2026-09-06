@@ -39,6 +39,7 @@ export const CONTROL_COMMAND_TYPES = [
   "control.tool.approve",
   "control.tool.deny",
   "control.capabilities.revoke_all",
+  "control.application.quit",
 ] as const;
 
 export type ControlCommandType = (typeof CONTROL_COMMAND_TYPES)[number];
@@ -111,6 +112,10 @@ export interface VoiceMetrics {
 }
 
 export interface UiState {
+  applicationStopped?: boolean;
+  provider?: string;
+  model?: string;
+  selectionReason?: string;
   connection: ConnectionState;
   conversationalState: ConversationalState;
   priorConversationalState: ConversationalState;

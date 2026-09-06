@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import mimetypes
-import webbrowser
 from importlib.resources import as_file, files
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
@@ -63,9 +62,6 @@ class StaticUiServer:
             self._resource_context.__exit__(None, None, None)
             self._resource_context = None
             self._root = None
-
-    def open_browser(self) -> None:
-        webbrowser.open(f"http://127.0.0.1:{self.port}", new=1)
 
     async def _handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         try:

@@ -1,93 +1,120 @@
-# Sam 0.1.0 MVP
+# Sam
 
-Sam is a local-first ambient voice computer interface. Its trusted supervisor
-starts the conversational core and packaged browser UI, while model, tool,
-update, and capability authority remain behind explicit runtime boundaries.
+A local-first, ambient AI interface for talking naturally to your computer.
 
-## Install and run
+Sam combines a reactive ambient presence with interruptible conversation and
+approval-controlled computer capabilities. Models and speech engines remain
+replaceable; trusted code owns permissions, recovery, and updates.
 
-Prerequisites are Python 3.12+, [uv](https://docs.astral.sh/uv/), and Ollama
-with at least one local model. Bootstrap, validate readiness, then launch:
+**Status:** 0.1.0 MVP complete; **0.1.1** improves first launch, local model
+discovery, diagnostics, and graceful exit. Primary deployment target: Linux.
+Windows development and system speech output are supported.
 
-```powershell
-./scripts/bootstrap.ps1
-uv run sam doctor --root .
-uv run sam-ambient
+## What works today
+
+- Ambient React UI driven by conversation state and normalized audio metrics.
+- Full-duplex-oriented voice contracts, tentative barge-in, cancellation, and
+  a ledger distinguishing generated text from spoken text.
+- Local model selection: Ollama, LM Studio/llmster, and explicit
+  OpenAI-compatible endpoints. No automatic model downloads or cloud fallback.
+- Bounded filesystem and process tools, explicit approvals, and global
+  capability revocation enforced outside the model.
+- A separate supervisor with crash recovery, safe mode, durable committed
+  text, and staged component updates with health checks and automatic rollback.
+
+```mermaid
+flowchart TD
+    UI[Ambient browser UI] <--> Bridge[Local WebSocket protocol]
+    Bridge <--> Core[Sam core]
+    Core --> Voice[Voice and turn loop]
+    Core --> Models[Model router]
+    Core --> Policy[Capability policy and tools]
+    Core --> Data[SQLite committed state]
+    Supervisor[sam-supervisor: resilience, updates, rollback] --> Core
+    Supervisor --> Static[Static UI server]
+    Models <--> Backends[External Ollama / LM Studio / compatible API]
 ```
 
-On Linux or macOS:
+## Quick start
+
+Requirements: Python 3.12+ and [uv](https://docs.astral.sh/uv/). For responses,
+have a local model server already running with a usable model. Sam does not
+install or start model services for you. Node, Vite, Rust, and Tauri are not
+needed to run the compiled UI included in this repository.
+
+From the checkout:
 
 ```sh
-./scripts/bootstrap.sh
-uv run sam doctor --root .
+uv sync --locked
 uv run sam-ambient
 ```
 
-`sam-ambient` is the end-user command. It supervises `sam-core` and the static
-ambient UI, opens `http://127.0.0.1:8766`, and connects that UI to the core at
-`ws://127.0.0.1:8765`. Both listeners are loopback-only. Use `Ctrl+C` for a
-bounded clean shutdown. Runtime state lives under `.sam/` by default.
+Sam starts the supervisor, core, and static UI, then opens
+**http://127.0.0.1:8766** once the application is ready. The core bridge uses
+localhost port 8765. The browser can be closed and reopened independently.
+Use **Controls → Text request** to talk to the selected model.
+**Quit Sam** (or Ctrl+Q, with confirmation) stops the application; Ctrl+C works
+in the launch console. Escape still closes the controls/fullscreen view.
 
-Voice input uses PortAudio + WebRTC VAD and a separately managed loopback
-whisper.cpp server (default `http://127.0.0.1:8080`). Spoken output uses Windows
-System.Speech on Windows; Linux resolves a separately installed `espeak-ng` or
-`espeak` command. If audio, STT, TTS, or Ollama is unavailable, the static UI
-still provides text interaction and diagnostics. Use `--no-voice` or `--no-tts`
-to select an explicit degraded mode.
-
-`config/sam.example.toml` documents the intended settings schema; the 0.1.0
-launcher currently accepts the equivalent explicit command-line options.
-
-## Build a release artifact
-
-The offline MVP artifact is a Python wheel containing the compiled frontend,
-launchers, notices, and runtime code:
-
-```powershell
-./scripts/package.ps1
-uv tool install ./dist/sam_ambient-0.1.0-py3-none-any.whl
-sam-ambient --root C:\path\to\authorized\workspace
-```
-
-On Linux, run `./scripts/package.sh`, install the resulting wheel with
-`uv tool install`, and install `espeak-ng` plus a whisper.cpp server separately
-when voice is desired. No native Tauri/Rust/MSVC build is required for this MVP.
-
-## Development and tests
-
-Run `./scripts/test.ps1` or `./scripts/test.sh` for the complete deterministic
-gate. The browser/Vite development path remains `./scripts/ui-dev.ps1` or
-`./scripts/ui-dev.sh`. The core can also be started directly:
-
-```powershell
-uv run sam runtime --root . --allow-workspace-write
-```
-
-The write flag exposes approval-gated atomic `files.write` only for that root.
-Structured `process.run` and `app.open` also require explicit owner approval;
-process execution never enables shell parsing or privilege elevation.
-
-Provider diagnostics and text-only use remain available independently:
-
-```powershell
+```sh
 uv run sam doctor --root .
-uv run sam models
-uv run sam chat --model <installed-model> "Hello Sam"
+uv run sam-ambient --verbose
+uv run sam-ambient --provider lm-studio --model your-loaded-model
+uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000/v1
 ```
 
-A generic OpenAI-compatible endpoint can be selected explicitly with
-`--provider openai-compatible --base-url <url>`. Its key is read from the
-environment variable named by `--api-key-env`, never from a command-line value
-or repository file.
+Selection is deterministic: explicit configuration first, then Ollama, then
+LM Studio, then `--local-compatible-url`. Model IDs are sorted when no model is
+specified. An explicit unavailable choice stays degraded; it is not silently
+replaced. The console and UI show the selection and reason. Restart Sam after
+starting/changing a model service.
 
-## Architecture boundaries
+Voice input needs an audio device and a separately installed whisper.cpp
+server, defaulting to `http://127.0.0.1:8080`. Windows output uses System.Speech;
+Linux output uses a separately installed `espeak-ng` or `espeak` executable.
+Missing voice dependencies leave text input/output available. Without a model,
+the UI and diagnostics work, but Sam cannot generate a response.
+Use `--no-voice --no-tts` for text-only operation.
 
-- `sam_ambient.core` owns provider-neutral conversation, policy, and protocol.
-- `sam_ambient.adapters` owns platform and service integrations.
-- `sam_ambient.supervisor` is a separate authority boundary and never depends
-  on model reasoning.
-- `ui` is presentation-only behind a replaceable transport and remains ready
-  for the deferred Tauri native shell.
+The current working directory is the authorized read root; use `--root PATH`
+to choose another. Writes require `--allow-workspace-write` and approval.
+Process execution always requires approval and **is not an OS sandbox**.
+Operational data stays in `<root>/.sam/`. See [Security](SECURITY.md).
 
-The project license is temporarily reserved pending the owner's specified
-MIT-vs-Apache-2.0 selection. See `LICENSE` and `THIRD_PARTY.md`.
+## Build and install a package
+
+Frontend development requires Node 22.12+ and pnpm (the version is pinned in
+`ui/package.json`). Run `pnpm install --frozen-lockfile` inside `ui/`, then:
+
+```sh
+# Linux/macOS; use scripts/package.ps1 on Windows
+scripts/package.sh
+uv tool install ./dist/sam_ambient-0.1.1-py3-none-any.whl
+sam-ambient --root /path/to/workspace
+```
+
+The wheel includes compiled UI assets, launchers, example configuration, and
+notices. No models or third-party speech runtimes are bundled.
+`config/sam.example.toml` documents the intended settings schema; 0.1.1 uses
+CLI options rather than loading that file.
+
+## Limits and direction
+
+Physical echo cancellation and Linux end-to-end voice tuning remain pending;
+STT is final-only. Native Tauri packaging and supervisor self-update are
+deferred. Windows guarantees direct-child termination, not full descendant
+containment. Local staged updates require trusted preparation and validation.
+
+Next: Linux audio/AEC validation, better Linux voices and saved configuration,
+then native packaging. MCP capability providers and delegated workers are
+future external adapters, not features of this release.
+
+[Architecture](docs/ARCHITECTURE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) ·
+[Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
+
+## License
+
+Sam is licensed under [Apache-2.0](LICENSE) and may be used, modified, and
+distributed subject to that license. See [NOTICE](NOTICE) for attribution.
+Third-party software retains its own terms, recorded in
+[THIRD_PARTY.md](THIRD_PARTY.md).

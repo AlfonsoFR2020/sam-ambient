@@ -15,6 +15,21 @@ import { INITIAL_UI_STATE } from "../src/protocol/types";
 const runtime = { nowMs: () => 123, nextId: () => "command-1" };
 
 describe("control command protocol", () => {
+  it("serializes quit as a direct session-bound control with no tool authority", () => {
+    const command = commandForAction(
+      { type: "application.quit" },
+      { ...INITIAL_UI_STATE, sessionId: "current" },
+      runtime,
+    );
+    expect(command).toMatchObject({
+      type: "control.application.quit",
+      session_id: "current",
+      payload: {},
+    });
+    expect(command?.tool_call_id).toBeUndefined();
+    if (!command) throw new Error("Quit must produce a control command");
+    expect(decodeControlCommand(JSON.parse(serializeControlCommand(command)))).toEqual(command);
+  });
   it("serializes correlation and version fields deterministically", () => {
     const command = createControlCommand(
       "control.microphone.set",

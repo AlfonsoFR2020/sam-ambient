@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import runpy
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -48,6 +49,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (OSError, UpdateError, ValueError) as error:
         print(f"Sam core activation error: {error}", file=sys.stderr)
         return 2
+    if os.name == "nt":
+        # Windows CRT exec spawns a descendant then exits the observed process.
+        # Execute the resolved entry point in this child instead, preserving
+        # supervisor PID/pipe ownership and its bounded graceful-stop channel.
+        if command[1] == "-m":
+            sys.argv = [command[2], *command[3:]]
+            runpy.run_module(command[2], run_name="__main__", alter_sys=True)
+        else:
+            sys.argv = list(command[1:])
+            sys.path[0] = str(Path(command[1]).parent)
+            runpy.run_path(command[1], run_name="__main__")
+        return 0
     os.execv(command[0], command)
     return 127  # pragma: no cover - exec never returns
 

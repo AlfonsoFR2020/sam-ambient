@@ -22,6 +22,7 @@ export type ControlAction =
   | { type: "tts_output.set"; enabled: boolean }
   | { type: "stop_speaking" }
   | { type: "emergency_stop" }
+  | { type: "application.quit" }
   | { type: "user_message.submit"; text: string }
   | { type: "tool.approve"; toolCallId: string }
   | { type: "tool.deny"; toolCallId: string }
@@ -53,6 +54,9 @@ export function commandForAction(
   }
   if (action.type === "stop_speaking") {
     return createControlCommand("control.stop_speaking", {}, state, runtime);
+  }
+  if (action.type === "application.quit") {
+    return createControlCommand("control.application.quit", {}, state, runtime);
   }
   if (action.type === "emergency_stop") {
     return createControlCommand(

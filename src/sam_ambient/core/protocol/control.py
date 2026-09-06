@@ -38,6 +38,7 @@ class CoreControlBindings:
     submit_user_message: SubmitUserMessage | None = None
     resolve_tool_approval: ResolveToolApproval | None = None
     revoke_capabilities: RevokeCapabilities | None = None
+    request_shutdown: Callable[[ControlCommand], Awaitable[None]] | None = None
 
 
 class ControlDispatcher:
@@ -123,6 +124,13 @@ class ControlDispatcher:
             if self._bindings.revoke_capabilities is None:
                 raise RuntimeError("global capability revocation is unavailable")
             payload.update(await self._bindings.revoke_capabilities("ui_global_capability_revoke"))
+        elif command_type is ControlCommandType.APPLICATION_QUIT:
+            if command.payload:
+                raise ValueError("Quit Sam does not accept arguments")
+            if self._bindings.request_shutdown is None:
+                raise RuntimeError("Application shutdown is unavailable")
+            await self._bindings.request_shutdown(command)
+            payload["application_stopping"] = True
         return self._event(EventType.CONTROL_ACKNOWLEDGED, command, payload)
 
     def _event(

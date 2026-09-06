@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import os
 import sys
 from collections.abc import Callable, Sequence
@@ -16,10 +17,10 @@ import sounddevice
 
 from sam_ambient import __version__
 from sam_ambient.adapters.audio import SoundDeviceCapture, SoundDeviceOutput
+from sam_ambient.adapters.local_discovery import Discovery, discover_local, provider_for
 from sam_ambient.adapters.ollama import (
     DEFAULT_OLLAMA_BASE_URL,
     OllamaProvider,
-    find_ollama_executable,
 )
 from sam_ambient.adapters.openai_compatible import OpenAICompatibleProvider
 from sam_ambient.adapters.stt import DEFAULT_WHISPER_CPP_URL, WhisperCppServerSTT
@@ -35,18 +36,26 @@ from sam_ambient.core.providers import (
     ProviderError,
 )
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
+from sam_ambient.lifecycle import parent_stop_event, serve_until_stop
+from sam_ambient.logging_config import add_logging_arguments, configure_logging, log_value
 from sam_ambient.runtime import RuntimeConfig, RuntimeVoiceAdapters, SamRuntime
 from sam_ambient.static_server import StaticUiServer, StaticUiUnavailable
 from sam_ambient.supervisor import SupervisorStore, UpdateError, UpdateStore, read_active_pointer
+from sam_ambient.supervisor.browser import BrowserHandoff, ui_http_ready
+
+log = logging.getLogger(__name__)
 
 
 def _add_provider_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--provider",
-        choices=("ollama", "openai-compatible"),
-        default="ollama",
+        choices=("auto", "ollama", "lm-studio", "openai-compatible"),
+        default="auto",
     )
     parser.add_argument("--base-url", help="Provider API base URL")
+    parser.add_argument(
+        "--local-compatible-url", help="Additional explicit loopback compatible endpoint"
+    )
     parser.add_argument("--model", help="Model id; defaults to the first discovered model")
     parser.add_argument(
         "--api-key-env",
@@ -76,11 +85,12 @@ def build_parser() -> argparse.ArgumentParser:
     _add_provider_arguments(models)
 
     doctor = subparsers.add_parser("doctor", help="Check complete local MVP readiness")
-    doctor.add_argument("--base-url", help="Ollama API base URL")
+    _add_provider_arguments(doctor)
     doctor.add_argument("--root", default=".", help="Sam workspace/authorized root")
     doctor.add_argument("--state-db", help="Operational SQLite path")
     doctor.add_argument("--stt-url", default=DEFAULT_WHISPER_CPP_URL)
     doctor.add_argument("--json", action="store_true", help="Print machine-readable diagnostics")
+    doctor.add_argument("--ui-port", type=int, default=8766)
 
     bridge = subparsers.add_parser("bridge", help="Serve the local UI protocol bridge")
     bridge.add_argument("--demo", action="store_true", help="Publish deterministic core events")
@@ -117,6 +127,8 @@ def build_parser() -> argparse.ArgumentParser:
     ui.add_argument("--port", type=int, default=8766, help="Loopback HTTP port")
     ui.add_argument("--open-browser", action="store_true")
     ui.add_argument("--runtime-instance-id", help=argparse.SUPPRESS)
+    for command in (chat, models, doctor, bridge, runtime, ui):
+        add_logging_arguments(command)
     return parser
 
 
@@ -134,6 +146,41 @@ def create_provider(args: argparse.Namespace) -> LLMProvider:
         api_key=api_key,
         data_boundary=boundary,
     )
+
+
+async def discover_provider(
+    args: argparse.Namespace,
+) -> tuple[LLMProvider, str | None, Discovery | None]:
+    if args.provider == "openai-compatible" and not args.compatible_is_local:
+        return create_provider(args), args.model, None
+    discovery = await discover_local(
+        provider=args.provider,
+        base_url=args.base_url,
+        model=args.model,
+        compatible_url=args.local_compatible_url,
+    )
+    for service in discovery.services:
+        log.info(
+            "Provider %s: installed=%s running=%s models=%d; %s",
+            service.id,
+            bool(service.executable),
+            service.running,
+            len(service.models),
+            service.detail,
+        )
+        log.debug("Discovery endpoint: %s", service.endpoint)
+    selected = discovery.selected
+    log.info(
+        "Selected provider=%s model=%s; %s",
+        selected.id if selected else "none",
+        log_value(discovery.model or "none"),
+        discovery.reason,
+    )
+    fallback = next(
+        (service for service in discovery.services if service.id == args.provider),
+        discovery.services[0],
+    )
+    return provider_for(selected or fallback), discovery.model, discovery
 
 
 async def select_model(
@@ -172,10 +219,10 @@ async def stream_response(
 
 
 async def run_chat(args: argparse.Namespace) -> int:
-    provider = create_provider(args)
+    provider, requested, _ = await discover_provider(args)
     try:
         cancellation = CancellationToken()
-        model = await select_model(provider, args.model, cancellation)
+        model = await select_model(provider, requested or args.model, cancellation)
         history: list[Message] = []
         prompt = args.prompt
 
@@ -209,7 +256,7 @@ async def run_chat(args: argparse.Namespace) -> int:
 
 
 async def run_models(args: argparse.Namespace) -> int:
-    provider = create_provider(args)
+    provider, _, _ = await discover_provider(args)
     try:
         models = await provider.list_models(CancellationToken())
         for model in models:
@@ -223,22 +270,27 @@ async def run_models(args: argparse.Namespace) -> int:
 
 
 async def run_doctor(args: argparse.Namespace) -> int:
-    base_url = args.base_url or os.environ.get("OLLAMA_HOST") or DEFAULT_OLLAMA_BASE_URL
-    provider = OllamaProvider(base_url=base_url)
+    provider, selected_model, discovery = await discover_provider(args)
     root, state_db = _doctor_paths(args)
     report: dict[str, object] = {"sam_version": __version__, "authorized_roots": [str(root)]}
     try:
         cancellation = CancellationToken()
-        executable = find_ollama_executable()
         health = await provider.health(cancellation)
-        models = await provider.list_models(cancellation) if health.available else []
+        models = (
+            ([selected_model] if selected_model else [])
+            if discovery
+            else [item.id for item in await provider.list_models(cancellation)]
+            if health.available
+            else []
+        )
+        if discovery:
+            report.update(discovery.to_dict())
         report["provider"] = {
             "id": provider.id,
             "available": health.available,
-            "detail": health.detail,
+            "detail": "reachable" if health.available else "unavailable",
             "version": health.version,
-            "executable": executable,
-            "models": [model.id for model in models],
+            "models": models,
         }
         try:
             devices = await asyncio.to_thread(sounddevice.query_devices)
@@ -287,9 +339,14 @@ async def run_doctor(args: argparse.Namespace) -> int:
         }
 
         ui_index = files("sam_ambient").joinpath("static/index.html")
-        report["ui"] = {"available": ui_index.is_file(), "transport": "localhost-websocket"}
+        report["ui"] = {
+            "available": ui_index.is_file(),
+            "transport": "localhost-websocket",
+            "url": f"http://127.0.0.1:{args.ui_port}",
+            "running": await ui_http_ready(args.ui_port),
+        }
         component_root = root / ".sam/components/sam-core"
-        active: dict[str, object] = {"version": "installed", "source": "python-package"}
+        active: dict[str, object] = {"version": __version__, "source": "python-package"}
         if (component_root / "active.json").exists():
             try:
                 pointer = read_active_pointer("sam-core", component_root)
@@ -350,21 +407,38 @@ def _print_doctor(report: dict[str, object]) -> None:
     assert isinstance(ui, dict)
     assert isinstance(active, dict)
     print(f"Sam {report['sam_version']}")
-    print(f"Supervisor: {'available' if report['supervisor'] else 'not started'}")
+    supervisor = report["supervisor"]
+    assert isinstance(supervisor, dict)
+    print(f"Supervisor: {supervisor.get('state', 'persisted component status below')}")
+    if "components" in supervisor:
+        for component in supervisor["components"].values():
+            print(f"  {component['component_id']}: {component['health']}")
+    print(f"Security: {supervisor.get('security', {})}")
     print(f"Active core: {active.get('version', active.get('error', 'unknown'))}")
-    print(f"Packaged UI: {'ready' if ui['available'] else 'missing'}")
+    print(
+        f"Packaged UI: {'ready' if ui['available'] else 'missing'}; "
+        f"{ui['url']}; running={ui['running']}"
+    )
     print(f"Audio devices: {len(audio.get('devices', [])) if audio.get('available') else 0}")
     print(f"STT: {'reachable' if stt['available'] else 'unavailable'} ({stt['detail']})")
     print(f"TTS: {'ready' if tts['available'] else 'unavailable'} ({tts['backend']})")
     print(
-        f"Ollama: {'healthy' if provider['available'] else 'unavailable'} "
+        f"Provider: {'healthy' if provider['available'] else 'unavailable'} "
         f"({provider['detail']}); models={len(provider['models'])}"
     )
+    for service in report.get("providers", []):
+        print(
+            f"{service['id']}: installed={bool(service['executable'])} "
+            f"running={service['running']} "
+            f"models={service['models']}; {service['detail']}"
+        )
+    print(f"Selected: {report.get('selection', {'provider': provider['id']})}")
     print(f"Authorized roots: {', '.join(report['authorized_roots'])}")
 
 
 async def run_runtime(args: argparse.Namespace) -> int:
-    provider = create_provider(args)
+    provider, model, discovery = await discover_provider(args)
+    stop = parent_stop_event() if args.runtime_instance_id else asyncio.Event()
     tts = None
     output = None
     if not args.no_tts:
@@ -372,7 +446,8 @@ async def run_runtime(args: argparse.Namespace) -> int:
             tts = SystemTextToSpeech()
             output = SoundDeviceOutput(tts.audio_format)
         except TextToSpeechUnavailable:
-            pass
+            log.warning("TTS unavailable; text output remains available")
+    log.info("TTS: %s", tts.backend_id if tts else "disabled/unavailable")
     voice = None
     if not args.no_voice:
         voice = RuntimeVoiceAdapters(
@@ -380,12 +455,17 @@ async def run_runtime(args: argparse.Namespace) -> int:
             WebRtcVoiceActivityDetector(),
             WhisperCppServerSTT(base_url=args.stt_url),
         )
+    log.info(
+        "Microphone/STT: %s",
+        "configured (availability checked on capture)" if voice else "disabled",
+    )
     runtime = SamRuntime(
         provider,
         RuntimeConfig(
             workspace_root=Path(args.root),
             port=args.port,
-            model=args.model,
+            model=model or args.model,
+            provider_selection_reason=discovery.reason if discovery else "explicit configuration",
             allow_cloud=args.allow_cloud,
             workspace_writable=args.allow_workspace_write,
             runtime_instance_id=args.runtime_instance_id,
@@ -413,13 +493,16 @@ async def run_runtime(args: argparse.Namespace) -> int:
                 provider_health = await provider.health(CancellationToken())
             if not provider_health.available:
                 health_state = "DEGRADED"
-                health_detail = f"provider unavailable: {provider_health.detail}"[:500]
+                health_detail = "provider unavailable; run sam doctor for discovery status"
         except Exception as error:
             health_state = "DEGRADED"
             health_detail = f"provider health failed: {type(error).__name__}"[:500]
         if not runtime.capability_authority.snapshot.active:
             health_state = "DEGRADED"
             health_detail = "runtime ready with computer-action capabilities revoked"
+        if discovery is not None and discovery.selected is None:
+            health_state, health_detail = "DEGRADED", discovery.reason
+        log.info("Core %s: %s", health_state, health_detail)
         if args.runtime_instance_id:
             print(
                 "SAM_READY "
@@ -435,11 +518,28 @@ async def run_runtime(args: argparse.Namespace) -> int:
                 ),
                 flush=True,
             )
-        print(f"Sam runtime listening on ws://127.0.0.1:{runtime.bridge.port}")
-        await runtime.serve_forever()
+        log.info("Core bridge: ws://127.0.0.1:%d", runtime.bridge.port)
+
+        async def await_quit() -> None:
+            await runtime.shutdown_requested.wait()
+            if args.runtime_instance_id:
+                print(
+                    "SAM_SHUTDOWN " + json.dumps({"instance_id": args.runtime_instance_id}),
+                    flush=True,
+                )
+            else:
+                stop.set()
+
+        quit_task = asyncio.create_task(await_quit())
+        try:
+            await serve_until_stop(runtime.serve_forever(), stop)
+        finally:
+            quit_task.cancel()
+            await asyncio.gather(quit_task, return_exceptions=True)
         return 0
     finally:
         await runtime.close()
+        log.info("Core stopped")
 
 
 async def run_ui(args: argparse.Namespace) -> int:
@@ -461,10 +561,11 @@ async def run_ui(args: argparse.Namespace) -> int:
                 ),
                 flush=True,
             )
-        print(f"Sam UI listening on http://127.0.0.1:{server.port}")
+        log.info("Sam UI: http://127.0.0.1:%d", server.port)
         if args.open_browser:
-            await asyncio.to_thread(server.open_browser)
-        await server.serve_forever()
+            await BrowserHandoff(server.port).open_once()
+        stop = parent_stop_event() if args.runtime_instance_id else asyncio.Event()
+        await serve_until_stop(server.serve_forever(), stop)
         return 0
     finally:
         await server.close()
@@ -495,6 +596,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command is None:
         parser.print_help()
         return 0
+    configure_logging(args)
     try:
         return asyncio.run(_dispatch(args))
     except OperationCancelled:

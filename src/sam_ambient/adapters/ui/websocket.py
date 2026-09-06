@@ -13,6 +13,7 @@ from sam_ambient.core.protocol import (
     ControlCommand,
     ControlDispatcher,
     EventBus,
+    EventType,
     ProtocolError,
     ProtocolEvent,
 )
@@ -42,6 +43,7 @@ class WebSocketCoreBridge:
         subscription_queue: int = 64,
         allowed_origins: Sequence[str] = DEFAULT_ALLOWED_ORIGINS,
         ready_event: Callable[[], ProtocolEvent] | None = None,
+        on_shutdown: Callable[[], None] | None = None,
     ) -> None:
         self._require_loopback(host)
         if not 0 <= port <= 65_535:
@@ -55,6 +57,7 @@ class WebSocketCoreBridge:
         self.subscription_queue = subscription_queue
         self.allowed_origins = tuple(allowed_origins)
         self.ready_event = ready_event
+        self.on_shutdown = on_shutdown
         self.connected = asyncio.Event()
         self._server: Server | None = None
 
@@ -135,6 +138,34 @@ class WebSocketCoreBridge:
                 await socket.close(1002, str(error)[:120])
                 return
             acknowledgement = await self.controls.dispatch(command)
+            if acknowledgement.payload.get("application_stopping") is True:
+                # Deliver the direct-user acknowledgement before shutting down the bridge.
+                stopping = ProtocolEvent(
+                    type=EventType.SYSTEM_STOPPING,
+                    monotonic_ms=acknowledgement.monotonic_ms,
+                    session_id=acknowledgement.session_id,
+                    payload={"reason": "owner_requested_shutdown"},
+                )
+
+                async def notify(peer, event):
+                    try:
+                        async with asyncio.timeout(1):
+                            await peer.send(event.to_json())
+                    except (ConnectionClosed, TimeoutError):
+                        pass
+
+                try:
+                    await notify(socket, acknowledgement)
+                    if self._server is not None:
+                        await asyncio.gather(
+                            *(notify(peer, stopping) for peer in self._server.connections)
+                        )
+                finally:
+                    # An accepted Quit must survive its requesting tab closing
+                    # before the acknowledgement can be delivered.
+                    if self.on_shutdown is not None:
+                        self.on_shutdown()
+                return
             await self.events.publish(acknowledgement)
 
     @staticmethod

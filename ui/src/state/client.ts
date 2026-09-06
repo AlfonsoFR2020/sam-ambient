@@ -157,6 +157,7 @@ export class ProtocolClient {
     }
     if (!isVisualizationEvent(event.type)) {
       this.setState(reduceProtocolEvent(this.state, event));
+      if (this.state.applicationStopped) this.stop();
       return;
     }
     this.coalescer.push(event);

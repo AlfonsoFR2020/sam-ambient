@@ -6,6 +6,7 @@ import asyncio
 import json
 import os
 import signal
+from collections.abc import Callable
 from typing import Protocol
 
 from sam_ambient.supervisor.models import (
@@ -38,6 +39,9 @@ class ProcessLauncher(Protocol):
 class SubprocessLauncher:
     """Launch only trusted argv specifications, never shell strings."""
 
+    def __init__(self, *, request_shutdown: Callable[[], None] | None = None) -> None:
+        self.request_shutdown = request_shutdown
+
     async def launch(self, spec: ComponentSpec, context: LaunchContext) -> ManagedProcess:
         command = list(spec.command)
         if spec.component_id == "sam-core":
@@ -60,17 +64,30 @@ class SubprocessLauncher:
         process = await asyncio.create_subprocess_exec(
             *command,
             cwd=spec.cwd,
+            stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=None,
             limit=_MAX_READY_LINE,
             start_new_session=os.name != "nt",
         )
-        return SubprocessManagedProcess(process)
+        return SubprocessManagedProcess(
+            process,
+            instance_id=context.instance_id,
+            request_shutdown=self.request_shutdown if spec.component_id == "sam-core" else None,
+        )
 
 
 class SubprocessManagedProcess:
-    def __init__(self, process: asyncio.subprocess.Process) -> None:
+    def __init__(
+        self,
+        process: asyncio.subprocess.Process,
+        *,
+        instance_id: str = "",
+        request_shutdown: Callable[[], None] | None = None,
+    ) -> None:
         self._process = process
+        self._instance_id = instance_id
+        self._request_shutdown = request_shutdown
         self._drain_task: asyncio.Task[None] | None = None
 
     @property
@@ -107,8 +124,14 @@ class SubprocessManagedProcess:
         if self._process.stdout is None:
             return
         try:
-            while await self._process.stdout.readline():
-                pass
+            while line := await self._process.stdout.readline():
+                if self._request_shutdown is not None and line.startswith(b"SAM_SHUTDOWN "):
+                    try:
+                        payload = json.loads(line[len(b"SAM_SHUTDOWN ") :])
+                    except (ValueError, UnicodeError):
+                        continue
+                    if isinstance(payload, dict) and payload == {"instance_id": self._instance_id}:
+                        self._request_shutdown()
         except (ValueError, asyncio.CancelledError):
             pass
 
@@ -119,13 +142,23 @@ class SubprocessManagedProcess:
         if self._process.returncode is not None:
             await self._finish_drain()
             return False
-        self._signal(signal.SIGTERM)
+        # Graceful stop works on Windows too; escalation remains bounded.
+        if self._process.stdin is not None:
+            try:
+                self._process.stdin.write(b"SAM_STOP\n")
+                await self._process.stdin.drain()
+                self._process.stdin.close()
+            except (OSError, ConnectionError):
+                pass
+        else:
+            self._signal(signal.SIGTERM)
         try:
             async with asyncio.timeout(timeout_s):
                 await self._process.wait()
             forced = False
         except TimeoutError:
-            self._signal(signal.SIGKILL)
+            # Windows doesn't define SIGKILL; its helper uses process.kill().
+            self._signal(signal.SIGTERM if os.name == "nt" else signal.SIGKILL)
             await self._process.wait()
             forced = True
         await self._finish_drain()

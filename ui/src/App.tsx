@@ -139,6 +139,7 @@ export default function App() {
     reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   }));
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [quitConfirmation, setQuitConfirmation] = useState(false);
   const [commandError, setCommandError] = useState<string>();
   const [textRequest, setTextRequest] = useState("");
   const visual = toAmbientVisualModel(state, preferences.brightness / 100);
@@ -169,11 +170,20 @@ export default function App() {
     else await document.documentElement.requestFullscreen();
   }, []);
 
+  const quitSam = useCallback(() => {
+    if (stateRef.current.connection !== "connected") return;
+    setQuitConfirmation(true);
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setControlsOpen(false);
+        setQuitConfirmation(false);
         if (document.fullscreenElement) void document.exitFullscreen();
+      } else if (event.ctrlKey && event.key.toLowerCase() === "q") {
+        event.preventDefault();
+        quitSam();
       } else if (
         event.key.toLowerCase() === "m" &&
         !event.ctrlKey &&
@@ -189,7 +199,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [applyAction]);
+  }, [applyAction, quitSam]);
 
   const pending = state.pendingCommandIds.length > 0;
   return (
@@ -198,8 +208,30 @@ export default function App() {
       <header className="status">
         <span className="status__mark" data-connected={visual.connected} />
         <strong>Sam</strong>
-        <span>{visual.label}</span>
-        <small>{transport.name}</small>
+        <span>{state.applicationStopped ? "Stopped · you can close this tab" : visual.label}</span>
+        <small title={state.selectionReason}>
+          {state.model ? `${state.provider} · ${state.model}` : "No model selected"}
+        </small>
+        <button type="button" disabled={state.connection !== "connected"} onClick={quitSam}>
+          Quit Sam
+        </button>
+        {quitConfirmation && !state.applicationStopped && (
+          <fieldset className="quit-confirmation" aria-label="Quit Sam confirmation">
+            Quit Sam and stop running work?{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setQuitConfirmation(false);
+                applyAction({ type: "application.quit" });
+              }}
+            >
+              Quit now
+            </button>{" "}
+            <button type="button" onClick={() => setQuitConfirmation(false)}>
+              Cancel
+            </button>
+          </fieldset>
+        )}
         {!state.capabilityAuthorityActive && (
           <small className="status__authority" title={state.capabilityAuthorityReason}>
             capabilities disabled
@@ -224,6 +256,7 @@ export default function App() {
       </button>
       {controlsOpen && (
         <section className="controls" id={controlsId} aria-label="Sam controls">
+          <p className="controls__hint">{state.selectionReason}</p>
           <form
             className="controls__request"
             onSubmit={(event) => {
@@ -327,7 +360,7 @@ export default function App() {
               }
             />
           </label>
-          <p className="controls__hint">M mute · Ctrl Shift X stop · Esc close</p>
+          <p className="controls__hint">M mute · Ctrl Shift X stop · Ctrl Q quit · Esc close</p>
         </section>
       )}
       {(state.protocolError || commandError) && (

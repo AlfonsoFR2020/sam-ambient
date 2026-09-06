@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import time
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable, Mapping
@@ -359,6 +360,15 @@ class ToolExecutor:
     ) -> None:
         if not self._is_current(invocation):
             return
+        if event_type in {
+            EventType.TOOL_STARTED,
+            EventType.TOOL_COMPLETED,
+            EventType.TOOL_FAILED,
+            EventType.TOOL_DENIED,
+            EventType.TOOL_CANCELLED,
+        }:
+            # No arguments, file contents, prompts, process output, or approval text.
+            logging.getLogger(__name__).info("Tool lifecycle: %s", event_type)
         await self._publish_event(
             ProtocolEvent(
                 type=event_type,

@@ -1,18 +1,39 @@
 # Sam implementation state
 
-Updated: 2026-09-04
+Updated: 2026-09-06
 
 ## MVP status
 
-- Sam 0.1.0 is an integrated, packaged MVP; Phases 0–9 are complete.
-- Quality gate: 229 Python tests pass with two justified skips (optional live
+- Sam 0.1.1 completes first-run and repository preparation; Phases 0–9 remain complete.
+- Quality gate: 246 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
-  36 tests, Biome, TypeScript typecheck, and Vite production build pass.
+  38 tests, Biome, TypeScript typecheck, and Vite production build pass.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
-  `sam-core` plus optional `sam-ui`; `Ctrl+C` performs bounded shutdown.
-- The release build produces `dist/sam_ambient-0.1.0-py3-none-any.whl` and the
+  `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
+- The release build produces `dist/sam_ambient-0.1.1-py3-none-any.whl` and the
   matching source archive. The wheel contains the production UI, launchers,
   configuration example, license, and third-party notices.
+- Original Sam material is Apache-2.0; NOTICE attributes Copyright 2026
+  Alfonso Ernesto de la Fuente Ruiz, PhD. Bundled React/MIT notices are retained.
+
+## 0.1.1 first-run behavior
+
+- Browser handoff occurs once per supervisor lifetime after core and UI HTTP
+  readiness. Browser errors print a manual URL; browser lifetime is independent.
+- Quit Sam / Ctrl+Q uses inline Quit now / Cancel, then an instance-bound trusted
+  shutdown channel. Acknowledged shutdown stops frontend reconnects. No LLM tool
+  can quit Sam. Windows runs resolved version entry points in the monitored
+  child rather than CRT exec-spawning an untracked descendant.
+- INFO reports lifecycle, discovery, selection, voice configuration, degradation,
+  revocation and shutdown. `--verbose` adds safe DEBUG diagnostics; doctor shows
+  providers, audio/TTS/STT, UI readiness, active version and persisted health.
+- Read-only discovery checks known loopback Ollama/LM Studio endpoints, bounded
+  `lms` daemon/server status, and configured compatible APIs. Explicit provider,
+  endpoint/model choices win; otherwise Ollama → LM Studio → configured compatible,
+  with sorted model IDs. No download, service start, scan or automatic cloud use.
+- Protocol-compatible local routers (including future PAIR) fit the endpoint-based
+  provider boundary. Discovery labels are not verified vendor identity; no PAIR
+  integration is implemented. Restart Sam after changing provider availability.
 
 ## Runtime architecture
 
@@ -72,7 +93,7 @@ Updated: 2026-09-04
   failure.
 - The stable core launcher re-reads and re-hashes `active.json` on every restart
   and executes only a contained fixed `sam_core.py` entry point. An absent
-  pointer uses the installed 0.1.0 package; an invalid pointer fails closed.
+  pointer uses the installed package; an invalid pointer fails closed.
 
 ## Environment and live validation
 
@@ -85,21 +106,23 @@ Updated: 2026-09-04
 - Ollama and whisper.cpp were not running on this host; `sam doctor` reported
   both unavailable while confirming UI, audio, TTS, roots, active version, and
   supervisor state without exposing secrets.
+- 0.1.1 live checks: UI HTTP ready, browser close/reopen, inline Cancel/Confirm,
+  stopped page, graceful core/UI exit, zero crashes/restarts, INFO/DEBUG and doctor.
+  Doctor found 27 audio devices and Windows TTS synthesis ready. Ollama absent;
+  `lms` installed, daemon/server stopped, model inventory unknown (not awakened).
 
 ## Known limitations / post-MVP priorities
 
 - First: validate Linux hardware end to end, tune physical barge-in latency and
   echo handling, and evaluate platform AEC plus streaming/partial STT.
 - Next: improve permissively distributable Linux voice quality and consume the
-  documented TOML settings schema (0.1.0 uses explicit CLI options).
+  documented TOML settings schema (0.1.1 uses explicit CLI options).
 - Then: implement native Tauri packaging (Rust/Cargo; Windows additionally
   needs MSVC), a trusted supervisor self-update bootstrap, and Windows Job
   Object descendant cleanup.
 - Later: owner-approved AT-SPI/native semantic desktop capabilities and external
   worker/MCP adapters. No desktop automation, autonomous coding, or agent-worker
   orchestration is in the MVP.
-- Owner selection of MIT versus Apache-2.0 for Sam's project license remains
-  pending; third-party license obligations are inventoried in `THIRD_PARTY.md`.
 
 ## Commands
 

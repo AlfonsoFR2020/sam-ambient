@@ -30,6 +30,8 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | pluggy | 1.6.0 | MIT | https://github.com/pytest-dev/pluggy | pytest plugin system | Transitive development dependency | MIT notice |
 | Pygments | 2.21.0 | BSD-2-Clause | https://github.com/pygments/pygments | pytest failure highlighting | Transitive development dependency | BSD notice |
 | whisper.cpp | External/current | MIT | https://github.com/ggml-org/whisper.cpp | Separately managed local STT server | HTTP adapter only; not installed or bundled | Model files are separate assets and require their own provenance/license review |
+| lms CLI | Existing external installation | MIT | https://github.com/lmstudio-ai/lms/blob/main/LICENSE | Bounded read-only daemon/server status discovery | Fixed argv only; no source copied or bundled | License verified 2026-09-05 |
+| LM Studio / llmster | Existing external installation | Vendor terms; separate from CLI/model licenses | https://lmstudio.ai/app-terms | Optional local inference through published HTTP APIs | Not installed, linked, copied, or redistributed by Sam | Model assets have separate licenses; CLI license does not license the application/runtime |
 | Windows System.Speech | Windows OS component | Microsoft Windows terms | https://learn.microsoft.com/dotnet/api/system.speech.synthesis | Local MVP TTS on Windows | Invoked through a fixed bundled PowerShell adapter; no Windows runtime or voice asset redistributed | Available only where the Windows component/voices are installed |
 | eSpeak / eSpeak NG | External/current | GPL-3.0-or-later | https://github.com/espeak-ng/espeak-ng | Optional local MVP TTS on Linux | Separately installed executable invoked with structured argv; not linked, copied, or bundled | Distribution remains the OS/vendor's responsibility; Sam contains no eSpeak code or voice data |
 | Node.js | 24.19.0 (bundled development runtime) | MIT and bundled component notices | https://nodejs.org/ | Frontend development runtime | External developer tool | Retain upstream notices if redistributed |
@@ -42,15 +44,45 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | esbuild / Rollup / Babel | 0.25.12 / 4.63.1 / 7.29.x | MIT | https://github.com/evanw/esbuild | Transpilation and bundling used by Vite/Vitest | Transitive development dependencies, including platform binaries | Retain MIT notices |
 | caniuse-lite | 1.0.30001810 | CC-BY-4.0 | https://github.com/browserslist/caniuse-lite | Browser compatibility data used by build tooling | Transitive development data | Preserve attribution and CC-BY-4.0 notice |
 
-No third-party source has been copied or vendored. Dependency wheels may carry
-the native components explicitly inventoried above; no model or voice asset is
-stored in the repository.
+No third-party source has been manually copied or adapted. The compiled static
+frontend incorporates React, React DOM and Scheduler under MIT (notice below).
+Dependency wheels may carry the native components inventoried above; no model
+or voice asset is stored in the repository. Apache-2.0 applies to original Sam
+material only, not to these dependencies or external runtimes.
 
 All resolved Python runtime and development package versions above are
 hash-pinned in `uv.lock`. Frontend packages are pinned in `ui/pnpm-lock.yaml`;
 the resolved license set was checked from installed pnpm metadata and contains
 only MIT, MIT/Apache-2.0, Apache-2.0, BSD-3-Clause, ISC, and CC-BY-4.0 terms.
-Dependencies are linked/imported packages, not copied project code.
+Python dependencies are linked/imported packages, not copied project code.
+
+## Bundled frontend notice
+
+React, React DOM and Scheduler (from the React project), included in the compiled UI:
+
+```text
+MIT License
+
+Copyright (c) Meta Platforms, Inc. and affiliates.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## References not reused
 
