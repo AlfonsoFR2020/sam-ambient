@@ -506,11 +506,13 @@ class SamRuntime:
                 cancellation_id=cancellation.cancellation_id,
             )
             model = await self._select_model(cancellation)
+            history = await self._conversation_context(session_id, turn_id)
             messages = [
                 Message(MessageRole.SYSTEM, _SYSTEM_POLICY),
+                *history,
                 Message(MessageRole.USER, text),
             ]
-            contains_private_context = False
+            contains_private_context = bool(history)
             for tool_round in range(self.config.max_tool_rounds + 1):
                 cancellation.raise_if_cancelled()
                 calls = _ToolCallAccumulator()
@@ -659,6 +661,23 @@ class SamRuntime:
                 self._active_token = None
                 self._active_done.set()
             self.cancellations.discard(cancellation.cancellation_id)
+
+    async def _conversation_context(self, session_id: str, turn_id: str) -> list[Message]:
+        """Reuse bounded committed state, never generated-but-undelivered content."""
+        if self.state is None:
+            return []
+        recent = await asyncio.to_thread(self.state.recent, limit=12)
+        result: list[Message] = []
+        remaining = 6_000
+        for item in reversed(recent):
+            if item.session_id != session_id or item.turn_id == turn_id:
+                continue
+            if len(item.content) > remaining:
+                break
+            result.append(Message(MessageRole(item.role), item.content))
+            remaining -= len(item.content)
+        result.reverse()
+        return result
 
     async def _deliver_assistant(
         self,

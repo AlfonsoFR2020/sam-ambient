@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Preserve bounded committed conversation context across requests and runtime
+  recovery; keep reused local context behind the cloud-privacy gate.
+
 ## 0.1.1 — 2026-09-06
 
 - Open the browser once per supervisor launch, after core and HTTP readiness;

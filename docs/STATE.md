@@ -118,6 +118,16 @@ Updated: 2026-09-06
 
 ## Known limitations / post-MVP priorities
 
+- Windows `dev` live text acceptance now passes two UI turns using the owner's
+  installed `google/gemma-4-e2b` Q4_K_M through LM Studio at
+  `http://127.0.0.1:1234/v1` (4096-token context; no cloud fallback).
+  Fixed missing model conversation history using bounded committed SQLite
+  messages (12 records / 6000 characters), excluding other sessions/current turn.
+  Follow-up correctly recalled the user's fact; complete text-response intervals
+  were 2.72 s and 0.51 s, not first-token measurements. Four focused tests pass.
+  Physical voice acceptance is not yet passed: owner reports unreliable Spanish
+  recognition, premature TTS cutoff, and unclear processing-state indication.
+
 - First: validate Linux hardware end to end, tune physical barge-in latency and
   echo handling, and evaluate platform AEC plus streaming/partial STT.
 - Next: improve permissively distributable Linux voice quality and consume the
