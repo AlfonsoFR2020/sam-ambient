@@ -1,10 +1,60 @@
+<p align="center">
+  <img src="sam-logo.png" alt="Sam" width="520">
+</p>
+
 # Sam
 
-A local-first, ambient AI interface for talking naturally to your computer.
+**A local-first ambient AI interface exploring what happens when artificial intelligence becomes a native layer of the computer itself.**
 
 Sam combines a reactive ambient presence with interruptible conversation and
 approval-controlled computer capabilities. Models and speech engines remain
 replaceable; trusted code owns permissions, recovery, and updates.
+
+Inspired in part by the vision of ambient computing portrayed in *Her*, Sam
+explores an interaction model in which an AI assistant is not merely a chatbot
+inside another application, but a persistent, conversational layer through
+which the user can interact with the computer itself.
+
+The ambition goes considerably further. Sam is being designed as an
+**AI-native layer over the operating system**: able to work with local and
+remote models, delegate to specialized agents, operate desktop applications,
+adapt its own environment, and eventually propose, test, and safely deploy
+modifications to its own software and even its Linux environment while
+remaining under explicit user control. The goal is an assistant that can
+progressively maintain and extend the computer it inhabits rather than merely
+answer questions about it.
+
+In the longer term, that points toward a more radical possibility:
+**the AI itself becoming the primary user interface to the operating system**.
+
+Instead of navigating fixed menus, settings panels, launchers, file managers,
+and application-specific interfaces, the user could express intent directly
+through voice, text, or context and let the AI compose the underlying system
+actions dynamically while also generating the interaction surface itself at
+runtime.
+
+This includes **generative UI**: context-specific interfaces, visualizations,
+controls, documents, dashboards, transient tools, or miniature task-specific
+applications rendered on demand. Sam could choose the most useful
+representation for each interaction and continuously recompose it as the
+conversation, system state, and user intent evolve.
+
+A response might appear as natural language in one moment, a live control panel
+in the next, then an interactive graph, structured workspace, or hybrid of
+several forms. In this model, **the interface itself becomes another generative
+layer of the system rather than a static container built around predefined
+workflows**.
+
+Traditional graphical interfaces can remain available where useful, but
+increasingly as one possible surface among many rather than the primary way the
+user must understand and control the machine. The operating system itself
+becomes less a collection of applications and windows that the user has to
+learn to operate, and more a **programmable environment continuously
+interpreted, orchestrated, and reshaped by an intelligent agent**.
+
+Sam is an experiment toward that kind of computer: one in which interaction is
+centered on **goals, conversation, context, and dynamically generated
+interfaces**, rather than on manually traversing fixed software structures.
 
 **Status:** 0.1.0 MVP complete; **0.1.1** improves first launch, local model
 discovery, diagnostics, and graceful exit. Primary deployment target: Linux.
@@ -50,9 +100,12 @@ uv run sam-ambient
 ```
 
 Sam starts the supervisor, core, and static UI, then opens
-**http://127.0.0.1:8766** once the application is ready. The core bridge uses
-localhost port 8765. The browser can be closed and reopened independently.
+**[http://127.0.0.1:8766](http://127.0.0.1:8766)** once the application is ready.
+The core bridge uses localhost port 8765. The browser can be closed and reopened
+independently.
+
 Use **Controls → Text request** to talk to the selected model.
+
 **Quit Sam** (or Ctrl+Q, with confirmation) stops the application; Ctrl+C works
 in the launch console. Escape still closes the controls/fullscreen view.
 
@@ -72,13 +125,16 @@ starting/changing a model service.
 Voice input needs an audio device and a separately installed whisper.cpp
 server, defaulting to `http://127.0.0.1:8080`. Windows output uses System.Speech;
 Linux output uses a separately installed `espeak-ng` or `espeak` executable.
+
 Missing voice dependencies leave text input/output available. Without a model,
 the UI and diagnostics work, but Sam cannot generate a response.
+
 Use `--no-voice --no-tts` for text-only operation.
 
 The current working directory is the authorized read root; use `--root PATH`
 to choose another. Writes require `--allow-workspace-write` and approval.
 Process execution always requires approval and **is not an OS sandbox**.
+
 Operational data stays in `<root>/.sam/`. See [Security](SECURITY.md).
 
 ## Build and install a package
@@ -95,6 +151,7 @@ sam-ambient --root /path/to/workspace
 
 The wheel includes compiled UI assets, launchers, example configuration, and
 notices. No models or third-party speech runtimes are bundled.
+
 `config/sam.example.toml` documents the intended settings schema; 0.1.1 uses
 CLI options rather than loading that file.
 
@@ -109,12 +166,27 @@ Next: Linux audio/AEC validation, better Linux voices and saved configuration,
 then native packaging. MCP capability providers and delegated workers are
 future external adapters, not features of this release.
 
-[Architecture](docs/ARCHITECTURE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) ·
-[Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
+Longer term, Sam's architecture is intended to support increasingly capable
+computer-use backends, delegated agents, dynamically generated interaction
+surfaces, and deeper integration with the host operating environment without
+making any single model provider, desktop-control system, or UI framework
+fundamental to the design.
+
+[Architecture](docs/ARCHITECTURE.md) ·
+[Troubleshooting](docs/TROUBLESHOOTING.md) ·
+[Changelog](CHANGELOG.md) ·
+[Contributing](CONTRIBUTING.md)
 
 ## License
 
 Sam is licensed under [Apache-2.0](LICENSE) and may be used, modified, and
 distributed subject to that license. See [NOTICE](NOTICE) for attribution.
+
 Third-party software retains its own terms, recorded in
 [THIRD_PARTY.md](THIRD_PARTY.md).
+
+---
+
+*Sam is an independent project inspired by broader ideas of ambient and
+AI-native computing, including concepts portrayed in* Her. *It is not affiliated
+with or endorsed by the film or its rights holders.*
