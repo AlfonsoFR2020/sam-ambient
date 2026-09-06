@@ -16,6 +16,7 @@ const STYLE: Record<ConversationalState, { label: string; hue: number; base: num
   LISTENING: { label: "Listening", hue: 190, base: 0.26 },
   USER_SPEAKING: { label: "Hearing you", hue: 175, base: 0.38 },
   ENDPOINT_CANDIDATE: { label: "Listening", hue: 184, base: 0.3 },
+  COMMITTING: { label: "Transcribing", hue: 184, base: 0.3 },
   THINKING: { label: "Thinking", hue: 252, base: 0.28 },
   SPEAKING: { label: "Speaking", hue: 32, base: 0.36 },
   INTERRUPTION_CANDIDATE: { label: "Listening closely", hue: 12, base: 0.48 },
@@ -37,7 +38,13 @@ export function toAmbientVisualModel(state: UiState, brightness = 0.82): Ambient
   const intensity = clamp((style.base + reactiveEnergy) * clamp(brightness));
   return {
     state: state.conversationalState,
-    label: style.label,
+    label:
+      !state.microphoneEnabled &&
+      ["IDLE", "LISTENING", "USER_SPEAKING", "ENDPOINT_CANDIDATE"].includes(
+        state.conversationalState,
+      )
+        ? "Microphone muted"
+        : style.label,
     hue: style.hue,
     intensity,
     radius: 0.72 + clamp(state.metrics.peak + state.metrics.playbackEnvelope) * 0.34,

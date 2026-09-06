@@ -31,6 +31,22 @@ def begin_speaking(manager: TurnManager) -> None:
     manager.on_tts_started(852, generation_id="generation-1")
 
 
+def test_model_finishes_during_false_candidate_can_start_tts_and_recover():
+    manager = TurnManager("session")
+    manager.start_listening(0, cancellation_id="c")
+    manager.on_vad(20, 1)
+    manager.on_transcript(200, "Hello.", is_final=True, confidence=0.9)
+    manager.on_vad(250, 0)
+    manager.on_time(1000)
+    manager.on_model_started(1001, generation_id="g")
+    manager.on_vad(1020, 1)
+    manager.on_vad(1080, 0)
+    manager.on_model_completed(1081, generation_id="g")
+    assert manager.on_tts_started(1082, generation_id="g")[0].type == EventType.TTS_STARTED
+    manager.on_time(1980)
+    assert manager.state is VoiceState.SPEAKING
+
+
 def make_controller(
     manager: TurnManager,
     events: list[ProtocolEvent],

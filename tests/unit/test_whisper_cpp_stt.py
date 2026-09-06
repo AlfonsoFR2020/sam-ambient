@@ -1,4 +1,5 @@
 import asyncio
+import json
 from collections.abc import AsyncIterator
 
 import httpx
@@ -10,6 +11,58 @@ from sam_ambient.adapters.stt import (
 )
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
 from sam_ambient.core.voice import AudioFormat, AudioFrame, VoiceStreamContext
+
+
+@pytest.mark.parametrize(
+    "recent, scores, expected",
+    [
+        (None, {"ko": 0.12, "es": 0.10, "en": 0.05}, "es"),
+        ("es", {"ko": 0.3, "en": 0.2, "es": 0.1}, "es"),
+        ("es", {"en": 0.65, "es": 0.2}, "en"),
+        ("es", {"ja": 0.95, "es": 0.01}, "ja"),
+    ],
+)
+def test_auto_language_prefers_recent_or_configured_but_accepts_confident_switch(
+    recent, scores, expected
+):
+    async def scenario():
+        requests = []
+
+        async def handler(request):
+            requests.append(request.content)
+            return httpx.Response(
+                200, json={"text": "spoken fact", "language_probabilities": scores, "duration": 3.2}
+            )
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            provider = WhisperCppServerSTT(client=client)
+            provider._recent_language = recent
+            result = await provider.transcribe(
+                b"wav", language="auto", cancellation=CancellationToken()
+            )
+            assert result.text == "spoken fact"
+            assert b"\r\nauto\r\n" in requests[0]
+            detected = max(scores, key=scores.get)
+            assert len(requests) == (2 if expected != detected else 1)
+            if len(requests) == 2:
+                assert f"\r\n{expected}\r\n".encode() in requests[1]
+            if scores[detected] >= 0.8:
+                assert provider._recent_language == detected
+
+    asyncio.run(scenario())
+
+
+def test_whisper_silence_is_not_conversation_and_legacy_metadata_is_supported():
+    assert WhisperCppServerSTT._decode_transcript(b'{"text":"[Music]"}').text == ""
+    assert WhisperCppServerSTT._decode_transcript('{"text":"[Música]"}'.encode()).text == ""
+    assert WhisperCppServerSTT._decode_transcript(b'{"text":"[BLANK_AUDIO]"}').text == ""
+    assert (
+        WhisperCppServerSTT._decode_transcript(
+            json.dumps({"text": "Hallucination", "segments": [{"no_speech_prob": 0.94}]}).encode()
+        ).text
+        == ""
+    )
+    assert WhisperCppServerSTT._decode_transcript(b'{"text":"hello"}').text == "hello"
 
 
 def test_whisper_cpp_stt_sends_bounded_wav_and_returns_final_text() -> None:

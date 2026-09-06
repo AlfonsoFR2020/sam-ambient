@@ -408,6 +408,11 @@ class TurnManager:
         self._check_time(at_ms)
         if generation_id != self.generation_id:
             return ()
+        if self.state in {VoiceState.INTERRUPTION_CANDIDATE, VoiceState.RECOVERING}:
+            if self._candidate_origin_state is VoiceState.THINKING:
+                self._candidate_origin_state = VoiceState.SPEAKING
+                self._tts_active = True
+                return (self._event(EventType.TTS_STARTED, at_ms, {}),)
         if self.state is not VoiceState.THINKING:
             raise RuntimeError(f"cannot start TTS from {self.state}")
         self._tts_active = True

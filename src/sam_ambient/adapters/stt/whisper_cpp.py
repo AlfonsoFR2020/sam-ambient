@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import io
 import json
+import logging
+import math
 import wave
 from ipaddress import ip_address
 from urllib.parse import urlsplit, urlunsplit
@@ -22,6 +24,7 @@ from sam_ambient.core.voice import (
 )
 
 DEFAULT_WHISPER_CPP_URL = "http://127.0.0.1:8080"
+log = logging.getLogger(__name__)
 
 
 class SpeechRecognitionError(RuntimeError):
@@ -76,11 +79,22 @@ class WhisperCppServerSTT:
         max_response_bytes: int = 4 * 1024 * 1024,
         max_audio_seconds: int = 120,
         allow_remote: bool = False,
+        preferred_languages: tuple[str, ...] = ("en", "es"),
+        language_confidence: float = 0.8,
     ) -> None:
         if timeout_s <= 0:
             raise ValueError("timeout_s must be positive")
         if max_response_bytes <= 0 or max_audio_seconds <= 0:
             raise ValueError("STT size limits must be positive")
+        if not preferred_languages or any(
+            not code.isalpha() or len(code) not in (2, 3) for code in preferred_languages
+        ):
+            raise ValueError("preferred languages must be language codes")
+        if not 0.5 <= language_confidence <= 1.0:
+            raise ValueError("language confidence must be between 0.5 and 1")
+        self._preferred_languages = preferred_languages
+        self._language_confidence = language_confidence
+        self._recent_language: str | None = None
         self.base_url = normalize_whisper_cpp_url(base_url)
         if not _is_loopback_url(self.base_url) and not allow_remote:
             raise ValueError(
@@ -113,14 +127,69 @@ class WhisperCppServerSTT:
         language: str,
         cancellation: CancellationToken,
     ) -> Transcript:
+        value = await self._request(wav_data, language=language, cancellation=cancellation)
+        result = self._decode_transcript(json.dumps(value).encode())
+        if not result.text or language != "auto":
+            return result
+        probabilities = value.get("language_probabilities", {})
+        scores = (
+            {
+                code: score
+                for code, score in probabilities.items()
+                if isinstance(code, str)
+                and isinstance(score, int | float)
+                and not isinstance(score, bool)
+                and math.isfinite(score)
+                and 0 <= score <= 1
+            }
+            if isinstance(probabilities, dict)
+            else {}
+        )
+        if not scores:  # Older servers may omit detection metadata; do not invent confidence.
+            return result
+        detected = max(scores, key=scores.get)
+        confidence = scores[detected]
+        selected = detected
+        if confidence < self._language_confidence:
+            preferred = max(self._preferred_languages, key=lambda code: scores.get(code, 0))
+            selected = self._recent_language or preferred
+            # Permit an evidenced switch between preferred languages without locking the session.
+            if scores.get(preferred, 0) >= 0.5:
+                selected = preferred
+        duration = value.get("duration", 0)
+        if not isinstance(duration, int | float) or not math.isfinite(duration) or duration < 0:
+            duration = 0
+        log.info(
+            "STT language=%s probability=%.2f selected=%s duration=%.2fs",
+            detected,
+            confidence,
+            selected,
+            duration,
+        )
+        if selected != detected:
+            value = await self._request(wav_data, language=selected, cancellation=cancellation)
+            result = self._decode_transcript(json.dumps(value).encode())
+        cancellation.raise_if_cancelled()
+        if result.text and (
+            confidence >= self._language_confidence
+            or (detected in self._preferred_languages and confidence >= 0.6)
+        ):
+            self._recent_language = detected
+        return result
+
+    async def _request(
+        self,
+        wav_data: bytes,
+        *,
+        language: str,
+        cancellation: CancellationToken,
+    ) -> dict:
         cancellation.raise_if_cancelled()
         task = asyncio.current_task()
         if task is None:
             raise RuntimeError("STT request requires an asyncio task")
         remove_callback = cancellation.add_callback(lambda _reason: task.cancel())
-        fields = {"response_format": "json"}
-        if language != "auto":
-            fields["language"] = language
+        fields = {"response_format": "verbose_json", "language": language}
         try:
             async with self._client.stream(
                 "POST",
@@ -154,7 +223,8 @@ class WhisperCppServerSTT:
             raise SpeechRecognitionUnavailable(f"whisper.cpp unavailable: {error}") from error
         finally:
             remove_callback()
-        return self._decode_transcript(bytes(raw))
+        self._decode_transcript(bytes(raw))  # Validate the response before using metadata.
+        return json.loads(raw)
 
     async def aclose(self) -> None:
         if self._owns_client:
@@ -174,6 +244,28 @@ class WhisperCppServerSTT:
         text = value.get("text")
         if not isinstance(text, str):
             raise SpeechRecognitionProtocolError("whisper.cpp response omitted transcript text")
+        segments = value.get("segments", [])
+        if (
+            isinstance(segments, list)
+            and segments
+            and all(
+                isinstance(segment, dict)
+                and isinstance(segment.get("no_speech_prob"), int | float)
+                and segment["no_speech_prob"] >= 0.8
+                for segment in segments
+            )
+        ):
+            text = ""
+        if text.strip().casefold() in {
+            "[blank_audio]",
+            "[no_speech]",
+            "[silence]",
+            "[music]",
+            "[música]",
+            "[applause]",
+            "[laughter]",
+        }:
+            text = ""
         return Transcript(text=text, is_final=True, confidence=None)
 
 

@@ -1,6 +1,8 @@
 import asyncio
 
 from sam_ambient.core.providers import MessageRole, ModelEvent, ModelEventKind
+from sam_ambient.core.turns import CancellationToken, VoiceState
+from sam_ambient.core.voice import Transcript
 from sam_ambient.runtime import RuntimeConfig, SamRuntime
 from tests.unit.test_cli import FakeProvider
 
@@ -62,6 +64,28 @@ def test_context_is_bounded_excludes_foreign_and_current_turn(tmp_path):
         try:
             context = await runtime._conversation_context(runtime.session_id, "current")
             assert [m.content for m in context] == ["heard sentence"]
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_voice_start_waits_for_committed_state_before_monitor(tmp_path):
+    async def scenario():
+        runtime = SamRuntime(
+            ConversationProvider(), RuntimeConfig(tmp_path, state_db=tmp_path / "state.db")
+        )
+        manager = runtime.voice_turns
+        token = CancellationToken()
+        manager.start_listening(0, cancellation_id=token.cancellation_id)
+        manager.on_vad(20, 1)
+        manager.on_transcript(200, "Hello.", is_final=True, confidence=0.9)
+        manager.on_vad(250, 0)
+        manager.on_time(1000)
+        try:
+            task = await runtime._start_voice_turn(Transcript("Hello.", True), token)
+            assert manager.state is not VoiceState.COMMITTING
+            await task
         finally:
             await runtime.close()
 

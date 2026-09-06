@@ -116,8 +116,6 @@ Updated: 2026-09-06
   provider, model or serving endpoint was selected; UI → model → UI acceptance remains
   blocked, not passed. No downloads, server start, Sam launch or code fix attempted.
 
-## Known limitations / post-MVP priorities
-
 - Windows `dev` live text acceptance now passes two UI turns using the owner's
   installed `google/gemma-4-e2b` Q4_K_M through LM Studio at
   `http://127.0.0.1:1234/v1` (4096-token context; no cloud fallback).
@@ -127,6 +125,32 @@ Updated: 2026-09-06
   were 2.72 s and 0.51 s, not first-token measurements. Four focused tests pass.
   Physical voice acceptance is not yet passed: owner reports unreliable Spanish
   recognition, premature TTS cutoff, and unclear processing-state indication.
+- Conversation-context fix committed separately on `dev`: `4d754a0`.
+- Voice reliability continuation: whisper.cpp b4938 CPU server and multilingual
+  `ggml-base.bin` installed in ignored `.sam/runtime` / `.sam/models`; LM Studio
+  uses its installed Vulkan runtime. No additional model was downloaded this run.
+  Default system input/output are used without hardcoded hardware selection.
+- Final STT now explicitly requests auto language plus verbose detection metadata.
+  Adapter-configurable preferences default to en/es; uncertain detection prefers
+  recent confirmed language, with one bounded retry when needed. Confident other
+  languages remain accepted; older servers without metadata retain auto behavior.
+  High no-speech results/known sound markers are discarded; 10-frame pre-roll
+  retains speech onset. INFO logs language probability/duration, not transcript.
+- Fixed two deterministic voice races: wait for model-start/ledger readiness after
+  SQLite commit before monitoring; allow TTS startup during a tentative candidate
+  and recover into SPEAKING. UI projects actual voice state on reconnect and shows
+  Transcribing during final STT, plus Listening/Thinking/Speaking/Microphone muted.
+- Focused gate: 41 Python tests and 25 frontend tests pass; Ruff/format, targeted
+  Biome, TypeScript and static Vite build pass. No full-suite rerun in this slice.
+- Live diagnostics showed 5–29 s captured segments, low-confidence language guesses
+  (e.g. Korean 0.12), music/background transcripts, and VAD-only cancellation about
+  188 ms after candidate onset, even BEFORE TTS. This does not prove speaker echo
+  is the sole cause. Physical three-turn/intentional-barge-in acceptance was halted
+  at owner request; no successful voice/latency claim. Sam capture/test STT stopped.
+  Remaining: quiet controlled input/segmentation validation and distinguishing
+  real interruption from background/playback speech. No AEC or broad policy rewrite.
+
+## Known limitations / post-MVP priorities
 
 - First: validate Linux hardware end to end, tune physical barge-in latency and
   echo handling, and evaluate platform AEC plus streaming/partial STT.

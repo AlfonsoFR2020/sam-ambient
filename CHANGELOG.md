@@ -4,6 +4,9 @@
 
 - Preserve bounded committed conversation context across requests and runtime
   recovery; keep reused local context behind the cloud-privacy gate.
+- Improve final-STT language fallback and silence handling, retain bounded audio
+  pre-roll, and show transcription/muted status. Fix voice-start and tentative
+  interruption/TTS state races; physical speaker-mode acceptance remains pending.
 
 ## 0.1.1 — 2026-09-06
 

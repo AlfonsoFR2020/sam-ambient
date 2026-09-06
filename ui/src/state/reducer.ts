@@ -292,7 +292,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     next = {
       ...next,
       priorConversationalState: next.conversationalState,
-      conversationalState: event.payload.to,
+      conversationalState:
+        event.payload.to === "ENDPOINT_CANDIDATE" && event.payload.reason === "stt_finalizing"
+          ? "COMMITTING"
+          : event.payload.to,
     };
   } else if (event.type === "voice.level") {
     next = {

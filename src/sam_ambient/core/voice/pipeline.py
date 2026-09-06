@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import sys
 from array import array
+from collections import deque
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, replace
 
@@ -154,6 +155,8 @@ class VoiceInputPipeline:
         audio_frames = 0
         listening_started = False
         frame_stream = self._capture.frames(cancellation)
+        # Retain only 200 ms before VAD opens STT, so initial consonants aren't clipped.
+        pre_roll: deque[AudioFrame] = deque(maxlen=10)
         try:
             async for frame in frame_stream:
                 if not listening_started:
@@ -172,6 +175,8 @@ class VoiceInputPipeline:
                     vad_result.speech_probability,
                 )
                 await self._publish_all(vad_events)
+                if stt_stream is None:
+                    pre_roll.append(frame)
                 if stt_stream is None and self._turn_manager.state is VoiceState.USER_SPEAKING:
                     context = VoiceStreamContext(
                         session_id=self._turn_manager.session_id,
@@ -180,7 +185,10 @@ class VoiceInputPipeline:
                         language=self._language,
                     )
                     stt_stream = await self._stt.start_stream(context, cancellation)
-                if stt_stream is not None:
+                    for buffered in pre_roll:
+                        await stt_stream.push_audio(buffered, cancellation)
+                    pre_roll.clear()
+                elif stt_stream is not None:
                     await stt_stream.push_audio(frame, cancellation)
                 if self._turn_manager.state is VoiceState.ENDPOINT_CANDIDATE:
                     if candidate_since_ms is None:
@@ -196,6 +204,20 @@ class VoiceInputPipeline:
                 if stt_stream is not None and self._should_finalize(
                     frame.monotonic_ms, candidate_since_ms
                 ):
+                    await self._publish(
+                        ProtocolEvent(
+                            type=EventType.VOICE_STATE_CHANGED,
+                            monotonic_ms=frame.monotonic_ms,
+                            session_id=self._turn_manager.session_id,
+                            turn_id=self._turn_manager.turn_id,
+                            cancellation_id=cancellation.cancellation_id,
+                            payload={
+                                "from": "ENDPOINT_CANDIDATE",
+                                "to": "ENDPOINT_CANDIDATE",
+                                "reason": "stt_finalizing",
+                            },
+                        )
+                    )
                     final_transcript = await stt_stream.finalize(cancellation)
                     if final_transcript != last_partial:
                         await self._publish_transcript(frame.monotonic_ms, final_transcript)

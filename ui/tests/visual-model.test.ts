@@ -9,6 +9,22 @@ const state = (overrides: Partial<UiState>): UiState => ({
 });
 
 describe("ambient visual mapping", () => {
+  it("does not claim to listen while the microphone is muted", () => {
+    expect(
+      toAmbientVisualModel(state({ conversationalState: "LISTENING", microphoneEnabled: false }))
+        .label,
+    ).toBe("Microphone muted");
+  });
+  it("distinguishes the four conversation phases", () => {
+    for (const [phase, label] of [
+      ["LISTENING", "Listening"],
+      ["COMMITTING", "Transcribing"],
+      ["THINKING", "Thinking"],
+      ["SPEAKING", "Speaking"],
+    ] as const) {
+      expect(toAmbientVisualModel(state({ conversationalState: phase })).label).toBe(label);
+    }
+  });
   it("uses input metrics while listening", () => {
     const quiet = toAmbientVisualModel(state({ conversationalState: "LISTENING" }));
     const active = toAmbientVisualModel(

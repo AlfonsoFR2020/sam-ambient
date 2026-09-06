@@ -10,6 +10,15 @@ const event = (
 ): ProtocolEvent => ({ protocol: 1, type, monotonic_ms, payload, session_id: "s1", ...extra });
 
 describe("protocol state reduction", () => {
+  it("shows transcription while final STT is pending, then model thinking", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("voice.state_changed", 1, { to: "ENDPOINT_CANDIDATE", reason: "stt_finalizing" }),
+    );
+    expect(state.conversationalState).toBe("COMMITTING");
+    state = reduceProtocolEvent(state, event("voice.state_changed", 2, { to: "THINKING" }));
+    expect(state.conversationalState).toBe("THINKING");
+  });
   it("rejects stale and out-of-order events", () => {
     let state = resetUiState();
     state = reduceProtocolEvent(state, event("voice.state_changed", 20, { to: "SPEAKING" }));

@@ -97,7 +97,8 @@ def test_voice_input_pipeline_emits_levels_transcript_and_committed_turn() -> No
         assert result.transcript.text == "What time is it?"
         assert result.audio_frames == len(frames)
         assert manager.state is VoiceState.COMMITTING
-        assert stt.stream is not None and stt.stream.pushed == len(frames) - 1
+        assert stt.stream is not None and stt.stream.pushed == len(frames)
+        assert any(event.payload.get("reason") == "stt_finalizing" for event in events)
         assert sum(event.type == EventType.VOICE_LEVEL for event in events) == len(frames)
         first_level = next(event for event in events if event.type == EventType.VOICE_LEVEL)
         assert first_level.payload["rms"] == 0.0

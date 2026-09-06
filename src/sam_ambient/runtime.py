@@ -464,6 +464,7 @@ class SamRuntime:
         generation_id: str,
         cancellation: CancellationToken,
         voice_managed: bool = False,
+        started: asyncio.Event | None = None,
     ) -> None:
         try:
             if self.state is not None:
@@ -505,6 +506,8 @@ class SamRuntime:
                 generation_id=generation_id,
                 cancellation_id=cancellation.cancellation_id,
             )
+            if started is not None:
+                started.set()
             model = await self._select_model(cancellation)
             history = await self._conversation_context(session_id, turn_id)
             messages = [
@@ -816,10 +819,14 @@ class SamRuntime:
                 result = await pipeline.run(token)
                 if not result.transcript.text:
                     continue
-                response = self._start_voice_turn(result.transcript, token)
+                response = await self._start_voice_turn(result.transcript, token)
                 while committed := await self._monitor_barge_in(response):
                     await asyncio.gather(response, return_exceptions=True)
-                    response = self._start_voice_turn(*committed)
+                    if not committed[0].text:
+                        committed[1].cancel("no_speech")
+                        self.cancellations.discard(committed[1].cancellation_id)
+                        break
+                    response = await self._start_voice_turn(*committed)
                 await asyncio.gather(response, return_exceptions=True)
             except (OperationCancelled, asyncio.CancelledError):
                 if self._closed:
@@ -844,7 +851,7 @@ class SamRuntime:
                 if self._active_token is not token:
                     self.cancellations.discard(token.cancellation_id)
 
-    def _start_voice_turn(
+    async def _start_voice_turn(
         self,
         transcript: Transcript,
         token: CancellationToken,
@@ -856,6 +863,7 @@ class SamRuntime:
         self._active_generation_id = generation_id
         self._active_token = token
         self._active_done.clear()
+        started = asyncio.Event()
         task = asyncio.create_task(
             self._run_turn(
                 transcript.text,
@@ -864,10 +872,15 @@ class SamRuntime:
                 generation_id=generation_id,
                 cancellation=token,
                 voice_managed=True,
+                started=started,
             )
         )
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
+        task.add_done_callback(lambda _: started.set())
+        # SQLite commit may yield before model-start transition. Do not start the
+        # microphone monitor against COMMITTING or an uninitialized delivery ledger.
+        await started.wait()
         return task
 
     async def _monitor_barge_in(
@@ -1139,7 +1152,7 @@ class SamRuntime:
             monotonic_ms=self._next_event_ms(),
             session_id=self.session_id,
             payload={
-                "state": "IDLE",
+                "state": self.voice_turns.state.value if self.voice else "IDLE",
                 "microphone_enabled": self.controls.microphone_enabled,
                 "tts_output_enabled": self.controls.tts_output_enabled,
                 "provider": self.provider.id,
