@@ -110,6 +110,11 @@ Updated: 2026-09-06
   stopped page, graceful core/UI exit, zero crashes/restarts, INFO/DEBUG and doctor.
   Doctor found 27 audio devices and Windows TTS synthesis ready. Ollama absent;
   `lms` installed, daemon/server stopped, model inventory unknown (not awakened).
+- Subsequent bounded LM Studio acceptance check on `dev`: existing daemon running,
+  HTTP server stopped. Full inventory contains only Nomic Embed Text v1.5 Q4_K_M
+  (embedding model); `lms ls --llm --json` and `lms ps --json` are empty. No chat
+  provider, model or serving endpoint was selected; UI → model → UI acceptance remains
+  blocked, not passed. No downloads, server start, Sam launch or code fix attempted.
 
 ## Known limitations / post-MVP priorities
 
