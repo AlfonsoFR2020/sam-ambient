@@ -18,7 +18,8 @@ from sam_ambient.core.voice import AudioFormat, AudioFrame, VoiceStreamContext
     [
         (None, {"ko": 0.12, "es": 0.10, "en": 0.05}, "es"),
         ("es", {"ko": 0.3, "en": 0.2, "es": 0.1}, "es"),
-        ("es", {"en": 0.65, "es": 0.2}, "en"),
+        ("es", {"en": 0.65, "es": 0.2}, "es"),
+        (None, {"en": 0.65, "es": 0.2}, "en"),
         ("es", {"ja": 0.95, "es": 0.01}, "ja"),
     ],
 )
@@ -48,6 +49,8 @@ def test_auto_language_prefers_recent_or_configured_but_accepts_confident_switch
                 assert f"\r\n{expected}\r\n".encode() in requests[1]
             if scores[detected] >= 0.8:
                 assert provider._recent_language == detected
+            else:
+                assert provider._recent_language == recent
 
     asyncio.run(scenario())
 
@@ -63,6 +66,50 @@ def test_whisper_silence_is_not_conversation_and_legacy_metadata_is_supported():
         == ""
     )
     assert WhisperCppServerSTT._decode_transcript(b'{"text":"hello"}').text == "hello"
+
+
+def test_language_fallback_uses_configured_preferences_not_a_fixed_language_pair():
+    async def scenario():
+        requests = []
+
+        async def handler(request):
+            requests.append(request.content)
+            return httpx.Response(
+                200,
+                json={"text": "Bonjour", "language_probabilities": {"ko": 0.3, "fr": 0.2}},
+            )
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            provider = WhisperCppServerSTT(client=client, preferred_languages=("fr", "de"))
+            await provider.transcribe(b"wav", language="auto", cancellation=CancellationToken())
+            assert len(requests) == 2
+            assert b"\r\nfr\r\n" in requests[1]
+            assert provider._recent_language is None  # Forced decoding is not confirmation.
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("language", ["auto", "it"])
+def test_missing_detection_metadata_does_not_invent_language_evidence(language):
+    async def scenario():
+        requests = []
+
+        async def handler(request):
+            requests.append(request.content)
+            return httpx.Response(200, json={"text": "Ciao", "language": "it"})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            provider = WhisperCppServerSTT(client=client)
+            provider._recent_language = "es"
+            result = await provider.transcribe(
+                b"wav", language=language, cancellation=CancellationToken()
+            )
+            assert result.text == "Ciao"
+            assert len(requests) == 1
+            assert f"\r\n{language}\r\n".encode() in requests[0]
+            assert provider._recent_language == "es"
+
+    asyncio.run(scenario())
 
 
 def test_whisper_cpp_stt_sends_bounded_wav_and_returns_final_text() -> None:

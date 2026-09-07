@@ -1,11 +1,11 @@
 # Sam implementation state
 
-Updated: 2026-09-06
+Updated: 2026-09-07
 
 ## MVP status
 
 - Sam 0.1.1 completes first-run and repository preparation; Phases 0–9 remain complete.
-- Quality gate: 246 Python tests pass with two justified skips (optional live
+- 0.1.1 release gate: 246 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
   38 tests, Biome, TypeScript typecheck, and Vite production build pass.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
@@ -132,7 +132,9 @@ Updated: 2026-09-06
   Default system input/output are used without hardcoded hardware selection.
 - Final STT now explicitly requests auto language plus verbose detection metadata.
   Adapter-configurable preferences default to en/es; uncertain detection prefers
-  recent confirmed language, with one bounded retry when needed. Confident other
+  recent confirmed language, with one bounded retry when needed. Only detection
+  at the configured confidence threshold (default 0.8) updates that preference;
+  uncertain en/es switches and forced fallbacks do not overwrite it. Confident other
   languages remain accepted; older servers without metadata retain auto behavior.
   High no-speech results/known sound markers are discarded; 10-frame pre-roll
   retains speech onset. INFO logs language probability/duration, not transcript.
@@ -149,6 +151,10 @@ Updated: 2026-09-06
   at owner request; no successful voice/latency claim. Sam capture/test STT stopped.
   Remaining: quiet controlled input/segmentation validation and distinguishing
   real interruption from background/playback speech. No AEC or broad policy rewrite.
+- Automated continuation (2026-09-07): context commit `4d754a0` remains intact;
+  its three focused tests pass. Language regression tests cover uncertain switches,
+  configurable preferences, confident non-en/es detection, and legacy metadata.
+  No microphone/speaker test, model download, or live voice acceptance this run.
 
 ## Known limitations / post-MVP priorities
 

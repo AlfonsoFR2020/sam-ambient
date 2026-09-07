@@ -153,9 +153,6 @@ class WhisperCppServerSTT:
         if confidence < self._language_confidence:
             preferred = max(self._preferred_languages, key=lambda code: scores.get(code, 0))
             selected = self._recent_language or preferred
-            # Permit an evidenced switch between preferred languages without locking the session.
-            if scores.get(preferred, 0) >= 0.5:
-                selected = preferred
         duration = value.get("duration", 0)
         if not isinstance(duration, int | float) or not math.isfinite(duration) or duration < 0:
             duration = 0
@@ -170,10 +167,9 @@ class WhisperCppServerSTT:
             value = await self._request(wav_data, language=selected, cancellation=cancellation)
             result = self._decode_transcript(json.dumps(value).encode())
         cancellation.raise_if_cancelled()
-        if result.text and (
-            confidence >= self._language_confidence
-            or (detected in self._preferred_languages and confidence >= 0.6)
-        ):
+        # A forced fallback is not new evidence. Only confident auto-detection may
+        # change the conversational language, including languages outside preferences.
+        if result.text and confidence >= self._language_confidence:
             self._recent_language = detected
         return result
 

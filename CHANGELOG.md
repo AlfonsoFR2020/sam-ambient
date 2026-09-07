@@ -7,6 +7,8 @@
 - Improve final-STT language fallback and silence handling, retain bounded audio
   pre-roll, and show transcription/muted status. Fix voice-start and tentative
   interruption/TTS state races; physical speaker-mode acceptance remains pending.
+- Keep recent confirmed STT language during low-confidence switches, including
+  between preferred languages; forced fallbacks do not count as confirmation.
 
 ## 0.1.1 — 2026-09-06
 
