@@ -23,7 +23,11 @@ from sam_ambient.adapters.ollama import (
     OllamaProvider,
 )
 from sam_ambient.adapters.openai_compatible import OpenAICompatibleProvider
-from sam_ambient.adapters.stt import DEFAULT_WHISPER_CPP_URL, WhisperCppServerSTT
+from sam_ambient.adapters.stt import (
+    DEFAULT_WHISPER_CPP_URL,
+    SpeechRecognitionError,
+    WhisperCppServerSTT,
+)
 from sam_ambient.adapters.tts import SystemTextToSpeech, TextToSpeechUnavailable
 from sam_ambient.adapters.ui.demo import run_demo_bridge
 from sam_ambient.adapters.vad import WebRtcVoiceActivityDetector
@@ -450,11 +454,16 @@ async def run_runtime(args: argparse.Namespace) -> int:
     log.info("TTS: %s", tts.backend_id if tts else "disabled/unavailable")
     voice = None
     if not args.no_voice:
-        voice = RuntimeVoiceAdapters(
-            SoundDeviceCapture(),
-            WebRtcVoiceActivityDetector(),
-            WhisperCppServerSTT(base_url=args.stt_url),
-        )
+        stt = WhisperCppServerSTT(base_url=args.stt_url)
+        try:
+            await stt.ensure_ready(Path(args.root))
+            voice = RuntimeVoiceAdapters(SoundDeviceCapture(), WebRtcVoiceActivityDetector(), stt)
+        except SpeechRecognitionError as error:
+            await stt.aclose()
+            log.warning("STT unavailable: %s; text input remains available", error)
+        except BaseException:
+            await stt.aclose()
+            raise
     log.info(
         "Microphone/STT: %s",
         "configured (availability checked on capture)" if voice else "disabled",

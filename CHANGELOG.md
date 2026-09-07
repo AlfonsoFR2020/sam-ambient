@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Check Whisper HTTP readiness before microphone startup; on Windows, start the
+  existing local development installation when needed and stop only Sam-owned
+  STT processes. Missing assets report expected paths while text remains usable.
 - Preserve bounded committed conversation context across requests and runtime
   recovery; keep reused local context behind the cloud-privacy gate.
 - Improve final-STT language fallback and silence handling, retain bounded audio

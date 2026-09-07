@@ -54,6 +54,12 @@ Local servers requiring API authentication are not selected by automatic discove
 Doctor lists audio devices and the configured STT endpoint's TCP reachability.
 Check OS microphone permissions/default input, then your separately installed
 whisper.cpp server/model. Reachability does not prove model transcription works.
+On Windows, voice startup checks HTTP health and can start the existing
+`<workspace>/.sam/runtime/whisper-b4938/Release/whisper-server.exe` using
+`<workspace>/.sam/models/ggml-base.bin` at the default localhost:8080 endpoint.
+No assets are downloaded. Missing/invalid assets and startup failures report
+their expected paths. Custom endpoints must already be running. Sam stops only
+the STT process it started; after correcting an unavailable service, restart Sam.
 Text requests remain available; `--no-voice` disables microphone capture.
 
 ## TTS unavailable

@@ -1,4 +1,4 @@
-"""Local-first STT adapter for a separately managed whisper.cpp server."""
+"""Local-first STT adapter with optional ownership of an existing local server."""
 
 from __future__ import annotations
 
@@ -7,8 +7,10 @@ import io
 import json
 import logging
 import math
+import os
 import wave
 from ipaddress import ip_address
+from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 import httpx
@@ -67,6 +69,21 @@ def _is_loopback_url(value: str) -> bool:
         return False
 
 
+def _local_assets(root: Path) -> tuple[Path, Path]:
+    root = root.resolve()
+    executable = root / ".sam/runtime/whisper-b4938/Release/whisper-server.exe"
+    model = root / ".sam/models/ggml-base.bin"
+    for path, magic in ((executable, b"MZ"), (model, b"lmgg")):
+        try:
+            with path.open("rb") as stream:
+                valid = stream.read(len(magic)) == magic
+        except OSError as error:
+            raise SpeechRecognitionUnavailable(f"STT asset missing/unreadable: {path}") from error
+        if not valid:
+            raise SpeechRecognitionUnavailable(f"STT asset has invalid header: {path}")
+    return executable, model
+
+
 class WhisperCppServerSTT:
     """Finalize utterances through whisper.cpp's multipart `/inference` API."""
 
@@ -109,6 +126,99 @@ class WhisperCppServerSTT:
         self._timeout_s = timeout_s
         self._max_response_bytes = max_response_bytes
         self._max_audio_seconds = max_audio_seconds
+        self._process: asyncio.subprocess.Process | None = None
+
+    async def _ready(self) -> bool:
+        try:
+            async with self._client.stream(
+                "GET", f"{self.base_url}/health", timeout=0.5
+            ) as response:
+                raw = bytearray()
+                async for chunk in response.aiter_bytes():
+                    raw.extend(chunk)
+                    if len(raw) > 1024:
+                        break
+                if response.status_code == 200 and len(raw) <= 1024:
+                    try:
+                        if json.loads(raw).get("status") == "ok":
+                            return True
+                    except (ValueError, AttributeError):
+                        pass
+                raise SpeechRecognitionUnavailable(
+                    f"STT endpoint {self.base_url}/health is not ready "
+                    f"(HTTP {response.status_code}); existing service left untouched"
+                )
+        except (httpx.ConnectError, httpx.ConnectTimeout):
+            return False
+        except httpx.RequestError as error:
+            raise SpeechRecognitionUnavailable(
+                f"STT health request failed at {self.base_url}: {type(error).__name__}"
+            ) from error
+
+    async def ensure_ready(self, root: Path, *, startup_timeout_s: float = 8.0) -> None:
+        """Reuse a healthy server; otherwise start only the known local installation."""
+        if await self._ready():
+            log.info("STT ready at %s (existing service)", self.base_url)
+            return
+        if self.base_url != DEFAULT_WHISPER_CPP_URL or os.name != "nt":
+            raise SpeechRecognitionUnavailable(
+                f"STT server is not running at {self.base_url}; "
+                "start the configured whisper.cpp server"
+            )
+        executable, model = await asyncio.to_thread(_local_assets, root)
+        try:
+            log.info("Starting existing whisper.cpp: model=%s endpoint=%s", model, self.base_url)
+            self._process = await asyncio.create_subprocess_exec(
+                str(executable),
+                "--model",
+                str(model),
+                "--host",
+                "127.0.0.1",
+                "--port",
+                "8080",
+                cwd=executable.parent,
+                stdin=asyncio.subprocess.DEVNULL,
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL,
+                creationflags=0x08000000,  # CREATE_NO_WINDOW; Windows-only launch above.
+            )
+            async with asyncio.timeout(startup_timeout_s):
+                while self._process.returncode is None:
+                    if await self._ready():
+                        log.info(
+                            "STT ready at %s (Sam-owned pid=%s)", self.base_url, self._process.pid
+                        )
+                        return
+                    await asyncio.sleep(0.1)
+            raise SpeechRecognitionUnavailable(
+                f"whisper.cpp exited ({self._process.returncode}); check runtime/DLLs at "
+                f"{executable.parent} and model {model}"
+            )
+        except (TimeoutError, OSError) as error:
+            await self._stop_owned_process()
+            raise SpeechRecognitionUnavailable(
+                f"STT startup failed ({type(error).__name__}) at {self.base_url}; "
+                f"runtime={executable}, model={model}"
+            ) from error
+        except BaseException:
+            await self._stop_owned_process()
+            raise
+
+    async def _stop_owned_process(self) -> None:
+        process, self._process = self._process, None
+        if process is None:
+            return
+        if process.returncode is None:
+            try:
+                process.terminate()
+            except ProcessLookupError:
+                pass
+        try:
+            await asyncio.wait_for(process.wait(), 2)
+        except TimeoutError:
+            process.kill()
+            await process.wait()
+        log.info("Stopped Sam-owned STT pid=%s", process.pid)
 
     async def start_stream(
         self,
@@ -223,6 +333,7 @@ class WhisperCppServerSTT:
         return json.loads(raw)
 
     async def aclose(self) -> None:
+        await self._stop_owned_process()
         if self._owns_client:
             await self._client.aclose()
 

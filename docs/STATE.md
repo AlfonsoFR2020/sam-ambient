@@ -169,6 +169,15 @@ Updated: 2026-09-07
 
 ## Known limitations / post-MVP priorities
 
+- STT readiness fix: assets were present, but localhost:8080 had no server;
+  CLI previously created only an HTTP client. Windows now probes `/health`, starts
+  existing `.sam/runtime/whisper-b4938/Release/whisper-server.exe` with
+  `.sam/models/ggml-base.bin` under the workspace root, and waits up to 8 s.
+  External/custom servers remain externally owned; missing/invalid assets name
+  expected paths and retain text mode. Owned service stops on normal closure.
+  25 focused tests and Ruff pass; real model-load/health/cleanup passed without
+  audio capture. Recognition quality and physical barge-in remain unvalidated.
+
 - First: validate Linux hardware end to end, tune physical barge-in latency and
   echo handling, and evaluate platform AEC plus streaming/partial STT.
 - Next: improve permissively distributable Linux voice quality and consume the
