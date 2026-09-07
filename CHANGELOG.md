@@ -9,6 +9,8 @@
   interruption/TTS state races; physical speaker-mode acceptance remains pending.
 - Keep recent confirmed STT language during low-confidence switches, including
   between preferred languages; forced fallbacks do not count as confirmation.
+- Reject mismatched turn/generation cancellation before stopping playback, and
+  prevent stale STT cleanup from cancelling a promoted assistant response.
 
 ## 0.1.1 — 2026-09-06
 

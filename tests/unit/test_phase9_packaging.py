@@ -184,13 +184,16 @@ class _AnswerProvider(LLMProvider):
 
 class _FakeTts:
     audio_format = AudioFormat(sample_rate_hz=1_000)
+    frame_count = 12
 
     async def synthesize(self, text, *, voice, language, cancellation):
         del text, voice, language
         cancellation.raise_if_cancelled()
         from sam_ambient.core.voice import AudioFrame
 
-        yield AudioFrame(self.audio_format, b"\0\0" * 20, monotonic_ms=0, sequence=0)
+        for sequence in range(self.frame_count):
+            cancellation.raise_if_cancelled()
+            yield AudioFrame(self.audio_format, b"\0\0" * 20, sequence * 20, sequence)
 
     async def aclose(self) -> None:
         return None
@@ -199,8 +202,10 @@ class _FakeTts:
 class _FakeOutput:
     def __init__(self) -> None:
         self.frames = 0
+        self.token = None
 
     async def play(self, frames, cancellation) -> None:
+        self.token = cancellation
         async for _frame in frames:
             cancellation.raise_if_cancelled()
             self.frames += 1
@@ -230,11 +235,17 @@ def test_runtime_streams_model_through_real_tts_boundary_and_persists_turn(
                 and event.payload.get("role") == "assistant"
             ):
                 break
+        assert output.token is not None and not output.token.is_cancelled
         await runtime.close()
         await subscription.close()
-        assert output.frames == 1
+        assert output.frames == _FakeTts.frame_count
         assert EventType.TTS_STARTED in {event.type for event in seen}
         assert EventType.TTS_COMPLETED in {event.type for event in seen}
+        assert not {EventType.TTS_CANCELLED, EventType.MODEL_CANCELLED} & {
+            event.type for event in seen
+        }
+        completed = next(event for event in seen if event.type is EventType.TTS_COMPLETED)
+        assert completed.payload["spoken_text"] == "Hello from Sam."
         assert runtime.state is not None
         assert [message.role for message in runtime.state.recent()] == ["user", "assistant"]
 

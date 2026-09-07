@@ -244,3 +244,44 @@ def test_interruption_coordinator_ignores_unknown_stale_identity() -> None:
     assert effects.cancellation_applied is False
     assert registry.get("old-cancel") is None
     assert ledger.active_generation_id == "generation-1"
+
+
+@pytest.mark.parametrize(
+    "event_type, turn_id, generation_id",
+    [
+        (EventType.TTS_CANCELLED, "turn-2", "generation-1"),
+        (EventType.MODEL_CANCELLED, "turn-1", "generation-2"),
+        (EventType.COMPONENT_ERROR, "turn-2", None),
+        (EventType.STT_CANCELLED, "turn-2", None),
+    ],
+)
+def test_mismatched_cancellation_cannot_stop_new_response(event_type, turn_id, generation_id):
+    registry = CancellationRegistry()
+    token = registry.create("cancel-2")
+    ledger = make_ledger()
+    ledger.cancel_unspoken("generation-1", 1)
+    ledger.start_generation(
+        turn_id="turn-2", generation_id="generation-2", cancellation_id="cancel-2"
+    )
+    chunk = ledger.queue_chunk("generation-2", "Keep speaking.", 2)
+    assert chunk is not None and ledger.mark_playing(chunk, 3)
+    coordinator = InterruptionCoordinator(registry, BoundedSpeechQueue(ledger))
+
+    effects = coordinator.apply(
+        (
+            ProtocolEvent(
+                type=event_type,
+                monotonic_ms=4,
+                turn_id=turn_id,
+                generation_id=generation_id,
+                cancellation_id=token.cancellation_id,
+            ),
+        )
+    )
+
+    assert not token.is_cancelled
+    assert not effects.cancellation_applied
+    assert effects.delivery is None
+    assert ledger.active_generation_id == "generation-2"
+    assert ledger.mark_spoken(chunk, 5)
+    assert ledger.finish_generation("generation-2")

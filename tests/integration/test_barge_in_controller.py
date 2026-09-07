@@ -153,3 +153,32 @@ def test_candidate_transcript_can_confirm_before_duration_threshold() -> None:
         assert any(event.type == EventType.TRANSCRIPT_PARTIAL for event in published)
 
     asyncio.run(scenario())
+
+
+def test_false_candidate_cleanup_does_not_cancel_current_speech():
+    async def scenario():
+        manager = TurnManager(
+            "session", id_factory=iter(("candidate-turn", "candidate-cancel")).__next__
+        )
+        begin_speaking(manager)
+        events = []
+        controller, cancellations = make_controller(manager, events)
+        response = cancellations.get("cancel-1")
+        assert response is not None
+
+        await controller.process_audio_frame(frame(900, speech=True))
+        candidate = cancellations.create("candidate-cancel")
+        await controller.process_audio_frame(frame(960, speech=False))
+        recovered = await controller.process_audio_frame(frame(1860, speech=False))
+
+        assert recovered.effects.candidate_cancellation_applied
+        assert candidate.is_cancelled
+        assert not recovered.effects.response_cancellation_applied
+        assert not response.is_cancelled
+        assert manager.state is VoiceState.SPEAKING
+        completed = manager.on_tts_completed(1880, generation_id="generation-1")
+        assert any(event.type is EventType.TTS_COMPLETED for event in completed)
+        assert not any(event.type is EventType.TTS_CANCELLED for event in events)
+        assert manager.state is VoiceState.IDLE
+
+    asyncio.run(scenario())

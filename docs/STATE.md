@@ -142,7 +142,7 @@ Updated: 2026-09-07
   SQLite commit before monitoring; allow TTS startup during a tentative candidate
   and recover into SPEAKING. UI projects actual voice state on reconnect and shows
   Transcribing during final STT, plus Listening/Thinking/Speaking/Microphone muted.
-- Focused gate: 41 Python tests and 25 frontend tests pass; Ruff/format, targeted
+- Prior voice preparation gate: 41 Python tests and 25 frontend tests pass; Ruff/format, targeted
   Biome, TypeScript and static Vite build pass. No full-suite rerun in this slice.
 - Live diagnostics showed 5–29 s captured segments, low-confidence language guesses
   (e.g. Korean 0.12), music/background transcripts, and VAD-only cancellation about
@@ -155,6 +155,17 @@ Updated: 2026-09-07
   its three focused tests pass. Language regression tests cover uncertain switches,
   configurable preferences, confident non-en/es detection, and legacy metadata.
   No microphone/speaker test, model download, or live voice acceptance this run.
+- Language follow-up committed as `72d083f`. Cancellation now validates active
+  turn/generation/token binding BEFORE callbacks; stale STT cleanup cannot cancel
+  a promoted response. Reproduced these code-level gaps with failing tests first;
+  this does not establish the cause of the owner's physical TTS cutoff.
+- Current focused gate: 78 Python tests / 25 frontend tests pass, no skips;
+  Ruff/format, targeted Biome, TypeScript and diff checks pass. Covers full fake
+  playback completion, false-candidate recovery, intentional barge-in, stale
+  cancellation, context and voice-state projection. Existing UI already shows
+  Listening / Transcribing / Thinking / Speaking; no UI change or rebuild needed.
+  Physical en/es accuracy/context, uninterrupted playback, intentional barge-in
+  and end-of-speech/response/stop latency remain unverified; no AEC changes.
 
 ## Known limitations / post-MVP priorities
 

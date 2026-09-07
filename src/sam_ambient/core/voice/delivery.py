@@ -428,9 +428,30 @@ class InterruptionCoordinator:
         delivery: DeliverySnapshot | None = None
         confirmation_ms: int | None = None
         stop_event_seen = False
-        handled_generations: set[str] = set()
         for event in events:
             if event.type not in self._CANCELLATION_EVENTS:
+                continue
+            ledger = self._speech_queue.ledger
+            active = (
+                ledger.snapshot(ledger.active_generation_id)
+                if ledger.active_generation_id
+                else None
+            )
+            if event.type == EventType.STT_CANCELLED:
+                # Candidate cleanup must not cancel its token after promotion to
+                # an assistant response. Candidates have no model generation yet.
+                if event.generation_id is not None or (
+                    active is not None and event.cancellation_id == active.cancellation_id
+                ):
+                    continue
+            elif (
+                active is None
+                or event.generation_id != active.generation_id
+                or event.turn_id != active.turn_id
+                or event.cancellation_id != active.cancellation_id
+            ):
+                # Validate the complete binding BEFORE invoking any cancellation
+                # callback: those callbacks can immediately stop newer playback.
                 continue
             stop_event_seen = stop_event_seen or event.type in self._STOP_EVENTS
             if event.cancellation_id:
@@ -444,13 +465,7 @@ class InterruptionCoordinator:
                     candidate_cancellation_applied = applied or candidate_cancellation_applied
                 else:
                     response_cancellation_applied = applied or response_cancellation_applied
-            generation_is_bound = (
-                event.generation_id is not None
-                and event.cancellation_id
-                == self._speech_queue.ledger.cancellation_id_for(event.generation_id)
-            )
-            if generation_is_bound and event.generation_id not in handled_generations:
-                handled_generations.add(event.generation_id)
+            if event.type in self._STOP_EVENTS:
                 delivery = self._speech_queue.cancel_generation(
                     event.generation_id,
                     event.monotonic_ms,
