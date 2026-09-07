@@ -154,14 +154,30 @@ def create_provider(args: argparse.Namespace) -> LLMProvider:
 
 async def discover_provider(
     args: argparse.Namespace,
+    *,
+    bootstrap: bool = False,
 ) -> tuple[LLMProvider, str | None, Discovery | None]:
     if args.provider == "openai-compatible" and not args.compatible_is_local:
         return create_provider(args), args.model, None
+    preferred = None
+    if bootstrap or getattr(args, "command", None) == "doctor":
+        from sam_ambient.core.storage import SQLiteSessionStore
+
+        try:
+            state_path = _doctor_paths(args)[1]
+            if state_path.is_file():
+                store = await asyncio.to_thread(SQLiteSessionStore, state_path)
+                preferred = await asyncio.to_thread(store.last_local_model)
+        except Exception:
+            log.warning("Last-good local preference unavailable; continuing discovery")
+        log.info("Local discovery: bootstrap=%s; no downloads; preference=%s", bootstrap, preferred)
     discovery = await discover_local(
         provider=args.provider,
         base_url=args.base_url,
         model=args.model,
         compatible_url=args.local_compatible_url,
+        bootstrap=bootstrap,
+        preferred=preferred,
     )
     for service in discovery.services:
         log.info(
@@ -441,7 +457,19 @@ def _print_doctor(report: dict[str, object]) -> None:
 
 
 async def run_runtime(args: argparse.Namespace) -> int:
-    provider, model, discovery = await discover_provider(args)
+    args.state_db = args.state_db or str(Path(args.root) / ".sam/state.db")
+    provider, model, discovery = await discover_provider(args, bootstrap=True)
+    try:
+        return await _serve_runtime(args, provider, model, discovery)
+    finally:
+        if discovery is not None:
+            await discovery.aclose()
+        await provider.aclose()
+
+
+async def _serve_runtime(
+    args: argparse.Namespace, provider: LLMProvider, model: str | None, discovery: Discovery | None
+) -> int:
     stop = parent_stop_event() if args.runtime_instance_id else asyncio.Event()
     tts = None
     output = None
@@ -453,12 +481,15 @@ async def run_runtime(args: argparse.Namespace) -> int:
             log.warning("TTS unavailable; text output remains available")
     log.info("TTS: %s", tts.backend_id if tts else "disabled/unavailable")
     voice = None
+    stt_status = "disabled by --no-voice"
     if not args.no_voice:
         stt = WhisperCppServerSTT(base_url=args.stt_url)
         try:
             await stt.ensure_ready(Path(args.root))
+            stt_status = f"ready at {stt.base_url}"
             voice = RuntimeVoiceAdapters(SoundDeviceCapture(), WebRtcVoiceActivityDetector(), stt)
         except SpeechRecognitionError as error:
+            stt_status = str(error)[:500]
             await stt.aclose()
             log.warning("STT unavailable: %s; text input remains available", error)
         except BaseException:
@@ -466,7 +497,7 @@ async def run_runtime(args: argparse.Namespace) -> int:
             raise
     log.info(
         "Microphone/STT: %s",
-        "configured (availability checked on capture)" if voice else "disabled",
+        stt_status + "; default audio device checked on capture" if voice else stt_status,
     )
     runtime = SamRuntime(
         provider,
@@ -475,6 +506,10 @@ async def run_runtime(args: argparse.Namespace) -> int:
             port=args.port,
             model=model or args.model,
             provider_selection_reason=discovery.reason if discovery else "explicit configuration",
+            model_unavailable_reason=discovery.reason
+            if discovery and not discovery.selected
+            else None,
+            stt_status=stt_status,
             allow_cloud=args.allow_cloud,
             workspace_writable=args.allow_workspace_write,
             runtime_instance_id=args.runtime_instance_id,

@@ -9,7 +9,7 @@ from sam_ambient import cli
 from tests.unit.test_cli import FakeProvider
 
 
-async def discovery(_args):
+async def discovery(_args, *, bootstrap=False):
     return FakeProvider(), "discovered-model", None
 
 

@@ -132,7 +132,7 @@ async def run(args: argparse.Namespace) -> int:
             "sam-core",
             _trusted_core_command(args, root),
             root,
-            restart=RestartPolicy(),
+            restart=RestartPolicy(startup_timeout_s=90),  # Bounded provider/model + STT bootstrap.
         )
     ]
     if not args.no_ui:

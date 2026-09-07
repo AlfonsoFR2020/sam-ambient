@@ -17,7 +17,8 @@ required to run the compiled UI. Keep the default 8765/8766 ports for the packag
 Quit through **Quit Sam** or Ctrl+Q; confirm once. The page shows that Sam has
 stopped and can be closed. Ctrl+C in the launch console also stops the managed
 components. Merely closing the browser leaves Sam running.
-Confirmation is an inline **Quit now / Cancel** control, not a native browser dialog.
+Confirmation is an in-app **Confirm quit / Cancel** dialog with keyboard focus;
+Escape cancels it. After acknowledgement, reconnection is disabled.
 
 If uv reports a certificate-chain error behind a trusted corporate proxy, try
 `uv --native-tls sync --locked` to use the OS trust store; do not disable TLS verification.
@@ -26,8 +27,8 @@ If uv reports a certificate-chain error behind a trusted corporate proxy, try
 
 The UI can load without an inference service, but Sam cannot respond without a
 usable model. Doctor shows each service and the selected model/reason. Start your
-existing model service, then restart Sam. Sam never downloads models automatically.
-Automatic priority is Ollama, LM Studio, then `--local-compatible-url`; explicit
+existing model service if automatic startup fails, then restart Sam. Sam never downloads models.
+Automatic priority is last successful local selection, Ollama, LM Studio, then `--local-compatible-url`; explicit
 `--provider` / `--base-url` / `--model` selections take precedence and do not fall back.
 
 ## Ollama is installed but unavailable
@@ -40,9 +41,10 @@ does not mean a service or model is ready.
 ## LM Studio / lms / llmster is unavailable
 
 Check `lms daemon status --json --quiet` and `lms server status --json --quiet`.
-If you intend to use that installation, start its daemon/server using its normal
-UI or `lms daemon up` / `lms server start`, and load an existing model. Sam itself
-does not perform these actions. Its default API endpoint is
+Application startup attempts `lms server start` on loopback and loads an existing
+conversational model if none is loaded (20-second combined deadline). A missing
+`lms` CLI, no installed chat model, or startup/load failure is reported. If it
+fails, check the same installation using its UI/CLI and restart Sam. The default API endpoint is
 `http://127.0.0.1:1234/v1`; a running port reported by `lms` is also recognized.
 Use `--provider lm-studio --base-url http://127.0.0.1:PORT/v1` for an explicit port.
 When the server is stopped, downloaded model inventory may be unknown: `lms ps`

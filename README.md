@@ -88,8 +88,9 @@ flowchart TD
 ## Quick start
 
 Requirements: Python 3.12+ and [uv](https://docs.astral.sh/uv/). For responses,
-have a local model server already running with a usable model. Sam does not
-install or start model services for you. Node, Vite, Rust, and Tauri are not
+install a local inference runtime and at least one conversational model first.
+Sam can start an installed Ollama or LM Studio/lms server and load an existing
+LM Studio model; it never downloads models. Node, Vite, Rust, and Tauri are not
 needed to run the compiled UI included in this repository.
 
 From the checkout:
@@ -106,6 +107,9 @@ independently.
 
 Use **Controls → Text request** to talk to the selected model.
 
+See [Getting started](docs/GETTING_STARTED.md) for prerequisites and first launch,
+and the [User guide](docs/USER_GUIDE.md) for controls, status, and safe operation.
+
 **Quit Sam** (or Ctrl+Q, with confirmation) stops the application; Ctrl+C works
 in the launch console. Escape still closes the controls/fullscreen view.
 
@@ -116,11 +120,14 @@ uv run sam-ambient --provider lm-studio --model your-loaded-model
 uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000/v1
 ```
 
-Selection is deterministic: explicit configuration first, then Ollama, then
-LM Studio, then `--local-compatible-url`. Model IDs are sorted when no model is
-specified. An explicit unavailable choice stays degraded; it is not silently
-replaced. The console and UI show the selection and reason. Restart Sam after
-starting/changing a model service.
+Selection is deterministic: explicit configuration first, then the last successful
+local provider/model, then Ollama, LM Studio, and `--local-compatible-url`.
+Stale saved preferences fall back; explicit unavailable choices stay degraded.
+Startup waits at most 20 seconds per installed backend attempt. Running services
+are reused without restart or model eviction. Sam-owned Ollama children stop on
+exit; the shared LM Studio service remains running (Sam loads use a 10-minute
+idle TTL). Expand the provider status for the selection reason and STT/TTS status.
+`sam doctor` remains read-only. Restart Sam after externally changing services.
 
 Voice input needs an audio device and a separately installed whisper.cpp
 server, defaulting to `http://127.0.0.1:8080`. Windows output uses System.Speech;

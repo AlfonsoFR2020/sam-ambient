@@ -264,6 +264,7 @@ export class DemoTransport implements ProtocolTransport {
             command_id: command.command_id,
             command_type: command.type,
             status: "applied",
+            ...(command.type === "control.application.quit" ? { application_stopping: true } : {}),
             ...(command.type === "control.microphone.set"
               ? { microphone_enabled: command.payload.enabled }
               : {}),

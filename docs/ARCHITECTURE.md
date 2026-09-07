@@ -39,11 +39,18 @@ generated, queued, and spoken chunks. Real hardware AEC remains future work.
 At startup, bounded discovery checks explicit local configuration, Ollama's
 configured/default endpoint, LM Studio's conventional or CLI-reported local port,
 and an additional explicitly configured compatible endpoint. Selection uses that
-priority and sorted model IDs. Explicit choices are never silently replaced.
+priority and sorted model IDs, preferring the last successful local provider/model
+stored in existing SQLite runtime metadata. Explicit choices are never silently replaced.
 LM Studio uses its published [status CLI](https://lmstudio.ai/docs/cli/serve/server-status)
 and [model APIs](https://lmstudio.ai/docs/developer/rest/endpoints); loaded models
 are preferred when native metadata exists. Compatible-only servers supply their
-advertised model IDs. No service is started and no model is downloaded.
+advertised model IDs, excluding declared/named embeddings; Ollama models must
+declare completion capability. Diagnostics stay read-only. Application startup
+can run structured `ollama serve` / `lms server start` and load an installed LM
+model, with a 20-second per-backend deadline and no downloads. Existing services
+are never stopped or restarted. Only direct Sam-owned Ollama children are reaped;
+the shared LM daemon/server is retained and Sam-loaded models have a 600-second
+idle TTL. No authority or settings are granted by model-generated content.
 Ollama and OpenAI-compatible adapters retain the existing provider interface.
 Endpoint protocol support, not a conventional port, determines compatibility;
 discovery names describe probe routes rather than authenticated vendor identity.

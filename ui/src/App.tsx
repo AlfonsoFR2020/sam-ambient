@@ -17,6 +17,8 @@ import {
 } from "./controls/model";
 import { DemoTransport } from "./demo/scenarios";
 import type { UiState } from "./protocol/types";
+import { QuitDialog, ShutdownStatus } from "./QuitDialog";
+import { RuntimeStatus } from "./RuntimeStatus";
 import { ProtocolClient } from "./state/client";
 import { BrowserEventTransport } from "./transport/browser";
 import { type NativeEventSource, TauriLocalTransport } from "./transport/tauri";
@@ -140,6 +142,7 @@ export default function App() {
   }));
   const [controlsOpen, setControlsOpen] = useState(false);
   const [quitConfirmation, setQuitConfirmation] = useState(false);
+  const [quitRequested, setQuitRequested] = useState(false);
   const [commandError, setCommandError] = useState<string>();
   const [textRequest, setTextRequest] = useState("");
   const visual = toAmbientVisualModel(state, preferences.brightness / 100);
@@ -156,6 +159,7 @@ export default function App() {
       if (command) {
         setCommandError(undefined);
         void client.sendControl(command).catch((error: unknown) => {
+          if (action.type === "application.quit") setQuitRequested(false);
           setCommandError(error instanceof Error ? error.message : "Control command failed");
         });
       } else {
@@ -209,29 +213,10 @@ export default function App() {
         <span className="status__mark" data-connected={visual.connected} />
         <strong>Sam</strong>
         <span>{state.applicationStopped ? "Stopped · you can close this tab" : visual.label}</span>
-        <small title={state.selectionReason}>
-          {state.model ? `${state.provider} · ${state.model}` : "No model selected"}
-        </small>
+        <RuntimeStatus state={state} />
         <button type="button" disabled={state.connection !== "connected"} onClick={quitSam}>
           Quit Sam
         </button>
-        {quitConfirmation && !state.applicationStopped && (
-          <fieldset className="quit-confirmation" aria-label="Quit Sam confirmation">
-            Quit Sam and stop running work?{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setQuitConfirmation(false);
-                applyAction({ type: "application.quit" });
-              }}
-            >
-              Quit now
-            </button>{" "}
-            <button type="button" onClick={() => setQuitConfirmation(false)}>
-              Cancel
-            </button>
-          </fieldset>
-        )}
         {!state.capabilityAuthorityActive && (
           <small className="status__authority" title={state.capabilityAuthorityReason}>
             capabilities disabled
@@ -243,6 +228,19 @@ export default function App() {
           </small>
         )}
       </header>
+      <QuitDialog
+        open={quitConfirmation && !state.applicationStopped && !quitRequested}
+        onCancel={() => setQuitConfirmation(false)}
+        onConfirm={() => {
+          setQuitConfirmation(false);
+          setQuitRequested(true);
+          setControlsOpen(false);
+          applyAction({ type: "application.quit" });
+        }}
+      />
+      {(quitRequested || state.applicationStopped) && (
+        <ShutdownStatus stopped={state.applicationStopped === true} />
+      )}
       {preferences.transcriptVisible && <Transcript state={state} />}
       <ToolActivity state={state} applyAction={applyAction} />
       <button
@@ -257,6 +255,18 @@ export default function App() {
       {controlsOpen && (
         <section className="controls" id={controlsId} aria-label="Sam controls">
           <p className="controls__hint">{state.selectionReason}</p>
+          <p className="controls__hint">
+            Speech recognition: {state.sttStatus ?? "Status not reported"}
+            <br />
+            Spoken output: {state.ttsBackend ?? "Status not reported"}
+          </p>
+          <button
+            type="button"
+            disabled={state.connection !== "connected" || quitRequested}
+            onClick={quitSam}
+          >
+            Quit Sam
+          </button>
           <form
             className="controls__request"
             onSubmit={(event) => {

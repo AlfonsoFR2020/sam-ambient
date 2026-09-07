@@ -1,9 +1,10 @@
-"""Bounded discovery of known loopback services. Never install, start, or download."""
+"""Known loopback discovery and opt-in bounded bootstrap; never download."""
 
 from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import shutil
 from dataclasses import asdict, dataclass, field
@@ -19,6 +20,7 @@ from sam_ambient.core.providers import DataBoundary, LLMProvider
 from sam_ambient.core.turns import CancellationToken
 
 LM_STUDIO_URL = "http://127.0.0.1:1234/v1"
+log = logging.getLogger(__name__)
 
 
 def local_url(value: str) -> str:
@@ -98,6 +100,8 @@ class LocalService:
     available_models: list[str] = field(default_factory=list)
     detail: str = "unavailable"
     daemon_running: bool | None = None
+    started_by_sam: bool = False
+    server_running: bool | None = None
 
 
 @dataclass
@@ -106,6 +110,21 @@ class Discovery:
     selected: LocalService | None
     model: str | None
     reason: str
+    owned_processes: list[asyncio.subprocess.Process] = field(default_factory=list, repr=False)
+
+    async def aclose(self) -> None:
+        while self.owned_processes:
+            process = self.owned_processes.pop()
+            if process.returncode is None:
+                try:
+                    process.terminate()
+                except ProcessLookupError:
+                    pass
+            try:
+                await asyncio.wait_for(process.wait(), 2)
+            except TimeoutError:
+                process.kill()
+                await process.wait()
 
     def to_dict(self) -> dict:
         return {
@@ -130,11 +149,16 @@ def _ids(rows: object, key: str) -> list[str]:
             and 0 < len(row[key]) <= 256
             and not any(ord(char) < 32 for char in row[key])
             and row.get("type") not in {"embeddings", "embedding"}
+            and "embed" not in row[key].lower()
+            and not row[key].startswith("-")
         }
     )
 
 
 async def probe_service(service: LocalService) -> None:
+    service.running = False
+    service.models = []
+    service.available_models = []
     transport = HttpxJsonTransport(
         trust_env=False, verify=service.endpoint.startswith("https:"), max_response_bytes=512 * 1024
     )
@@ -146,6 +170,27 @@ async def probe_service(service: LocalService) -> None:
                     "GET", service.endpoint + "/api/tags", timeout_s=2, cancellation=token
                 )
                 service.models = _ids(body.get("models"), "name")
+
+                # Ollama tags don't declare embedding capability. Require completion
+                # support rather than discovering an embedding-only model as chat.
+                async def conversational(name: str) -> bool:
+                    try:
+                        info = await transport.request_json(
+                            "POST",
+                            service.endpoint + "/api/show",
+                            body={"model": name},
+                            timeout_s=1,
+                            cancellation=token,
+                        )
+                        return "completion" in info.get("capabilities", [])
+                    except Exception:
+                        return False
+
+                names = service.models[:16]
+                supported = await asyncio.gather(*(conversational(name) for name in names))
+                service.models = [
+                    name for name, usable in zip(names, supported, strict=True) if usable
+                ]
                 service.available_models = service.models.copy()
             else:
                 body = await transport.request_json(
@@ -176,11 +221,121 @@ async def probe_service(service: LocalService) -> None:
                         # Older compatible-only servers advertise callable models in /v1/models.
                         pass
             service.running = True
-            service.detail = "ready" if service.models else "server running; no usable model"
+            service.detail = (
+                "ready" if service.models else "server running; install/load a conversational model"
+            )
     except Exception as error:
         service.detail = f"unreachable ({type(error).__name__})"
     finally:
         await transport.aclose()
+
+
+async def _local_command(argv: tuple[str, ...]) -> None:
+    """Bounded CLI requests; never shell strings or interactive prompts."""
+    process = await asyncio.create_subprocess_exec(
+        *argv,
+        stdin=asyncio.subprocess.DEVNULL,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.DEVNULL,
+    )
+    try:
+        async with asyncio.timeout(20):
+            assert process.stdout is not None
+            raw = await process.stdout.read(65_537)
+            if len(raw) > 65_536:
+                raise RuntimeError("provider CLI output limit")
+            if await process.wait() != 0:
+                raise RuntimeError("provider CLI failed")
+    finally:
+        if process.returncode is None:
+            process.kill()
+            await process.wait()
+
+
+async def bootstrap_service(service: LocalService, requested: str | None, owned: list) -> None:
+    """Start installed local backends only. No downloads or model eviction."""
+    if not service.executable or service.id not in {"ollama", "lm-studio"}:
+        return
+    try:
+        async with asyncio.timeout(20):
+            if not service.running and not service.server_running:
+                log.info(
+                    "Starting installed %s on %s (bounded wait; no download)",
+                    service.id,
+                    service.endpoint,
+                )
+                if service.id == "lm-studio":
+                    if Path(service.executable).stem.lower() != "lms":
+                        service.detail = "llmster found but lms CLI missing; install/configure lms"
+                        return
+                    port = urlsplit(service.endpoint).port or 1234
+                    await _local_command(
+                        (
+                            service.executable,
+                            "server",
+                            "start",
+                            "--port",
+                            str(port),
+                            "--bind",
+                            "127.0.0.1",
+                        )
+                    )
+                else:
+                    process = await asyncio.create_subprocess_exec(
+                        service.executable,
+                        "serve",
+                        env={**os.environ, "OLLAMA_HOST": service.endpoint},
+                        stdin=asyncio.subprocess.DEVNULL,
+                        stdout=asyncio.subprocess.DEVNULL,
+                        stderr=asyncio.subprocess.DEVNULL,
+                    )
+                    owned.append(process)
+                service.started_by_sam = True
+            while not service.running:
+                await probe_service(service)
+                if not service.running:
+                    await asyncio.sleep(0.25)
+            if service.id == "lm-studio" and not service.models and service.available_models:
+                # Never evict a loaded model to satisfy a stale preference.
+                model = (
+                    requested
+                    if requested in service.available_models
+                    else service.available_models[0]
+                )
+                log.info(
+                    "Loading installed %s model %s (4096 context; 600 s idle TTL)",
+                    service.id,
+                    model,
+                )
+                await _local_command(
+                    (
+                        service.executable,
+                        "load",
+                        model,
+                        "--identifier",
+                        model,
+                        "--context-length",
+                        "4096",
+                        "--ttl",
+                        "600",
+                        "--yes",
+                    )
+                )
+                await probe_service(service)
+            if service.started_by_sam:
+                service.detail += "; started by Sam" + (
+                    "; shared LM Studio service retained on exit"
+                    if service.id == "lm-studio"
+                    else ""
+                )
+            else:
+                service.detail += "; already running; reused"
+    except (OSError, RuntimeError, TimeoutError) as error:
+        service.detail = (
+            f"local startup/load failed ({type(error).__name__}, 20 s limit); "
+            "check installed runtime/model; no downloads attempted"
+        )
+        log.warning("%s: %s", service.id, service.detail)
 
 
 async def discover_local(
@@ -189,6 +344,8 @@ async def discover_local(
     base_url: str | None = None,
     model: str | None = None,
     compatible_url: str | None = None,
+    bootstrap: bool = False,
+    preferred: tuple[str, str] | None = None,
 ) -> Discovery:
     if provider not in {"auto", "ollama", "lm-studio", "openai-compatible"}:
         raise ValueError("unsupported local provider")
@@ -217,6 +374,7 @@ async def discover_local(
         ),
     ]
     services[1].daemon_running = daemon.get("status") == "running" if daemon else None
+    services[1].server_running = server.get("running") if server else None
     if ollama_url != DEFAULT_OLLAMA_BASE_URL:
         services.insert(1, LocalService("ollama", DEFAULT_OLLAMA_BASE_URL, shutil.which("ollama")))
     if provider == "openai-compatible":
@@ -224,13 +382,34 @@ async def discover_local(
     elif compatible_url:
         services.append(LocalService("openai-compatible", local_url(compatible_url)))
     await asyncio.gather(*(probe_service(service) for service in services))
+    for service in services:
+        if not service.running and not service.executable:
+            service.detail += "; CLI not found; start external service or install runtime"
     lm = next(service for service in services if service.id == "lm-studio")
     if lm.executable and not lm.running:
         lm.detail += "; installed. Start your local server with lms server start, then restart Sam"
     explicit = provider != "auto" or base_url is not None
+    owned: list[asyncio.subprocess.Process] = []
+    order = services.copy()
+    if preferred and not explicit:
+        order.sort(key=lambda service: service.id != preferred[0])
+    if bootstrap:
+        try:
+            for service in order:
+                if explicit and service.id != ("ollama" if provider == "auto" else provider):
+                    continue
+                if not service.running or not service.models:
+                    await bootstrap_service(
+                        service, model or (preferred[1] if preferred else None), owned
+                    )
+                if service.running and service.models and (not model or model in service.models):
+                    break
+        except BaseException:
+            await Discovery([], None, None, "cancelled", owned).aclose()
+            raise
     eligible = [
         service
-        for service in services
+        for service in order
         if service.running and service.models and (not model or model in service.models)
     ]
     if explicit:
@@ -242,14 +421,28 @@ async def discover_local(
         (
             "explicit configuration"
             if explicit
+            else "last successful local provider/model"
+            if preferred and selected.id == preferred[0]
             else "local priority: Ollama, LM Studio, configured compatible"
         )
         if selected
-        else "No usable local model. Start a local server with a model, then restart Sam."
+        else "No usable local chat model. " + "; ".join(f"{s.id}: {s.detail}" for s in services)
     )
-    return Discovery(
-        services, selected, (model or selected.models[0]) if selected else None, reason
+    if selected:
+        reason += "; " + (
+            "started by Sam" if selected.started_by_sam else "already running; reused"
+        )
+    chosen = model or (
+        preferred[1]
+        if preferred
+        and selected
+        and selected.id == preferred[0]
+        and preferred[1] in selected.models
+        else selected.models[0]
+        if selected
+        else None
     )
+    return Discovery(services, selected, chosen if selected else None, reason, owned)
 
 
 def provider_for(service: LocalService) -> LLMProvider:

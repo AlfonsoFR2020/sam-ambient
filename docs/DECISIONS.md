@@ -233,3 +233,14 @@ master specification are recorded here.
   identity, preserves future transparent local-router compatibility (e.g. PAIR).
 - Owner selected unmodified Apache-2.0 for original Sam code, with named NOTICE;
   incorporated frontend MIT notices and external-runtime licenses stay separate.
+
+## D-018 — Bounded local startup and shared provider ownership
+
+- **Accepted:** 2026-09-07. Supersedes D-017's passive-only application startup:
+  diagnostics remain passive, while runtime startup may start installed local
+  providers/load installed chat models. Existing SQLite metadata stores successful
+  local selections; explicit choices win, stale preferences fall back.
+- Each backend attempt is bounded to 20 s. No downloads, model eviction or cloud
+  fallback. Sam reaps direct owned Ollama children, but retains the shared LM
+  daemon/server (Sam-loaded models use a 600 s idle TTL); stopping shared services
+  could disrupt unrelated clients. Whisper retains its existing ownership rules.

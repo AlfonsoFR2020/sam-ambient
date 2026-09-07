@@ -20,17 +20,24 @@ Updated: 2026-09-07
 
 - Browser handoff occurs once per supervisor lifetime after core and UI HTTP
   readiness. Browser errors print a manual URL; browser lifetime is independent.
-- Quit Sam / Ctrl+Q uses inline Quit now / Cancel, then an instance-bound trusted
+- Quit Sam / Ctrl+Q uses a focused in-app Confirm quit / Cancel dialog, then a trusted
   shutdown channel. Acknowledged shutdown stops frontend reconnects. No LLM tool
-  can quit Sam. Windows runs resolved version entry points in the monitored
+  can quit Sam. Controls also exposes Quit; the stopped screen is unambiguous.
+  Windows runs resolved version entry points in the monitored
   child rather than CRT exec-spawning an untracked descendant.
 - INFO reports lifecycle, discovery, selection, voice configuration, degradation,
   revocation and shutdown. `--verbose` adds safe DEBUG diagnostics; doctor shows
   providers, audio/TTS/STT, UI readiness, active version and persisted health.
-- Read-only discovery checks known loopback Ollama/LM Studio endpoints, bounded
-  `lms` daemon/server status, and configured compatible APIs. Explicit provider,
-  endpoint/model choices win; otherwise Ollama → LM Studio → configured compatible,
-  with sorted model IDs. No download, service start, scan or automatic cloud use.
+- Discovery checks known loopback endpoints and bounded `lms` status. Diagnostics
+  stay passive; runtime startup may start installed Ollama/LM and load an existing
+  LM chat model (20 s/backend, 4096 context, 600 s idle TTL). No eviction/download/cloud.
+- Explicit choices win; otherwise last successful local provider/model → Ollama →
+  LM → configured compatible. SQLite runtime metadata remembers successful local
+  responses only; stale preferences fall back. Embeddings are excluded. Owned
+  Ollama children stop on exit; shared LM daemon/server and existing services remain.
+- Provider reason, started/reused status, STT readiness and TTS backend reach the
+  UI; unavailable discovery cannot be bypassed by runtime model auto-selection.
+  Core startup budget is 90 s for bounded provider/model + existing STT readiness.
 - Protocol-compatible local routers (including future PAIR) fit the endpoint-based
   provider boundary. Discovery labels are not verified vendor identity; no PAIR
   integration is implemented. Restart Sam after changing provider availability.
@@ -110,11 +117,8 @@ Updated: 2026-09-07
   stopped page, graceful core/UI exit, zero crashes/restarts, INFO/DEBUG and doctor.
   Doctor found 27 audio devices and Windows TTS synthesis ready. Ollama absent;
   `lms` installed, daemon/server stopped, model inventory unknown (not awakened).
-- Subsequent bounded LM Studio acceptance check on `dev`: existing daemon running,
-  HTTP server stopped. Full inventory contains only Nomic Embed Text v1.5 Q4_K_M
-  (embedding model); `lms ls --llm --json` and `lms ps --json` are empty. No chat
-  provider, model or serving endpoint was selected; UI → model → UI acceptance remains
-  blocked, not passed. No downloads, server start, Sam launch or code fix attempted.
+- Earlier `cadcb7a` check found only embeddings and no chat service; superseded
+  by the later successful text acceptance below.
 
 - Windows `dev` live text acceptance now passes two UI turns using the owner's
   installed `google/gemma-4-e2b` Q4_K_M through LM Studio at
@@ -125,7 +129,6 @@ Updated: 2026-09-07
   were 2.72 s and 0.51 s, not first-token measurements. Four focused tests pass.
   Physical voice acceptance is not yet passed: owner reports unreliable Spanish
   recognition, premature TTS cutoff, and unclear processing-state indication.
-- Conversation-context fix committed separately on `dev`: `4d754a0`.
 - Voice reliability continuation: whisper.cpp b4938 CPU server and multilingual
   `ggml-base.bin` installed in ignored `.sam/runtime` / `.sam/models`; LM Studio
   uses its installed Vulkan runtime. No additional model was downloaded this run.
@@ -142,8 +145,6 @@ Updated: 2026-09-07
   SQLite commit before monitoring; allow TTS startup during a tentative candidate
   and recover into SPEAKING. UI projects actual voice state on reconnect and shows
   Transcribing during final STT, plus Listening/Thinking/Speaking/Microphone muted.
-- Prior voice preparation gate: 41 Python tests and 25 frontend tests pass; Ruff/format, targeted
-  Biome, TypeScript and static Vite build pass. No full-suite rerun in this slice.
 - Live diagnostics showed 5–29 s captured segments, low-confidence language guesses
   (e.g. Korean 0.12), music/background transcripts, and VAD-only cancellation about
   188 ms after candidate onset, even BEFORE TTS. This does not prove speaker echo
@@ -151,24 +152,25 @@ Updated: 2026-09-07
   at owner request; no successful voice/latency claim. Sam capture/test STT stopped.
   Remaining: quiet controlled input/segmentation validation and distinguishing
   real interruption from background/playback speech. No AEC or broad policy rewrite.
-- Automated continuation (2026-09-07): context commit `4d754a0` remains intact;
-  its three focused tests pass. Language regression tests cover uncertain switches,
-  configurable preferences, confident non-en/es detection, and legacy metadata.
-  No microphone/speaker test, model download, or live voice acceptance this run.
+- Automated language regressions cover uncertain switches, configurable preferences,
+  confident non-en/es detection and legacy metadata; no physical acceptance claimed.
 - Language follow-up committed as `72d083f`. Cancellation now validates active
   turn/generation/token binding BEFORE callbacks; stale STT cleanup cannot cancel
   a promoted response. Reproduced these code-level gaps with failing tests first;
   this does not establish the cause of the owner's physical TTS cutoff.
-- Current focused gate: 78 Python tests / 25 frontend tests pass, no skips;
-  Ruff/format, targeted Biome, TypeScript and diff checks pass. Covers full fake
-  playback completion, false-candidate recovery, intentional barge-in, stale
-  cancellation, context and voice-state projection. Existing UI already shows
-  Listening / Transcribing / Thinking / Speaking; no UI change or rebuild needed.
-  Physical en/es accuracy/context, uninterrupted playback, intentional barge-in
-  and end-of-speech/response/stop latency remain unverified; no AEC changes.
+- Prior cancellation gate: 78 Python / 25 frontend tests passed, covering fake
+  playback, false-candidate recovery, intentional barge-in and stale cancellation.
+  Physical en/es accuracy, playback, barge-in and latency remain unverified; no AEC.
 
 ## Known limitations / post-MVP priorities
 
+- Startup/lifecycle stabilization gate: 75 distinct focused Python tests and 45
+  frontend tests pass; changed-file Ruff/format/Biome, frontend lint/typecheck/build
+  and docs links pass. Fake-provider child-core Quit exits without restart/crash.
+  Automated browser verifies Cancel focus, Escape, Ctrl+Q, Confirm and stable stopped
+  screen with no console errors. Existing services were not manipulated; no audio.
+  Added GETTING_STARTED / USER_GUIDE. Real stopped-provider loading and physical
+  conversation remain to be validated separately; no seamless installer claimed.
 - STT readiness fix: assets were present, but localhost:8080 had no server;
   CLI previously created only an HTTP client. Windows now probes `/health`, starts
   existing `.sam/runtime/whisper-b4938/Release/whisper-server.exe` with

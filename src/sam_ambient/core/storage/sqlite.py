@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -60,6 +61,43 @@ class SQLiteSessionStore:
         connection = sqlite3.connect(self.path, timeout=5)
         connection.execute("PRAGMA busy_timeout = 5000")
         return connection
+
+    def last_local_model(self) -> tuple[str, str] | None:
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT value FROM runtime_metadata WHERE key='last_local_model'"
+                ).fetchone()
+            value = json.loads(row[0]) if row else None
+            if (
+                isinstance(value, list)
+                and len(value) == 2
+                and value[0] in {"ollama", "lm-studio", "openai-compatible"}
+                and isinstance(value[1], str)
+                and 0 < len(value[1]) <= 256
+                and not value[1].startswith("-")
+                and all(ord(c) >= 32 for c in value[1])
+            ):
+                return value[0], value[1]
+        except (sqlite3.DatabaseError, ValueError, TypeError):
+            pass  # Optional preference must never block startup.
+        return None
+
+    def remember_local_model(self, provider: str, model: str) -> None:
+        if provider not in {"ollama", "lm-studio", "openai-compatible"}:
+            return
+        if (
+            not model
+            or len(model) > 256
+            or model.startswith("-")
+            or any(ord(c) < 32 for c in model)
+        ):
+            return
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT OR REPLACE INTO runtime_metadata(key,value) VALUES ('last_local_model',?)",
+                (json.dumps([provider, model]),),
+            )
 
     def session_id(self) -> str:
         try:

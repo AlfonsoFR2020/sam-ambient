@@ -146,7 +146,9 @@ def test_unavailable_stt_keeps_text_runtime_available(tmp_path, monkeypatch, cap
     from sam_ambient import cli
 
     async def scenario():
-        provider = SimpleNamespace(health=AsyncMock(return_value=SimpleNamespace(available=True)))
+        provider = SimpleNamespace(
+            health=AsyncMock(return_value=SimpleNamespace(available=True)), aclose=AsyncMock()
+        )
         monkeypatch.setattr(
             cli, "discover_provider", AsyncMock(return_value=(provider, "fake", None))
         )

@@ -214,6 +214,8 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       provider: boundedText(event.payload.provider),
       model: boundedText(event.payload.model),
       selectionReason: boundedText(event.payload.selection_reason, 500),
+      sttStatus: boundedText(event.payload.stt_status, 500),
+      ttsBackend: boundedText(event.payload.tts_backend, 80),
       conversationalState: readyState,
       microphoneEnabled:
         typeof event.payload.microphone_enabled === "boolean"

@@ -36,10 +36,44 @@
 }
 
 .quit-confirmation {
-  border: 0;
-  padding: 0;
-  margin: 0;
-  min-width: 0;
+  color: inherit;
+  background: #101728;
+  border: 1px solid #536078;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: min(440px, 90vw);
+}
+
+.quit-confirmation::backdrop {
+  background: #05070bcc;
+}
+
+.runtime-status {
+  font-size: 0.75rem;
+  max-width: min(440px, 75vw);
+  overflow-wrap: anywhere;
+}
+
+.runtime-status[open] {
+  background: #101728;
+  padding: 10px;
+}
+
+.runtime-status summary {
+  cursor: pointer;
+}
+
+.shutdown-status {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  background: #080b12;
 }
 
 html,
@@ -54,6 +88,10 @@ body,
 button,
 input {
   font: inherit;
+}
+
+.quit-confirmation button {
+  padding: 8px 14px;
 }
 
 .sam-shell {

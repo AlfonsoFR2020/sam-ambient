@@ -25,6 +25,7 @@ from sam_ambient.core.protocol import (
     ProtocolEvent,
 )
 from sam_ambient.core.providers import (
+    DataBoundary,
     LLMProvider,
     Message,
     MessageRole,
@@ -103,6 +104,8 @@ class RuntimeConfig:
     tts_voice: str = "default"
     language: str = "auto"
     provider_selection_reason: str = "explicit runtime provider"
+    stt_status: str = "not configured"
+    model_unavailable_reason: str | None = None
 
     def __post_init__(self) -> None:
         canonical = self.workspace_root.resolve(strict=True)
@@ -565,6 +568,17 @@ class SamRuntime:
                         contains_private_context = True
                     continue
                 assistant_text = "".join(assistant_parts)
+                if (
+                    self.state is not None
+                    and assistant_text
+                    and self.provider.data_boundary is DataBoundary.LOCAL
+                ):
+                    try:
+                        await asyncio.to_thread(
+                            self.state.remember_local_model, self.provider.id, self._model
+                        )
+                    except Exception:
+                        log.warning("Could not save optional last-good local model preference")
                 self.delivery.record_generated(generation_id, assistant_text)
                 if voice_managed:
                     await self._publish_all(
@@ -1051,6 +1065,8 @@ class SamRuntime:
         return None
 
     async def _select_model(self, cancellation: CancellationToken) -> str:
+        if self.config.model_unavailable_reason:
+            raise RuntimeError(self.config.model_unavailable_reason)
         if self._model is None:
             models = await self.provider.list_models(cancellation)
             if not models:
@@ -1158,6 +1174,10 @@ class SamRuntime:
                 "provider": self.provider.id,
                 "model": self._model,
                 "selection_reason": self.config.provider_selection_reason,
+                "stt_status": self.config.stt_status,
+                "tts_backend": getattr(
+                    self.tts, "backend_id", "configured" if self.tts else "disabled/unavailable"
+                ),
                 "tools": [descriptor.id for descriptor in self.tools.descriptors()],
                 "capability_authority_active": authority.active,
                 "capability_authority_epoch": authority.epoch,

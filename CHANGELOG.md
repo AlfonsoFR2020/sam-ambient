@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Bootstrap installed local model services with bounded readiness/model loading;
+  remember successful local provider/model choices, reject embedding models, and
+  reuse running services without restart. No model downloads or cloud fallback.
+- Show actionable provider and voice readiness; add keyboard-focused Quit
+  confirmation in both header/controls and an unmistakable stopped page.
+- Add getting-started and everyday user guides.
 - Check Whisper HTTP readiness before microphone startup; on Windows, start the
   existing local development installation when needed and stop only Sam-owned
   STT processes. Missing assets report expected paths while text remains usable.
