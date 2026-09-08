@@ -5,6 +5,9 @@ import logging
 import threading
 import webbrowser
 from collections.abc import Callable
+from pathlib import Path
+
+from sam_ambient.supervisor.app_window import AppWindow
 
 log = logging.getLogger(__name__)
 
@@ -29,10 +32,25 @@ async def ui_http_ready(port: int) -> bool:
 
 
 class BrowserHandoff:
-    def __init__(self, port: int, *, opener: Callable[..., bool] = webbrowser.open) -> None:
+    def __init__(
+        self,
+        port: int,
+        *,
+        opener: Callable[..., bool] = webbrowser.open,
+        mode: str = "browser",
+        root: Path | None = None,
+    ) -> None:
         self.port = port
         self.opener = opener
         self.attempted = False
+        self.window = AppWindow(root or Path.cwd()) if mode == "app" else None
+
+    def close(self) -> None:
+        if self.window is not None:
+            try:
+                self.window.close()
+            except OSError:
+                log.warning("Sam window could not close automatically; close it manually")
 
     async def open_once(self) -> None:
         if self.attempted:
@@ -44,6 +62,14 @@ class BrowserHandoff:
             log.warning("UI HTTP readiness failed; open %s manually when ready", url)
             return
         try:
+            if self.window is not None:
+                try:
+                    if self.window.open(url):
+                        log.info("Sam dedicated window opened (private app profile)")
+                        return
+                except OSError:
+                    pass
+                log.info("Dedicated window unavailable; falling back to normal browser")
             async with asyncio.timeout(5):
                 opened = await self._open_detached(url)
             if not opened:

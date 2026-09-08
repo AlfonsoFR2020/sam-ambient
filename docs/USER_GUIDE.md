@@ -32,6 +32,11 @@ cloud switch. Restart Sam after changing external services.
 
 ## Controls and safety
 
+Development builds prefer a dedicated app window, separate from normal browsing.
+Quit Sam stops the application; closing its window alone does not. Windows receives
+a graceful window-close request on shutdown; on other platforms or browser refusal,
+close the remaining page yourself. `--ui-mode browser` keeps normal-tab behavior.
+
 - **Stop speaking** requests cancellation of queued speech and playback.
 - **Emergency stop** cancels current model, tools, queued speech and playback.
 - **Disable all capabilities** revokes computer-action authority and pending

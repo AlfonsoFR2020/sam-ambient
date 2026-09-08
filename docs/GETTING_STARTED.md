@@ -1,5 +1,13 @@
 # Getting started with Sam
 
+Development builds prefer a dedicated Sam window using installed Edge, Chrome or
+Chromium, after core/UI readiness. No browser installation is performed. Use
+`uv run sam-ambient --ui-mode browser` for a normal browser/debug session; app
+browser absence automatically falls back. Sam uses its own ignored `.sam/ui-profile`.
+Quit Sam stops the runtime and requests closure of its Windows app window; if the
+browser/platform refuses, close the stopped page manually. Closing a window alone
+does not stop Sam—use Quit Sam or console Ctrl+C.
+
 Sam 0.1.2 runs as a Python application with a local browser UI. There is no
 seamless installer yet. Install prerequisites yourself; Sam downloads no models.
 

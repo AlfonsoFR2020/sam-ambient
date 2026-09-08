@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Prefer an isolated Edge/Chrome/Chromium application window after UI readiness;
+  retain `--ui-mode browser` and automatic normal-browser fallback. Window lifetime
+  remains independent; shutdown requests graceful closure of Sam-owned windows only.
+
 - Infer speech language from assistant responses, retaining context for ambiguous
   short replies. Select installed Windows voices by locale/language with explicit
   fallback diagnostics; pass requested languages to external eSpeak.

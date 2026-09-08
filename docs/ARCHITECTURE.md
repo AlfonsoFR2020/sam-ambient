@@ -21,6 +21,14 @@ attached to the component the supervisor actually monitors.
 
 ## Core and UI
 
+The supervisor's small `AppWindow` adapter launches installed Chromium-family
+application mode with structured argv and a separate `.sam/ui-profile`, not the
+owner's browsing profile. Windows shutdown posts WM_CLOSE only to the launched
+process's windows; there is no browser process killing. Linux currently retains
+the stopped window for manual closure. Browser exit is never a core health signal.
+`--ui-mode browser` bypasses this adapter; missing app browsers fall back to the
+default browser. The existing native transport seam remains available for Tauri.
+
 `SamRuntime` owns conversation state, the event bus, cancellation registry, voice
 adapters, provider router, tool executor, and session persistence. React/TypeScript
 consumes versioned events over the localhost WebSocket bridge. Its reducer rejects

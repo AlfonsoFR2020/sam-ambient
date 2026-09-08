@@ -4,6 +4,12 @@ Updated: 2026-09-08
 
 ## MVP status
 
+- Ambient-shell checkpoint: installed Chromium-family app mode is preferred via a
+  supervisor launcher adapter/private `.sam/ui-profile`; normal-browser fallback
+  and `--ui-mode browser` retained. Browser lifetime never controls core health.
+  Windows requests WM_CLOSE for owned PID only, never kills browser processes;
+  Linux/manual-close fallback remains. No native framework or dependency added.
+
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
   Existing cancellable PCM contract retained, optional discovery metadata added;

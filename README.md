@@ -59,6 +59,9 @@ interfaces**, rather than on manually traversing fixed software structures.
 **Status:** 0.1.0 MVP complete; **0.1.2 alpha** improves conversational continuity,
 local voice/provider startup, diagnostics, and graceful exit. Primary deployment target: Linux.
 Windows development and system speech output are supported.
+The development line opens an isolated Sam app window with installed Edge/Chrome/
+Chromium. Use `uv run sam-ambient --ui-mode browser` for normal-browser/debug mode;
+if no supported app browser is found, the default browser remains the fallback.
 On `dev`, speech follows detected response language using installed Windows voices
 with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
 speech service or additional voice installation is performed automatically.

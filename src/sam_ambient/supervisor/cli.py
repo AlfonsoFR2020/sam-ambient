@@ -33,6 +33,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--port", type=int, default=8765, help="Core loopback UI port")
     parser.add_argument("--ui-port", type=int, default=8766, help="Packaged UI HTTP port")
     parser.add_argument("--open-ui", action="store_true", help="Open the packaged UI in a browser")
+    parser.add_argument(
+        "--ui-mode",
+        choices=("app", "browser"),
+        default="app",
+        help="Dedicated app window (default), or normal browser for debugging",
+    )
     parser.add_argument("--no-ui", action="store_true", help="Run only the supervised core")
     parser.add_argument("--model", help="Optional local model id")
     parser.add_argument("--base-url", help="Optional Ollama base URL")
@@ -146,7 +152,7 @@ async def run(args: argparse.Namespace) -> int:
             )
         )
     log.info("Sam %s starting", __version__)
-    browser = BrowserHandoff(args.ui_port)
+    browser = BrowserHandoff(args.ui_port, mode=args.ui_mode, root=root)
     browser_task = None
 
     def ready(_component_id: str) -> None:
@@ -189,6 +195,7 @@ async def run(args: argparse.Namespace) -> int:
         if browser_task is not None:
             browser_task.cancel()
             await asyncio.gather(browser_task, return_exceptions=True)
+        browser.close()
     return 0
 
 
