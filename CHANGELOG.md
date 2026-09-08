@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.2 (alpha) — 2026-09-08
+
 - Bootstrap installed local model services with bounded readiness/model loading;
   remember successful local provider/model choices, reject embedding models, and
   reuse running services without restart. No model downloads or cloud fallback.
@@ -20,6 +22,9 @@
   between preferred languages; forced fallbacks do not count as confirmation.
 - Reject mismatched turn/generation cancellation before stopping playback, and
   prevent stale STT cleanup from cancelling a promoted assistant response.
+
+- Note: physical microphone, speaker-echo, and natural barge-in acceptance remain
+  pending; these voice changes have deterministic coverage, not full hardware validation.
 
 ## 0.1.1 — 2026-09-06
 

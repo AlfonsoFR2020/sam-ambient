@@ -1,22 +1,23 @@
 # Sam implementation state
 
-Updated: 2026-09-07
+Updated: 2026-09-08
 
 ## MVP status
 
-- Sam 0.1.1 completes first-run and repository preparation; Phases 0–9 remain complete.
-- 0.1.1 release gate: 246 Python tests pass with two justified skips (optional live
+- Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
+- 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
-  38 tests, Biome, TypeScript typecheck, and Vite production build pass.
+  45 tests, Biome lint/version-file format, TypeScript typecheck, and Vite
+  production build pass.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
   `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
-- The release build produces `dist/sam_ambient-0.1.1-py3-none-any.whl` and the
-  matching source archive. The wheel contains the production UI, launchers,
+- The release build produces `dist/sam_ambient-0.1.2-py3-none-any.whl` and
+  `dist/sam_ambient-0.1.2.tar.gz`. The wheel contains the production UI, launchers,
   configuration example, license, and third-party notices.
 - Original Sam material is Apache-2.0; NOTICE attributes Copyright 2026
   Alfonso Ernesto de la Fuente Ruiz, PhD. Bundled React/MIT notices are retained.
 
-## 0.1.1 first-run behavior
+## 0.1.2 first-run behavior
 
 - Browser handoff occurs once per supervisor lifetime after core and UI HTTP
   readiness. Browser errors print a manual URL; browser lifetime is independent.

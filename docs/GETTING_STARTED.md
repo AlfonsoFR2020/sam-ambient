@@ -1,6 +1,6 @@
 # Getting started with Sam
 
-Sam 0.1.1 runs as a Python application with a local browser UI. There is no
+Sam 0.1.2 runs as a Python application with a local browser UI. There is no
 seamless installer yet. Install prerequisites yourself; Sam downloads no models.
 
 ## Prerequisites

@@ -56,8 +56,8 @@ Sam is an experiment toward that kind of computer: one in which interaction is
 centered on **goals, conversation, context, and dynamically generated
 interfaces**, rather than on manually traversing fixed software structures.
 
-**Status:** 0.1.0 MVP complete; **0.1.1** improves first launch, local model
-discovery, diagnostics, and graceful exit. Primary deployment target: Linux.
+**Status:** 0.1.0 MVP complete; **0.1.2 alpha** improves conversational continuity,
+local voice/provider startup, diagnostics, and graceful exit. Primary deployment target: Linux.
 Windows development and system speech output are supported.
 
 ## What works today
@@ -152,14 +152,14 @@ Frontend development requires Node 22.12+ and pnpm (the version is pinned in
 ```sh
 # Linux/macOS; use scripts/package.ps1 on Windows
 scripts/package.sh
-uv tool install ./dist/sam_ambient-0.1.1-py3-none-any.whl
+uv tool install ./dist/sam_ambient-0.1.2-py3-none-any.whl
 sam-ambient --root /path/to/workspace
 ```
 
 The wheel includes compiled UI assets, launchers, example configuration, and
 notices. No models or third-party speech runtimes are bundled.
 
-`config/sam.example.toml` documents the intended settings schema; 0.1.1 uses
+`config/sam.example.toml` documents the intended settings schema; 0.1.2 uses
 CLI options rather than loading that file.
 
 ## Limits and direction
