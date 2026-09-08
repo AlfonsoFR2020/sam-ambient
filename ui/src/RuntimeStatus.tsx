@@ -11,6 +11,7 @@ export function RuntimeStatus({ state }: { state: UiState }) {
       {state.model && <p>{state.selectionReason}</p>}
       <p>Speech recognition: {state.sttStatus ?? "Status not reported"}</p>
       <p>Spoken output: {state.ttsBackend ?? "Status not reported"}</p>
+      {state.ttsSelection && <p>Last reported voice: {state.ttsSelection}</p>}
     </details>
   );
 }

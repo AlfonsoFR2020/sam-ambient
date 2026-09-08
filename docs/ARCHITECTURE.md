@@ -36,6 +36,15 @@ stale events and coalesces high-frequency visualization updates. Text, approvals
 provider/model selection, and connection status stay secondary to the ambient
 field. Visual preferences remain local to the UI.
 
+The ambient scene is Canvas 2D: five bounded ribbon paths and 64 lights, fed by
+the existing reducer's normalized input/output metrics. A ref-driven loop avoids
+per-frame React updates, draws at most 30 fps, caps device scale at 1.5/four million
+pixels, and pauses while hidden. Reduced motion redraws only on state/metric/resize
+changes without ongoing geometry motion; shutdown unmounts the canvas. No animation
+dependency, worker, WebGL stack or rejected-branch composition is reused.
+Vite-only `dev/preview.html?transport=browser` exercises the real event decoder and
+reducer with explicit state/energy controls and CPU draw timing. It is not packaged.
+
 ## Voice and providers
 
 Bounded PCM frames connect sounddevice, WebRTC VAD, the loopback whisper.cpp

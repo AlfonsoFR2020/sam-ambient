@@ -31,7 +31,7 @@ export function QuitDialog({
       }}
     >
       <h2 id={title}>Quit Sam?</h2>
-      <p>Stop Sam and cancel running work. This browser tab may remain open.</p>
+      <p>Stop Sam and cancel running work. If this window stays open, you can safely close it.</p>
       <button type="button" onClick={onConfirm}>
         Confirm quit
       </button>{" "}
@@ -48,7 +48,7 @@ export function ShutdownStatus({ stopped }: { stopped: boolean }) {
       <h1>{stopped ? "Sam has stopped" : "Stopping Sam…"}</h1>
       <p>
         {stopped
-          ? "Reconnection is off. You can safely close this tab. Launch Sam again to return."
+          ? "Reconnection is off. You can safely close this window. Launch Sam again to return."
           : "Waiting for shutdown acknowledgement. Running work is being cancelled."}
       </p>
     </section>

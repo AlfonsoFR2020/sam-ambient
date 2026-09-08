@@ -43,6 +43,7 @@ const chooseTransport = (): ProtocolTransport => {
 };
 
 function Transcript({ state }: { state: UiState }) {
+  if (!state.transcript.length && !state.provisionalTranscript) return null;
   return (
     <section className="transcript" aria-label="Transcript" aria-live="polite">
       {state.transcript.slice(-3).map((entry) => (
@@ -132,6 +133,7 @@ function ToolActivity({
 
 export default function App() {
   const controlsId = useId();
+  const controlsButton = useRef<HTMLButtonElement>(null);
   const transport = useMemo(chooseTransport, []);
   const client = useMemo(() => new ProtocolClient(transport, browserScheduler), [transport]);
   const state = useSyncExternalStore(client.subscribe, client.getSnapshot);
@@ -152,6 +154,14 @@ export default function App() {
     client.start();
     return () => client.stop();
   }, [client]);
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const change = () =>
+      setPreferences((current) => ({ ...current, reducedMotion: preference.matches }));
+    preference.addEventListener("change", change);
+    return () => preference.removeEventListener("change", change);
+  }, []);
 
   const applyAction = useCallback(
     (action: ControlAction) => {
@@ -182,6 +192,7 @@ export default function App() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (controlsOpen) controlsButton.current?.focus();
         setControlsOpen(false);
         setQuitConfirmation(false);
         if (document.fullscreenElement) void document.exitFullscreen();
@@ -193,6 +204,7 @@ export default function App() {
         !event.ctrlKey &&
         !event.metaKey &&
         !(event.target instanceof HTMLInputElement) &&
+        !(event.target instanceof HTMLSelectElement) &&
         !(event.target instanceof HTMLTextAreaElement)
       ) {
         applyAction({ type: "microphone.set", enabled: !stateRef.current.microphoneEnabled });
@@ -203,20 +215,20 @@ export default function App() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [applyAction, quitSam]);
+  }, [applyAction, quitSam, controlsOpen]);
 
   const pending = state.pendingCommandIds.length > 0;
   return (
     <main className="sam-shell" data-reduced-motion={preferences.reducedMotion || undefined}>
-      <AmbientScene model={visual} reducedMotion={preferences.reducedMotion} />
+      {!quitRequested && !state.applicationStopped && (
+        <AmbientScene model={visual} reducedMotion={preferences.reducedMotion} />
+      )}
       <header className="status">
         <span className="status__mark" data-connected={visual.connected} />
         <strong>Sam</strong>
-        <span>{state.applicationStopped ? "Stopped · you can close this tab" : visual.label}</span>
-        <RuntimeStatus state={state} />
-        <button type="button" disabled={state.connection !== "connected"} onClick={quitSam}>
-          Quit Sam
-        </button>
+        <span>
+          {state.applicationStopped ? "Stopped · you can close this window" : visual.label}
+        </span>
         {!state.capabilityAuthorityActive && (
           <small className="status__authority" title={state.capabilityAuthorityReason}>
             capabilities disabled
@@ -245,6 +257,7 @@ export default function App() {
       <ToolActivity state={state} applyAction={applyAction} />
       <button
         className="controls-reveal"
+        ref={controlsButton}
         type="button"
         aria-expanded={controlsOpen}
         aria-controls={controlsId}
@@ -254,19 +267,7 @@ export default function App() {
       </button>
       {controlsOpen && (
         <section className="controls" id={controlsId} aria-label="Sam controls">
-          <p className="controls__hint">{state.selectionReason}</p>
-          <p className="controls__hint">
-            Speech recognition: {state.sttStatus ?? "Status not reported"}
-            <br />
-            Spoken output: {state.ttsBackend ?? "Status not reported"}
-          </p>
-          <button
-            type="button"
-            disabled={state.connection !== "connected" || quitRequested}
-            onClick={quitSam}
-          >
-            Quit Sam
-          </button>
+          <RuntimeStatus state={state} />
           <form
             className="controls__request"
             onSubmit={(event) => {
@@ -356,6 +357,14 @@ export default function App() {
           </button>
           <button type="button" onClick={() => void toggleFullscreen()}>
             Toggle fullscreen
+          </button>
+          <button
+            type="button"
+            disabled={state.connection !== "connected" || quitRequested}
+            onClick={quitSam}
+            title="Stop Sam and close its window where supported (Ctrl+Q)"
+          >
+            Quit Sam
           </button>
           <label className="brightness">
             <span>Intensity</span>

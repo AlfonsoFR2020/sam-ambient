@@ -80,7 +80,7 @@ speech service or additional voice installation is performed automatically.
 
 ```mermaid
 flowchart TD
-    UI[Ambient browser UI] <--> Bridge[Local WebSocket protocol]
+    UI[Ambient app window / browser] <--> Bridge[Local WebSocket protocol]
     Bridge <--> Core[Sam core]
     Core --> Voice[Voice and turn loop]
     Core --> Models[Model router]
@@ -112,6 +112,10 @@ The core bridge uses localhost port 8765. The browser can be closed and reopened
 independently.
 
 Use **Controls → Text request** to talk to the selected model.
+The development UI uses a warm, responsive light field rather than a solid sphere.
+Listening opens the ribbons, transcription gathers them, thinking folds inward,
+and speaking follows output amplitude. Controls remain keyboard-accessible at the
+lower edge; reduced-motion preference keeps state feedback without continuous motion.
 
 See [Getting started](docs/GETTING_STARTED.md) for prerequisites and first launch,
 and the [User guide](docs/USER_GUIDE.md) for controls, status, and safe operation.

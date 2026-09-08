@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Replace the blue sphere with a responsive amber light/ribbon field driven by
+  conversation and audio state. Bound rendering to 64 particles, five ribbons,
+  30 fps and four million pixels; pause when hidden and freeze motion when reduced.
+- Integrate readable transcripts and quiet Controls, with provider/voice details,
+  prominent emergency stop, keyboard-focused Quit and no animation after shutdown.
+
 - Prefer an isolated Edge/Chrome/Chromium application window after UI readiness;
   retain `--ui-mode browser` and automatic normal-browser fallback. Window lifetime
   remains independent; shutdown requests graceful closure of Sam-owned windows only.

@@ -8,6 +8,10 @@ prompts, file contents, credentials, or microphone audio.
 ## Browser or UI does not open
 
 Open **http://127.0.0.1:8766** manually. A failed browser handoff does not stop Sam.
+Development builds prefer installed Edge/Chrome/Chromium app mode in a Sam-only
+profile. `--ui-mode browser` bypasses it. There is no browser installation, native
+shell or force-kill fallback; if automatic window closure is refused, close the
+page yourself. Closing the window is not the same as Quit Sam.
 The browser is opened once per launch; reconnecting or restarting the core does
 not open another window. Look for `sam-ui ready` and the UI URL in the console.
 If the port is already occupied, close the earlier Sam instance. If packaged
@@ -63,6 +67,12 @@ No assets are downloaded. Missing/invalid assets and startup failures report
 their expected paths. Custom endpoints must already be running. Sam stops only
 the STT process it started; after correcting an unavailable service, restart Sam.
 Text requests remain available; `--no-voice` disables microphone capture.
+
+## Visual motion
+
+If visual motion is distracting, enable Reduced motion in Controls or your system
+accessibility settings. If canvas rendering is unavailable, controls, text and
+state labels still work. Mobile hardware/GPU performance is not yet live-validated.
 
 ## TTS unavailable
 

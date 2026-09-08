@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-08
+Updated: 2026-09-09
 
 ## MVP status
 
@@ -9,6 +9,14 @@ Updated: 2026-09-08
   and `--ui-mode browser` retained. Browser lifetime never controls core health.
   Windows requests WM_CLOSE for owned PID only, never kills browser processes;
   Linux/manual-close fallback remains. No native framework or dependency added.
+- `d9c5530` commits the shell checkpoint; owned Windows launch/WM_CLOSE exited 0.
+  The warm Canvas 2D field replaces the sphere:
+  5 ribbons/64 lights, <=30 fps, <=4M pixels, hidden/reduced-motion/shutdown suspension.
+  Quiet Controls contain status/voice details and Quit; transcript is bounded/readable.
+  Automated preview: desktop/small windows, state mappings, reduced-motion freeze,
+  Escape focus, Ctrl+Q Cancel/Confirm/stopped, no console errors; CPU drawing around
+  0.3–0.4 ms at 1280×720 (not a GPU/mobile benchmark). Frontend: 50 tests,
+  Biome, TypeScript and production build pass. Rejected UI not reused.
 
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
@@ -40,8 +48,8 @@ Updated: 2026-09-08
 
 ## 0.1.2 first-run behavior
 
-- Browser handoff occurs once per supervisor lifetime after core and UI HTTP
-  readiness. Browser errors print a manual URL; browser lifetime is independent.
+- App/browser handoff occurs once per supervisor lifetime after core/UI HTTP
+  readiness. Errors print a manual URL; browser lifetime is independent.
 - Quit Sam / Ctrl+Q uses a focused in-app Confirm quit / Cancel dialog, then a trusted
   shutdown channel. Acknowledged shutdown stops frontend reconnects. No LLM tool
   can quit Sam. Controls also exposes Quit; the stopped screen is unambiguous.
@@ -85,7 +93,7 @@ Updated: 2026-09-08
 
 ## UI and protocol
 
-- React 19 + TypeScript + CSS renders the ambient state, normalized voice/TTS
+- React 19 + TypeScript + Canvas/CSS renders the ambient state, normalized voice/TTS
   metrics, concise transcript, interruption, tool approval, update, offline,
   reconnect, reduced-motion, and intensity state.
 - `sam-ui` is a small loopback-only static HTTP component on port 8766. It
@@ -135,10 +143,6 @@ Updated: 2026-09-08
 - Ollama and whisper.cpp were not running on this host; `sam doctor` reported
   both unavailable while confirming UI, audio, TTS, roots, active version, and
   supervisor state without exposing secrets.
-- 0.1.1 live checks: UI HTTP ready, browser close/reopen, inline Cancel/Confirm,
-  stopped page, graceful core/UI exit, zero crashes/restarts, INFO/DEBUG and doctor.
-  Doctor found 27 audio devices and Windows TTS synthesis ready. Ollama absent;
-  `lms` installed, daemon/server stopped, model inventory unknown (not awakened).
 - Windows `dev` live text acceptance now passes two UI turns using the owner's
   installed `google/gemma-4-e2b` Q4_K_M through LM Studio at
   `http://127.0.0.1:1234/v1` (4096-token context; no cloud fallback).
@@ -173,17 +177,10 @@ Updated: 2026-09-08
 
 ## Known limitations / post-MVP priorities
 
-- Prior startup/UI gate: 75 Python / 45 frontend tests, lint/typecheck/build and
-  automated Quit/stopped-screen browser checks passed. Real stopped-provider loading
-  and physical conversation remain separate validation; no seamless installer.
-- STT readiness fix: assets were present, but localhost:8080 had no server;
-  CLI previously created only an HTTP client. Windows now probes `/health`, starts
-  existing `.sam/runtime/whisper-b4938/Release/whisper-server.exe` with
-  `.sam/models/ggml-base.bin` under the workspace root, and waits up to 8 s.
-  External/custom servers remain externally owned; missing/invalid assets name
-  expected paths and retain text mode. Owned service stops on normal closure.
-  25 focused tests and Ruff pass; real model-load/health/cleanup passed without
-  audio capture. Recognition quality and physical barge-in remain unvalidated.
+- STT readiness: Windows probes `/health`, starts existing
+  `.sam/runtime/whisper-b4938/Release/whisper-server.exe` and `.sam/models/ggml-base.bin`
+  if needed, with an 8 s bound. Only owned services stop. Missing assets retain text;
+  hardware recognition/barge-in and real stopped-provider loading remain unvalidated.
 
 - First: validate Linux hardware end to end, tune physical barge-in latency and
   echo handling, and evaluate platform AEC plus streaming/partial STT.

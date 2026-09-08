@@ -12,18 +12,18 @@ export interface AmbientVisualModel {
 }
 
 const STYLE: Record<ConversationalState, { label: string; hue: number; base: number }> = {
-  IDLE: { label: "Ready", hue: 220, base: 0.16 },
-  LISTENING: { label: "Listening", hue: 190, base: 0.26 },
-  USER_SPEAKING: { label: "Hearing you", hue: 175, base: 0.38 },
-  ENDPOINT_CANDIDATE: { label: "Listening", hue: 184, base: 0.3 },
-  COMMITTING: { label: "Transcribing", hue: 184, base: 0.3 },
-  THINKING: { label: "Thinking", hue: 252, base: 0.28 },
+  IDLE: { label: "Ready", hue: 24, base: 0.24 },
+  LISTENING: { label: "Listening", hue: 32, base: 0.36 },
+  USER_SPEAKING: { label: "Hearing you", hue: 38, base: 0.45 },
+  ENDPOINT_CANDIDATE: { label: "Listening", hue: 30, base: 0.32 },
+  COMMITTING: { label: "Transcribing", hue: 42, base: 0.4 },
+  THINKING: { label: "Thinking", hue: 18, base: 0.34 },
   SPEAKING: { label: "Speaking", hue: 32, base: 0.36 },
   INTERRUPTION_CANDIDATE: { label: "Listening closely", hue: 12, base: 0.48 },
   INTERRUPTED: { label: "Interrupted", hue: 350, base: 0.3 },
   RECOVERING: { label: "Recovering", hue: 42, base: 0.24 },
   ERROR: { label: "Needs attention", hue: 2, base: 0.28 },
-  OFFLINE: { label: "Offline", hue: 220, base: 0.08 },
+  OFFLINE: { label: "Offline", hue: 20, base: 0.08 },
 };
 
 const clamp = (value: number): number => Math.min(1, Math.max(0, value));

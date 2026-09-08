@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sam · development preview</title></head>
+<body>
+  <div id="root"></div>
+  <aside style="position:fixed;right:16px;top:16px;z-index:30;max-width:240px;font:12px system-ui;color:#dec5ad">
+    <label>Preview state <select id="state" aria-label="Preview state"></select></label>
+    <label>Audio <input id="energy" aria-label="Preview audio" type="range" min="0" max="100" value="35"></label>
+    <output id="timing" aria-label="Canvas render cost"></output>
+    <button id="transcript">Sample transcript</button>
+  </aside>
+  <script type="module">
+    // Vite-only harness: the real BrowserEventTransport -> decoder -> reducer -> UI.
+    // This file is not a production-build entry point and never connects to core.
+    if (new URLSearchParams(location.search).get('transport') !== 'browser') {
+      location.replace(`${location.pathname}?transport=browser`);
+    } else {
+      await import('../src/main.tsx');
+      const { CONVERSATIONAL_STATES } = await import('../src/protocol/types.ts');
+      const state = document.querySelector('#state');
+      for (const name of CONVERSATIONAL_STATES) state.add(new Option(name, name));
+      let sequence = 0, frameStart = 0, count = 0, total = 0;
+      const originalClear = CanvasRenderingContext2D.prototype.clearRect;
+      const originalRestore = CanvasRenderingContext2D.prototype.restore;
+      CanvasRenderingContext2D.prototype.clearRect = function(...args) {
+        frameStart = performance.now(); return originalClear.apply(this, args);
+      };
+      CanvasRenderingContext2D.prototype.restore = function(...args) {
+        const result = originalRestore.apply(this, args);
+        total += performance.now() - frameStart; count++;
+        document.querySelector('#timing').textContent = `${count} draws · ${(total/count).toFixed(2)} ms/draw (CPU only)`;
+        return result;
+      };
+      const emit = (type, payload) => window.dispatchEvent(new CustomEvent('sam-protocol-event', {
+        detail: {protocol:1, type, monotonic_ms:++sequence, session_id:'preview', payload}
+      }));
+      const update = () => {
+        emit('system.ready', {state:state.value, microphone_enabled:true, provider:'preview', model:'controlled adapter',
+          stt_status:'No hardware accessed', tts_backend:'Protocol preview', tts_selection:{voice:{voice_id:'Preview voice',locale:'es-ES'},reason:'fixture'}});
+        const energy = Number(document.querySelector('#energy').value)/100;
+        emit('voice.level', {rms:energy, peak:energy, speech_probability:energy});
+        emit('tts.level', {envelope:energy});
+      };
+      state.addEventListener('change', update);
+      document.querySelector('#energy').addEventListener('input', update);
+      document.querySelector('#transcript').addEventListener('click', () => {
+        emit('transcript.final', {role:'user',text:'What should I focus on today?'});
+        emit('transcript.final', {role:'assistant',text:'Start with one thing that matters. Give it your full attention, and leave a little room for the unexpected.'});
+        emit('transcript.partial', {role:'user',text:'And after that…'});
+      });
+      window.addEventListener('sam-control-command', ({detail: command}) => {
+        emit('control.acknowledged', {command_id:command.command_id, status:'applied',
+          ...(command.type === 'control.application.quit' ? {application_stopping:true} : {})});
+      });
+      // Mount effects attach transport asynchronously. One bounded fixture startup.
+      setTimeout(update, 150);
+    }
+  </script>
+</body></html>

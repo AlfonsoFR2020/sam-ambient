@@ -32,6 +32,16 @@ cloud switch. Restart Sam after changing external services.
 
 ## Controls and safety
 
+The warm light field is the main view. Listening opens its shape; transcription
+gathers it; thinking uses folded motion; speaking responds to output amplitude.
+The discreet text label remains the authoritative accessible state indication.
+Controls recede at the lower edge but remain visible and focusable; Escape closes
+the panel and returns focus. Transcript content scrolls within a bounded readable
+region rather than covering the whole view. Expand provider details inside Controls
+for readiness and the last reported speech voice/locale, when core supplies it.
+Reduced motion respects the OS preference (including changes while running) or the
+local control. It freezes continuous geometry motion, retaining state/light feedback.
+
 Development builds prefer a dedicated app window, separate from normal browsing.
 Quit Sam stops the application; closing its window alone does not. Windows receives
 a graceful window-close request on shutdown; on other platforms or browser refusal,
@@ -41,7 +51,7 @@ close the remaining page yourself. `--ui-mode browser` keeps normal-tab behavior
 - **Emergency stop** cancels current model, tools, queued speech and playback.
 - **Disable all capabilities** revokes computer-action authority and pending
   approvals, preventing new tool execution. The model cannot restore authority.
-- **Quit Sam** in the header or Controls asks for confirmation, then shuts down
+- **Quit Sam** in Controls (or Ctrl+Q) asks for confirmation, then shuts down
   the application. Cancel/Escape backs out; keyboard focus starts on Cancel.
   After acknowledgement the page says **Sam has stopped** and does not reconnect.
   Closing the browser alone leaves Sam running; Ctrl+C in the console stops it.

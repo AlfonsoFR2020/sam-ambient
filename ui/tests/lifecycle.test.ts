@@ -17,6 +17,10 @@ describe("startup and shutdown presentation", () => {
         selection_reason: "started by Sam",
         stt_status: "missing model; text remains available",
         tts_backend: "windows-system-speech",
+        tts_selection: {
+          voice: { voice_id: "Installed Spanish", locale: "es-ES" },
+          reason: "exact locale",
+        },
       },
     });
     const html = renderToStaticMarkup(createElement(RuntimeStatus, { state }));
@@ -26,6 +30,9 @@ describe("startup and shutdown presentation", () => {
       "started by Sam",
       "missing model",
       "windows-system-speech",
+      "Installed Spanish",
+      "es-ES",
+      "exact locale",
     ]) {
       expect(html).toContain(value);
     }

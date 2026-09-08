@@ -45,6 +45,22 @@ const boundedText = (value: unknown, maximum = 240): string | undefined => {
 const authorityEpoch = (value: unknown): number | null =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
 
+function speechSelection(value: unknown): string | undefined {
+  if (!value || typeof value !== "object" || !("voice" in value)) return undefined;
+  const voice = value.voice;
+  if (!voice || typeof voice !== "object" || !("voice_id" in voice) || !("locale" in voice))
+    return undefined;
+  return (
+    [
+      boundedText(voice.voice_id, 120),
+      boundedText(voice.locale, 32),
+      "reason" in value ? boundedText(value.reason, 120) : undefined,
+    ]
+      .filter(Boolean)
+      .join(" · ") || undefined
+  );
+}
+
 const authoritativeCapabilityState = (
   active: boolean,
   epoch: number,
@@ -216,6 +232,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       selectionReason: boundedText(event.payload.selection_reason, 500),
       sttStatus: boundedText(event.payload.stt_status, 500),
       ttsBackend: boundedText(event.payload.tts_backend, 80),
+      ttsSelection: speechSelection(event.payload.tts_selection),
       conversationalState: readyState,
       microphoneEnabled:
         typeof event.payload.microphone_enabled === "boolean"

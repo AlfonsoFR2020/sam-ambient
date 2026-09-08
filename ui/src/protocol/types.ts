@@ -119,6 +119,7 @@ export interface UiState {
   selectionReason?: string;
   sttStatus?: string;
   ttsBackend?: string;
+  ttsSelection?: string;
   connection: ConnectionState;
   conversationalState: ConversationalState;
   priorConversationalState: ConversationalState;
