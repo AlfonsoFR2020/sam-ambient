@@ -7,6 +7,9 @@
   fallback diagnostics; pass requested languages to external eSpeak.
 - Preserve the cancellable PCM adapter boundary and expose optional voice and
   synthesis-capability metadata. No cloud speech service is integrated.
+- Wait for synthesized PCM before starting playback; recover from output underruns
+  instead of truncating speech. Preserve cancellation during final audio draining
+  and enforce synthesis timeouts while sending text to the backend.
 
 ## 0.1.2 (alpha) — 2026-09-08
 

@@ -7,9 +7,17 @@ Updated: 2026-09-08
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
   Existing cancellable PCM contract retained, optional discovery metadata added;
-  cloud speech remains disabled. 30 focused tests pass; silent live Windows WAV
+  cloud speech remains disabled. Silent live Windows WAV
   synthesis passed for installed es-ES Helena and en-US David voices. No microphone
   or speaker playback used; physical recognition/barge-in remain unvalidated.
+- Hardening gate: 306 Python tests pass, two existing skips; Ruff/format pass.
+  No frontend changes. Composed multi-turn acceptance covers language/voice switch,
+  PCM subprocess synthesis, underrun recovery, stale/duplicate cancellation and
+  shutdown. Output waits for PCM; underruns no longer abort speech; last-frame
+  cancellation cannot claim completion. TTS stdin is now timeout-bound.
+- Read-only audit: system-default audio devices and Whisper assets available;
+  Whisper/LM Studio stopped, Ollama absent. Bootstrap/preferences/filtering/owned
+  cleanup pass controlled tests; no service manipulation or new live model claim.
 
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
@@ -125,9 +133,6 @@ Updated: 2026-09-08
   stopped page, graceful core/UI exit, zero crashes/restarts, INFO/DEBUG and doctor.
   Doctor found 27 audio devices and Windows TTS synthesis ready. Ollama absent;
   `lms` installed, daemon/server stopped, model inventory unknown (not awakened).
-- Earlier `cadcb7a` check found only embeddings and no chat service; superseded
-  by the later successful text acceptance below.
-
 - Windows `dev` live text acceptance now passes two UI turns using the owner's
   installed `google/gemma-4-e2b` Q4_K_M through LM Studio at
   `http://127.0.0.1:1234/v1` (4096-token context; no cloud fallback).
@@ -153,32 +158,18 @@ Updated: 2026-09-08
   SQLite commit before monitoring; allow TTS startup during a tentative candidate
   and recover into SPEAKING. UI projects actual voice state on reconnect and shows
   Transcribing during final STT, plus Listening/Thinking/Speaking/Microphone muted.
-- Live diagnostics showed 5–29 s captured segments, low-confidence language guesses
-  (e.g. Korean 0.12), music/background transcripts, and VAD-only cancellation about
-  188 ms after candidate onset, even BEFORE TTS. This does not prove speaker echo
-  is the sole cause. Physical three-turn/intentional-barge-in acceptance was halted
-  at owner request; no successful voice/latency claim. Sam capture/test STT stopped.
-  Remaining: quiet controlled input/segmentation validation and distinguishing
-  real interruption from background/playback speech. No AEC or broad policy rewrite.
-- Automated language regressions cover uncertain switches, configurable preferences,
-  confident non-en/es detection and legacy metadata; no physical acceptance claimed.
-- Language follow-up committed as `72d083f`. Cancellation now validates active
-  turn/generation/token binding BEFORE callbacks; stale STT cleanup cannot cancel
-  a promoted response. Reproduced these code-level gaps with failing tests first;
-  this does not establish the cause of the owner's physical TTS cutoff.
-- Prior cancellation gate: 78 Python / 25 frontend tests passed, covering fake
-  playback, false-candidate recovery, intentional barge-in and stale cancellation.
-  Physical en/es accuracy, playback, barge-in and latency remain unverified; no AEC.
+- Prior physical diagnostics: 5–29 s segments, low-confidence language guesses,
+  background transcripts and VAD-only cancellation before TTS. Owner halted voice
+  acceptance; recognition, segmentation, echo/barge-in and latency remain unverified.
+- `72d083f` retains uncertain language; active turn/generation/token validation
+  precedes cancellation callbacks so stale STT cleanup cannot cancel new speech.
+  Controlled tests do not establish every physical cutoff cause.
 
 ## Known limitations / post-MVP priorities
 
-- Startup/lifecycle stabilization gate: 75 distinct focused Python tests and 45
-  frontend tests pass; changed-file Ruff/format/Biome, frontend lint/typecheck/build
-  and docs links pass. Fake-provider child-core Quit exits without restart/crash.
-  Automated browser verifies Cancel focus, Escape, Ctrl+Q, Confirm and stable stopped
-  screen with no console errors. Existing services were not manipulated; no audio.
-  Added GETTING_STARTED / USER_GUIDE. Real stopped-provider loading and physical
-  conversation remain to be validated separately; no seamless installer claimed.
+- Prior startup/UI gate: 75 Python / 45 frontend tests, lint/typecheck/build and
+  automated Quit/stopped-screen browser checks passed. Real stopped-provider loading
+  and physical conversation remain separate validation; no seamless installer.
 - STT readiness fix: assets were present, but localhost:8080 had no server;
   CLI previously created only an HTTP client. Windows now probes `/health`, starts
   existing `.sam/runtime/whisper-b4938/Release/whisper-server.exe` with

@@ -222,14 +222,14 @@ class SystemTextToSpeech:
         stderr_task: asyncio.Task[bytes] | None = None
         try:
             assert process.stdin is not None
-            process.stdin.write(input_data)
-            await process.stdin.drain()
-            process.stdin.close()
-            await process.stdin.wait_closed()
             assert process.stdout is not None and process.stderr is not None
             stdout_task = asyncio.create_task(_read_bounded(process.stdout, _MAX_WAVE_BYTES))
             stderr_task = asyncio.create_task(_read_bounded(process.stderr, _MAX_ERROR_BYTES))
             async with asyncio.timeout(self.timeout_s):
+                process.stdin.write(input_data)
+                await process.stdin.drain()
+                process.stdin.close()
+                await process.stdin.wait_closed()
                 stdout, stderr = await asyncio.gather(stdout_task, stderr_task)
                 exit_code = await process.wait()
             if exit_code:
@@ -258,6 +258,10 @@ class SystemTextToSpeech:
             for read_task in (stdout_task, stderr_task):
                 if read_task is not None and not read_task.done():
                     read_task.cancel()
+            await asyncio.gather(
+                *(reader for reader in (stdout_task, stderr_task) if reader is not None),
+                return_exceptions=True,
+            )
             if process.returncode is None:
                 process.kill()
             await process.wait()

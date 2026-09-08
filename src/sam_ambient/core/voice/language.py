@@ -26,7 +26,7 @@ def response_language(text: str, fallback: str = "auto") -> str:
         candidates = detector.get_probabilities()
     except LangDetectException:
         return fallback
-    if not candidates or candidates[0].prob < 0.90:
+    if not candidates or candidates[0].prob < 0.80:
         return fallback
     detected = candidates[0].lang
     if fallback.lower().replace("_", "-").split("-")[0] == detected:

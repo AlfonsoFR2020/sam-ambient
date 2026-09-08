@@ -7,7 +7,6 @@ import pytest
 from sam_ambient.adapters.audio import (
     AudioDeviceError,
     AudioInputOverflow,
-    AudioOutputUnderflow,
     SoundDeviceCapture,
     SoundDeviceOutput,
 )
@@ -132,9 +131,10 @@ def test_capture_cancellation_aborts_and_closes_blocking_stream() -> None:
     asyncio.run(scenario())
 
 
-def test_output_plays_in_order_and_surfaces_underflow() -> None:
+def test_output_plays_in_order_and_recovers_underflow() -> None:
     async def source(audio_format: AudioFormat) -> AsyncIterator[AudioFrame]:
         yield AudioFrame(audio_format, b"\0\0", monotonic_ms=0, sequence=0)
+        yield AudioFrame(audio_format, b"\1\0", monotonic_ms=1, sequence=1)
 
     async def scenario() -> None:
         audio_format = AudioFormat(sample_rate_hz=1_000)
@@ -144,7 +144,7 @@ def test_output_plays_in_order_and_surfaces_underflow() -> None:
             stream_factory=lambda **_options: normal,
         )
         await output.play(source(audio_format), CancellationToken("play"))
-        assert normal.writes == [b"\0\0"]
+        assert normal.writes == [b"\0\0", b"\1\0"]
         assert normal.stopped and normal.closed and not normal.aborted
 
         broken = FakeOutputStream(underflow=True)
@@ -152,9 +152,59 @@ def test_output_plays_in_order_and_surfaces_underflow() -> None:
             audio_format,
             stream_factory=lambda **_options: broken,
         )
-        with pytest.raises(AudioOutputUnderflow):
-            await output.play(source(audio_format), CancellationToken("underflow"))
-        assert broken.aborted and broken.closed
+        await output.play(source(audio_format), CancellationToken("underflow"))
+        assert broken.writes == normal.writes
+        assert broken.stopped and broken.closed and not broken.aborted
+
+    asyncio.run(scenario())
+
+
+def test_output_waits_for_synthesis_before_starting_and_uses_default_device():
+    async def scenario():
+        stream = FakeOutputStream()
+        options = {}
+
+        def factory(**kwargs):
+            options.update(kwargs)
+            return stream
+
+        audio_format = AudioFormat()
+
+        async def source():
+            assert not stream.started
+            await asyncio.sleep(0)
+            assert not stream.started
+            yield AudioFrame(audio_format, b"\0\0", 0, 0)
+
+        await SoundDeviceOutput(audio_format, stream_factory=factory).play(
+            source(), CancellationToken("delayed-synthesis")
+        )
+        assert options["device"] is None
+        assert stream.started and stream.stopped and not stream.aborted
+
+    asyncio.run(scenario())
+
+
+def test_cancellation_while_draining_last_frame_is_not_reported_as_completed():
+    async def scenario():
+        token = CancellationToken("last-frame")
+
+        class Stream(FakeOutputStream):
+            def stop(self):
+                super().stop()
+                token.cancel("interruption during drain")
+
+        audio_format = AudioFormat()
+        stream = Stream()
+
+        async def source():
+            yield AudioFrame(audio_format, b"\0\0", 0, 0)
+
+        with pytest.raises(OperationCancelled):
+            await SoundDeviceOutput(audio_format, stream_factory=lambda **_: stream).play(
+                source(), token
+            )
+        assert stream.closed and stream.aborted
 
     asyncio.run(scenario())
 

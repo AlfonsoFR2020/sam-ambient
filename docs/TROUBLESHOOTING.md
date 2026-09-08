@@ -66,6 +66,16 @@ Text requests remain available; `--no-voice` disables microphone capture.
 
 ## TTS unavailable
 
+On the development line, INFO logs report requested speech language, installed
+voice/locale and fallback reason. If a language has no installed voice, Windows
+falls back to a configured/system voice; recognition of a language does not imply
+that its matching speech voice is installed. Brief ambiguous replies retain recent
+language context. No voice or cloud service is installed/enabled automatically.
+
+Output underruns now log a recovery warning rather than dropping the remainder of
+an utterance. Persistent gaps still need device/load investigation; acoustic echo
+and physical interruption quality remain separate hardware validation tasks.
+
 Windows uses installed System.Speech voices; Linux needs an external `espeak-ng`
 or `espeak` executable. Check the default output device. Doctor probes synthesis;
 successful synthesis does not prove the speakers are audible. `--no-tts` keeps

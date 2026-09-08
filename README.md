@@ -59,6 +59,9 @@ interfaces**, rather than on manually traversing fixed software structures.
 **Status:** 0.1.0 MVP complete; **0.1.2 alpha** improves conversational continuity,
 local voice/provider startup, diagnostics, and graceful exit. Primary deployment target: Linux.
 Windows development and system speech output are supported.
+On `dev`, speech follows detected response language using installed Windows voices
+with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
+speech service or additional voice installation is performed automatically.
 
 ## What works today
 

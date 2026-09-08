@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from collections.abc import AsyncIterable, AsyncIterator, Callable
 from typing import Any, Protocol
@@ -11,6 +12,8 @@ import sounddevice
 
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
 from sam_ambient.core.voice import AudioFormat, AudioFrame, SampleFormat
+
+log = logging.getLogger(__name__)
 
 
 class AudioDeviceError(RuntimeError):
@@ -189,16 +192,25 @@ class SoundDeviceOutput:
 
         remove_callback = SoundDeviceCapture._bind_abort(cancellation, stream)
         completed = False
+        started = False
+        underruns = 0
         try:
-            await asyncio.to_thread(stream.start)
             async for frame in frames:
                 cancellation.raise_if_cancelled()
                 if frame.format != self.audio_format:
                     raise AudioDeviceError("audio output frame format changed during playback")
+                if not started:
+                    await asyncio.to_thread(stream.start)
+                    started = True
                 underflowed = await asyncio.to_thread(stream.write, frame.data)
                 if underflowed:
-                    raise AudioOutputUnderflow("PortAudio output underflowed")
-            await asyncio.to_thread(stream.stop)
+                    # PortAudio already inserted a gap, not an unrecoverable device
+                    # failure. Aborting here discards the rest of a valid utterance.
+                    underruns += 1
+            cancellation.raise_if_cancelled()
+            if started:
+                await asyncio.to_thread(stream.stop)
+            cancellation.raise_if_cancelled()
             completed = True
         except asyncio.CancelledError as error:
             if cancellation.is_cancelled:
@@ -214,6 +226,8 @@ class SoundDeviceOutput:
         except Exception as error:
             raise AudioDeviceError(f"audio output failed: {error}") from error
         finally:
+            if underruns:
+                log.warning("Audio output recovered from %d underrun(s)", underruns)
             remove_callback()
             close = (
                 SoundDeviceCapture._close_only if completed else SoundDeviceCapture._close_safely
