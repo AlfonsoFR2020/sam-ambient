@@ -52,21 +52,21 @@ class BrowserHandoff:
             except OSError:
                 log.warning("Sam window could not close automatically; close it manually")
 
-    async def open_once(self) -> None:
+    async def open_once(self) -> bool:
         if self.attempted:
-            return
+            return False
         self.attempted = True
         url = f"http://127.0.0.1:{self.port}"
         log.info("Sam UI: %s", url)
         if not await ui_http_ready(self.port):
             log.warning("UI HTTP readiness failed; open %s manually when ready", url)
-            return
+            return False
         try:
             if self.window is not None:
                 try:
                     if self.window.open(url):
                         log.info("Sam dedicated window opened (private app profile)")
-                        return
+                        return True
                 except OSError:
                     pass
                 log.info("Dedicated window unavailable; falling back to normal browser")
@@ -74,8 +74,13 @@ class BrowserHandoff:
                 opened = await self._open_detached(url)
             if not opened:
                 log.warning("Browser did not open; Sam is running. Open %s manually", url)
+            return False
         except Exception as error:
             log.warning("Browser launch failed (%s); open %s manually", type(error).__name__, url)
+            return False
+
+    async def wait_for_app_close(self) -> bool:
+        return self.window is not None and await self.window.wait_closed()
 
     async def _open_detached(self, url: str) -> bool:
         # An OS/browser handler may block until its window exits. This thread

@@ -1,8 +1,10 @@
-"""Optional Chromium app window. Never supervise or kill the user's browser."""
+"""Optional Chromium app window. Never terminate the user's browser."""
 
+import asyncio
 import os
 import shutil
 import subprocess
+import threading
 from pathlib import Path
 
 
@@ -54,6 +56,24 @@ class AppWindow:
             shell=False,
         )
         return True
+
+    async def wait_closed(self) -> bool:
+        """Return when the Sam-owned app process exits; false if none was opened."""
+        process = self.process
+        if process is None:
+            return False
+        loop = asyncio.get_running_loop()
+        closed = loop.create_future()
+
+        def wait() -> None:
+            process.wait()
+            try:
+                loop.call_soon_threadsafe(lambda: closed.done() or closed.set_result(True))
+            except RuntimeError:
+                pass
+
+        threading.Thread(target=wait, name="sam-app-window", daemon=True).start()
+        return await closed
 
     def close(self) -> None:
         process, self.process = self.process, None

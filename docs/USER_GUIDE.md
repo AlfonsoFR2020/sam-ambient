@@ -43,9 +43,9 @@ Reduced motion respects the OS preference (including changes while running) or t
 local control. It freezes continuous geometry motion, retaining state/light feedback.
 
 Development builds prefer a dedicated app window, separate from normal browsing.
-Quit Sam stops the application; closing its window alone does not. Windows receives
-a graceful window-close request on shutdown; on other platforms or browser refusal,
-close the remaining page yourself. `--ui-mode browser` keeps normal-tab behavior.
+Quit Sam or closing that dedicated window stops the application gracefully. On
+other platforms or browser refusal, close the stopped page yourself. Closing a
+normal `--ui-mode browser` tab does not stop Sam.
 
 - **Stop speaking** requests cancellation of queued speech and playback.
 - **Emergency stop** cancels current model, tools, queued speech and playback.

@@ -25,9 +25,13 @@ The supervisor's small `AppWindow` adapter launches installed Chromium-family
 application mode with structured argv and a separate `.sam/ui-profile`, not the
 owner's browsing profile. Windows shutdown posts WM_CLOSE only to the launched
 process's windows; there is no browser process killing. Linux currently retains
-the stopped window for manual closure. Browser exit is never a core health signal.
+the stopped window for manual closure. App-window exit requests orderly shutdown
+but is never interpreted as a component crash or restart condition.
 `--ui-mode browser` bypasses this adapter; missing app browsers fall back to the
 default browser. The existing native transport seam remains available for Tauri.
+An OS-released per-root lock prevents competing supervisors. The dedicated app
+process exiting requests the same idempotent graceful shutdown as Ctrl+C; normal
+browser tabs remain independent because their lifetime is not a reliable signal.
 
 `SamRuntime` owns conversation state, the event bus, cancellation registry, voice
 adapters, provider router, tool executor, and session persistence. React/TypeScript

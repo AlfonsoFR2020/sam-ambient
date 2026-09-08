@@ -22,6 +22,7 @@ from sam_ambient.supervisor import (
     SupervisorStore,
 )
 from sam_ambient.supervisor.browser import BrowserHandoff
+from sam_ambient.supervisor.single_instance import InstanceLock
 
 log = logging.getLogger(__name__)
 
@@ -125,6 +126,18 @@ def _paths(args: argparse.Namespace) -> tuple[Path, Path]:
 
 async def run(args: argparse.Namespace) -> int:
     root, state_db = _paths(args)
+    instance = InstanceLock(root / ".sam/supervisor.lock")
+    if not instance.acquire():
+        url = f"http://127.0.0.1:{args.ui_port}"
+        log.info("Sam is already running. Existing UI: %s", url)
+        return 0
+    try:
+        return await _run_locked(args, root, state_db)
+    finally:
+        instance.release()
+
+
+async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> int:
     store = SupervisorStore(state_db)
     if args.restore_capabilities:
         restored = store.restore_capabilities_trusted()
@@ -163,7 +176,7 @@ async def run(args: argparse.Namespace) -> int:
         ui = supervisor.statuses.get("sam-ui")
         if args.open_ui and ui is not None and browser_task is None:
             if core.health in {"HEALTHY", "DEGRADED", "SAFE_MODE"} and ui.health == "HEALTHY":
-                browser_task = asyncio.create_task(browser.open_once())
+                browser_task = asyncio.create_task(open_and_watch_window())
 
     shutdown_task = None
 
@@ -171,6 +184,11 @@ async def run(args: argparse.Namespace) -> int:
         nonlocal shutdown_task
         if shutdown_task is None:
             shutdown_task = asyncio.create_task(supervisor.shutdown())
+
+    async def open_and_watch_window() -> None:
+        if await browser.open_once() and await browser.wait_for_app_close():
+            log.info("Sam window closed; shutting down")
+            request_shutdown()
 
     supervisor = Supervisor(
         tuple(components),

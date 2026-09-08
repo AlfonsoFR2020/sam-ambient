@@ -60,3 +60,16 @@ def test_closed_browser_is_not_restarted_or_killed(tmp_path):
     window.close()
     process.kill.assert_not_called()
     process.terminate.assert_not_called()
+
+
+def test_owned_app_window_exit_is_observable_without_killing(tmp_path):
+    async def scenario():
+        window = app_window.AppWindow(tmp_path)
+        process = Mock(wait=Mock(return_value=0), poll=Mock(return_value=None))
+        window.process = process
+        assert await window.wait_closed()
+        process.wait.assert_called_once()
+        process.kill.assert_not_called()
+        process.terminate.assert_not_called()
+
+    asyncio.run(scenario())

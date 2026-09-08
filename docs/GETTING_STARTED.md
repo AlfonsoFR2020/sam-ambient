@@ -5,8 +5,9 @@ Chromium, after core/UI readiness. No browser installation is performed. Use
 `uv run sam-ambient --ui-mode browser` for a normal browser/debug session; app
 browser absence automatically falls back. Sam uses its own ignored `.sam/ui-profile`.
 Quit Sam stops the runtime and requests closure of its Windows app window; if the
-browser/platform refuses, close the stopped page manually. Closing a window alone
-does not stop Sam—use Quit Sam or console Ctrl+C.
+browser/platform refuses, close the stopped page manually. Closing the dedicated
+window also stops Sam; closing a fallback browser tab does not. A second launch
+for the same root reports the existing local UI instead of competing for ports.
 
 Sam 0.1.2 runs as a Python application with a local browser UI. There is no
 seamless installer yet. Install prerequisites yourself; Sam downloads no models.

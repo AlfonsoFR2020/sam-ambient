@@ -62,6 +62,8 @@ Windows development and system speech output are supported.
 The development line opens an isolated Sam app window with installed Edge/Chrome/
 Chromium. Use `uv run sam-ambient --ui-mode browser` for normal-browser/debug mode;
 if no supported app browser is found, the default browser remains the fallback.
+Starting the same Sam root twice reports the existing local UI instead of creating
+competing runtimes. Closing the dedicated window gracefully stops Sam.
 On `dev`, speech follows detected response language using installed Windows voices
 with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
 speech service or additional voice installation is performed automatically.

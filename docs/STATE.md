@@ -17,6 +17,10 @@ Updated: 2026-09-09
   Escape focus, Ctrl+Q Cancel/Confirm/stopped, no console errors; CPU drawing around
   0.3–0.4 ms at 1280×720 (not a GPU/mobile benchmark). Frontend: 50 tests,
   Biome, TypeScript and production build pass. Rejected UI not reused.
+- Shell lifecycle polish uses an OS-released per-root instance lock; duplicate
+  launches exit with the existing UI URL. Dedicated-window exit requests graceful,
+  idempotent supervisor shutdown; fallback tabs remain independent. No browser
+  process is killed and stale lock files do not block restart.
 
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.

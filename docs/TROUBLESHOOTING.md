@@ -11,7 +11,8 @@ Open **http://127.0.0.1:8766** manually. A failed browser handoff does not stop 
 Development builds prefer installed Edge/Chrome/Chromium app mode in a Sam-only
 profile. `--ui-mode browser` bypasses it. There is no browser installation, native
 shell or force-kill fallback; if automatic window closure is refused, close the
-page yourself. Closing the window is not the same as Quit Sam.
+page yourself. Closing the dedicated window gracefully stops Sam; closing a
+fallback browser tab does not. A second launch reports the existing UI URL.
 The browser is opened once per launch; reconnecting or restarting the core does
 not open another window. Look for `sam-ui ready` and the UI URL in the console.
 If the port is already occupied, close the earlier Sam instance. If packaged
@@ -20,7 +21,7 @@ required to run the compiled UI. Keep the default 8765/8766 ports for the packag
 
 Quit through **Quit Sam** or Ctrl+Q; confirm once. The page shows that Sam has
 stopped and can be closed. Ctrl+C in the launch console also stops the managed
-components. Merely closing the browser leaves Sam running.
+components. Merely closing a fallback browser tab leaves Sam running.
 Confirmation is an in-app **Confirm quit / Cancel** dialog with keyboard focus;
 Escape cancels it. After acknowledgement, reconnection is disabled.
 

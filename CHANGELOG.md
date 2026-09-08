@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Prevent duplicate supervisors for one Sam root and treat closure of the
+  dedicated app window as graceful application shutdown; browser fallback remains
+  independent and no browser process is force-terminated.
 - Replace the blue sphere with a responsive amber light/ribbon field driven by
   conversation and audio state. Bound rendering to 64 particles, five ribbons,
   30 fps and four million pixels; pause when hidden and freeze motion when reduced.
