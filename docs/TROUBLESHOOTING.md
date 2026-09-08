@@ -15,6 +15,9 @@ page yourself. Closing the dedicated window gracefully stops Sam; closing a
 fallback browser tab does not. A second launch reports the existing UI URL.
 The browser is opened once per launch; reconnecting or restarting the core does
 not open another window. Look for `sam-ui ready` and the UI URL in the console.
+**Starting Sam** means the UI is ready but the local core is still checking models
+or speech. **Reconnecting** means the core disconnected/restarted; committed text
+is retained. Expand Controls for the exact provider and degraded reason.
 If the port is already occupied, close the earlier Sam instance. If packaged
 assets are missing, run the frontend build or reinstall the wheel. Vite is not
 required to run the compiled UI. Keep the default 8765/8766 ports for the packaged UI.

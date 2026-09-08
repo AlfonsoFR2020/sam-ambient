@@ -8,6 +8,7 @@ import json
 import logging
 import signal
 import sys
+import time
 from collections.abc import Sequence
 from dataclasses import asdict
 from pathlib import Path
@@ -172,11 +173,9 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
         nonlocal browser_task
         # A ready callback may fire repeatedly as components restart. The browser
         # belongs to this supervisor lifetime, never to a component lifetime.
-        core = supervisor.statuses["sam-core"]
         ui = supervisor.statuses.get("sam-ui")
-        if args.open_ui and ui is not None and browser_task is None:
-            if core.health in {"HEALTHY", "DEGRADED", "SAFE_MODE"} and ui.health == "HEALTHY":
-                browser_task = asyncio.create_task(open_and_watch_window())
+        if args.open_ui and ui is not None and browser_task is None and ui.health == "HEALTHY":
+            browser_task = asyncio.create_task(open_and_watch_window())
 
     shutdown_task = None
 
@@ -186,7 +185,14 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
             shutdown_task = asyncio.create_task(supervisor.shutdown())
 
     async def open_and_watch_window() -> None:
+        opened_at = time.monotonic()
         if await browser.open_once() and await browser.wait_for_app_close():
+            if time.monotonic() - opened_at < 1:
+                log.warning(
+                    "Sam window exited during launch; Sam remains available at http://127.0.0.1:%d",
+                    args.ui_port,
+                )
+                return
             log.info("Sam window closed; shutting down")
             request_shutdown()
 

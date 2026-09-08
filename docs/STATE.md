@@ -21,39 +21,33 @@ Updated: 2026-09-09
   launches exit with the existing UI URL. Dedicated-window exit requests graceful,
   idempotent supervisor shutdown; fallback tabs remain independent. No browser
   process is killed and stale lock files do not block restart.
+- UI opens on static-HTTP readiness and shows actual core startup/reconnect state.
+  Controls presents model selection/source, STT, TTS/voice and local/cloud policy;
+  compact degraded notices say what remains usable. Tooltips distinguish speech
+  stop, audio toggles, emergency cancellation, capability revoke and Quit; bounded
+  transcript content auto-scrolls without moving the ambient composition.
 
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
-  Existing cancellable PCM contract retained, optional discovery metadata added;
-  cloud speech remains disabled. Silent live Windows WAV
-  synthesis passed for installed es-ES Helena and en-US David voices. No microphone
-  or speaker playback used; physical recognition/barge-in remain unvalidated.
-- Hardening gate: 306 Python tests pass, two existing skips; Ruff/format pass.
-  No frontend changes. Composed multi-turn acceptance covers language/voice switch,
-  PCM subprocess synthesis, underrun recovery, stale/duplicate cancellation and
-  shutdown. Output waits for PCM; underruns no longer abort speech; last-frame
-  cancellation cannot claim completion. TTS stdin is now timeout-bound.
-- Read-only audit: system-default audio devices and Whisper assets available;
-  Whisper/LM Studio stopped, Ollama absent. Bootstrap/preferences/filtering/owned
-  cleanup pass controlled tests; no service manipulation or new live model claim.
-
+  Cancellable PCM remains provider-neutral and cloud speech disabled. Silent WAV
+  synthesis passed for es-ES Helena/en-US David; physical voice remains unvalidated.
+- Hardening gate: 306 Python tests plus Ruff/format pass. Composed acceptance covers
+  language/voice switch, synthesis, underrun recovery, cancellation and shutdown;
+  output waits for PCM and TTS stdin is timeout-bound.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
-- 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
-  Ollama and unavailable unprivileged Windows symlink creation). Frontend:
-  45 tests, Biome lint/version-file format, TypeScript typecheck, and Vite
-  production build pass.
+- 0.1.2 release gate: 288 Python tests (two justified skips) and 45 frontend tests,
+  lint/format/typecheck/build passed.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
   `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
-- The release build produces `dist/sam_ambient-0.1.2-py3-none-any.whl` and
-  `dist/sam_ambient-0.1.2.tar.gz`. The wheel contains the production UI, launchers,
-  configuration example, license, and third-party notices.
+- Release artifacts are the 0.1.2 wheel/source archive; the wheel includes UI,
+  launchers, example configuration, license, and notices.
 - Original Sam material is Apache-2.0; NOTICE attributes Copyright 2026
   Alfonso Ernesto de la Fuente Ruiz, PhD. Bundled React/MIT notices are retained.
 
 ## 0.1.2 first-run behavior
 
-- App/browser handoff occurs once per supervisor lifetime after core/UI HTTP
-  readiness. Errors print a manual URL; browser lifetime is independent.
+- App/browser handoff occurs once per supervisor lifetime after UI HTTP readiness,
+  so actual core connection/startup is visible. Errors print a manual URL.
 - Quit Sam / Ctrl+Q uses a focused in-app Confirm quit / Cancel dialog, then a trusted
   shutdown channel. Acknowledged shutdown stops frontend reconnects. No LLM tool
   can quit Sam. Controls also exposes Quit; the stopped screen is unambiguous.

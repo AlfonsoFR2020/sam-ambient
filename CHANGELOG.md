@@ -5,6 +5,9 @@
 - Prevent duplicate supervisors for one Sam root and treat closure of the
   dedicated app window as graceful application shutdown; browser fallback remains
   independent and no browser process is force-terminated.
+- Open the UI on HTTP readiness, show truthful core startup/reconnect status, and
+  present local model, speech, privacy, and degradation details inside Controls.
+- Clarify control effects and improve bounded transcript role styling/scrolling.
 - Replace the blue sphere with a responsive amber light/ribbon field driven by
   conversation and audio state. Bound rendering to 64 particles, five ribbons,
   30 fps and four million pixels; pause when hidden and freeze motion when reduced.

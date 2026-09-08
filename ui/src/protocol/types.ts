@@ -120,6 +120,7 @@ export interface UiState {
   sttStatus?: string;
   ttsBackend?: string;
   ttsSelection?: string;
+  cloudAllowed?: boolean;
   connection: ConnectionState;
   conversationalState: ConversationalState;
   priorConversationalState: ConversationalState;

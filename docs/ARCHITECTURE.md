@@ -2,9 +2,9 @@
 
 Sam is a supervised modular monolith with a separate ambient presentation client.
 The installed `sam-ambient` command starts `sam-supervisor`, the authoritative
-`sam-core`, and an optional static `sam-ui` server. Browser lifetime is independent:
-the supervisor opens its URL once after readiness and leaves it available for
-manual reconnection. Browser failure does not become a core failure.
+`sam-core`, and an optional static `sam-ui` server. The supervisor opens the UI
+after its HTTP readiness, while core startup continues visibly in the window.
+Presentation failure never becomes a core crash/restart condition.
 
 ## Trusted lifecycle
 

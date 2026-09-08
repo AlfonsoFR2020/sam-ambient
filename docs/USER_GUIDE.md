@@ -29,6 +29,10 @@ shown in Controls. Successful local responses remember the provider/model in
 `<root>/.sam/state.db`. Explicit CLI options override this preference; stale
 preferences fall back deterministically. There is no model download or automatic
 cloud switch. Restart Sam after changing external services.
+Before core readiness, the main view says **Starting Sam**; after a core restart it
+says **Reconnecting**. Degraded notices state what remains usable. Controls keeps
+the detailed provider/model, speech input, spoken output, selected voice, and
+local/cloud policy so the main ambient view stays quiet.
 
 ## Controls and safety
 
@@ -47,14 +51,16 @@ Quit Sam or closing that dedicated window stops the application gracefully. On
 other platforms or browser refusal, close the stopped page yourself. Closing a
 normal `--ui-mode browser` tab does not stop Sam.
 
-- **Stop speaking** requests cancellation of queued speech and playback.
+- **Microphone** controls listening; text input remains available while muted.
+- **Voice** controls future spoken replies; text responses remain visible.
+- **Stop speaking** cancels only queued/current speech and playback.
 - **Emergency stop** cancels current model, tools, queued speech and playback.
 - **Disable all capabilities** revokes computer-action authority and pending
   approvals, preventing new tool execution. The model cannot restore authority.
 - **Quit Sam** in Controls (or Ctrl+Q) asks for confirmation, then shuts down
   the application. Cancel/Escape backs out; keyboard focus starts on Cancel.
   After acknowledgement the page says **Sam has stopped** and does not reconnect.
-  Closing the browser alone leaves Sam running; Ctrl+C in the console stops it.
+  Closing a fallback browser tab alone leaves Sam running; Ctrl+C stops it.
 - **Transcript**, **Reduced motion**, **Intensity**, and fullscreen are local
   presentation preferences, not permissions for the model.
 

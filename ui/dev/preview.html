@@ -5,6 +5,10 @@
   <div id="root"></div>
   <aside style="position:fixed;right:16px;top:16px;z-index:30;max-width:240px;font:12px system-ui;color:#dec5ad">
     <label>Preview state <select id="state" aria-label="Preview state"></select></label>
+    <label>Readiness <select id="readiness" aria-label="Preview readiness">
+      <option value="ready">Ready</option><option value="provider">No provider</option>
+      <option value="stt">No speech input</option><option value="tts">No spoken output</option>
+    </select></label>
     <label>Audio <input id="energy" aria-label="Preview audio" type="range" min="0" max="100" value="35"></label>
     <output id="timing" aria-label="Canvas render cost"></output>
     <button id="transcript">Sample transcript</button>
@@ -18,6 +22,7 @@
       await import('../src/main.tsx');
       const { CONVERSATIONAL_STATES } = await import('../src/protocol/types.ts');
       const state = document.querySelector('#state');
+      const readiness = document.querySelector('#readiness');
       for (const name of CONVERSATIONAL_STATES) state.add(new Option(name, name));
       let sequence = 0, frameStart = 0, count = 0, total = 0;
       const originalClear = CanvasRenderingContext2D.prototype.clearRect;
@@ -35,13 +40,20 @@
         detail: {protocol:1, type, monotonic_ms:++sequence, session_id:'preview', payload}
       }));
       const update = () => {
-        emit('system.ready', {state:state.value, microphone_enabled:true, provider:'preview', model:'controlled adapter',
-          stt_status:'No hardware accessed', tts_backend:'Protocol preview', tts_selection:{voice:{voice_id:'Preview voice',locale:'es-ES'},reason:'fixture'}});
+        const degraded = readiness.value;
+        emit('system.ready', {state:state.value, microphone_enabled:degraded !== 'stt', provider:'preview',
+          model:degraded === 'provider' ? undefined : 'controlled adapter',
+          selection_reason:'reused deterministic local preview', stt_status:'No hardware accessed',
+          ...(degraded === 'provider' ? {selection_reason:'No supported local provider is running'} : {}),
+          ...(degraded === 'stt' ? {stt_status:'STT unavailable: missing local service'} : {}),
+          tts_backend:degraded === 'tts' ? 'disabled/unavailable' : 'Protocol preview', cloud_allowed:false,
+          tts_selection:{voice:{voice_id:'Preview voice',locale:'es-ES'},reason:'fixture'}});
         const energy = Number(document.querySelector('#energy').value)/100;
         emit('voice.level', {rms:energy, peak:energy, speech_probability:energy});
         emit('tts.level', {envelope:energy});
       };
       state.addEventListener('change', update);
+      readiness.addEventListener('change', update);
       document.querySelector('#energy').addEventListener('input', update);
       document.querySelector('#transcript').addEventListener('click', () => {
         emit('transcript.final', {role:'user',text:'What should I focus on today?'});

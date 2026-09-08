@@ -20,6 +20,7 @@ import type { UiState } from "./protocol/types";
 import { QuitDialog, ShutdownStatus } from "./QuitDialog";
 import { RuntimeStatus } from "./RuntimeStatus";
 import { ProtocolClient } from "./state/client";
+import { statusPresentation } from "./status";
 import { BrowserEventTransport } from "./transport/browser";
 import { type NativeEventSource, TauriLocalTransport } from "./transport/tauri";
 import { browserScheduler, type ProtocolTransport } from "./transport/transport";
@@ -43,9 +44,13 @@ const chooseTransport = (): ProtocolTransport => {
 };
 
 function Transcript({ state }: { state: UiState }) {
+  const region = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (region.current) region.current.scrollTop = region.current.scrollHeight;
+  });
   if (!state.transcript.length && !state.provisionalTranscript) return null;
   return (
-    <section className="transcript" aria-label="Transcript" aria-live="polite">
+    <section ref={region} className="transcript" aria-label="Transcript" aria-live="polite">
       {state.transcript.slice(-3).map((entry) => (
         <p
           className={`transcript__line transcript__line--${entry.role}`}
@@ -148,6 +153,7 @@ export default function App() {
   const [commandError, setCommandError] = useState<string>();
   const [textRequest, setTextRequest] = useState("");
   const visual = toAmbientVisualModel(state, preferences.brightness / 100);
+  const runtimeStatus = statusPresentation(state);
   stateRef.current = state;
 
   useEffect(() => {
@@ -227,7 +233,9 @@ export default function App() {
         <span className="status__mark" data-connected={visual.connected} />
         <strong>Sam</strong>
         <span>
-          {state.applicationStopped ? "Stopped · you can close this window" : visual.label}
+          {state.applicationStopped
+            ? "Stopped · you can close this window"
+            : (runtimeStatus.label ?? visual.label)}
         </span>
         {!state.capabilityAuthorityActive && (
           <small className="status__authority" title={state.capabilityAuthorityReason}>
@@ -240,6 +248,9 @@ export default function App() {
           </small>
         )}
       </header>
+      {runtimeStatus.notice && !quitRequested && !state.applicationStopped && (
+        <output className="status-notice">{runtimeStatus.notice}</output>
+      )}
       <QuitDialog
         open={quitConfirmation && !state.applicationStopped && !quitRequested}
         onCancel={() => setQuitConfirmation(false)}
@@ -302,6 +313,7 @@ export default function App() {
             onClick={() =>
               applyAction({ type: "microphone.set", enabled: !state.microphoneEnabled })
             }
+            title="Turn listening on or off. Text requests remain available."
           >
             Microphone {state.microphoneEnabled ? "on" : "muted"}
           </button>
@@ -311,6 +323,7 @@ export default function App() {
             onClick={() =>
               applyAction({ type: "tts_output.set", enabled: !state.ttsOutputEnabled })
             }
+            title="Turn future spoken replies on or off. Text responses remain visible."
           >
             Voice {state.ttsOutputEnabled ? "on" : "muted"}
           </button>
@@ -318,6 +331,7 @@ export default function App() {
             type="button"
             disabled={state.connection !== "connected"}
             onClick={() => applyAction({ type: "stop_speaking" })}
+            title="Stop only the current spoken reply. Sam remains active."
           >
             Stop speaking
           </button>
@@ -326,6 +340,7 @@ export default function App() {
             type="button"
             disabled={state.connection !== "connected"}
             onClick={() => applyAction({ type: "emergency_stop" })}
+            title="Cancel the active model response, tools, queued speech and playback."
           >
             Emergency stop
           </button>
@@ -336,6 +351,7 @@ export default function App() {
               pending || state.connection !== "connected" || !state.capabilityAuthorityActive
             }
             onClick={() => applyAction({ type: "capabilities.revoke_all" })}
+            title="Revoke computer-action authority and pending approvals until trusted restoration."
           >
             {state.capabilityAuthorityActive ? "Disable all capabilities" : "Capabilities disabled"}
           </button>
@@ -344,6 +360,7 @@ export default function App() {
             onClick={() =>
               applyAction({ type: "transcript.set", visible: !preferences.transcriptVisible })
             }
+            title="Show or hide the conversation transcript on this device."
           >
             Transcript {preferences.transcriptVisible ? "shown" : "hidden"}
           </button>
@@ -352,10 +369,15 @@ export default function App() {
             onClick={() =>
               applyAction({ type: "reduced_motion.set", enabled: !preferences.reducedMotion })
             }
+            title="Reduce continuous ambient animation on this device."
           >
             Reduced motion {preferences.reducedMotion ? "on" : "off"}
           </button>
-          <button type="button" onClick={() => void toggleFullscreen()}>
+          <button
+            type="button"
+            onClick={() => void toggleFullscreen()}
+            title="Enter or leave fullscreen presentation. Escape also exits."
+          >
             Toggle fullscreen
           </button>
           <button

@@ -1194,6 +1194,7 @@ class SamRuntime:
                     if getattr(self.tts, "last_selection", None) is not None
                     else None
                 ),
+                "cloud_allowed": self.config.allow_cloud,
                 "tools": [descriptor.id for descriptor in self.tools.descriptors()],
                 "capability_authority_active": authority.active,
                 "capability_authority_epoch": authority.epoch,

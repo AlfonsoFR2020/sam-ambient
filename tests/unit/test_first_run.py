@@ -166,6 +166,7 @@ def test_quit_is_direct_user_control_idempotent_and_not_a_tool(tmp_path):
 
     async def scenario():
         runtime = SamRuntime(FakeProvider(), RuntimeConfig(tmp_path, port=0))
+        assert runtime._ready_event().payload["cloud_allowed"] is False
         await runtime.start()
         try:
             assert "control.application.quit" not in [

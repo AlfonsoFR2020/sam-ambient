@@ -109,15 +109,18 @@ uv run sam-ambient
 ```
 
 Sam starts the supervisor, core, and static UI, then opens
-**[http://127.0.0.1:8766](http://127.0.0.1:8766)** once the application is ready.
-The core bridge uses localhost port 8765. The browser can be closed and reopened
-independently.
+**[http://127.0.0.1:8766](http://127.0.0.1:8766)** once the UI is ready. The window
+shows core/model/speech preparation rather than remaining blank. The core bridge
+uses localhost port 8765. Closing the dedicated window stops Sam; a normal browser
+fallback can be closed and reopened independently.
 
 Use **Controls → Text request** to talk to the selected model.
 The development UI uses a warm, responsive light field rather than a solid sphere.
 Listening opens the ribbons, transcription gathers them, thinking folds inward,
 and speaking follows output amplitude. Controls remain keyboard-accessible at the
 lower edge; reduced-motion preference keeps state feedback without continuous motion.
+Expand the model line in Controls for provider selection, speech readiness, chosen
+voice, actionable limitations, and local/cloud policy.
 
 See [Getting started](docs/GETTING_STARTED.md) for prerequisites and first launch,
 and the [User guide](docs/USER_GUIDE.md) for controls, status, and safe operation.

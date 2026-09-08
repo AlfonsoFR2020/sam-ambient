@@ -1,9 +1,12 @@
 # Getting started with Sam
 
 Development builds prefer a dedicated Sam window using installed Edge, Chrome or
-Chromium, after core/UI readiness. No browser installation is performed. Use
+Chromium, after UI readiness while the core continues starting. No browser installation is performed. Use
 `uv run sam-ambient --ui-mode browser` for a normal browser/debug session; app
 browser absence automatically falls back. Sam uses its own ignored `.sam/ui-profile`.
+The window may initially say **Starting Sam** while the local core checks existing
+providers and prepares speech. This is actual connection state, not a progress
+percentage; readiness or a precise degraded explanation replaces it.
 Quit Sam stops the runtime and requests closure of its Windows app window; if the
 browser/platform refuses, close the stopped page manually. Closing the dedicated
 window also stops Sam; closing a fallback browser tab does not. A second launch
@@ -89,7 +92,7 @@ or reused it, and STT/TTS readiness. No model means the UI can operate but canno
 startup decisions without prompts, audio or credentials.
 
 Choose **Quit Sam → Confirm quit**, or Ctrl+Q. Cancel/Escape keeps Sam running.
-The stopped screen means reconnection is off; close the remaining browser tab.
+The stopped screen means reconnection is off; close any remaining fallback tab.
 Ctrl+C also stops managed components. Existing model services remain running;
 Sam-owned Ollama/Whisper child processes are cleaned up. LM Studio's shared
 daemon/server is retained to avoid interrupting other users/apps.
