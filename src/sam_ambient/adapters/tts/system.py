@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import io
+import json
+import logging
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -14,6 +17,14 @@ from pathlib import Path
 
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
 from sam_ambient.core.voice import AudioFormat, AudioFrame, SampleFormat
+from sam_ambient.core.voice.speech import (
+    SpeechCapabilities,
+    SpeechVoice,
+    VoiceSelection,
+    select_voice,
+)
+
+log = logging.getLogger(__name__)
 
 _MAX_TEXT_CHARS = 4_000
 _MAX_WAVE_BYTES = 32 * 1024 * 1024
@@ -55,6 +66,40 @@ class SystemTextToSpeech:
         self.timeout_s = timeout_s
         self._processes: set[asyncio.subprocess.Process] = set()
         self._closed = False
+        self.capabilities = SpeechCapabilities(
+            voice_enumeration=self.backend_id == "windows-system-speech"
+        )
+        self.last_selection: VoiceSelection | None = None
+        self._voices: tuple[SpeechVoice, ...] | None = None
+        self._default_voice = SpeechVoice("default", "auto")
+
+    async def list_voices(self) -> tuple[SpeechVoice, ...]:
+        if not self.capabilities.voice_enumeration:
+            return ()  # External eSpeak resolves its own installed language voices.
+        if self._voices is not None:
+            return self._voices
+        process = await asyncio.create_subprocess_exec(
+            *self.command,
+            "-ListVoices",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        self._processes.add(process)
+        try:
+            async with asyncio.timeout(min(self.timeout_s, 5.0)):
+                assert process.stdout is not None
+                raw = await _read_bounded(process.stdout, _MAX_ERROR_BYTES)
+                if await process.wait():
+                    raise TextToSpeechUnavailable("installed System.Speech voices unavailable")
+            inventory = json.loads(raw)
+            self._default_voice = SpeechVoice(**inventory["default"])
+            self._voices = tuple(SpeechVoice(**item) for item in inventory["voices"])
+            return self._voices
+        finally:
+            if process.returncode is None:
+                process.kill()
+            await process.wait()
+            self._processes.discard(process)
 
     async def synthesize(
         self,
@@ -64,7 +109,6 @@ class SystemTextToSpeech:
         language: str,
         cancellation: CancellationToken,
     ) -> AsyncIterator[AudioFrame]:
-        del voice, language  # System default voice/language; never interpolate into a shell.
         if self._closed:
             raise RuntimeError("TTS adapter is closed")
         normalized = " ".join(text.split())
@@ -73,7 +117,35 @@ class SystemTextToSpeech:
         if len(normalized) > _MAX_TEXT_CHARS:
             raise ValueError("TTS text exceeds 4000 characters")
         cancellation.raise_if_cancelled()
-        wave_bytes = await self._synthesize_wave(normalized, cancellation)
+        task = asyncio.current_task()
+        assert task is not None
+        loop = asyncio.get_running_loop()
+        remove = cancellation.add_callback(lambda _reason: loop.call_soon_threadsafe(task.cancel))
+        try:
+            voices = await self.list_voices()
+        except asyncio.CancelledError as error:
+            if cancellation.is_cancelled:
+                raise OperationCancelled(cancellation.cancellation_id, "cancelled") from error
+            raise
+        finally:
+            remove()
+        cancellation.raise_if_cancelled()
+        selection = select_voice(voices, language, voice, self._default_voice)
+        if self.backend_id in {"espeak", "espeak-ng"}:
+            selection = VoiceSelection(
+                language,
+                SpeechVoice(language, language),
+                "external backend resolves requested language",
+            )
+        wave_bytes = await self._synthesize_wave(normalized, cancellation, selection=selection)
+        self.last_selection = selection
+        log.info(
+            "TTS language=%s voice=%s locale=%s selection=%s",
+            language,
+            selection.voice.voice_id,
+            selection.voice.locale,
+            selection.reason,
+        )
         pcm = self._decode_wave(wave_bytes)
         samples_per_frame = self.audio_format.samples_for_ms(20)
         bytes_per_chunk = samples_per_frame * self.audio_format.bytes_per_frame
@@ -109,14 +181,24 @@ class SystemTextToSpeech:
         await asyncio.gather(*(process.wait() for process in processes), return_exceptions=True)
         self._processes.clear()
 
-    async def _synthesize_wave(self, text: str, cancellation: CancellationToken) -> bytes:
+    async def _synthesize_wave(
+        self, text: str, cancellation: CancellationToken, *, selection: VoiceSelection
+    ) -> bytes:
         output_path: Path | None = None
         command = self.command
+        input_data = text.encode("utf-8")
         if self.backend_id == "windows-system-speech":
             descriptor, raw_path = tempfile.mkstemp(prefix="sam-tts-", suffix=".wav")
             os.close(descriptor)
             output_path = Path(raw_path)
             command = (*command, "-OutputPath", str(output_path))
+            input_data = json.dumps({"text": text, "voice": selection.voice.voice_id}).encode()
+        elif self.backend_id in {"espeak", "espeak-ng"}:
+            language = selection.requested_language
+            if language != "auto":
+                if not re.fullmatch(r"[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{2,8})*", language):
+                    raise ValueError("invalid speech locale")
+                command = (*command, "-v", language.replace("_", "-"))
         try:
             process = await asyncio.create_subprocess_exec(
                 *command,
@@ -140,7 +222,7 @@ class SystemTextToSpeech:
         stderr_task: asyncio.Task[bytes] | None = None
         try:
             assert process.stdin is not None
-            process.stdin.write(text.encode("utf-8"))
+            process.stdin.write(input_data)
             await process.stdin.drain()
             process.stdin.close()
             await process.stdin.wait_closed()

@@ -36,6 +36,21 @@ becomes a candidate; duration/transcript heuristics decide whether to cancel or
 recover. Shared cancellation IDs reach model/TTS/tools. A delivery ledger records
 generated, queued, and spoken chunks. Real hardware AEC remains future work.
 
+TTS keeps the existing `synthesize(text, voice, language, cancellation)` PCM-frame
+iterator. Each frame carries format/sample-rate metadata; synthesis may buffer
+internally (System.Speech) or stream, while playback remains a separate adapter.
+Optional immutable `SpeechCapabilities`, `SpeechVoice`, `VoiceSelection` and
+`list_voices()` expose provider identity/selection without vendor concepts in core.
+Response-language detection runs locally off the event loop; short/ambiguous text
+uses confirmed STT or recent response/configured language. Installed Windows voices
+resolve exact locale, same language, then configured/system fallback. eSpeak
+receives a language selector and resolves installed voices externally.
+Network speech is currently refused by the runtime even when cloud LLM routing is
+enabled. A future network speech adapter requires separate explicit trusted
+opt-in and external credential configuration. Rich prosody/style can later extend
+adapter options when a real backend needs it; no vendor SDK or unused emotion
+schema is present. New adapters must retain cancellation and PCM-format contracts.
+
 At startup, bounded discovery checks explicit local configuration, Ollama's
 configured/default endpoint, LM Studio's conventional or CLI-reported local port,
 and an additional explicitly configured compatible endpoint. Selection uses that

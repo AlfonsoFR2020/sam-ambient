@@ -86,7 +86,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## References not reused
+## Response-language detection
+
+- `langdetect` 1.0.9: local response-language detection, including packaged language
+  profiles; Apache-2.0 per the distributed LICENSE and NOTICE (the package's MIT
+  metadata is inconsistent with those files). Copyright 2014–2015 Michal "Mimino"
+  Danilak; upstream language-detection Copyright 2010–2014 Cybozu Labs, Inc.
+  [LICENSE](https://github.com/Mimino666/langdetect/blob/master/LICENSE) /
+  [NOTICE](https://github.com/Mimino666/langdetect/blob/master/NOTICE).
+  Runtime dependency `six` 1.17.0 is MIT, Copyright 2010–2024 Benjamin Peterson
+  ([license](https://github.com/benjaminp/six/blob/main/LICENSE)). Verified against
+  upstream and installed distribution notices on 2026-09-08. These dependencies
+  retain their own distributed notices; no source is copied into Sam.
+
+## Architectural references (no source reuse)
 
 - Historical Zev (`https://github.com/marqbritt/zev`) was inspected at project
   bootstrap. Its repository states MIT, but no source was copied or adapted.

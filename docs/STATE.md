@@ -4,6 +4,13 @@ Updated: 2026-09-08
 
 ## MVP status
 
+- Unreleased TTS hardening: response-language evidence now reaches synthesis;
+  Windows enumerates installed voices and selects locale/language before fallback.
+  Existing cancellable PCM contract retained, optional discovery metadata added;
+  cloud speech remains disabled. 30 focused tests pass; silent live Windows WAV
+  synthesis passed for installed es-ES Helena and en-US David voices. No microphone
+  or speaker playback used; physical recognition/barge-in remain unvalidated.
+
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:

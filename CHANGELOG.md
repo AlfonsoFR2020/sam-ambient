@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Infer speech language from assistant responses, retaining context for ambiguous
+  short replies. Select installed Windows voices by locale/language with explicit
+  fallback diagnostics; pass requested languages to external eSpeak.
+- Preserve the cancellable PCM adapter boundary and expose optional voice and
+  synthesis-capability metadata. No cloud speech service is integrated.
+
 ## 0.1.2 (alpha) — 2026-09-08
 
 - Bootstrap installed local model services with bounded readiness/model loading;

@@ -283,6 +283,11 @@ class WhisperCppServerSTT:
             self._recent_language = detected
         return result
 
+    @property
+    def confirmed_language(self) -> str | None:
+        """Read-only supporting evidence; forced retries do not change it."""
+        return self._recent_language
+
     async def _request(
         self,
         wav_data: bytes,

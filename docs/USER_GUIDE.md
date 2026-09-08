@@ -16,6 +16,14 @@ are used; voice requires the external speech dependencies described in Getting
 started. Real speaker-mode recognition and interruption reliability remain under
 validation. Text mode remains useful when voice is unavailable.
 
+Speech follows the assistant response language where there is enough text to
+identify it; short ambiguous replies retain recent language context. Windows uses
+installed voices only: exact locale, same-language regional fallback, then a
+configured/system voice. Missing language voices may therefore use a different
+language voice; nothing is installed automatically. INFO logs report the requested
+language, selected voice/locale and fallback reason. eSpeak receives the requested
+language; no cloud TTS service is connected.
+
 Expand the provider/model line for selection reason and STT/TTS status, also
 shown in Controls. Successful local responses remember the provider/model in
 `<root>/.sam/state.db`. Explicit CLI options override this preference; stale
