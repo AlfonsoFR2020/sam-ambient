@@ -30,6 +30,17 @@ shown in Controls. Successful local responses remember the provider/model in
 preferences fall back deterministically. There is no model download or automatic
 cloud switch. Restart Sam after changing external services.
 
+## Configuration and readiness
+
+The supported TOML locations and precedence are documented in
+[Getting started](GETTING_STARTED.md); CLI options win over environment,
+workspace, user, and built-in values. Keep secrets out of TOML. Configuration is
+user intent, while `.sam/state.db` contains learned last-good selection and
+operational state. Run `sam doctor --root .` first when setup changes. READY means
+usable now, AVAILABLE means Sam can use or start an existing local component,
+and ACTION NEEDED identifies a concrete prerequisite. Voice failures may leave
+text conversation usable, which doctor reports as degraded rather than fatal.
+
 ## Controls and safety
 
 - **Stop speaking** requests cancellation of queued speech and playback.

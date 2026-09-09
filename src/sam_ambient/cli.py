@@ -533,7 +533,13 @@ def _print_doctor(report: dict[str, object], *, verbose: bool = False) -> None:
     )
     print(f"Audio devices: {len(audio.get('devices', [])) if audio.get('available') else 0}")
     print(f"STT: {'reachable' if stt['available'] else 'unavailable'} ({stt['detail']})")
+    print(f"  Assets: {stt.get('assets', {}).get('detail', 'not inspected')}")
     print(f"TTS: {'ready' if tts['available'] else 'unavailable'} ({tts['backend']})")
+    if tts.get("voices"):
+        print(
+            "  Voices: "
+            + ", ".join(f"{voice['id']} ({voice['locale']})" for voice in tts["voices"])
+        )
     print(
         f"Provider: {'healthy' if provider['available'] else 'unavailable'} "
         f"({provider['detail']}); models={len(provider['models'])}"

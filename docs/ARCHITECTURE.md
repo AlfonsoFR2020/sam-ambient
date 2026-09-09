@@ -28,6 +28,21 @@ stale events and coalesces high-frequency visualization updates. Text, approvals
 provider/model selection, and connection status stay secondary to the ambient
 field. Visual preferences remain local to the UI.
 
+## Configuration and readiness
+
+`SamSettings` is the validated, versioned user-intent boundary. Standard-library
+TOML loading merges safe defaults, per-user and workspace files, bounded `SAM_*`
+environment overrides, then options explicitly present on the CLI. The same
+resolved values feed supervisor launch specifications and direct runtime/doctor
+commands. Unknown fields fail closed. Credentials are adapter environment/service
+configuration, and learned last-good provider/model data remains operational
+SQLite state; neither is written into user TOML.
+
+Doctor probes existing adapters and produces bounded facts. A pure readiness
+classifier maps them to stable user/action categories, providing the shared seam
+for a future installer without giving installer logic separate dependency rules.
+It does not install applications or download models.
+
 ## Voice and providers
 
 Bounded PCM frames connect sounddevice, WebRTC VAD, the loopback whisper.cpp
@@ -96,3 +111,10 @@ failure enters safe mode. Supervisor self-update requires a later trusted bootst
 Models, STT, TTS, and platform capabilities are replaceable adapters. Native Tauri,
 MCP/deskwright capability providers, and delegated coding workers are future
 integrations. They are not implemented, and none owns supervisor/update authority.
+
+## Release assurance
+
+Local scripts remain authoritative for development. GitHub Actions repeats the
+deterministic Python and frontend quality gates on Windows/Linux, then builds the
+wheel/source distribution and installs the wheel for a CLI/metadata smoke check.
+Live provider/audio checks and publishing are deliberately human-controlled.

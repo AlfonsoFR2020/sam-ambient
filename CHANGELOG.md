@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Add a validated schema-versioned TOML configuration layer with defaults, user
+  and workspace files, environment overrides, and CLI precedence. Keep secrets
+  and learned runtime state separate.
+- Categorize `sam doctor` readiness, including platform/tooling, provider and
+  conversational-model state, Whisper assets/service, system voices, audio,
+  UI, workspace, and supervisor state without changing the machine.
+- Add deterministic Windows/Linux GitHub CI for Python/frontend quality plus
+  source/wheel build, version consistency, and installed-CLI smoke validation.
+
 - Infer speech language from assistant responses, retaining context for ambiguous
   short replies. Select installed Windows voices by locale/language with explicit
   fallback diagnostics; pass requested languages to external eSpeak.

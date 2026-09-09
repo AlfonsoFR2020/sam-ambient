@@ -113,6 +113,12 @@ Use **Controls → Text request** to talk to the selected model.
 See [Getting started](docs/GETTING_STARTED.md) for prerequisites and first launch,
 and the [User guide](docs/USER_GUIDE.md) for controls, status, and safe operation.
 
+Sam loads versioned TOML configuration in this order: built-in defaults,
+per-user configuration, `config/sam.toml` in the workspace, environment
+overrides, then explicit CLI options. Copy
+[`config/sam.example.toml`](config/sam.example.toml) to begin; runtime-learned
+last-good model state and credentials remain separate from this file.
+
 **Quit Sam** (or Ctrl+Q, with confirmation) stops the application; Ctrl+C works
 in the launch console. Escape still closes the controls/fullscreen view.
 
@@ -130,7 +136,8 @@ Startup waits at most 20 seconds per installed backend attempt. Running services
 are reused without restart or model eviction. Sam-owned Ollama children stop on
 exit; the shared LM Studio service remains running (Sam loads use a 10-minute
 idle TTL). Expand the provider status for the selection reason and STT/TTS status.
-`sam doctor` remains read-only. Restart Sam after externally changing services.
+`sam doctor` remains read-only and groups findings as READY, AVAILABLE, OPTIONAL,
+MISSING, DEGRADED, or ACTION NEEDED. Restart Sam after externally changing services.
 
 Voice input needs an audio device and a separately installed whisper.cpp
 server, defaulting to `http://127.0.0.1:8080`. Windows output uses System.Speech;
@@ -162,8 +169,9 @@ sam-ambient --root /path/to/workspace
 The wheel includes compiled UI assets, launchers, example configuration, and
 notices. No models or third-party speech runtimes are bundled.
 
-`config/sam.example.toml` documents the intended settings schema; 0.1.2 uses
-CLI options rather than loading that file.
+The release gate is also available locally through `scripts/test.*`,
+`scripts/package.*`, and `scripts/check_release.py`. GitHub CI runs the equivalent
+deterministic Python/frontend gates on Windows and Linux; releases remain manual.
 
 ## Limits and direction
 
@@ -172,8 +180,8 @@ STT is final-only. Native Tauri packaging and supervisor self-update are
 deferred. Windows guarantees direct-child termination, not full descendant
 containment. Local staged updates require trusted preparation and validation.
 
-Next: Linux audio/AEC validation, better Linux voices and saved configuration,
-then native packaging. MCP capability providers and delegated workers are
+Next: Linux audio/AEC validation, better Linux voices, and a seamless installer
+that reuses the supported configuration/readiness layer. MCP capability providers and delegated workers are
 future external adapters, not features of this release.
 
 Longer term, Sam's architecture is intended to support increasingly capable

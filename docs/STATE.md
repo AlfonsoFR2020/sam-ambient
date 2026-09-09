@@ -1,9 +1,23 @@
 # Sam implementation state
 
-Updated: 2026-09-08
+Updated: 2026-09-09
 
 ## MVP status
 
+- Productization backbone: schema-v1 TOML now configures actual supervisor/runtime
+  behavior with defaults -> user -> workspace -> environment -> explicit CLI
+  precedence. Unsupported keys/types fail early. Secrets and SQLite last-good
+  state stay separate. The standard-library implementation adds no dependency.
+- Doctor now categorizes runtime, uv, browser, writable root, local providers and
+  chat models, Whisper assets/service, system TTS voices, audio directions, UI,
+  and supervisor/security state. It is read-only and supplies shared structured
+  readiness data for a future installer. Current host: LM Studio installed/stopped;
+  Whisper assets available; Windows TTS, audio, UI, Python and root ready.
+- Cross-platform GitHub CI repeats Python/Ruff and frontend/Biome/type/build gates
+  on Windows/Linux, then builds wheel/sdist and smoke-installs the wheel. Version
+  consistency is checked locally; publishing remains explicitly manual. Final
+  local gate: 327 Python passed / 2 skipped and 45 frontend passed; Ruff, Biome,
+  typecheck, Vite build, distributions, metadata and installed CLI smoke pass.
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
   Existing cancellable PCM contract retained, optional discovery metadata added;
@@ -18,7 +32,6 @@ Updated: 2026-09-08
 - Read-only audit: system-default audio devices and Whisper assets available;
   Whisper/LM Studio stopped, Ollama absent. Bootstrap/preferences/filtering/owned
   cleanup pass controlled tests; no service manipulation or new live model claim.
-
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
@@ -167,22 +180,10 @@ Updated: 2026-09-08
 
 ## Known limitations / post-MVP priorities
 
-- Prior startup/UI gate: 75 Python / 45 frontend tests, lint/typecheck/build and
-  automated Quit/stopped-screen browser checks passed. Real stopped-provider loading
-  and physical conversation remain separate validation; no seamless installer.
-- STT readiness fix: assets were present, but localhost:8080 had no server;
-  CLI previously created only an HTTP client. Windows now probes `/health`, starts
-  existing `.sam/runtime/whisper-b4938/Release/whisper-server.exe` with
-  `.sam/models/ggml-base.bin` under the workspace root, and waits up to 8 s.
-  External/custom servers remain externally owned; missing/invalid assets name
-  expected paths and retain text mode. Owned service stops on normal closure.
-  25 focused tests and Ruff pass; real model-load/health/cleanup passed without
-  audio capture. Recognition quality and physical barge-in remain unvalidated.
-
 - First: validate Linux hardware end to end, tune physical barge-in latency and
   echo handling, and evaluate platform AEC plus streaming/partial STT.
-- Next: improve permissively distributable Linux voice quality and consume the
-  documented TOML settings schema (0.1.1 uses explicit CLI options).
+- Next: improve permissively distributable Linux voice quality and build a
+  seamless installer by reusing the configuration/readiness source of truth.
 - Then: implement native Tauri packaging (Rust/Cargo; Windows additionally
   needs MSVC), a trusted supervisor self-update bootstrap, and Windows Job
   Object descendant cleanup.

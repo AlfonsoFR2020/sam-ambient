@@ -64,6 +64,7 @@ def test_missing_config_uses_safe_defaults_and_explicit_missing_fails(tmp_path):
         ("schema_version = 2", "unsupported schema_version"),
         ('[provider]\npreference = "cloud-magic"', "provider.preference"),
         ("[voice]\npreferred_languages = []", "non-empty array"),
+        ('[voice]\npreferred_languages = ["en-US"]', "language codes"),
         ('[privacy]\nallow_cloud = "yes"', "must be a boolean"),
         ('[provider]\napi_key = "secret"', "provider.api_key"),
     ],

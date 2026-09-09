@@ -352,8 +352,7 @@ def _optional_string(value: Any, name: str) -> str | None:
 
 
 def _language(value: Any) -> str:
-    code = _string(value, "voice.preferred_languages item").replace("_", "-")
-    primary = code.split("-", 1)[0]
-    if not primary.isalpha() or len(primary) not in (2, 3):
+    code = _string(value, "voice.preferred_languages item").lower()
+    if not code.isalpha() or len(code) not in (2, 3):
         raise ConfigurationError("voice.preferred_languages items must be language codes")
     return code
