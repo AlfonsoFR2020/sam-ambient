@@ -31,6 +31,7 @@ from sam_ambient.adapters.stt import (
 from sam_ambient.adapters.tts import SystemTextToSpeech, TextToSpeechUnavailable
 from sam_ambient.adapters.ui.demo import run_demo_bridge
 from sam_ambient.adapters.vad import WebRtcVoiceActivityDetector
+from sam_ambient.configuration import ConfigurationError, configure_namespace
 from sam_ambient.core.providers import (
     DataBoundary,
     LLMProvider,
@@ -79,6 +80,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Sam development harness",
     )
     parser.add_argument("--version", action="version", version=f"Sam {__version__}")
+    parser.add_argument("--config", help="Explicit Sam TOML configuration file")
     subparsers = parser.add_subparsers(dest="command")
 
     chat = subparsers.add_parser("chat", help="Stream a text conversation")
@@ -105,7 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--port", type=int, default=8765, help="Loopback WebSocket port")
     runtime.add_argument(
         "--root",
-        required=True,
+        default=".",
         help="Authorized workspace root exposed as the 'workspace' capability root",
     )
     runtime.add_argument(
@@ -126,6 +128,13 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--no-voice", action="store_true", help="Disable microphone/VAD/STT")
     runtime.add_argument("--no-tts", action="store_true", help="Disable spoken output")
     runtime.add_argument("--stt-url", default=DEFAULT_WHISPER_CPP_URL)
+    runtime.add_argument(
+        "--preferred-languages",
+        type=lambda value: tuple(part.strip() for part in value.split(",") if part.strip()),
+        default=("en", "es"),
+        help="Comma-separated preferred STT languages",
+    )
+    runtime.add_argument("--tts-voice", default="default", help="Preferred system voice id")
 
     ui = subparsers.add_parser("ui", help="Serve the packaged ambient UI on loopback")
     ui.add_argument("--port", type=int, default=8766, help="Loopback HTTP port")
@@ -483,7 +492,9 @@ async def _serve_runtime(
     voice = None
     stt_status = "disabled by --no-voice"
     if not args.no_voice:
-        stt = WhisperCppServerSTT(base_url=args.stt_url)
+        stt = WhisperCppServerSTT(
+            base_url=args.stt_url, preferred_languages=args.preferred_languages
+        )
         try:
             await stt.ensure_ready(Path(args.root))
             stt_status = f"ready at {stt.base_url}"
@@ -523,6 +534,7 @@ async def _serve_runtime(
                 else None
             ),
             state_db=Path(args.state_db) if args.state_db else None,
+            tts_voice=args.tts_voice,
         ),
         voice=voice,
         tts=tts,
@@ -636,10 +648,15 @@ async def _dispatch(args: argparse.Namespace) -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
-    args = parser.parse_args(argv)
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    args = parser.parse_args(arguments)
     if args.command is None:
         parser.print_help()
         return 0
+    try:
+        configure_namespace(args, arguments)
+    except ConfigurationError as error:
+        parser.error(str(error))
     configure_logging(args)
     try:
         return asyncio.run(_dispatch(args))

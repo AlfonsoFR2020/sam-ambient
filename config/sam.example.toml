@@ -1,14 +1,24 @@
-[voice]
-mode = "balanced"
-input_device = "default"
-output_device = "default"
-stt_url = "http://127.0.0.1:8080"
-tts_backend = "system"
+# Copy this file to config/sam.toml for this checkout. See Getting Started for
+# the per-user location. API keys and other secrets do not belong in this file.
+schema_version = 1
 
-[llm]
-provider = "ollama"
-base_url = "http://127.0.0.1:11434"
-model = ""
+[application]
+root = "."
+open_ui = true
+
+[provider]
+preference = "auto" # auto, ollama, lm-studio, or openai-compatible
+# model = "your-conversational-model"
+# base_url = "http://127.0.0.1:1234/v1"
+# local_compatible_url = "http://127.0.0.1:1234/v1"
+# compatible_is_local = true
+
+[voice]
+stt_enabled = true
+stt_url = "http://127.0.0.1:8080"
+preferred_languages = ["en", "es"]
+tts_enabled = true
+tts_voice = "default"
 
 [privacy]
 allow_cloud_fallback = false
