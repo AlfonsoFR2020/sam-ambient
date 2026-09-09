@@ -8,6 +8,7 @@ from sam_ambient.adapters.stt.whisper_cpp import (
     SpeechRecognitionTimeout,
     SpeechRecognitionUnavailable,
     WhisperCppServerSTT,
+    local_asset_status,
     normalize_whisper_cpp_url,
 )
 
@@ -19,5 +20,6 @@ __all__ = [
     "SpeechRecognitionTimeout",
     "SpeechRecognitionUnavailable",
     "WhisperCppServerSTT",
+    "local_asset_status",
     "normalize_whisper_cpp_url",
 ]

@@ -7,6 +7,8 @@ import asyncio
 import json
 import logging
 import os
+import platform
+import shutil
 import sys
 from collections.abc import Callable, Sequence
 from importlib.resources import files
@@ -27,6 +29,7 @@ from sam_ambient.adapters.stt import (
     DEFAULT_WHISPER_CPP_URL,
     SpeechRecognitionError,
     WhisperCppServerSTT,
+    local_asset_status,
 )
 from sam_ambient.adapters.tts import SystemTextToSpeech, TextToSpeechUnavailable
 from sam_ambient.adapters.ui.demo import run_demo_bridge
@@ -41,6 +44,7 @@ from sam_ambient.core.providers import (
     ProviderError,
 )
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
+from sam_ambient.diagnostics import ReadinessLevel, classify_readiness
 from sam_ambient.lifecycle import parent_stop_event, serve_until_stop
 from sam_ambient.logging_config import add_logging_arguments, configure_logging, log_value
 from sam_ambient.runtime import RuntimeConfig, RuntimeVoiceAdapters, SamRuntime
@@ -301,7 +305,42 @@ async def run_models(args: argparse.Namespace) -> int:
 async def run_doctor(args: argparse.Namespace) -> int:
     provider, selected_model, discovery = await discover_provider(args)
     root, state_db = _doctor_paths(args)
-    report: dict[str, object] = {"sam_version": __version__, "authorized_roots": [str(root)]}
+    settings = args._sam_settings
+    report: dict[str, object] = {
+        "sam_version": __version__,
+        "platform": {
+            "system": platform.system(),
+            "release": platform.release(),
+            "architecture": platform.machine(),
+        },
+        "runtime": {
+            "compatible": sys.version_info >= (3, 12),
+            "python": platform.python_version(),
+            "uv": shutil.which("uv"),
+            "detail": (
+                f"Python {platform.python_version()} ({platform.system()} {platform.machine()})"
+            ),
+        },
+        "configuration": {
+            "schema_version": settings.schema_version,
+            "sources": [str(path) for path in settings.sources],
+            "detail": (
+                "Loaded " + ", ".join(str(path) for path in settings.sources)
+                if settings.sources
+                else "Built-in defaults active"
+            ),
+        },
+        "browser": {
+            "available": platform.system() == "Windows"
+            or bool(shutil.which("xdg-open") or shutil.which("open")),
+            "mode": "system browser",
+        },
+        "workspace": {
+            "path": str(root),
+            "writable": os.access(root, os.W_OK),
+        },
+        "authorized_roots": [str(root)],
+    }
     try:
         cancellation = CancellationToken()
         health = await provider.health(cancellation)
@@ -330,9 +369,20 @@ async def run_doctor(args: argparse.Namespace) -> int:
                 "devices": device_names[:32],
                 "truncated": len(device_names) > 32,
                 "default": default_devices,
+                "input_available": any(
+                    device.get("max_input_channels", 0) > 0 for device in devices
+                ),
+                "output_available": any(
+                    device.get("max_output_channels", 0) > 0 for device in devices
+                ),
             }
         except Exception as error:
-            report["audio"] = {"available": False, "detail": str(error)[:300]}
+            report["audio"] = {
+                "available": False,
+                "input_available": False,
+                "output_available": False,
+                "detail": str(error)[:300],
+            }
 
         tts_available = False
         tts_detail = "unavailable"
@@ -342,11 +392,21 @@ async def run_doctor(args: argparse.Namespace) -> int:
                 await tts.probe()
                 tts_available = True
                 tts_detail = tts.backend_id
+                voices = [
+                    {"id": voice.voice_id, "locale": voice.locale}
+                    for voice in await tts.list_voices()
+                ][:64]
             finally:
                 await tts.aclose()
         except Exception as error:
             tts_detail = str(error)[:300]
-        report["tts"] = {"available": tts_available, "backend": tts_detail}
+            voices = []
+        report["tts"] = {
+            "available": tts_available,
+            "backend": tts_detail,
+            "detail": tts_detail,
+            "voices": voices,
+        }
 
         try:
             parsed_stt = urlsplit(args.stt_url)
@@ -361,10 +421,13 @@ async def run_doctor(args: argparse.Namespace) -> int:
         except Exception as error:
             stt_available = False
             stt_detail = f"{type(error).__name__}: {error}"[:300]
+        assets = local_asset_status(root)
         report["stt"] = {
             "available": stt_available,
             "endpoint": args.stt_url,
             "detail": stt_detail,
+            "assets_available": assets["available"],
+            "assets": assets,
         }
 
         ui_index = files("sam_ambient").joinpath("static/index.html")
@@ -405,10 +468,22 @@ async def run_doctor(args: argparse.Namespace) -> int:
             report["supervisor"] = {"state": "not_started", "state_db": str(state_db)}
             report["updates"] = []
 
+        readiness = classify_readiness(report)
+        report["readiness"] = [item.to_dict() for item in readiness]
+        report["mode"] = (
+            "READY"
+            if all(
+                item.level is ReadinessLevel.READY
+                for item in readiness
+                if item.id in {"runtime", "model", "ui"}
+            )
+            else "DEGRADED"
+        )
+
         if args.json:
             print(json.dumps(report, indent=2, sort_keys=True, default=str))
         else:
-            _print_doctor(report)
+            _print_doctor(report, verbose=args.verbose)
         return 0 if health.available and bool(models) and ui_index.is_file() else 1
     finally:
         await provider.aclose()
@@ -422,7 +497,7 @@ def _doctor_paths(args: argparse.Namespace) -> tuple[Path, Path]:
     return root, state_db
 
 
-def _print_doctor(report: dict[str, object]) -> None:
+def _print_doctor(report: dict[str, object], *, verbose: bool = False) -> None:
     provider = report["provider"]
     audio = report["audio"]
     tts = report["tts"]
@@ -435,7 +510,15 @@ def _print_doctor(report: dict[str, object]) -> None:
     assert isinstance(stt, dict)
     assert isinstance(ui, dict)
     assert isinstance(active, dict)
-    print(f"Sam {report['sam_version']}")
+    print(f"Sam {report['sam_version']} - {report['mode']}")
+    for item in report["readiness"]:
+        print(f"[{item['level']:<13}] {item['id']}: {item['summary']}")
+        if item.get("action"):
+            print(f"                Next: {item['action']}")
+    if not verbose:
+        print("Use --verbose for component inventory; --json for machine-readable output.")
+        return
+    print("\nDetails")
     supervisor = report["supervisor"]
     assert isinstance(supervisor, dict)
     print(f"Supervisor: {supervisor.get('state', 'persisted component status below')}")

@@ -216,6 +216,7 @@ def configure_namespace(args: Any, argv: list[str], *, supervisor: bool = False)
     for name, value in assignments.items():
         if hasattr(args, name):
             setattr(args, name, value)
+    args._sam_settings = settings
     return settings
 
 
