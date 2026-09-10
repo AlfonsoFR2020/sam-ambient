@@ -11,12 +11,20 @@ Updated: 2026-09-10
   close requests the existing in-app Quit confirmation; only acknowledged
   trusted shutdown permits the window to close. Tauri exposes no filesystem,
   shell, model, voice, tool, supervisor, or policy command.
-- Native validation on this Windows host: frontend 46 tests, Biome, TypeScript,
-  and production build pass; Cargo metadata and rustfmt pass with user-local
-  Rust 1.98.1. WebView2 is present. Native compile/window/package validation is
-  blocked by the absent MSVC/Windows SDK linker (`link.exe`), which was not
-  installed. Release builds also deliberately require a separately packaged
-  sibling `sam-supervisor.exe`; browser mode remains the verified fallback.
+- Native validation on this Windows host: MSVC 19.51, linker 14.51, Windows SDK
+  10.0.26100, Rust 1.98.1 MSVC target, and WebView2 are present. Cargo check and
+  a Tauri debug build pass with output isolated outside Documents. Automated
+  smoke proved one native window, an established Tauri-to-core WebSocket,
+  duplicate-launch focus, intercepted window close, trusted Quit/revocation,
+  degraded-core operation, and clean restart. Frontend 46 tests/Biome/TypeScript/
+  Vite and three focused bridge tests pass.
+- The distributable boundary is deliberately incomplete: release mode accepts
+  only a fixed sibling `sam-supervisor.exe`, using a per-user application-data
+  root. That future self-contained companion must carry Python, Sam, dependencies,
+  notices, and configuration—but no AI models/runtimes—and preserve the current
+  readiness/shutdown contract. No freezer dependency, NSIS bundle, or end-user
+  installer was produced; Tauri bundling is disabled until the companion exists.
+  Browser mode remains the supported fallback.
 - Productization backbone: schema-v1 TOML now configures actual supervisor/runtime
   behavior with defaults -> user -> workspace -> environment -> explicit CLI
   precedence. Unsupported keys/types fail early. Secrets and SQLite last-good
@@ -112,7 +120,8 @@ Updated: 2026-09-10
   serves compiled assets with traversal rejection and a restrictive CSP; the
   UI uses protocol-v1 WebSocket transport to core port 8765 by default.
 - The Tauri 2 shell reuses this same UI/protocol and is not required for the
-  browser-packaged MVP. Linux native compilation remains unverified.
+  browser-packaged MVP. Windows CI now compile-checks the native crate. Linux
+  native compilation remains unverified.
 
 ## Tools and security
 
@@ -148,8 +157,9 @@ Updated: 2026-09-10
 ## Environment and live validation
 
 - Host: Windows development machine; primary deployment target remains Linux.
-- Python 3.12+, uv 0.9.26, bundled Node 24.19.0, and pnpm 11.19.0 are available.
-  No privileged/native toolchain installation was performed.
+- Python 3.12+, uv 0.9.26, bundled Node 24.19.0, pnpm 11.19.0, user-local
+  Rust 1.98.1, and the owner-installed Microsoft C++ Build Tools/SDK are available.
+  The compiler toolchain is development-only and is not a Sam runtime requirement.
 - Live checks passed for audio-device discovery (default input 1/output 4),
   Windows System.Speech synthesis and physical playback, supervised core/UI
   launch, static HTTP 200, and protocol `system.ready` over WebSocket.
@@ -198,8 +208,9 @@ Updated: 2026-09-10
   echo handling, and evaluate platform AEC plus streaming/partial STT.
 - Next: improve permissively distributable Linux voice quality and build a
   seamless installer by reusing the configuration/readiness source of truth.
-- Then: finish native Tauri packaging (Windows needs MSVC/SDK plus a packaged
-  Python supervisor companion), a trusted supervisor self-update bootstrap, and Windows Job
+- Then: build and license-review the self-contained Python supervisor companion,
+  declare it as a Tauri sidecar, validate an NSIS installer, add Linux native/package
+  validation, implement a trusted supervisor self-update bootstrap, and Windows Job
   Object descendant cleanup.
 - Later: owner-approved AT-SPI/native semantic desktop capabilities and external
   worker/MCP adapters. No desktop automation, autonomous coding, or agent-worker

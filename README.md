@@ -58,9 +58,9 @@ interfaces**, rather than on manually traversing fixed software structures.
 
 **Status:** 0.1.0 MVP complete; **0.1.2 alpha** improves conversational continuity,
 local voice/provider startup, diagnostics, and graceful exit. Primary deployment target: Linux.
-Windows development and system speech output are supported. An unreleased thin
-Tauri 2 shell is available for native-window development while the packaged
-browser UI remains the verified fallback.
+Windows development and system speech output are supported. The unreleased
+Tauri 2 shell is compiled and lifecycle-validated on Windows; the packaged
+browser UI remains the supported fallback until the Python companion is bundled.
 On `dev`, speech follows detected response language using installed Windows voices
 with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
 speech service or additional voice installation is performed automatically.
@@ -79,8 +79,10 @@ speech service or additional voice installation is performed automatically.
 
 ```mermaid
 flowchart TD
-    UI[Ambient browser UI] <--> Bridge[Local WebSocket protocol]
-    Bridge <--> Core[Sam core]
+    Tauri[Tauri native shell] --> React[React ambient UI]
+    Browser[Browser fallback / development shell] --> React
+    React <--> Bridge[Local WebSocket protocol]
+    Bridge <--> Core[Python Sam core]
     Core --> Voice[Voice and turn loop]
     Core --> Models[Model router]
     Core --> Policy[Capability policy and tools]
@@ -110,11 +112,13 @@ Sam starts the supervisor, core, and static UI, then opens
 The core bridge uses localhost port 8765. The browser can be closed and reopened
 independently.
 
-Native-shell development lives in `ui/src-tauri`: it owns one Sam window and
-one supervisor child while retaining the same React UI and loopback WebSocket
-protocol. It currently requires Rust plus the platform's Tauri build
-prerequisites; see [Getting started](docs/GETTING_STARTED.md). It is not yet the
-redistributable Sam installer.
+Native-shell development lives in `ui/src-tauri`. [Tauri 2](https://tauri.app/)
+supplies only Sam's native window, application lifecycle, identity, and future
+packaging boundary; React remains the UI and Python remains the supervisor/core.
+Rust, Cargo, MSVC, and the Windows SDK are build dependencies, not intended user
+requirements. Windows uses the installed WebView2 runtime. See
+[Getting started](docs/GETTING_STARTED.md); this is not yet the redistributable
+Sam installer because the self-contained Python companion is still separate.
 
 Use **Controls → Text request** to talk to the selected model.
 
@@ -184,7 +188,7 @@ deterministic Python/frontend gates on Windows and Linux; releases remain manual
 ## Limits and direction
 
 Physical echo cancellation and Linux end-to-end voice tuning remain pending;
-STT is final-only. Native Tauri packaging and supervisor self-update are
+STT is final-only. Native installer packaging and supervisor self-update are
 deferred. Windows guarantees direct-child termination, not full descendant
 containment. Local staged updates require trusted preparation and validation.
 

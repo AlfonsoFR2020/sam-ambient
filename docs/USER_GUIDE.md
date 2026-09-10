@@ -2,9 +2,11 @@
 
 Start with [Getting started](GETTING_STARTED.md). Launch from your workspace using
 `uv run sam-ambient`; the browser is only a client, not the application's owner.
-The unreleased Tauri development shell offers an owned native window with the
-same UI and protocol. Closing that window invokes the same in-app Quit
-confirmation; it does not bypass supervisor shutdown or capability revocation.
+The unreleased, Windows-validated Tauri development shell offers an owned native
+window with the same React UI and protocol. Closing that window invokes the same
+in-app Quit confirmation; it does not bypass supervisor shutdown or capability
+revocation. Browser mode remains the supported fallback while the self-contained
+Python companion and final installer are pending.
 
 ## Conversation and status
 

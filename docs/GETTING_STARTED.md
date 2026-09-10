@@ -19,9 +19,10 @@ assets. Rust, Tauri and Windows MSVC Build Tools are not required to run Sam.
 
 ### Native-window development (unreleased)
 
-The browser path above remains the supported packaged experience. Contributors
-can run the thin Tauri 2 shell with Node/pnpm, a Rust toolchain, WebView2 on
-Windows, and the normal Tauri platform compiler prerequisites:
+The browser path above remains the supported packaged experience. Tauri 2 is a
+thin native window/lifecycle layer around the same React UI and Python runtime;
+it does not replace Sam's core. Contributors can run it with Node/pnpm, Rust and
+Cargo, plus WebView2, MSVC C++ Build Tools, and a Windows SDK on Windows:
 
 ```sh
 cd ui
@@ -29,11 +30,17 @@ pnpm install --frozen-lockfile
 pnpm native:dev
 ```
 
-The shell starts one `sam-supervisor --no-ui` child and uses the existing
-loopback protocol. A second shell launch focuses the existing Sam window. Normal
-window close opens Sam's own Quit confirmation. A redistributable native package
-also needs a packaged Python supervisor companion; that installer step is not
-complete. Linux native compilation has not yet been validated.
+The shell starts one `sam-supervisor --no-ui` development child and uses the
+existing loopback protocol. A second shell launch focuses the existing Sam
+window. Normal window close opens Sam's own Quit confirmation. Windows compile,
+degraded-runtime connection, duplicate launch, close/Quit, and clean restart are
+validated. Rust/Cargo/MSVC/Windows SDK are developer dependencies only; users
+should not need them. WebView2 is the Windows runtime renderer.
+
+A redistributable native package still needs the self-contained Python
+`sam-supervisor.exe` companion described in Architecture. No AI models, model
+runtimes, or build tools will be bundled. Linux native compilation and package
+formats have not yet been validated.
 
 ## Start and send a first request
 

@@ -97,3 +97,19 @@ jobs:
           uv pip install --python .package-smoke/bin/python dist/*.whl
           .package-smoke/bin/sam --version
           .package-smoke/bin/python -c "import importlib.metadata as m; from sam_ambient import __version__; assert m.version('sam-ambient') == __version__"
+
+  native-shell:
+    name: Native shell compile (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure hosted Windows Rust toolchain
+        run: |
+          rustup default stable
+          rustup component add rustfmt
+
+      - name: Rust format and Tauri compile check
+        run: |
+          cargo fmt --manifest-path ui/src-tauri/Cargo.toml -- --check
+          cargo check --manifest-path ui/src-tauri/Cargo.toml --locked

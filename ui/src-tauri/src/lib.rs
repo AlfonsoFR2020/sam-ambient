@@ -1,5 +1,5 @@
 use std::{
-    env,
+    env, fs,
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     sync::{
@@ -30,9 +30,9 @@ fn repository_root() -> PathBuf {
         .to_path_buf()
 }
 
-fn launch_supervisor() -> Result<Child, String> {
-    let root = repository_root();
+fn launch_supervisor(app: &tauri::AppHandle) -> Result<Child, String> {
     let mut command = if cfg!(debug_assertions) {
+        let root = repository_root();
         let mut command = Command::new("uv");
         command.args([
             "run",
@@ -60,8 +60,14 @@ fn launch_supervisor() -> Result<Child, String> {
                 executable.display()
             ));
         }
+        let root = app
+            .path()
+            .app_local_data_dir()
+            .map_err(|error| format!("could not resolve Sam's local data directory: {error}"))?;
+        fs::create_dir_all(&root)
+            .map_err(|error| format!("could not prepare Sam's local data directory: {error}"))?;
         let mut command = Command::new(executable);
-        command.args(["--root", ".", "--no-ui"]);
+        command.arg("--root").arg(root).arg("--no-ui");
         command.current_dir(directory);
         command
     };
@@ -110,7 +116,7 @@ pub fn run() {
     let app = builder
         .invoke_handler(tauri::generate_handler![close_after_shutdown])
         .setup(|app| {
-            let child = launch_supervisor().map_err(std::io::Error::other)?;
+            let child = launch_supervisor(app.handle()).map_err(std::io::Error::other)?;
             app.manage(SupervisorChild(Mutex::new(Some(child))));
             Ok(())
         })

@@ -6,6 +6,9 @@ Original Sam contributions are covered by the Apache-2.0 license in LICENSE.
 Use Python 3.12+ and uv. Run `scripts/bootstrap.sh` (PowerShell:
 `scripts/bootstrap.ps1`). For frontend work, install Node 22.12+ and the pnpm
 version in `ui/package.json`, then run `pnpm install --frozen-lockfile` in `ui/`.
+Native-shell development additionally needs Rust/Cargo and Tauri's platform
+compiler prerequisites. Windows requires WebView2, MSVC C++ Build Tools, and a
+Windows SDK; Visual Studio IDE is not required.
 
 Before submitting a change:
 
@@ -36,6 +39,7 @@ databases, models, logs, or audio. Verify licenses before reuse; GPL/AGPL code
 requires explicit owner approval. Update the changelog and relevant user docs,
 and THIRD_PARTY.md for dependency/license changes. See AGENTS.md for project rules.
 The Windows/Linux GitHub workflow runs the same deterministic checks and a
-packaged-wheel smoke test. Changes to configuration keys must include validation
+packaged-wheel smoke test; a separate Windows job compile-checks the Tauri crate.
+Changes to configuration keys must include validation
 tests and update `config/sam.example.toml` plus the relevant setup/user docs.
 CI validates releases but never publishes them.

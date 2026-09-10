@@ -26,5 +26,5 @@
       "csp": "default-src 'self'; connect-src 'self' ws://127.0.0.1:8765; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
     }
   },
-  "bundle": { "active": true }
+  "bundle": { "active": false }
 }

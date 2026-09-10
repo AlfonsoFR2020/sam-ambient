@@ -6,8 +6,12 @@
   supervisor/core, and loopback protocol. A single-instance guard focuses the
   existing window; native close uses Sam's trusted confirmation/shutdown path.
 - Kept Tauri permissions limited to close-event coordination. Browser launch
-  remains the supported fallback while native packaging awaits the platform
-  compiler and a bundled Python supervisor companion.
+  remains the supported fallback. Windows compilation and automated lifecycle
+  smoke now pass, including the Tauri production origin, duplicate launch,
+  close/Quit, degraded-core connection, and clean restart.
+- Added a Windows CI compile check and documented the fixed sibling-companion
+  contract. A self-contained Python companion and end-user installer remain
+  deferred rather than shipping a development-checkout dependency.
 
 - Add a validated schema-versioned TOML configuration layer with defaults, user
   and workspace files, environment overrides, and CLI precedence. Keep secrets

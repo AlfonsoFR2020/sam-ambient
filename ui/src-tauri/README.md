@@ -8,5 +8,7 @@ Sam window instead of starting another runtime.
 Normal window close asks the existing React Quit confirmation to shut down the
 trusted Python runtime. Rust exposes only `close_after_shutdown`, which cannot
 launch tools or bypass Sam policy. Release builds expect a separately packaged
-`sam-supervisor[.exe]` beside the native executable; producing that companion is
-the remaining installer/bootstrap boundary.
+`sam-supervisor[.exe]` beside the native executable and pass it a per-user local
+data root. Producing and license-reviewing that self-contained companion is the
+remaining installer/bootstrap boundary. Tauri bundling stays disabled until the
+companion exists so a nonfunctional installer cannot be produced accidentally.

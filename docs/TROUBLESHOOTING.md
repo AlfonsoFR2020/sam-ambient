@@ -30,11 +30,17 @@ components. Merely closing the browser leaves Sam running.
 
 ## Native shell does not build
 
-The unreleased shell requires Rust and Tauri's platform compiler prerequisites.
-On Windows, `link.exe` missing from `pnpm native:dev` means the MSVC C++ build
-tools and Windows SDK are absent. Use the browser launch path meanwhile. Native
-release packaging additionally requires a packaged `sam-supervisor.exe`
-companion; the shell fails clearly instead of launching an arbitrary executable.
+The unreleased shell requires Rust/Cargo and Tauri's platform compiler
+prerequisites. On Windows, `link.exe` missing from `pnpm native:dev` means the
+MSVC C++ Build Tools or Windows SDK are absent, or the terminal has not picked up
+the completed installation. Open a fresh terminal or a Developer PowerShell and
+run `pnpm exec tauri info`; Visual Studio IDE is not required. WebView2 is the
+runtime renderer. These are build dependencies, not intended end-user
+prerequisites. Use the browser launch path meanwhile.
+
+Native release packaging additionally requires a self-contained sibling
+`sam-supervisor.exe`; the shell fails clearly instead of launching an arbitrary
+executable. That companion is intentionally not built yet.
 Confirmation is an in-app **Confirm quit / Cancel** dialog with keyboard focus;
 Escape cancels it. After acknowledgement, reconnection is disabled.
 

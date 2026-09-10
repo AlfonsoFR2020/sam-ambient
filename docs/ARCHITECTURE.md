@@ -120,9 +120,29 @@ Its single-instance boundary focuses an existing main window before setup can
 start another runtime. The only custom native command permits the stopped UI to
 close its own window; no filesystem, shell, or process capability is exposed.
 
-Release builds expect a separately packaged supervisor companion beside the
-native executable. Building that companion and installer is deliberately a
-later bootstrap boundary; the static browser UI remains independently usable.
+```mermaid
+flowchart TD
+    Tauri[Tauri native shell] --> React[React UI]
+    Browser[Browser fallback / development shell] --> React
+    React <--> WS[localhost WebSocket protocol-v1]
+    WS <--> Python[Python supervisor / core]
+    Python --> Models[local model adapters]
+    Python --> Voice[STT / TTS adapters]
+    Python --> Policy[policy / approved tools]
+```
+
+A release build expects a fixed `sam-supervisor.exe` sibling. That companion
+must be self-contained (Python runtime, Sam package, dependencies, notices, and
+configuration example), accept `--root PATH --no-ui`, preserve supervisor exit
+and readiness semantics, and require no repository checkout. Tauri passes a
+per-user application-data root, never the installed program directory. Models,
+Whisper weights, LM Studio, and Ollama remain external. The companion must be
+produced by a separately reviewed, reproducible freezer/build step and then
+declared as a Tauri sidecar; no freezing dependency or provisional binary is
+included yet. Until then, native development uses `uv`, and the static browser
+UI remains independently usable. Tauri bundling is explicitly disabled until
+that sidecar exists, preventing an apparently installable but nonfunctional
+package.
 MCP/deskwright capability providers and delegated coding workers are future
 integrations, and none may own supervisor/update authority.
 Future capability providers must remain behind Sam's registry, policy, approval,
