@@ -18,13 +18,13 @@ Updated: 2026-09-10
   duplicate-launch focus, intercepted window close, trusted Quit/revocation,
   degraded-core operation, and clean restart. Frontend 46 tests/Biome/TypeScript/
   Vite and three focused bridge tests pass.
-- The distributable boundary is deliberately incomplete: release mode accepts
-  only a fixed sibling `sam-supervisor.exe`, using a per-user application-data
-  root. That future self-contained companion must carry Python, Sam, dependencies,
-  notices, and configuration—but no AI models/runtimes—and preserve the current
-  readiness/shutdown contract. No freezer dependency, NSIS bundle, or end-user
-  installer was produced; Tauri bundling is disabled until the companion exists.
-  Browser mode remains the supported fallback.
+- Native companion checkpoint: a reproducible cx_Freeze 8.6.4 directory build
+  produces `sam-supervisor.exe`, `sam-core.exe`, and `sam-ui.exe` with CPython,
+  runtime dependencies, static resources, VC runtime files, and license notices.
+  Its no-audio/no-provider lifecycle smoke reaches the real WebSocket, performs
+  trusted Quit, and exits cleanly without a checkout, uv, or user Python. Inactive
+  ASIO wheel variants are excluded. Tauri bundling remains disabled until this
+  directory is wired into the native package; browser mode remains the fallback.
 - Productization backbone: schema-v1 TOML now configures actual supervisor/runtime
   behavior with defaults -> user -> workspace -> environment -> explicit CLI
   precedence. Unsupported keys/types fail early. Secrets and SQLite last-good

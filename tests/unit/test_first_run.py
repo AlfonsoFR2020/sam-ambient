@@ -11,7 +11,7 @@ from sam_ambient.core.protocol import ControlCommand, ControlCommandType
 from sam_ambient.runtime import RuntimeConfig, SamRuntime
 from sam_ambient.static_server import StaticUiServer
 from sam_ambient.supervisor.browser import BrowserHandoff
-from sam_ambient.supervisor.cli import _trusted_ui_command, build_parser
+from sam_ambient.supervisor.cli import _trusted_core_command, _trusted_ui_command, build_parser
 from sam_ambient.supervisor.process import SubprocessManagedProcess
 from tests.unit.test_cli import FakeProvider
 
@@ -39,6 +39,29 @@ def test_browser_waits_for_http_and_opens_once_even_after_restart(monkeypatch):
         await unopened.open_once()
 
     asyncio.run(scenario())
+
+
+def test_frozen_supervisor_uses_only_trusted_sibling_components(monkeypatch, tmp_path):
+    supervisor = tmp_path / "sam-supervisor.exe"
+    core = tmp_path / "sam-core.exe"
+    ui = tmp_path / "sam-ui.exe"
+    for executable in (supervisor, core, ui):
+        executable.touch()
+    monkeypatch.setattr("sam_ambient.supervisor.cli.sys.frozen", True, raising=False)
+    monkeypatch.setattr("sam_ambient.supervisor.cli.sys.executable", str(supervisor))
+    args = build_parser().parse_args(["--root", str(tmp_path)])
+
+    core_command = _trusted_core_command(args, tmp_path)
+    ui_command = _trusted_ui_command(args)
+
+    assert core_command[0] == str(core)
+    assert core_command[1:3] == ("--component-root", str(tmp_path / ".sam/components/sam-core"))
+    assert ui_command[0] == str(ui)
+    assert ui_command[1:3] == ("--port", "8766")
+
+    core.unlink()
+    with pytest.raises(OSError, match="packaged Sam component is missing"):
+        _trusted_core_command(args, tmp_path)
 
 
 def test_browser_failure_is_nonfatal_and_reports_manual_url(monkeypatch, caplog):

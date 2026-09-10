@@ -10,8 +10,11 @@
   smoke now pass, including the Tauri production origin, duplicate launch,
   close/Quit, degraded-core connection, and clean restart.
 - Added a Windows CI compile check and documented the fixed sibling-companion
-  contract. A self-contained Python companion and end-user installer remain
-  deferred rather than shipping a development-checkout dependency.
+  contract.
+- Added a reproducible, directory-based cx_Freeze companion containing the
+  Python supervisor/core/UI runtime, required resources, VC runtime, and license
+  notices. Its trusted lifecycle smoke runs without a checkout, uv, or user
+  Python; inactive ASIO wheel artifacts are excluded from redistribution.
 
 - Add a validated schema-versioned TOML configuration layer with defaults, user
   and workspace files, environment overrides, and CLI precedence. Keep secrets
