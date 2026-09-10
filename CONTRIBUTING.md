@@ -18,6 +18,10 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+# Native-shell changes additionally:
+pnpm exec tauri info
+cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+cargo check --manifest-path src-tauri/Cargo.toml
 # Before packaging or when changing version metadata:
 uv run python scripts/check_release.py
 ```

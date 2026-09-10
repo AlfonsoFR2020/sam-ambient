@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added a thin Tauri 2 native-window shell that reuses the React UI, Python
+  supervisor/core, and loopback protocol. A single-instance guard focuses the
+  existing window; native close uses Sam's trusted confirmation/shutdown path.
+- Kept Tauri permissions limited to close-event coordination. Browser launch
+  remains the supported fallback while native packaging awaits the platform
+  compiler and a bundled Python supervisor companion.
+
 - Add a validated schema-versioned TOML configuration layer with defaults, user
   and workspace files, environment overrides, and CLI precedence. Keep secrets
   and learned runtime state separate.

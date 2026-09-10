@@ -112,9 +112,19 @@ requires a later trusted bootstrap.
 
 ## External adapters
 
-Models, STT, TTS, and platform capabilities are replaceable adapters. Native Tauri,
-MCP/deskwright capability providers, and delegated coding workers are future
-integrations. They are not implemented, and none owns supervisor/update authority.
+Models, STT, TTS, and platform capabilities are replaceable adapters. The thin
+Tauri 2 shell owns only a native window, one trusted supervisor child, and close
+coordination. React continues to use protocol-v1 over the loopback WebSocket;
+model, voice, tools, policy, persistence, supervision, and updates remain Python.
+Its single-instance boundary focuses an existing main window before setup can
+start another runtime. The only custom native command permits the stopped UI to
+close its own window; no filesystem, shell, or process capability is exposed.
+
+Release builds expect a separately packaged supervisor companion beside the
+native executable. Building that companion and installer is deliberately a
+later bootstrap boundary; the static browser UI remains independently usable.
+MCP/deskwright capability providers and delegated coding workers are future
+integrations, and none may own supervisor/update authority.
 Future capability providers must remain behind Sam's registry, policy, approval,
 epoch/revocation, cancellation, bounding, and lifecycle-correlation checks; a
 provider's own tool catalogue never grants authority.

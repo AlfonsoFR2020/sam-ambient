@@ -58,7 +58,9 @@ interfaces**, rather than on manually traversing fixed software structures.
 
 **Status:** 0.1.0 MVP complete; **0.1.2 alpha** improves conversational continuity,
 local voice/provider startup, diagnostics, and graceful exit. Primary deployment target: Linux.
-Windows development and system speech output are supported.
+Windows development and system speech output are supported. An unreleased thin
+Tauri 2 shell is available for native-window development while the packaged
+browser UI remains the verified fallback.
 On `dev`, speech follows detected response language using installed Windows voices
 with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
 speech service or additional voice installation is performed automatically.
@@ -107,6 +109,12 @@ Sam starts the supervisor, core, and static UI, then opens
 **[http://127.0.0.1:8766](http://127.0.0.1:8766)** once the application is ready.
 The core bridge uses localhost port 8765. The browser can be closed and reopened
 independently.
+
+Native-shell development lives in `ui/src-tauri`: it owns one Sam window and
+one supervisor child while retaining the same React UI and loopback WebSocket
+protocol. It currently requires Rust plus the platform's Tauri build
+prerequisites; see [Getting started](docs/GETTING_STARTED.md). It is not yet the
+redistributable Sam installer.
 
 Use **Controls → Text request** to talk to the selected model.
 

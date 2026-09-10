@@ -4,6 +4,19 @@ Updated: 2026-09-10
 
 ## MVP status
 
+- Native-shell checkpoint: a thin Tauri 2 crate now owns one desktop window and
+  one structured `sam-supervisor --no-ui` child while React continues over the
+  existing loopback WebSocket. The desktop single-instance plugin focuses the
+  existing main window before setup, preventing a competing runtime. Native
+  close requests the existing in-app Quit confirmation; only acknowledged
+  trusted shutdown permits the window to close. Tauri exposes no filesystem,
+  shell, model, voice, tool, supervisor, or policy command.
+- Native validation on this Windows host: frontend 46 tests, Biome, TypeScript,
+  and production build pass; Cargo metadata and rustfmt pass with user-local
+  Rust 1.98.1. WebView2 is present. Native compile/window/package validation is
+  blocked by the absent MSVC/Windows SDK linker (`link.exe`), which was not
+  installed. Release builds also deliberately require a separately packaged
+  sibling `sam-supervisor.exe`; browser mode remains the verified fallback.
 - Productization backbone: schema-v1 TOML now configures actual supervisor/runtime
   behavior with defaults -> user -> workspace -> environment -> explicit CLI
   precedence. Unsupported keys/types fail early. Secrets and SQLite last-good
@@ -98,8 +111,8 @@ Updated: 2026-09-10
 - `sam-ui` is a small loopback-only static HTTP component on port 8766. It
   serves compiled assets with traversal rejection and a restrictive CSP; the
   UI uses protocol-v1 WebSocket transport to core port 8765 by default.
-- Native Tauri remains behind the existing injected transport boundary and is
-  not required for the browser-packaged MVP.
+- The Tauri 2 shell reuses this same UI/protocol and is not required for the
+  browser-packaged MVP. Linux native compilation remains unverified.
 
 ## Tools and security
 
@@ -185,8 +198,8 @@ Updated: 2026-09-10
   echo handling, and evaluate platform AEC plus streaming/partial STT.
 - Next: improve permissively distributable Linux voice quality and build a
   seamless installer by reusing the configuration/readiness source of truth.
-- Then: implement native Tauri packaging (Rust/Cargo; Windows additionally
-  needs MSVC), a trusted supervisor self-update bootstrap, and Windows Job
+- Then: finish native Tauri packaging (Windows needs MSVC/SDK plus a packaged
+  Python supervisor companion), a trusted supervisor self-update bootstrap, and Windows Job
   Object descendant cleanup.
 - Later: owner-approved AT-SPI/native semantic desktop capabilities and external
   worker/MCP adapters. No desktop automation, autonomous coding, or agent-worker

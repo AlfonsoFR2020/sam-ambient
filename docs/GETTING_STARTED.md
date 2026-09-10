@@ -17,6 +17,24 @@ seamless installer yet. Install prerequisites yourself; Sam downloads no models.
 Node/pnpm is needed only to rebuild the frontend; the checkout includes compiled
 assets. Rust, Tauri and Windows MSVC Build Tools are not required to run Sam.
 
+### Native-window development (unreleased)
+
+The browser path above remains the supported packaged experience. Contributors
+can run the thin Tauri 2 shell with Node/pnpm, a Rust toolchain, WebView2 on
+Windows, and the normal Tauri platform compiler prerequisites:
+
+```sh
+cd ui
+pnpm install --frozen-lockfile
+pnpm native:dev
+```
+
+The shell starts one `sam-supervisor --no-ui` child and uses the existing
+loopback protocol. A second shell launch focuses the existing Sam window. Normal
+window close opens Sam's own Quit confirmation. A redistributable native package
+also needs a packaged Python supervisor companion; that installer step is not
+complete. Linux native compilation has not yet been validated.
+
 ## Start and send a first request
 
 From the repository directory:

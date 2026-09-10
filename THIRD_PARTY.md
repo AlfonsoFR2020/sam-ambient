@@ -39,6 +39,9 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | Node.js | 24.19.0 (bundled development runtime) | MIT and bundled component notices | https://nodejs.org/ | Frontend development runtime | External developer tool | Retain upstream notices if redistributed |
 | pnpm | 11.19.0 | MIT | https://pnpm.io/ | Lockfile-based frontend package manager | External developer tool | None |
 | React / React DOM | 19.1.1 | MIT | https://react.dev/ | Ambient UI rendering | Frontend runtime dependency | Retain MIT notice |
+| Tauri / tauri-build | 2.11.5 / 2.6.3 | Apache-2.0 OR MIT | https://github.com/tauri-apps/tauri | Thin native window and build boundary | Rust native-shell dependencies; no Sam policy or AI logic | Retain selected upstream notices when distributing native binaries |
+| Tauri single-instance plugin | 2.4.4 | Apache-2.0 OR MIT | https://github.com/tauri-apps/plugins-workspace | Focus the existing native Sam window before another runtime starts | Rust native-shell dependency | Retain selected upstream notices |
+| @tauri-apps/api / CLI | 2.11.1 / 2.11.4 | Apache-2.0 OR MIT | https://github.com/tauri-apps/tauri | Fixed close coordination and native development/build tooling | Frontend runtime / development dependencies | Retain selected upstream notices when redistributed |
 | Vite / React plugin | 7.1.5 / 5.0.2 | MIT | https://vite.dev/ | Frontend development and production build | Development dependencies | Retain MIT notices |
 | TypeScript | 5.9.2 | Apache-2.0 | https://www.typescriptlang.org/ | Typed frontend compilation | Development dependency | Retain Apache-2.0 notice |
 | Vitest | 3.2.4 | MIT | https://vitest.dev/ | Deterministic frontend tests | Development dependency | Retain MIT notice |

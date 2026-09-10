@@ -16,6 +16,7 @@ import {
   DEFAULT_VISUAL_PREFERENCES,
 } from "./controls/model";
 import { DemoTransport } from "./demo/scenarios";
+import { isNativeShell, nativeShellRuntime } from "./native/runtime";
 import type { UiState } from "./protocol/types";
 import { QuitDialog, ShutdownStatus } from "./QuitDialog";
 import { RuntimeStatus } from "./RuntimeStatus";
@@ -152,6 +153,31 @@ export default function App() {
     client.start();
     return () => client.stop();
   }, [client]);
+
+  useEffect(() => {
+    if (!isNativeShell()) return;
+    let active = true;
+    let unlisten: (() => void) | undefined;
+    void nativeShellRuntime
+      .onCloseRequested(() => setQuitConfirmation(true))
+      .then((dispose) => {
+        if (active) unlisten = dispose;
+        else dispose();
+      })
+      .catch(() => setCommandError("Native close coordination is unavailable."));
+    return () => {
+      active = false;
+      unlisten?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (state.applicationStopped && isNativeShell()) {
+      void nativeShellRuntime
+        .closeAfterShutdown()
+        .catch(() => setCommandError("Sam stopped, but its native window could not close."));
+    }
+  }, [state.applicationStopped]);
 
   const applyAction = useCallback(
     (action: ControlAction) => {

@@ -27,6 +27,14 @@ required to run the compiled UI. Keep the default 8765/8766 ports for the packag
 Quit through **Quit Sam** or Ctrl+Q; confirm once. The page shows that Sam has
 stopped and can be closed. Ctrl+C in the launch console also stops the managed
 components. Merely closing the browser leaves Sam running.
+
+## Native shell does not build
+
+The unreleased shell requires Rust and Tauri's platform compiler prerequisites.
+On Windows, `link.exe` missing from `pnpm native:dev` means the MSVC C++ build
+tools and Windows SDK are absent. Use the browser launch path meanwhile. Native
+release packaging additionally requires a packaged `sam-supervisor.exe`
+companion; the shell fails clearly instead of launching an arbitrary executable.
 Confirmation is an in-app **Confirm quit / Cancel** dialog with keyboard focus;
 Escape cancels it. After acknowledgement, reconnection is disabled.
 
