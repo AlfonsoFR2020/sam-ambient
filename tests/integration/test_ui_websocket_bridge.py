@@ -116,3 +116,24 @@ def test_websocket_bridge_rejects_protocol_mismatch_and_remote_binding() -> None
             raise AssertionError("bridge accepted a remote bind address")
 
     asyncio.run(scenario())
+
+
+def test_websocket_bridge_accepts_tauri_windows_origin() -> None:
+    async def scenario() -> None:
+        events = EventBus()
+        dispatcher = ControlDispatcher(CoreControlBindings(noop_enabled, noop_enabled, noop_cancel))
+        bridge = WebSocketCoreBridge(events, dispatcher, port=0)
+        await bridge.start()
+        try:
+            async with connect(
+                f"ws://127.0.0.1:{bridge.port}",
+                origin="http://tauri.localhost",
+                subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
+                proxy=None,
+            ):
+                assert bridge.connected.is_set()
+        finally:
+            await bridge.close()
+            await events.close()
+
+    asyncio.run(scenario())

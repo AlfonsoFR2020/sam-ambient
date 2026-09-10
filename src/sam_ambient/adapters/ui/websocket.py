@@ -26,6 +26,7 @@ DEFAULT_ALLOWED_ORIGINS: tuple[str, ...] = (
     "http://localhost:1420",
     "http://127.0.0.1:8766",
     "http://localhost:8766",
+    "http://tauri.localhost",
     "tauri://localhost",
 )
 
