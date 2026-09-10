@@ -7,7 +7,7 @@ import json
 import logging
 import time
 from collections import OrderedDict
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -403,7 +403,11 @@ def _bounded_arguments(arguments: Mapping[str, Any]) -> dict[str, Any]:
             summary[name] = f"<{len(value)} characters>"
         elif isinstance(value, str):
             summary[name] = value if len(value) <= 160 else f"{value[:157]}..."
-        elif isinstance(value, list) and all(isinstance(item, str) for item in value):
+        elif (
+            isinstance(value, Sequence)
+            and not isinstance(value, str)
+            and all(isinstance(item, str) for item in value)
+        ):
             summary[name] = [item if len(item) <= 80 else f"{item[:77]}..." for item in value[:8]]
             if len(value) > 8:
                 summary[f"{name}_truncated"] = True
@@ -448,7 +452,7 @@ def _approval_summary(invocation: ToolInvocation) -> str:
     if invocation.tool_id == "process.run":
         executable = str(arguments.get("executable", "?"))
         raw_args = arguments.get("args", ())
-        argv = raw_args if isinstance(raw_args, list) else ()
+        argv = raw_args if isinstance(raw_args, (list, tuple)) else ()
         preview = " ".join(
             json.dumps(item if len(item) <= 80 else f"{item[:77]}...")
             for item in argv[:6]

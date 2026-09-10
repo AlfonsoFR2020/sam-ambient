@@ -120,6 +120,7 @@ class UpdateTransaction:
     last_known_good_version: str | None = None
     candidate_path: str | None = None
     artifact_hash: str | None = None
+    previous_artifact_hash: str | None = None
     activation_target: str | None = None
     activation_time_ms: int | None = None
     health_result: str | None = None

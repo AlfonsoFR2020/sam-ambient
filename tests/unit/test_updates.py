@@ -292,6 +292,64 @@ def test_success_observes_before_commit_and_advances_security_epoch(tmp_path: Pa
     asyncio.run(scenario())
 
 
+def test_candidate_mutation_during_observation_rolls_back_instead_of_promoting(
+    tmp_path: Path,
+) -> None:
+    component, updates, supervisor = setup_component(tmp_path)
+
+    class MutatingRuntime(FakeRuntime):
+        async def restart_and_observe(self, component_id, active_path, observation_s):
+            self.calls.append((component_id, active_path, observation_s))
+            if active_path.name == "2.0":
+                (active_path / "payload.txt").write_text("mutated after start", encoding="utf-8")
+            return self.observations.pop(0)
+
+    runtime = MutatingRuntime(
+        HealthObservation(HealthState.HEALTHY, True, "candidate appeared stable"),
+        HealthObservation(HealthState.HEALTHY, True, "known good stable"),
+    )
+    manager = coordinator(component, updates, supervisor, runtime)
+
+    async def scenario() -> None:
+        transaction = await manager.prepare(request())
+        result = await manager.activate(transaction.update_tx_id)
+
+        assert result.state is UpdateState.ROLLED_BACK
+        assert result.error == "candidate artifact changed during health observation"
+        assert VersionLayout(component).active()["version"] == "1.0"
+        assert updates.component("sam-core").last_known_good_version == "1.0"
+        assert [call[1].name for call in runtime.calls] == ["2.0", "1.0"]
+
+    asyncio.run(scenario())
+
+
+def test_mutated_rollback_target_fails_closed_into_safe_mode(tmp_path: Path) -> None:
+    component, updates, supervisor = setup_component(tmp_path)
+
+    class MutatingRuntime(FakeRuntime):
+        async def restart_and_observe(self, component_id, active_path, observation_s):
+            self.calls.append((component_id, active_path, observation_s))
+            (component.component_root / "versions/1.0/payload.txt").write_text(
+                "tampered known good", encoding="utf-8"
+            )
+            return self.observations.pop(0)
+
+    runtime = MutatingRuntime(HealthObservation(HealthState.UNHEALTHY, False, "failed"))
+    manager = coordinator(component, updates, supervisor, runtime)
+
+    async def scenario() -> None:
+        transaction = await manager.prepare(request())
+        result = await manager.activate(transaction.update_tx_id)
+
+        assert result.state is UpdateState.FAILED
+        assert "trusted hash" in (result.error or "")
+        assert supervisor.security_state().safe_mode is True
+        assert supervisor.security_state().capabilities_revoked is True
+        assert len(runtime.calls) == 1
+
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize(
     "candidate_health",
     [HealthState.UNHEALTHY, HealthState.CRASH_LOOP, HealthState.STOPPED],

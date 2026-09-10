@@ -94,7 +94,9 @@ side effects. Runtime code validates scope and invocation-specific approvals.
 Authorized paths reject traversal and resolved symlink/junction escapes.
 Bounded process argv uses `shell=False`; execution still has owner OS permissions.
 Global revoke advances the authority epoch, invalidates approvals/leases, and
-cancels compatible work. The model cannot authorize itself or restore authority.
+cancels compatible work. Tool schemas and invocation arguments are recursively
+immutable after trusted construction. The model cannot authorize itself or restore
+authority.
 
 ## Persistence and updates
 
@@ -104,13 +106,18 @@ Versioned artifacts remain separate from live code; trusted validation precedes
 atomic `active.json` replacement. The stable launcher resolves and re-hashes the
 active core's fixed entry point on each restart. Candidates become last-known-good
 only after health observation. Failure restores the previous version; double
-failure enters safe mode. Supervisor self-update requires a later trusted bootstrap.
+failure enters safe mode. Candidate content is re-hashed after observation and the
+rollback target must retain its persisted trusted hash. Supervisor self-update
+requires a later trusted bootstrap.
 
 ## External adapters
 
 Models, STT, TTS, and platform capabilities are replaceable adapters. Native Tauri,
 MCP/deskwright capability providers, and delegated coding workers are future
 integrations. They are not implemented, and none owns supervisor/update authority.
+Future capability providers must remain behind Sam's registry, policy, approval,
+epoch/revocation, cancellation, bounding, and lifecycle-correlation checks; a
+provider's own tool catalogue never grants authority.
 
 ## Release assurance
 

@@ -79,7 +79,7 @@ def _validate_value(schema: Mapping[str, Any], value: Any, path: str) -> None:
         if not isinstance(properties, Mapping):
             raise RuntimeError("invalid registered tool schema")
         required = schema.get("required", ())
-        if not isinstance(required, list):
+        if not isinstance(required, (list, tuple)):
             raise RuntimeError("invalid registered tool schema")
         missing = [name for name in required if name not in value]
         if missing:
@@ -105,7 +105,7 @@ def _validate_value(schema: Mapping[str, Any], value: Any, path: str) -> None:
         if isinstance(maximum, int) and len(value) > maximum:
             raise MalformedToolArguments(f"{path} is too long")
         enum = schema.get("enum")
-        if isinstance(enum, list) and value not in enum:
+        if isinstance(enum, (list, tuple)) and value not in enum:
             raise MalformedToolArguments(f"{path} has an unsupported value")
         return
     if expected == "integer":
@@ -123,7 +123,7 @@ def _validate_value(schema: Mapping[str, Any], value: Any, path: str) -> None:
             raise MalformedToolArguments(f"{path} must be a boolean")
         return
     if expected == "array":
-        if not isinstance(value, list):
+        if not isinstance(value, (list, tuple)):
             raise MalformedToolArguments(f"{path} must be an array")
         maximum = schema.get("maxItems")
         if isinstance(maximum, int) and len(value) > maximum:

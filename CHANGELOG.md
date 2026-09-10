@@ -10,6 +10,10 @@
   UI, workspace, and supervisor state without changing the machine.
 - Add deterministic Windows/Linux GitHub CI for Python/frontend quality plus
   source/wheel build, version consistency, and installed-CLI smoke validation.
+- Deep-freeze registered tool schemas and invocation arguments so nested mutable
+  model metadata cannot alter trusted validation or capability identity.
+- Re-hash candidates after health observation and verify the persisted rollback
+  hash; mutation rolls back or fails closed rather than becoming known-good.
 
 - Infer speech language from assistant responses, retaining context for ambiguous
   short replies. Select installed Windows voices by locale/language with explicit

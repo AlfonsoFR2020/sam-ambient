@@ -185,6 +185,7 @@ class UpdateCoordinator:
             current_version=current.active_version,
             previous_version=current.active_version,
             last_known_good_version=current.last_known_good_version,
+            previous_artifact_hash=current.active_hash,
             activation_target=str(VersionLayout(component).active_pointer),
             updated_at_ms=self.clock.wall_time_ms(),
         )
@@ -276,6 +277,15 @@ class UpdateCoordinator:
             return await self._rollback(transaction, previous, layout)
         transaction.health_result = f"{observation.state}:{observation.detail}"[:500]
         if observation.accepted:
+            try:
+                observed = layout.artifact(candidate.version)
+                unchanged = observed.artifact_hash == transaction.artifact_hash
+            except (OSError, UpdateError):
+                unchanged = False
+            if not unchanged:
+                transaction.error = "candidate artifact changed during health observation"
+                self.update_store.save_transaction(transaction)
+                return await self._rollback(transaction, previous, layout)
             self.update_store.save_component(
                 ComponentVersionState(
                     previous.component_id,
@@ -336,6 +346,11 @@ class UpdateCoordinator:
         try:
             rollback_version = transaction.previous_version or version_state.last_known_good_version
             rollback = layout.artifact(rollback_version)
+            if (
+                transaction.previous_artifact_hash is not None
+                and rollback.artifact_hash != transaction.previous_artifact_hash
+            ):
+                raise UpdateError("rollback artifact no longer matches its trusted hash")
             await self._revoke(f"update:{transaction.update_tx_id}:rollback")
             await asyncio.to_thread(layout.activate, rollback)
             self.update_store.save_component(

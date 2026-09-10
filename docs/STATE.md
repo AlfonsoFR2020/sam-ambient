@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-09
+Updated: 2026-09-10
 
 ## MVP status
 
@@ -16,12 +16,12 @@ Updated: 2026-09-09
 - Cross-platform GitHub CI repeats Python/Ruff and frontend/Biome/type/build gates
   on Windows/Linux, then builds wheel/sdist and smoke-installs the wheel. Version
   consistency is checked locally; publishing remains explicitly manual. Final
-  local gate: 327 Python passed / 2 skipped and 45 frontend passed; Ruff, Biome,
+  local gate: 331 Python passed / 2 skipped and 45 frontend passed; Ruff, Biome,
   typecheck, Vite build, distributions, metadata and installed CLI smoke pass.
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
-  Existing cancellable PCM contract retained, optional discovery metadata added;
-  cloud speech remains disabled. Silent live Windows WAV
+  Existing cancellable PCM contract retained; cloud speech remains disabled.
+  Silent live Windows WAV
   synthesis passed for installed es-ES Helena and en-US David voices. No microphone
   or speaker playback used; physical recognition/barge-in remain unvalidated.
 - Hardening gate: 306 Python tests pass, two existing skips; Ruff/format pass.
@@ -111,7 +111,8 @@ Updated: 2026-09-09
   atomic. Process output, time, cwd, argv, and environment are bounded.
 - Approval is invocation-specific and separate from capability authority.
   Epoch-based global revoke invalidates leases/pending approvals, blocks new
-  work, and cancels compatible active work; the model cannot restore authority.
+  work, and cancels compatible active work; nested schemas/arguments are immutable
+  after construction and the model cannot restore authority.
 
 ## Resilience and updates
 
@@ -125,8 +126,8 @@ Updated: 2026-09-09
 - Phase 8 stages contained local artifacts in version directories, verifies
   identity/provenance/SHA-256, runs bounded structured validation, atomically
   replaces `active.json`, observes Phase 7 health, commits last-known-good only
-  after stability, and automatically rolls back or enters safe mode on double
-  failure.
+  after stability plus a second hash check, and automatically rolls back. A changed
+  rollback artifact fails closed into safe mode rather than executing.
 - The stable core launcher re-reads and re-hashes `active.json` on every restart
   and executes only a contained fixed `sam_core.py` entry point. An absent
   pointer uses the installed package; an invalid pointer fails closed.

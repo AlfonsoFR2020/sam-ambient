@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Any
 
 from sam_ambient.core.protocol import ProtocolEvent
@@ -105,6 +106,32 @@ def test_revoked_authority_blocks_new_tool_starts() -> None:
         assert events[-1].type == "tool.denied"
 
     asyncio.run(scenario())
+
+
+def test_nested_request_and_descriptor_metadata_cannot_be_mutated_after_validation() -> None:
+    source_args = ["before"]
+    request = invocation("immutable", args=source_args)
+    source_args.append("after")
+
+    assert request.arguments["args"] == ("before",)
+    assert isinstance(request.arguments, MappingProxyType)
+    try:
+        request.arguments["args"].append("model mutation")
+    except AttributeError:
+        pass
+    else:  # pragma: no cover - explicit security assertion
+        raise AssertionError("nested invocation arguments must be immutable")
+
+    registered = descriptor(allow_restore_metadata=True)
+    properties = registered.input_schema["properties"]
+    assert isinstance(properties, MappingProxyType)
+    try:
+        properties["trusted"]["type"] = "number"
+    except TypeError:
+        pass
+    else:  # pragma: no cover - explicit security assertion
+        raise AssertionError("nested registered schemas must be immutable")
+    assert registered.provider_schema().parameters["properties"]["trusted"] == {"type": "boolean"}
 
 
 def test_revocation_invalidates_old_leases_across_trusted_restoration() -> None:
