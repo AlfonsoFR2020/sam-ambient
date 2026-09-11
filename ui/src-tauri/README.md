@@ -7,8 +7,17 @@ Sam window instead of starting another runtime.
 
 Normal window close asks the existing React Quit confirmation to shut down the
 trusted Python runtime. Rust exposes only `close_after_shutdown`, which cannot
-launch tools or bypass Sam policy. Release builds expect a separately packaged
-`sam-supervisor[.exe]` beside the native executable and pass it a per-user local
-data root. Producing and license-reviewing that self-contained companion is the
-remaining installer/bootstrap boundary. Tauri bundling stays disabled until the
-companion exists so a nonfunctional installer cannot be produced accidentally.
+launch tools or bypass Sam policy. Release builds resolve the fixed
+`companion/sam-supervisor.exe` from Tauri resources and pass it a per-user local
+data root. The cx_Freeze directory contains CPython, Sam, dependencies, static
+resources, VC runtime files, and notices; it contains no provider runtime, model,
+or Whisper weights.
+
+Build the Windows per-user NSIS package from the repository root with
+`scripts/package_native.ps1 -BuildRoot PATH -AllowUnsignedDevelopmentBuild`,
+where `PATH` is a unique directory outside the checkout created for that
+invocation. The explicit flag marks output as non-publishable: Norton reported
+`IDP.Generic` on the unsigned cx_Freeze launcher, so antivirus review and trusted
+code signing are release gates. Rust, Cargo, MSVC, Windows SDK,
+Python, uv, and cx_Freeze are build requirements only. Installed Sam uses system
+WebView2. Browser mode remains the development/fallback shell.

@@ -15,6 +15,16 @@
   Python supervisor/core/UI runtime, required resources, VC runtime, and license
   notices. Its trusted lifecycle smoke runs without a checkout, uv, or user
   Python; inactive ASIO wheel artifacts are excluded from redistribution.
+- Bundled that companion as a fixed Tauri resource and enabled reproducible,
+  per-user NSIS assembly. Automated Windows install, native protocol/Quit, and
+  uninstall validation passes without developer Python or repository paths;
+  provider runtimes, models, and Whisper weights remain external.
+- Extended hosted Windows CI to build and execute the controlled companion
+  lifecycle smoke, then assemble the native package. Publication and prerequisite
+  acquisition remain human-controlled.
+- Recorded a Norton `IDP.Generic` detection on the fresh unsigned cx_Freeze
+  supervisor. Native output is now explicitly development-only; local executable
+  smoke is paused on the affected host while hosted Windows CI retains it.
 
 - Add a validated schema-versioned TOML configuration layer with defaults, user
   and workspace files, environment overrides, and CLI precedence. Keep secrets

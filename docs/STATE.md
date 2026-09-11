@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-10
+Updated: 2026-09-11
 
 ## MVP status
 
@@ -18,13 +18,19 @@ Updated: 2026-09-10
   duplicate-launch focus, intercepted window close, trusted Quit/revocation,
   degraded-core operation, and clean restart. Frontend 46 tests/Biome/TypeScript/
   Vite and three focused bridge tests pass.
-- Native companion checkpoint: a reproducible cx_Freeze 8.6.4 directory build
+- Native package checkpoint: a reproducible cx_Freeze 8.6.4 directory build
   produces `sam-supervisor.exe`, `sam-core.exe`, and `sam-ui.exe` with CPython,
   runtime dependencies, static resources, VC runtime files, and license notices.
   Its no-audio/no-provider lifecycle smoke reaches the real WebSocket, performs
   trusted Quit, and exits cleanly without a checkout, uv, or user Python. Inactive
-  ASIO wheel variants are excluded. Tauri bundling remains disabled until this
-  directory is wired into the native package; browser mode remains the fallback.
+  ASIO wheel variants are excluded. Tauri resolves only the fixed companion from
+  packaged resources. A 15.3 MB per-user NSIS installer builds reproducibly;
+  isolated install, native protocol/Quit, and uninstall passed before Norton
+  flagged a subsequent unsigned `sam-supervisor.exe` as `IDP.Generic`. The exact
+  owned process was stopped and no exclusion/bypass used. Native distribution is
+  blocked on antivirus review and trusted signing; browser mode remains supported.
+  Flagged SHA-256: `2DF74F29E7EBA9A4E8EC855149BF3FDC196727BFE378FC839438893FE00B6C6D`;
+  Norton removed the supervisor/core launchers after the owned process stopped.
 - Productization backbone: schema-v1 TOML now configures actual supervisor/runtime
   behavior with defaults -> user -> workspace -> environment -> explicit CLI
   precedence. Unsupported keys/types fail early. Secrets and SQLite last-good
@@ -119,9 +125,11 @@ Updated: 2026-09-10
 - `sam-ui` is a small loopback-only static HTTP component on port 8766. It
   serves compiled assets with traversal rejection and a restrictive CSP; the
   UI uses protocol-v1 WebSocket transport to core port 8765 by default.
-- The Tauri 2 shell reuses this same UI/protocol and is not required for the
-  browser-packaged MVP. Windows CI now compile-checks the native crate. Linux
-  native compilation remains unverified.
+- The Tauri 2 shell reuses this same UI/protocol. Hosted Windows CI builds and
+  executes the controlled companion smoke, then assembles an unsigned development
+  NSIS package. Local frozen-executable smoke is paused on the Norton-protected
+  host. Linux native compilation and
+  companion/package validation remain unverified.
 
 ## Tools and security
 
@@ -160,66 +168,33 @@ Updated: 2026-09-10
 - Python 3.12+, uv 0.9.26, bundled Node 24.19.0, pnpm 11.19.0, user-local
   Rust 1.98.1, and the owner-installed Microsoft C++ Build Tools/SDK are available.
   The compiler toolchain is development-only and is not a Sam runtime requirement.
-- Live checks passed for audio-device discovery (default input 1/output 4),
-  Windows System.Speech synthesis and physical playback, supervised core/UI
-  launch, static HTTP 200, and protocol `system.ready` over WebSocket.
-- Ollama and whisper.cpp were not running on this host; `sam doctor` reported
-  both unavailable while confirming UI, audio, TTS, roots, active version, and
-  supervisor state without exposing secrets.
-- 0.1.1 live checks: UI HTTP ready, browser close/reopen, inline Cancel/Confirm,
-  stopped page, graceful core/UI exit, zero crashes/restarts, INFO/DEBUG and doctor.
-  Doctor found 27 audio devices and Windows TTS synthesis ready. Ollama absent;
-  `lms` installed, daemon/server stopped, model inventory unknown (not awakened).
-- Windows `dev` live text acceptance now passes two UI turns using the owner's
-  installed `google/gemma-4-e2b` Q4_K_M through LM Studio at
-  `http://127.0.0.1:1234/v1` (4096-token context; no cloud fallback).
-  Fixed missing model conversation history using bounded committed SQLite
-  messages (12 records / 6000 characters), excluding other sessions/current turn.
-  Follow-up correctly recalled the user's fact; complete text-response intervals
-  were 2.72 s and 0.51 s, not first-token measurements. Four focused tests pass.
-  Physical voice acceptance is not yet passed: owner reports unreliable Spanish
-  recognition, premature TTS cutoff, and unclear processing-state indication.
-- Voice reliability continuation: whisper.cpp b4938 CPU server and multilingual
-  `ggml-base.bin` installed in ignored `.sam/runtime` / `.sam/models`; LM Studio
-  uses its installed Vulkan runtime. No additional model was downloaded this run.
-  Default system input/output are used without hardcoded hardware selection.
-- Final STT now explicitly requests auto language plus verbose detection metadata.
-  Adapter-configurable preferences default to en/es; uncertain detection prefers
-  recent confirmed language, with one bounded retry when needed. Only detection
-  at the configured confidence threshold (default 0.8) updates that preference;
-  uncertain en/es switches and forced fallbacks do not overwrite it. Confident other
-  languages remain accepted; older servers without metadata retain auto behavior.
-  High no-speech results/known sound markers are discarded; 10-frame pre-roll
-  retains speech onset. INFO logs language probability/duration, not transcript.
-- Fixed two deterministic voice races: wait for model-start/ledger readiness after
-  SQLite commit before monitoring; allow TTS startup during a tentative candidate
-  and recover into SPEAKING. UI projects actual voice state on reconnect and shows
-  Transcribing during final STT, plus Listening/Thinking/Speaking/Microphone muted.
-- Prior physical diagnostics: 5–29 s segments, low-confidence language guesses,
-  background transcripts and VAD-only cancellation before TTS. Owner halted voice
-  acceptance; recognition, segmentation, echo/barge-in and latency remain unverified.
-- `72d083f` retains uncertain language; active turn/generation/token validation
-  precedes cancellation callbacks so stale STT cleanup cannot cancel new speech.
-  Controlled tests do not establish every physical cutoff cause.
+- Live checks passed for audio discovery, Windows System.Speech playback,
+  supervised core/UI, static HTTP, and protocol readiness. Doctor safely reports
+  unavailable Ollama/Whisper alongside usable UI/audio/TTS/root state.
+- Windows live text acceptance passed two UI turns with the owner's installed
+  `google/gemma-4-e2b` via LM Studio at `http://127.0.0.1:1234/v1`, including
+  bounded committed context and no cloud fallback. Complete response intervals
+  were 2.72 s and 0.51 s (not first-token measurements).
+- Local whisper.cpp b4938 and multilingual `ggml-base.bin` are ignored external
+  assets. System-default input/output remain selected. Uncertain STT detection
+  prefers recent confirmed language with a bounded retry; confident other
+  languages remain accepted. Sound markers/high no-speech results are discarded.
+- Turn/generation/token validation prevents stale STT cancellation; deterministic
+  voice races around model readiness and tentative barge-in recovery are fixed.
+  UI reports Listening/Transcribing/Thinking/Speaking from actual state.
+- Physical recognition, segmentation, echo/barge-in, and latency acceptance remain
+  unverified; controlled tests do not establish every physical cutoff cause.
 
 ## Known limitations / post-MVP priorities
 
 - First: validate Linux hardware end to end, tune physical barge-in latency and
   echo handling, and evaluate platform AEC plus streaming/partial STT.
-- Next: improve permissively distributable Linux voice quality and build a
-  seamless installer by reusing the configuration/readiness source of truth.
-- Then: build and license-review the self-contained Python supervisor companion,
-  declare it as a Tauri sidecar, validate an NSIS installer, add Linux native/package
-  validation, implement a trusted supervisor self-update bootstrap, and Windows Job
-  Object descendant cleanup.
-- Later: owner-approved AT-SPI/native semantic desktop capabilities and external
-  worker/MCP adapters. No desktop automation, autonomous coding, or agent-worker
-  orchestration is in the MVP.
-
-## Commands
-
-- Bootstrap/test: `scripts/{bootstrap,test}.{ps1,sh}`.
-- End-user MVP: `uv run sam-ambient`.
-- Diagnostics: `uv run sam doctor --root .`.
-- Release build: `scripts/package.ps1` or `scripts/package.sh`.
-- Development UI/runtime: `scripts/ui-dev.*` and `scripts/sam-dev.*`.
+- Next: resolve native antivirus compatibility through sample review and trusted
+  Authenticode signing (or evaluate official embedded Python if still needed),
+  then add consent-driven prerequisite/model acquisition by reusing the
+  configuration/readiness source of truth; no installer-specific probe logic.
+- Then: validate Linux native/companion packages, improve Linux voice quality,
+  add a trusted supervisor self-update bootstrap, and Windows Job Object
+  descendant cleanup.
+- Later: owner-approved semantic desktop capabilities and external worker/MCP
+  adapters; none are implemented in the MVP.

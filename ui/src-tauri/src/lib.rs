@@ -45,10 +45,11 @@ fn launch_supervisor(app: &tauri::AppHandle) -> Result<Child, String> {
         command.current_dir(&root);
         command
     } else {
-        let current = env::current_exe().map_err(|error| error.to_string())?;
-        let directory = current
-            .parent()
-            .ok_or("native executable has no parent directory")?;
+        let directory = app
+            .path()
+            .resource_dir()
+            .map_err(|error| format!("could not resolve Sam's resource directory: {error}"))?
+            .join("companion");
         let executable = if cfg!(windows) {
             directory.join("sam-supervisor.exe")
         } else {
@@ -68,7 +69,7 @@ fn launch_supervisor(app: &tauri::AppHandle) -> Result<Child, String> {
             .map_err(|error| format!("could not prepare Sam's local data directory: {error}"))?;
         let mut command = Command::new(executable);
         command.arg("--root").arg(root).arg("--no-ui");
-        command.current_dir(directory);
+        command.current_dir(&directory);
         command
     };
     command

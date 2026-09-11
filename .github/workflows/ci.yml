@@ -99,17 +99,61 @@ jobs:
           .package-smoke/bin/python -c "import importlib.metadata as m; from sam_ambient import __version__; assert m.version('sam-ambient') == __version__"
 
   native-shell:
-    name: Native shell compile (Windows)
+    name: Native package (Windows)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
 
       - name: Configure hosted Windows Rust toolchain
         run: |
           rustup default stable
           rustup component add rustfmt
 
-      - name: Rust format and Tauri compile check
+      - name: Install native package dependencies
+        run: |
+          uv sync --locked --group package
+          pnpm --dir ui install --frozen-lockfile
+
+      - name: Rust format
         run: |
           cargo fmt --manifest-path ui/src-tauri/Cargo.toml -- --check
-          cargo check --manifest-path ui/src-tauri/Cargo.toml --locked
+
+      - name: Build self-contained companion
+        shell: pwsh
+        run: |
+          $buildRoot = Join-Path $env:RUNNER_TEMP "sam-native-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          New-Item -ItemType Directory -Path $buildRoot | Out-Null
+          $companion = Join-Path $buildRoot "companion"
+          $env:APPDATA = Join-Path $buildRoot "appdata"
+          uv run --group package python scripts/build_native_companion.py --output $companion
+          $manifest = Get-Content -Raw (Join-Path $companion "companion-manifest.json") | ConvertFrom-Json
+          if ($manifest.component -ne "sam-native-companion") { throw "invalid companion manifest" }
+          uv run python scripts/smoke_native_companion.py `
+            --companion (Join-Path $companion "sam-supervisor.exe") `
+            --data-root (Join-Path $buildRoot "smoke-data")
+          "SAM_NATIVE_BUILD_ROOT=$buildRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "SAM_NATIVE_COMPANION=$companion" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Assemble NSIS package
+        shell: pwsh
+        run: |
+          ./scripts/package_native.ps1 `
+            -BuildRoot $env:SAM_NATIVE_BUILD_ROOT `
+            -CompanionDirectory $env:SAM_NATIVE_COMPANION `
+            -AllowUnsignedDevelopmentBuild `
+            -SkipDistCopy

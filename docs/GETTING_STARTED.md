@@ -1,7 +1,8 @@
 # Getting started with Sam
 
-Sam 0.1.2 runs as a Python application with a local browser UI. There is no
-seamless installer yet. Install prerequisites yourself; Sam downloads no models.
+Sam 0.1.2 runs from Python with a local browser UI. An unreleased Windows native
+package is also validated, but prerequisite/model acquisition is not seamless:
+Sam never downloads models without a future explicit setup flow.
 
 ## Prerequisites
 
@@ -17,9 +18,9 @@ seamless installer yet. Install prerequisites yourself; Sam downloads no models.
 Node/pnpm is needed only to rebuild the frontend; the checkout includes compiled
 assets. Rust, Tauri and Windows MSVC Build Tools are not required to run Sam.
 
-### Native-window development (unreleased)
+### Native Windows package and development (unreleased)
 
-The browser path above remains the supported packaged experience. Tauri 2 is a
+The browser path above remains supported. Tauri 2 is a
 thin native window/lifecycle layer around the same React UI and Python runtime;
 it does not replace Sam's core. Contributors can run it with Node/pnpm, Rust and
 Cargo, plus WebView2, MSVC C++ Build Tools, and a Windows SDK on Windows:
@@ -37,10 +38,20 @@ degraded-runtime connection, duplicate launch, close/Quit, and clean restart are
 validated. Rust/Cargo/MSVC/Windows SDK are developer dependencies only; users
 should not need them. WebView2 is the Windows runtime renderer.
 
-A redistributable native package still needs the self-contained Python
-`sam-supervisor.exe` companion described in Architecture. No AI models, model
-runtimes, or build tools will be bundled. Linux native compilation and package
-formats have not yet been validated.
+The per-user NSIS development package contains a self-contained cx_Freeze Python
+companion, so an installed user does not need a checkout, Python, uv, Rust,
+Cargo, MSVC, or the Windows SDK. It uses the system WebView2 runtime. No AI
+models, provider runtimes, or Whisper weights are bundled. Users must still
+install/select those external prerequisites; Linux native compilation and
+package formats have not yet been validated. Do not distribute the current
+unsigned build: Norton reported `IDP.Generic` on its frozen supervisor launcher.
+Antivirus review and trusted code signing are required release work.
+
+Contributors build it from the repository with a unique empty directory outside
+the checkout using `scripts/package_native.ps1 -BuildRoot PATH -AllowUnsignedDevelopmentBuild`.
+The explicit flag identifies controlled
+development output; the script emits a clearly named unsigned installer under
+`dist/` and refuses to reuse its work directory.
 
 ## Start and send a first request
 

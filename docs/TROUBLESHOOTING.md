@@ -38,9 +38,20 @@ run `pnpm exec tauri info`; Visual Studio IDE is not required. WebView2 is the
 runtime renderer. These are build dependencies, not intended end-user
 prerequisites. Use the browser launch path meanwhile.
 
-Native release packaging additionally requires a self-contained sibling
-`sam-supervisor.exe`; the shell fails clearly instead of launching an arbitrary
-executable. That companion is intentionally not built yet.
+Native development packaging runs
+`scripts/package_native.ps1 -BuildRoot PATH -AllowUnsignedDevelopmentBuild` with
+a new empty directory outside the checkout. The installed shell accepts only its
+fixed `companion/sam-supervisor.exe` resource and fails clearly if packaging is
+incomplete. Provider/model/Whisper absence is a degraded readiness condition,
+not evidence that Python, Rust, or build tools must be installed by the user.
+
+Norton reported `IDP.Generic` on the freshly generated unsigned cx_Freeze
+`sam-supervisor.exe`. Do not disable protection, add exclusions, or repeatedly
+run a flagged build. Record its SHA-256 and provenance, submit the sample through
+the antivirus vendor's false-positive review channel, and require trusted
+Authenticode signing before public distribution. Switching freezer technology
+without evidence is not a security fix; an official embedded-Python layout is a
+future alternative to evaluate if signed cx_Freeze output remains problematic.
 Confirmation is an in-app **Confirm quit / Cancel** dialog with keyboard focus;
 Escape cancels it. After acknowledgement, reconnection is disabled.
 

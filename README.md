@@ -59,8 +59,9 @@ interfaces**, rather than on manually traversing fixed software structures.
 **Status:** 0.1.0 MVP complete; **0.1.2 alpha** improves conversational continuity,
 local voice/provider startup, diagnostics, and graceful exit. Primary deployment target: Linux.
 Windows development and system speech output are supported. The unreleased
-Tauri 2 shell is compiled and lifecycle-validated on Windows; the packaged
-browser UI remains the supported fallback until the Python companion is bundled.
+Tauri 2 package is compiled and lifecycle-validated on Windows with a
+self-contained Python companion, but unsigned frozen output triggered a Norton
+`IDP.Generic` heuristic and is not release-ready; browser mode remains supported.
 On `dev`, speech follows detected response language using installed Windows voices
 with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
 speech service or additional voice installation is performed automatically.
@@ -79,15 +80,16 @@ speech service or additional voice installation is performed automatically.
 
 ```mermaid
 flowchart TD
-    Tauri[Tauri native shell] --> React[React ambient UI]
+    Tauri[Tauri native executable] --> React[React ambient UI]
     Browser[Browser fallback / development shell] --> React
     React <--> Bridge[Local WebSocket protocol]
-    Bridge <--> Core[Python Sam core]
+    Bridge <--> Companion[Packaged Python companion]
+    Companion --> Supervisor[sam-supervisor: resilience, updates, rollback]
+    Supervisor --> Core[Sam core]
     Core --> Voice[Voice and turn loop]
     Core --> Models[Model router]
     Core --> Policy[Capability policy and tools]
     Core --> Data[SQLite committed state]
-    Supervisor[sam-supervisor: resilience, updates, rollback] --> Core
     Supervisor --> Static[Static UI server]
     Models <--> Backends[External Ollama / LM Studio / compatible API]
 ```
@@ -113,12 +115,14 @@ The core bridge uses localhost port 8765. The browser can be closed and reopened
 independently.
 
 Native-shell development lives in `ui/src-tauri`. [Tauri 2](https://tauri.app/)
-supplies only Sam's native window, application lifecycle, identity, and future
+supplies only Sam's native window, application lifecycle, identity, and
 packaging boundary; React remains the UI and Python remains the supervisor/core.
 Rust, Cargo, MSVC, and the Windows SDK are build dependencies, not intended user
 requirements. Windows uses the installed WebView2 runtime. See
-[Getting started](docs/GETTING_STARTED.md); this is not yet the redistributable
-Sam installer because the self-contained Python companion is still separate.
+[Getting started](docs/GETTING_STARTED.md). A per-user NSIS development package
+bundles the frozen Python companion; antivirus review and trusted code signing
+are required before distribution. Providers, models, and Whisper assets remain
+external and consent-driven prerequisite setup is still pending.
 
 Use **Controls → Text request** to talk to the selected model.
 
@@ -188,12 +192,12 @@ deterministic Python/frontend gates on Windows and Linux; releases remain manual
 ## Limits and direction
 
 Physical echo cancellation and Linux end-to-end voice tuning remain pending;
-STT is final-only. Native installer packaging and supervisor self-update are
+STT is final-only. Supervisor self-update and Linux native packaging are
 deferred. Windows guarantees direct-child termination, not full descendant
 containment. Local staged updates require trusted preparation and validation.
 
-Next: Linux audio/AEC validation, better Linux voices, and a seamless installer
-that reuses the supported configuration/readiness layer. MCP capability providers and delegated workers are
+Next: consent-driven provider/model/speech prerequisite acquisition, Linux
+package validation, and Linux audio/AEC work. MCP capability providers and delegated workers are
 future external adapters, not features of this release.
 
 Longer term, Sam's architecture is intended to support increasingly capable
