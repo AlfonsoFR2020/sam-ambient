@@ -21,7 +21,16 @@ tts_enabled = true
 tts_voice = "default"
 
 [privacy]
-allow_cloud_fallback = false
+allow_cloud = false
 
 [capabilities]
 workspace_write = false
+
+# External MCP servers are optional local executors. This launch specification
+# is trusted configuration; models can neither alter it nor self-authorize calls.
+# [[external.mcp_servers]]
+# id = "example"
+# command = ["path/to/mcp-server", "--stdio"]
+# working_directory = "."
+# timeout_s = 20
+# result_limit_bytes = 131072

@@ -44,8 +44,15 @@ rollback retained. Candidate content is re-hashed after observation before it ca
 become last-known-good; rollback content is checked against its persisted trusted
 hash. Hashes identify content; they do not establish publisher trust.
 
-Any future external capability provider remains downstream of Sam's trusted
-registry, policy, exact-invocation approval, authority epoch, cancellation, output
-bounds, and audit correlation. Its advertised tools are not authority: an adapter
-must map only registered capabilities, fail closed on stale/revoked authority, and
-must not expose an alternate model- or provider-controlled execution channel.
+External MCP capability providers remain downstream of Sam's trusted registry,
+policy, exact-invocation approval, authority epoch, cancellation, output bounds,
+and audit correlation. Discovery grants no authority. Local launch argv and the
+working directory come only from trusted user/explicit configuration, never model
+arguments or workspace configuration. Every discovered tool is conservatively an
+approval-required external side effect; catalog changes fail closed and require
+rediscovery plus fresh authority. Server content is untrusted data. The stdio
+child receives a bounded environment and Sam terminates only the process it owns.
+
+This is policy mediation and lifecycle containment, not an OS sandbox. A future
+desktop provider may exercise its process's host permissions after approval. It
+must not expose an alternate model-controlled execution channel.

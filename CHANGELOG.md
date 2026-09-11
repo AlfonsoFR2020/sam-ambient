@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add a provider-neutral MCP stdio seam for trusted configured local capability
+  servers. Discovered tools remain exact-approval external side effects under
+  Sam's lease, revocation, cancellation, result-bound, and audit rules; malformed
+  or changing catalogs and protocol failures fail closed.
 - Add a validated schema-versioned TOML configuration layer with defaults, user
   and workspace files, environment overrides, and CLI precedence. Keep secrets
   and learned runtime state separate.

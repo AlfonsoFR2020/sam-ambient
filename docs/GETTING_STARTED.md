@@ -54,6 +54,13 @@ message. `OPENAI_API_KEY` and other secrets stay in their dedicated environment
 or service configuration, never ordinary TOML. Last-good provider/model state
 continues to live in `.sam/state.db` and cannot rewrite user configuration.
 
+Optional local MCP servers may be declared as `[[external.mcp_servers]]` only in
+the per-user file or an explicit `--config` file. Each entry has a stable `id`,
+structured `command` argv, optional absolute `working_directory`, bounded
+`timeout_s`, and `result_limit_bytes`; see `config/sam.example.toml`. Workspace
+configuration cannot introduce process-launch authority. Discovery grants no
+permission: every external call still presents Sam's exact owner approval.
+
 Selection order: explicit CLI configuration → last successful local provider/model
 → Ollama → LM Studio → explicitly configured compatible endpoint. Deleted/stopped
 saved preferences do not prevent fallback discovery; an explicit unavailable

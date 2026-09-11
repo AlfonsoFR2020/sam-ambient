@@ -51,6 +51,22 @@ class PrivacySettings:
 
 
 @dataclass(frozen=True, slots=True)
+class McpServerSettings:
+    """Trusted local MCP launch specification (never model-controlled)."""
+
+    server_id: str
+    command: tuple[str, ...]
+    working_directory: Path | None = None
+    timeout_s: float = 20.0
+    result_limit_bytes: int = 131_072
+
+
+@dataclass(frozen=True, slots=True)
+class ExternalSettings:
+    mcp_servers: tuple[McpServerSettings, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class SamSettings:
     schema_version: int = CONFIG_SCHEMA_VERSION
     provider: ProviderSettings = field(default_factory=ProviderSettings)
@@ -58,6 +74,7 @@ class SamSettings:
     application: ApplicationSettings = field(default_factory=ApplicationSettings)
     capabilities: CapabilitySettings = field(default_factory=CapabilitySettings)
     privacy: PrivacySettings = field(default_factory=PrivacySettings)
+    external: ExternalSettings = field(default_factory=ExternalSettings)
     sources: tuple[Path, ...] = ()
 
 
@@ -71,6 +88,7 @@ _SCHEMA: dict[str, frozenset[str]] = {
     "application": frozenset({"root", "open_ui"}),
     "capabilities": frozenset({"workspace_write"}),
     "privacy": frozenset({"allow_cloud"}),
+    "external": frozenset({"mcp_servers"}),
 }
 
 _ENV: dict[str, tuple[str, str]] = {
@@ -115,6 +133,7 @@ def load_settings(
     loaded: list[Path] = []
     seen: set[Path] = set()
     explicit_resolved = explicit_path.expanduser().resolve(strict=False) if explicit_path else None
+    user_resolved = user_config_path(env).expanduser().resolve(strict=False)
     for candidate in paths:
         resolved = candidate.expanduser().resolve(strict=False)
         if resolved in seen:
@@ -129,7 +148,11 @@ def load_settings(
                 values = tomllib.load(stream)
         except (OSError, tomllib.TOMLDecodeError) as error:
             raise ConfigurationError(f"cannot read configuration {resolved}: {error}") from error
-        _validate_document(values, resolved)
+        _validate_document(
+            values,
+            resolved,
+            allow_external=resolved in {user_resolved, explicit_resolved},
+        )
         _merge(merged, values)
         loaded.append(resolved)
     _apply_environment(merged, env)
@@ -220,7 +243,9 @@ def configure_namespace(args: Any, argv: list[str], *, supervisor: bool = False)
     return settings
 
 
-def _validate_document(values: Mapping[str, Any], source: Path) -> None:
+def _validate_document(
+    values: Mapping[str, Any], source: Path, *, allow_external: bool = True
+) -> None:
     allowed = frozenset({"schema_version", *_SCHEMA})
     unknown = sorted(set(values) - allowed)
     if unknown:
@@ -229,6 +254,10 @@ def _validate_document(values: Mapping[str, Any], source: Path) -> None:
     if type(version) is not int or version != CONFIG_SCHEMA_VERSION:
         raise ConfigurationError(
             f"unsupported schema_version in {source}: expected {CONFIG_SCHEMA_VERSION}"
+        )
+    if values.get("external") and not allow_external:
+        raise ConfigurationError(
+            f"external MCP launch specifications are not allowed in project config: {source}"
         )
     for section, keys in _SCHEMA.items():
         value = values.get(section, {})
@@ -268,6 +297,7 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
     application = values.get("application", {})
     capabilities = values.get("capabilities", {})
     privacy = values.get("privacy", {})
+    external = values.get("external", {})
     preference = _string(provider.get("preference", "auto"), "provider.preference")
     if preference not in {"auto", "ollama", "lm-studio", "openai-compatible"}:
         raise ConfigurationError(
@@ -309,8 +339,58 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
         privacy=PrivacySettings(
             allow_cloud=_boolean(privacy.get("allow_cloud", False), "privacy.allow_cloud")
         ),
+        external=ExternalSettings(mcp_servers=_mcp_servers(external.get("mcp_servers", []))),
         sources=sources,
     )
+
+
+def _mcp_servers(value: Any) -> tuple[McpServerSettings, ...]:
+    if not isinstance(value, list):
+        raise ConfigurationError("external.mcp_servers must be an array of tables")
+    servers: list[McpServerSettings] = []
+    seen: set[str] = set()
+    allowed = {"id", "command", "working_directory", "timeout_s", "result_limit_bytes"}
+    for index, item in enumerate(value):
+        name = f"external.mcp_servers[{index}]"
+        if not isinstance(item, Mapping):
+            raise ConfigurationError(f"{name} must be a table")
+        extra = sorted(set(item) - allowed)
+        if extra:
+            raise ConfigurationError(f"unknown configuration key: {name}.{extra[0]}")
+        server_id = _string(item.get("id"), f"{name}.id").lower()
+        if (
+            len(server_id) > 64
+            or not server_id[0].isalpha()
+            or any(
+                character not in "abcdefghijklmnopqrstuvwxyz0123456789_-" for character in server_id
+            )
+        ):
+            raise ConfigurationError(f"{name}.id must be a lowercase local identifier")
+        if server_id in seen:
+            raise ConfigurationError(f"duplicate MCP server id: {server_id}")
+        seen.add(server_id)
+        command = item.get("command")
+        if not isinstance(command, list) or not 1 <= len(command) <= 32:
+            raise ConfigurationError(f"{name}.command must contain 1 to 32 argv strings")
+        argv = tuple(_string(part, f"{name}.command item") for part in command)
+        if any(len(part) > 4096 or "\x00" in part for part in argv):
+            raise ConfigurationError(f"{name}.command contains an invalid argv string")
+        raw_cwd = item.get("working_directory")
+        cwd = None if raw_cwd is None else Path(_string(raw_cwd, f"{name}.working_directory"))
+        if cwd is not None and not cwd.is_absolute():
+            raise ConfigurationError(f"{name}.working_directory must be an absolute path")
+        timeout = item.get("timeout_s", 20.0)
+        if (
+            not isinstance(timeout, (int, float))
+            or isinstance(timeout, bool)
+            or not 1 <= timeout <= 120
+        ):
+            raise ConfigurationError(f"{name}.timeout_s must be between 1 and 120")
+        limit = item.get("result_limit_bytes", 131_072)
+        if type(limit) is not int or not 1024 <= limit <= 524_288:
+            raise ConfigurationError(f"{name}.result_limit_bytes must be 1024 to 524288")
+        servers.append(McpServerSettings(server_id, argv, cwd, float(timeout), limit))
+    return tuple(servers)
 
 
 def _expected_type(key: str) -> type:

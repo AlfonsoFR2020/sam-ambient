@@ -112,12 +112,32 @@ requires a later trusted bootstrap.
 
 ## External adapters
 
-Models, STT, TTS, and platform capabilities are replaceable adapters. Native Tauri,
-MCP/deskwright capability providers, and delegated coding workers are future
-integrations. They are not implemented, and none owns supervisor/update authority.
-Future capability providers must remain behind Sam's registry, policy, approval,
-epoch/revocation, cancellation, bounding, and lifecycle-correlation checks; a
-provider's own tool catalogue never grants authority.
+Models, STT, TTS, and platform capabilities are replaceable adapters. Sam now has
+a bounded MCP stdio client for trusted configured local capability servers. It
+implements current per-request metadata/server discovery, paginated tools/list,
+tools/call, cancellation, and stdio
+shutdown without a new SDK dependency. Streamable HTTP is a future transport;
+legacy SSE is intentionally excluded.
+
+```mermaid
+flowchart TD
+    Model[Model / planner] --> Policy[Sam policy + exact approval]
+    Policy --> Adapter[External capability adapter]
+    Adapter --> MCP[MCP client / stdio transport]
+    MCP --> Server[Configured local MCP server]
+    Server --> Backend[OS / application backend]
+```
+
+Discovery creates recursively immutable, collision-safe Sam descriptors. All
+external tools are approval-required external side effects. Sam checks a catalog
+fingerprint again before execution; results remain untrusted bounded data. Existing
+lease epochs, Emergency Stop, cancellation, stale-generation, and audit rules stay
+authoritative. Models and workspace config cannot supply server launch details.
+
+Deskwright remains a future Linux GNOME/Wayland server launched as a trusted local
+command below this boundary. Semantic actions and headless/private desktop sessions
+are backend behavior, never a policy bypass. Delegated workers are also future;
+none owns supervisor/update authority.
 
 ## Release assurance
 

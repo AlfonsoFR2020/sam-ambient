@@ -83,6 +83,8 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
         "--log-level",
         "DEBUG" if args.verbose else args.log_level,
     ]
+    if args.config:
+        command.extend(("--config", str(Path(args.config).resolve(strict=True))))
     if args.model:
         command.extend(("--model", args.model))
     if args.base_url:

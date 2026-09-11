@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-10
+Updated: 2026-09-11
 
 ## MVP status
 
@@ -15,8 +15,8 @@ Updated: 2026-09-10
   Whisper assets available; Windows TTS, audio, UI, Python and root ready.
 - Cross-platform GitHub CI repeats Python/Ruff and frontend/Biome/type/build gates
   on Windows/Linux, then builds wheel/sdist and smoke-installs the wheel. Version
-  consistency is checked locally; publishing remains explicitly manual. Final
-  local gate: 331 Python passed / 2 skipped and 45 frontend passed; Ruff, Biome,
+  consistency is checked locally; publishing remains explicitly manual. Current
+  local gate: 348 Python passed / 2 skipped and 45 frontend passed; Ruff, Biome,
   typecheck, Vite build, distributions, metadata and installed CLI smoke pass.
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
@@ -113,6 +113,12 @@ Updated: 2026-09-10
   Epoch-based global revoke invalidates leases/pending approvals, blocks new
   work, and cancels compatible active work; nested schemas/arguments are immutable
   after construction and the model cannot restore authority.
+- External capability Stage 1 adds a standard-library MCP stdio client beneath
+  the same executor. Trusted user/explicit config owns structured launch argv;
+  workspace config and models cannot launch servers. Discovery creates immutable
+  descriptors but no authority; all calls need exact approval and current epoch.
+  Catalog drift, malformed/oversized data, timeout, cancellation, crash, and
+  revocation fail closed. No server, remote transport, or automation is installed.
 
 ## Resilience and updates
 
@@ -143,10 +149,6 @@ Updated: 2026-09-10
 - Ollama and whisper.cpp were not running on this host; `sam doctor` reported
   both unavailable while confirming UI, audio, TTS, roots, active version, and
   supervisor state without exposing secrets.
-- 0.1.1 live checks: UI HTTP ready, browser close/reopen, inline Cancel/Confirm,
-  stopped page, graceful core/UI exit, zero crashes/restarts, INFO/DEBUG and doctor.
-  Doctor found 27 audio devices and Windows TTS synthesis ready. Ollama absent;
-  `lms` installed, daemon/server stopped, model inventory unknown (not awakened).
 - Windows `dev` live text acceptance now passes two UI turns using the owner's
   installed `google/gemma-4-e2b` Q4_K_M through LM Studio at
   `http://127.0.0.1:1234/v1` (4096-token context; no cloud fallback).
@@ -172,9 +174,6 @@ Updated: 2026-09-10
   SQLite commit before monitoring; allow TTS startup during a tentative candidate
   and recover into SPEAKING. UI projects actual voice state on reconnect and shows
   Transcribing during final STT, plus Listening/Thinking/Speaking/Microphone muted.
-- Prior physical diagnostics: 5–29 s segments, low-confidence language guesses,
-  background transcripts and VAD-only cancellation before TTS. Owner halted voice
-  acceptance; recognition, segmentation, echo/barge-in and latency remain unverified.
 - `72d083f` retains uncertain language; active turn/generation/token validation
   precedes cancellation callbacks so stale STT cleanup cannot cancel new speech.
   Controlled tests do not establish every physical cutoff cause.
@@ -188,9 +187,9 @@ Updated: 2026-09-10
 - Then: implement native Tauri packaging (Rust/Cargo; Windows additionally
   needs MSVC), a trusted supervisor self-update bootstrap, and Windows Job
   Object descendant cleanup.
-- Later: owner-approved AT-SPI/native semantic desktop capabilities and external
-  worker/MCP adapters. No desktop automation, autonomous coding, or agent-worker
-  orchestration is in the MVP.
+- Later: validate a configured deskwright adapter on Linux GNOME/Wayland, then
+  owner-approved semantic desktop capabilities and external workers. No desktop
+  automation, autonomous coding, or agent-worker orchestration is installed.
 
 ## Commands
 

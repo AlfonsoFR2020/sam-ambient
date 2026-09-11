@@ -61,6 +61,9 @@ File access is constrained to authorized roots (`--root` selects the workspace).
 Writes additionally need `--allow-workspace-write` and approval. Process requests
 require approval and are **not an OS sandbox**. Review the tool, target/command,
 working directory and risk before Allow; Deny/no response never authorizes it.
+Configured local MCP tools follow the same rule: their server is an executor,
+not an authority, and returned content is untrusted data. Emergency Stop and
+capability revocation cancel or block external calls just like native tools.
 See [Security](../SECURITY.md). Capabilities remain revoked after crash recovery
 or safe mode; model text cannot override this.
 

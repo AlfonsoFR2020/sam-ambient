@@ -72,6 +72,8 @@ speech service or additional voice installation is performed automatically.
   OpenAI-compatible endpoints. No automatic model downloads or cloud fallback.
 - Bounded filesystem and process tools, explicit approvals, and global
   capability revocation enforced outside the model.
+- Approval-gated local MCP stdio adapter seam; no external server or desktop
+  control backend is bundled.
 - A separate supervisor with crash recovery, safe mode, durable committed
   text, and staged component updates with health checks and automatic rollback.
 

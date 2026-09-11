@@ -9,7 +9,12 @@ from sam_ambient.configuration import (
     configure_namespace,
     load_settings,
 )
-from sam_ambient.supervisor.cli import build_parser as build_supervisor_parser
+from sam_ambient.supervisor.cli import (
+    _trusted_core_command,
+)
+from sam_ambient.supervisor.cli import (
+    build_parser as build_supervisor_parser,
+)
 
 
 def _write(path: Path, text: str) -> None:
@@ -127,3 +132,65 @@ open_ui = false
     assert args.preferred_languages == ("es", "en")
     assert args.stt_url.endswith(":9090")
     assert args.no_tts and args.no_ui
+
+
+def test_trusted_mcp_server_configuration_is_structured_and_bounded(tmp_path):
+    config = tmp_path / "mcp.toml"
+    _write(
+        config,
+        """[external]
+mcp_servers = [
+  { id = "desktop-local", command = ["server.exe", "--stdio"], timeout_s = 12 }
+]
+""",
+    )
+    settings = load_settings(
+        project_root=tmp_path, explicit_path=config, environment={"XDG_CONFIG_HOME": str(tmp_path)}
+    )
+    server = settings.external.mcp_servers[0]
+    assert server.server_id == "desktop-local"
+    assert server.command == ("server.exe", "--stdio")
+    assert server.timeout_s == 12
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        'mcp_servers = [{ id = "bad id", command = ["x"] }]',
+        'mcp_servers = [{ id = "ok", command = [] }]',
+        'mcp_servers = [{ id = "ok", command = ["x"], environment = { X = "y" } }]',
+    ],
+)
+def test_invalid_mcp_launch_configuration_fails_closed(tmp_path, value):
+    config = tmp_path / "mcp.toml"
+    _write(config, f"[external]\n{value}\n")
+    with pytest.raises(ConfigurationError):
+        load_settings(
+            project_root=tmp_path,
+            explicit_path=config,
+            environment={"XDG_CONFIG_HOME": str(tmp_path)},
+        )
+
+
+def test_project_config_cannot_define_process_launch_authority(tmp_path):
+    _write(
+        tmp_path / "config/sam.toml",
+        '[external]\nmcp_servers = [{ id = "unsafe", command = ["server"] }]\n',
+    )
+    with pytest.raises(ConfigurationError, match="not allowed in project config"):
+        load_settings(
+            project_root=tmp_path,
+            environment={"XDG_CONFIG_HOME": str(tmp_path / "user")},
+        )
+
+
+def test_supervisor_propagates_explicit_trusted_config_to_core(tmp_path):
+    config = tmp_path / "trusted.toml"
+    _write(config, "schema_version = 1\n")
+    parser = build_supervisor_parser()
+    args = parser.parse_args(["--config", str(config)])
+    command = _trusted_core_command(args, tmp_path)
+    index = command.index("--config")
+    assert command[index + 1] == str(config.resolve())
+    core_args = build_sam_parser().parse_args(["runtime", "--config", command[index + 1]])
+    assert core_args.config == str(config.resolve())

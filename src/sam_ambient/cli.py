@@ -107,6 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
     bridge.add_argument("--port", type=int, default=8765, help="Loopback WebSocket port")
 
     runtime = subparsers.add_parser("runtime", help="Serve the composed local Sam runtime")
+    runtime.add_argument("--config", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     _add_provider_arguments(runtime)
     runtime.add_argument("--port", type=int, default=8765, help="Loopback WebSocket port")
     runtime.add_argument(
@@ -568,6 +569,8 @@ async def run_runtime(args: argparse.Namespace) -> int:
 async def _serve_runtime(
     args: argparse.Namespace, provider: LLMProvider, model: str | None, discovery: Discovery | None
 ) -> int:
+    from sam_ambient.adapters.mcp import McpClient, McpError
+
     stop = parent_stop_event() if args.runtime_instance_id else asyncio.Event()
     tts = None
     output = None
@@ -629,7 +632,25 @@ async def _serve_runtime(
         tts=tts,
         audio_output=output,
     )
+    mcp_clients: list[McpClient] = []
     try:
+        external = getattr(getattr(args, "_sam_settings", None), "external", None)
+        for server in getattr(external, "mcp_servers", ()):
+            client = McpClient(server)
+            try:
+                external_tools = await client.start()
+                for tool in external_tools:
+                    runtime.tools.register(tool)
+            except (McpError, ValueError) as error:
+                await client.close()
+                log.error("MCP server %s unavailable (fail closed): %s", server.server_id, error)
+                continue
+            mcp_clients.append(client)
+            log.info(
+                "MCP server %s ready: %d approval-gated tools",
+                server.server_id,
+                len(external_tools),
+            )
         await runtime.start()
         health_state = "HEALTHY"
         health_detail = "runtime ready"
@@ -684,6 +705,7 @@ async def _serve_runtime(
         return 0
     finally:
         await runtime.close()
+        await asyncio.gather(*(client.close() for client in mcp_clients), return_exceptions=True)
         log.info("Core stopped")
 
 
