@@ -180,16 +180,11 @@ Updated: 2026-09-11
 
 ## Known limitations / post-MVP priorities
 
-- First: validate Linux hardware end to end, tune physical barge-in latency and
-  echo handling, and evaluate platform AEC plus streaming/partial STT.
-- Next: improve permissively distributable Linux voice quality and build a
-  seamless installer by reusing the configuration/readiness source of truth.
-- Then: implement native Tauri packaging (Rust/Cargo; Windows additionally
-  needs MSVC), a trusted supervisor self-update bootstrap, and Windows Job
-  Object descendant cleanup.
-- Later: validate a configured deskwright adapter on Linux GNOME/Wayland, then
-  owner-approved semantic desktop capabilities and external workers. No desktop
-  automation, autonomous coding, or agent-worker orchestration is installed.
+- Physical voice/Linux hardware acceptance and a seamless installer remain open.
+- Native and ambient shell work exists only on unmerged feature branches pending
+  product acceptance; the rejected ambient experiment is not part of `dev`.
+- Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
+  future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 
 ## Commands
 

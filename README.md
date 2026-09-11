@@ -182,9 +182,10 @@ STT is final-only. Native Tauri packaging and supervisor self-update are
 deferred. Windows guarantees direct-child termination, not full descendant
 containment. Local staged updates require trusted preparation and validation.
 
-Next: Linux audio/AEC validation, better Linux voices, and a seamless installer
-that reuses the supported configuration/readiness layer. MCP capability providers and delegated workers are
-future external adapters, not features of this release.
+Next: physical voice acceptance, acceptance of the native/ambient shell branches,
+and a seamless installer using the supported readiness layer. The local MCP stdio
+seam exists on `dev`; deskwright, remote MCP transports, and delegated workers are
+future integrations, not features of this release. See the [Roadmap](docs/ROADMAP.md).
 
 Longer term, Sam's architecture is intended to support increasingly capable
 computer-use backends, delegated agents, dynamically generated interaction

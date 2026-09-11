@@ -35,3 +35,5 @@ The Windows/Linux GitHub workflow runs the same deterministic checks and a
 packaged-wheel smoke test. Changes to configuration keys must include validation
 tests and update `config/sam.example.toml` plus the relevant setup/user docs.
 CI validates releases but never publishes them.
+Use the human-controlled [release checklist](docs/RELEASE_CHECKLIST.md) when
+preparing an alpha; do not infer release scope from unmerged feature branches.

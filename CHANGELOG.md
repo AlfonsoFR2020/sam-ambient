@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Consolidate acceptance-pending and longer-term work in a maintained roadmap and
+  add a human-controlled alpha release checklist.
 - Add a provider-neutral MCP stdio seam for trusted configured local capability
   servers. Discovered tools remain exact-approval external side effects under
   Sam's lease, revocation, cancellation, result-bound, and audit rules; malformed
