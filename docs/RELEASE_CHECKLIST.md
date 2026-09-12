@@ -7,6 +7,9 @@ Release approval and publication remain human-controlled.
 - [ ] Full Python/frontend regression, lint, type, build, and package gates pass.
 - [ ] Physical voice and visual/native-shell acceptance match the intended release.
 - [ ] Public documentation and `THIRD_PARTY.md` describe the merged tree.
+- [ ] Include the architecture infographic if accurate for this release; update or
+  regenerate it after material architecture changes, or label a historical snapshot
+  with its version/date and note material differences.
 - [ ] Package metadata, notices, version, and artifact contents are consistent.
 - [ ] Windows native artifacts meet the signing and AV/reputation gate.
 - [ ] Wheel, source distribution, and accepted native installer are built and smoked.

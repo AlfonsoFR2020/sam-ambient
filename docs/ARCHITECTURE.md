@@ -28,6 +28,10 @@ stale events and coalesces high-frequency visualization updates. Text, approvals
 provider/model selection, and connection status stay secondary to the ambient
 field. Visual preferences remain local to the UI.
 
+[Sam Visual Engine v1](VISUAL_ENGINE_V1.md) specifies the future shell-neutral
+renderer, audio/state contract and visual settings. It is a design specification,
+not a description of the currently implemented ambient renderer.
+
 ## Configuration and readiness
 
 `SamSettings` is the validated, versioned user-intent boundary. Standard-library
