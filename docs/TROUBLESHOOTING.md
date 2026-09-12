@@ -5,6 +5,16 @@ For safe lifecycle detail, run `uv run sam-ambient --verbose`. JSON diagnostics:
 `uv run sam doctor --root . --json`. DEBUG adds Sam diagnostics without HTTP bodies,
 prompts, file contents, credentials, or microphone audio.
 
+## Configuration error
+
+Sam names malformed TOML, unknown keys, wrong types, and unsupported
+`schema_version` values before runtime startup. Compare the file with
+`config/sam.example.toml`. Precedence is CLI, environment, workspace config,
+user config, then defaults (highest first). Use `sam --config PATH doctor` to
+validate a specific file. Do not put API keys in TOML; runtime last-good state in
+`.sam/state.db` is intentionally separate and may be stale without blocking
+fallback discovery.
+
 ## Browser or UI does not open
 
 Open **http://127.0.0.1:8766** manually. A failed browser handoff does not stop Sam.

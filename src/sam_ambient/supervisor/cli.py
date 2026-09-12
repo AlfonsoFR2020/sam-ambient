@@ -14,6 +14,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from sam_ambient import __version__
+from sam_ambient.configuration import ConfigurationError, configure_namespace
 from sam_ambient.logging_config import add_logging_arguments, configure_logging
 from sam_ambient.supervisor import (
     ComponentSpec,
@@ -30,7 +31,8 @@ log = logging.getLogger(__name__)
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="sam-supervisor", description="Sam process supervisor")
-    parser.add_argument("--root", required=True, help="Trusted Sam workspace root")
+    parser.add_argument("--config", help="Explicit Sam TOML configuration file")
+    parser.add_argument("--root", default=".", help="Trusted Sam workspace root")
     parser.add_argument("--state-db", help="Operational SQLite path")
     parser.add_argument("--port", type=int, default=8765, help="Core loopback UI port")
     parser.add_argument("--ui-port", type=int, default=8766, help="Packaged UI HTTP port")
@@ -50,9 +52,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--local-compatible-url", help="Additional loopback compatible endpoint")
     add_logging_arguments(parser)
     parser.add_argument("--allow-workspace-write", action="store_true")
+    parser.add_argument("--allow-cloud", action="store_true")
     parser.add_argument("--no-voice", action="store_true")
     parser.add_argument("--no-tts", action="store_true")
     parser.add_argument("--stt-url", default="http://127.0.0.1:8080")
+    parser.add_argument(
+        "--preferred-languages",
+        type=lambda value: tuple(part.strip() for part in value.split(",") if part.strip()),
+        default=("en", "es"),
+    )
+    parser.add_argument("--tts-voice", default="default")
     action = parser.add_mutually_exclusive_group()
     action.add_argument(
         "--status", action="store_true", help="Print persisted diagnostics and exit"
@@ -82,6 +91,8 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
         "--log-level",
         "DEBUG" if args.verbose else args.log_level,
     ]
+    if args.config:
+        command.extend(("--config", str(Path(args.config).resolve(strict=True))))
     if args.model:
         command.extend(("--model", args.model))
     if args.base_url:
@@ -92,10 +103,16 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
         command.extend(("--local-compatible-url", args.local_compatible_url))
     if args.allow_workspace_write:
         command.append("--allow-workspace-write")
+    if args.allow_cloud:
+        command.append("--allow-cloud")
     if args.no_voice:
         command.append("--no-voice")
     if args.no_tts:
         command.append("--no-tts")
+    if args.tts_voice != "default":
+        command.extend(("--tts-voice", args.tts_voice))
+    if args.preferred_languages != ("en", "es"):
+        command.extend(("--preferred-languages", ",".join(args.preferred_languages)))
     if args.stt_url:
         command.extend(("--stt-url", args.stt_url))
     return tuple(command)
@@ -224,7 +241,13 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    args = parser.parse_args(arguments)
+    try:
+        configure_namespace(args, arguments, supervisor=True)
+    except ConfigurationError as error:
+        parser.error(str(error))
     configure_logging(args)
     try:
         return asyncio.run(run(args))

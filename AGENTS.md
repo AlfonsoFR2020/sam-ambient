@@ -13,7 +13,7 @@ Build Sam according to `SAM_AMBIENT_CODEX_SPEC.md`.
 * Verify licenses before copying source; update `THIRD\_PARTY.md`.
 * Never copy AGPL/GPL code into the project unless explicitly approved by the owner.
 * Do not silently change architecture or product semantics; log justified deviations in `docs/DECISIONS.md`.
-* For material changes to installation, startup, platforms, providers/runtime requirements, user behavior, architecture, licenses, security, or release contents, update the relevant README / GETTING_STARTED / USER_GUIDE / CHANGELOG / ARCHITECTURE / THIRD_PARTY / SECURITY docs; trivial changes do not require a documentation sweep.
+* For material changes to dependencies/prerequisites, configuration keys/schema, install/setup behavior, supported platforms, provider/STT/TTS requirements, CI/release behavior, user-facing launch/use behavior, architecture, licenses, security, or release contents, update the relevant README / GETTING_STARTED / USER_GUIDE / CHANGELOG / ARCHITECTURE / CONTRIBUTING / THIRD_PARTY / SECURITY docs; trivial changes do not require a documentation sweep.
 
 ## Context/token economy
 

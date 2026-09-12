@@ -80,11 +80,11 @@ class ToolDescriptor:
                 json.dumps(dict(schema), allow_nan=False)
             except (TypeError, ValueError) as error:
                 raise ValueError(f"tool {name} schema must be JSON-compatible") from error
-        object.__setattr__(self, "input_schema", MappingProxyType(dict(self.input_schema)))
-        object.__setattr__(self, "result_schema", MappingProxyType(dict(self.result_schema)))
+        object.__setattr__(self, "input_schema", _freeze_json(self.input_schema))
+        object.__setattr__(self, "result_schema", _freeze_json(self.result_schema))
 
     def provider_schema(self) -> ToolSchema:
-        return ToolSchema(self.id, self.description, self.input_schema)
+        return ToolSchema(self.id, self.description, _thaw_json(self.input_schema))
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,7 +117,7 @@ class ToolInvocation:
             raise ValueError("tool arguments must be finite JSON data") from error
         if len(encoded.encode("utf-8")) > 64 * 1024:
             raise ValueError("tool arguments exceed 64 KiB")
-        object.__setattr__(self, "arguments", MappingProxyType(copied))
+        object.__setattr__(self, "arguments", _freeze_json(copied))
 
     @property
     def authority_identity(
@@ -132,7 +132,7 @@ class ToolInvocation:
         str,
     ]:
         arguments = json.dumps(
-            dict(self.arguments),
+            _thaw_json(self.arguments),
             allow_nan=False,
             separators=(",", ":"),
             sort_keys=True,
@@ -172,3 +172,21 @@ class ToolExecution:
     status: ToolStatus
     result: ToolResult | None = None
     error: str | None = None
+
+
+def _freeze_json(value: Any) -> Any:
+    """Make trusted request/schema metadata immutable at every nesting level."""
+
+    if isinstance(value, Mapping):
+        return MappingProxyType({key: _freeze_json(item) for key, item in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_json(item) for item in value)
+    return value
+
+
+def _thaw_json(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {key: _thaw_json(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw_json(item) for item in value]
+    return value

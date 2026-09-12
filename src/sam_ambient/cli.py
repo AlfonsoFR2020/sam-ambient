@@ -7,6 +7,8 @@ import asyncio
 import json
 import logging
 import os
+import platform
+import shutil
 import sys
 from collections.abc import Callable, Sequence
 from importlib.resources import files
@@ -27,10 +29,12 @@ from sam_ambient.adapters.stt import (
     DEFAULT_WHISPER_CPP_URL,
     SpeechRecognitionError,
     WhisperCppServerSTT,
+    local_asset_status,
 )
 from sam_ambient.adapters.tts import SystemTextToSpeech, TextToSpeechUnavailable
 from sam_ambient.adapters.ui.demo import run_demo_bridge
 from sam_ambient.adapters.vad import WebRtcVoiceActivityDetector
+from sam_ambient.configuration import ConfigurationError, configure_namespace
 from sam_ambient.core.providers import (
     DataBoundary,
     LLMProvider,
@@ -40,6 +44,7 @@ from sam_ambient.core.providers import (
     ProviderError,
 )
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
+from sam_ambient.diagnostics import ReadinessLevel, classify_readiness
 from sam_ambient.lifecycle import parent_stop_event, serve_until_stop
 from sam_ambient.logging_config import add_logging_arguments, configure_logging, log_value
 from sam_ambient.runtime import RuntimeConfig, RuntimeVoiceAdapters, SamRuntime
@@ -79,6 +84,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Sam development harness",
     )
     parser.add_argument("--version", action="version", version=f"Sam {__version__}")
+    parser.add_argument("--config", help="Explicit Sam TOML configuration file")
     subparsers = parser.add_subparsers(dest="command")
 
     chat = subparsers.add_parser("chat", help="Stream a text conversation")
@@ -101,11 +107,12 @@ def build_parser() -> argparse.ArgumentParser:
     bridge.add_argument("--port", type=int, default=8765, help="Loopback WebSocket port")
 
     runtime = subparsers.add_parser("runtime", help="Serve the composed local Sam runtime")
+    runtime.add_argument("--config", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     _add_provider_arguments(runtime)
     runtime.add_argument("--port", type=int, default=8765, help="Loopback WebSocket port")
     runtime.add_argument(
         "--root",
-        required=True,
+        default=".",
         help="Authorized workspace root exposed as the 'workspace' capability root",
     )
     runtime.add_argument(
@@ -126,6 +133,13 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--no-voice", action="store_true", help="Disable microphone/VAD/STT")
     runtime.add_argument("--no-tts", action="store_true", help="Disable spoken output")
     runtime.add_argument("--stt-url", default=DEFAULT_WHISPER_CPP_URL)
+    runtime.add_argument(
+        "--preferred-languages",
+        type=lambda value: tuple(part.strip() for part in value.split(",") if part.strip()),
+        default=("en", "es"),
+        help="Comma-separated preferred STT languages",
+    )
+    runtime.add_argument("--tts-voice", default="default", help="Preferred system voice id")
 
     ui = subparsers.add_parser("ui", help="Serve the packaged ambient UI on loopback")
     ui.add_argument("--port", type=int, default=8766, help="Loopback HTTP port")
@@ -292,7 +306,42 @@ async def run_models(args: argparse.Namespace) -> int:
 async def run_doctor(args: argparse.Namespace) -> int:
     provider, selected_model, discovery = await discover_provider(args)
     root, state_db = _doctor_paths(args)
-    report: dict[str, object] = {"sam_version": __version__, "authorized_roots": [str(root)]}
+    settings = args._sam_settings
+    report: dict[str, object] = {
+        "sam_version": __version__,
+        "platform": {
+            "system": platform.system(),
+            "release": platform.release(),
+            "architecture": platform.machine(),
+        },
+        "runtime": {
+            "compatible": sys.version_info >= (3, 12),
+            "python": platform.python_version(),
+            "uv": shutil.which("uv"),
+            "detail": (
+                f"Python {platform.python_version()} ({platform.system()} {platform.machine()})"
+            ),
+        },
+        "configuration": {
+            "schema_version": settings.schema_version,
+            "sources": [str(path) for path in settings.sources],
+            "detail": (
+                "Loaded " + ", ".join(str(path) for path in settings.sources)
+                if settings.sources
+                else "Built-in defaults active"
+            ),
+        },
+        "browser": {
+            "available": platform.system() == "Windows"
+            or bool(shutil.which("xdg-open") or shutil.which("open")),
+            "mode": "system browser",
+        },
+        "workspace": {
+            "path": str(root),
+            "writable": os.access(root, os.W_OK),
+        },
+        "authorized_roots": [str(root)],
+    }
     try:
         cancellation = CancellationToken()
         health = await provider.health(cancellation)
@@ -321,9 +370,20 @@ async def run_doctor(args: argparse.Namespace) -> int:
                 "devices": device_names[:32],
                 "truncated": len(device_names) > 32,
                 "default": default_devices,
+                "input_available": any(
+                    device.get("max_input_channels", 0) > 0 for device in devices
+                ),
+                "output_available": any(
+                    device.get("max_output_channels", 0) > 0 for device in devices
+                ),
             }
         except Exception as error:
-            report["audio"] = {"available": False, "detail": str(error)[:300]}
+            report["audio"] = {
+                "available": False,
+                "input_available": False,
+                "output_available": False,
+                "detail": str(error)[:300],
+            }
 
         tts_available = False
         tts_detail = "unavailable"
@@ -333,11 +393,21 @@ async def run_doctor(args: argparse.Namespace) -> int:
                 await tts.probe()
                 tts_available = True
                 tts_detail = tts.backend_id
+                voices = [
+                    {"id": voice.voice_id, "locale": voice.locale}
+                    for voice in await tts.list_voices()
+                ][:64]
             finally:
                 await tts.aclose()
         except Exception as error:
             tts_detail = str(error)[:300]
-        report["tts"] = {"available": tts_available, "backend": tts_detail}
+            voices = []
+        report["tts"] = {
+            "available": tts_available,
+            "backend": tts_detail,
+            "detail": tts_detail,
+            "voices": voices,
+        }
 
         try:
             parsed_stt = urlsplit(args.stt_url)
@@ -352,10 +422,13 @@ async def run_doctor(args: argparse.Namespace) -> int:
         except Exception as error:
             stt_available = False
             stt_detail = f"{type(error).__name__}: {error}"[:300]
+        assets = local_asset_status(root)
         report["stt"] = {
             "available": stt_available,
             "endpoint": args.stt_url,
             "detail": stt_detail,
+            "assets_available": assets["available"],
+            "assets": assets,
         }
 
         ui_index = files("sam_ambient").joinpath("static/index.html")
@@ -396,10 +469,22 @@ async def run_doctor(args: argparse.Namespace) -> int:
             report["supervisor"] = {"state": "not_started", "state_db": str(state_db)}
             report["updates"] = []
 
+        readiness = classify_readiness(report)
+        report["readiness"] = [item.to_dict() for item in readiness]
+        report["mode"] = (
+            "READY"
+            if all(
+                item.level is ReadinessLevel.READY
+                for item in readiness
+                if item.id in {"runtime", "model", "ui"}
+            )
+            else "DEGRADED"
+        )
+
         if args.json:
             print(json.dumps(report, indent=2, sort_keys=True, default=str))
         else:
-            _print_doctor(report)
+            _print_doctor(report, verbose=args.verbose)
         return 0 if health.available and bool(models) and ui_index.is_file() else 1
     finally:
         await provider.aclose()
@@ -413,7 +498,7 @@ def _doctor_paths(args: argparse.Namespace) -> tuple[Path, Path]:
     return root, state_db
 
 
-def _print_doctor(report: dict[str, object]) -> None:
+def _print_doctor(report: dict[str, object], *, verbose: bool = False) -> None:
     provider = report["provider"]
     audio = report["audio"]
     tts = report["tts"]
@@ -426,7 +511,15 @@ def _print_doctor(report: dict[str, object]) -> None:
     assert isinstance(stt, dict)
     assert isinstance(ui, dict)
     assert isinstance(active, dict)
-    print(f"Sam {report['sam_version']}")
+    print(f"Sam {report['sam_version']} - {report['mode']}")
+    for item in report["readiness"]:
+        print(f"[{item['level']:<13}] {item['id']}: {item['summary']}")
+        if item.get("action"):
+            print(f"                Next: {item['action']}")
+    if not verbose:
+        print("Use --verbose for component inventory; --json for machine-readable output.")
+        return
+    print("\nDetails")
     supervisor = report["supervisor"]
     assert isinstance(supervisor, dict)
     print(f"Supervisor: {supervisor.get('state', 'persisted component status below')}")
@@ -441,7 +534,13 @@ def _print_doctor(report: dict[str, object]) -> None:
     )
     print(f"Audio devices: {len(audio.get('devices', [])) if audio.get('available') else 0}")
     print(f"STT: {'reachable' if stt['available'] else 'unavailable'} ({stt['detail']})")
+    print(f"  Assets: {stt.get('assets', {}).get('detail', 'not inspected')}")
     print(f"TTS: {'ready' if tts['available'] else 'unavailable'} ({tts['backend']})")
+    if tts.get("voices"):
+        print(
+            "  Voices: "
+            + ", ".join(f"{voice['id']} ({voice['locale']})" for voice in tts["voices"])
+        )
     print(
         f"Provider: {'healthy' if provider['available'] else 'unavailable'} "
         f"({provider['detail']}); models={len(provider['models'])}"
@@ -470,6 +569,8 @@ async def run_runtime(args: argparse.Namespace) -> int:
 async def _serve_runtime(
     args: argparse.Namespace, provider: LLMProvider, model: str | None, discovery: Discovery | None
 ) -> int:
+    from sam_ambient.adapters.mcp import McpClient, McpError
+
     stop = parent_stop_event() if args.runtime_instance_id else asyncio.Event()
     tts = None
     output = None
@@ -483,7 +584,9 @@ async def _serve_runtime(
     voice = None
     stt_status = "disabled by --no-voice"
     if not args.no_voice:
-        stt = WhisperCppServerSTT(base_url=args.stt_url)
+        stt = WhisperCppServerSTT(
+            base_url=args.stt_url, preferred_languages=args.preferred_languages
+        )
         try:
             await stt.ensure_ready(Path(args.root))
             stt_status = f"ready at {stt.base_url}"
@@ -523,12 +626,31 @@ async def _serve_runtime(
                 else None
             ),
             state_db=Path(args.state_db) if args.state_db else None,
+            tts_voice=args.tts_voice,
         ),
         voice=voice,
         tts=tts,
         audio_output=output,
     )
+    mcp_clients: list[McpClient] = []
     try:
+        external = getattr(getattr(args, "_sam_settings", None), "external", None)
+        for server in getattr(external, "mcp_servers", ()):
+            client = McpClient(server)
+            try:
+                external_tools = await client.start()
+                for tool in external_tools:
+                    runtime.tools.register(tool)
+            except (McpError, ValueError) as error:
+                await client.close()
+                log.error("MCP server %s unavailable (fail closed): %s", server.server_id, error)
+                continue
+            mcp_clients.append(client)
+            log.info(
+                "MCP server %s ready: %d approval-gated tools",
+                server.server_id,
+                len(external_tools),
+            )
         await runtime.start()
         health_state = "HEALTHY"
         health_detail = "runtime ready"
@@ -583,6 +705,7 @@ async def _serve_runtime(
         return 0
     finally:
         await runtime.close()
+        await asyncio.gather(*(client.close() for client in mcp_clients), return_exceptions=True)
         log.info("Core stopped")
 
 
@@ -636,10 +759,15 @@ async def _dispatch(args: argparse.Namespace) -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
-    args = parser.parse_args(argv)
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    args = parser.parse_args(arguments)
     if args.command is None:
         parser.print_help()
         return 0
+    try:
+        configure_namespace(args, arguments)
+    except ConfigurationError as error:
+        parser.error(str(error))
     configure_logging(args)
     try:
         return asyncio.run(_dispatch(args))

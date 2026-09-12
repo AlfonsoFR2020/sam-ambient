@@ -44,6 +44,35 @@ seconds while an installed model loads. The browser opens once after readiness:
 Use **Controls → Text request**, type a short question, and press **Send**.
 Ask a follow-up: committed recent conversation context is retained locally.
 
+## Configuration
+
+For a checkout, copy `config/sam.example.toml` to `config/sam.toml`. Sam also
+looks for `%APPDATA%\Sam\sam.toml` on Windows and
+`${XDG_CONFIG_HOME:-~/.config}/sam-ambient/sam.toml` on Linux. Precedence is:
+
+1. built-in safe defaults;
+2. user configuration;
+3. workspace `config/sam.toml`;
+4. `SAM_*` environment variables;
+5. explicit CLI options.
+
+Use `sam-ambient --config PATH` for a specific file. With the `sam` diagnostics
+CLI, place the option before the command: `sam --config PATH doctor`. Existing
+CLI flags remain supported and always win. The concise example documents the
+supported keys for provider/model, local compatible endpoint, workspace/UI,
+STT/languages, system voice, privacy, and approval-gated workspace writes.
+Unknown keys, wrong types, and unsupported schema versions fail with a direct
+message. `OPENAI_API_KEY` and other secrets stay in their dedicated environment
+or service configuration, never ordinary TOML. Last-good provider/model state
+continues to live in `.sam/state.db` and cannot rewrite user configuration.
+
+Optional local MCP servers may be declared as `[[external.mcp_servers]]` only in
+the per-user file or an explicit `--config` file. Each entry has a stable `id`,
+structured `command` argv, optional absolute `working_directory`, bounded
+`timeout_s`, and `result_limit_bytes`; see `config/sam.example.toml`. Workspace
+configuration cannot introduce process-launch authority. Discovery grants no
+permission: every external call still presents Sam's exact owner approval.
+
 Selection order: explicit CLI configuration → last successful local provider/model
 → Ollama → LM Studio → explicitly configured compatible endpoint. Deleted/stopped
 saved preferences do not prevent fallback discovery; an explicit unavailable
@@ -88,8 +117,10 @@ Use `--no-voice --no-tts` for text-only operation.
 
 Expand the provider/model status to read why it was selected, whether Sam started
 or reused it, and STT/TTS readiness. No model means the UI can operate but cannot answer.
-`uv run sam doctor --root .` is read-only; `uv run sam-ambient --verbose` shows
-startup decisions without prompts, audio or credentials.
+`uv run sam doctor --root .` is read-only and reports categorized readiness plus
+actionable next steps. Add `--verbose` for bounded component inventories or
+`--json` for automation. `uv run sam-ambient --verbose` shows startup decisions
+without prompts, audio contents, or credentials.
 
 Choose **Quit Sam → Confirm quit**, or Ctrl+Q. Cancel/Escape keeps Sam running.
 The stopped screen means reconnection is off; close any remaining fallback tab.

@@ -32,10 +32,27 @@ specifications and update activation are not exposed to model or UI commands.
 Model discovery probes known loopback endpoints and explicit local configuration;
 it does not scan a network, start services, or download models. Cloud use requires
 explicit configuration and privacy permission. Clipboard and retrieved file data
-must not silently cross into cloud context.
+must not silently cross into cloud context. Loopback readiness proves protocol
+compatibility, not vendor/process identity; Sam assumes a trusted single-user host
+and does not treat an occupied localhost port as authenticated software.
 
 Committed text and operational metadata are stored locally under `.sam/`; raw
 microphone audio is not persisted. INFO/DEBUG logs omit prompts, tool contents,
 credentials, and audio. Review diagnostics before sharing paths/model names.
 Candidates are staged, hashed, tested, and health-observed by trusted code, with
-rollback retained. Hashes identify content; they do not establish publisher trust.
+rollback retained. Candidate content is re-hashed after observation before it can
+become last-known-good; rollback content is checked against its persisted trusted
+hash. Hashes identify content; they do not establish publisher trust.
+
+External MCP capability providers remain downstream of Sam's trusted registry,
+policy, exact-invocation approval, authority epoch, cancellation, output bounds,
+and audit correlation. Discovery grants no authority. Local launch argv and the
+working directory come only from trusted user/explicit configuration, never model
+arguments or workspace configuration. Every discovered tool is conservatively an
+approval-required external side effect; catalog changes fail closed and require
+rediscovery plus fresh authority. Server content is untrusted data. The stdio
+child receives a bounded environment and Sam terminates only the process it owns.
+
+This is policy mediation and lifecycle containment, not an OS sandbox. A future
+desktop provider may exercise its process's host permissions after approval. It
+must not expose an alternate model-controlled execution channel.

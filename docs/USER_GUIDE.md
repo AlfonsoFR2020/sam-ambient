@@ -34,6 +34,17 @@ says **Reconnecting**. Degraded notices state what remains usable. Controls keep
 the detailed provider/model, speech input, spoken output, selected voice, and
 local/cloud policy so the main ambient view stays quiet.
 
+## Configuration and readiness
+
+The supported TOML locations and precedence are documented in
+[Getting started](GETTING_STARTED.md); CLI options win over environment,
+workspace, user, and built-in values. Keep secrets out of TOML. Configuration is
+user intent, while `.sam/state.db` contains learned last-good selection and
+operational state. Run `sam doctor --root .` first when setup changes. READY means
+usable now, AVAILABLE means Sam can use or start an existing local component,
+and ACTION NEEDED identifies a concrete prerequisite. Voice failures may leave
+text conversation usable, which doctor reports as degraded rather than fatal.
+
 ## Controls and safety
 
 The warm light field is the main view. Listening opens its shape; transcription
@@ -71,6 +82,9 @@ File access is constrained to authorized roots (`--root` selects the workspace).
 Writes additionally need `--allow-workspace-write` and approval. Process requests
 require approval and are **not an OS sandbox**. Review the tool, target/command,
 working directory and risk before Allow; Deny/no response never authorizes it.
+Configured local MCP tools follow the same rule: their server is an executor,
+not an authority, and returned content is untrusted data. Emergency Stop and
+capability revocation cancel or block external calls just like native tools.
 See [Security](../SECURITY.md). Capabilities remain revoked after crash recovery
 or safe mode; model text cannot override this.
 

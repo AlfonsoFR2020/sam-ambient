@@ -2,21 +2,34 @@
 
 ## Unreleased
 
-- Prevent duplicate supervisors for one Sam root and treat closure of the
-  dedicated app window as graceful application shutdown; browser fallback remains
-  independent and no browser process is force-terminated.
-- Open the UI on HTTP readiness, show truthful core startup/reconnect status, and
-  present local model, speech, privacy, and degradation details inside Controls.
-- Clarify control effects and improve bounded transcript role styling/scrolling.
-- Replace the blue sphere with a responsive amber light/ribbon field driven by
-  conversation and audio state. Bound rendering to 64 particles, five ribbons,
-  30 fps and four million pixels; pause when hidden and freeze motion when reduced.
-- Integrate readable transcripts and quiet Controls, with provider/voice details,
-  prominent emergency stop, keyboard-focused Quit and no animation after shutdown.
-
+- Consolidate acceptance-pending and longer-term work in a maintained roadmap and
+  add a human-controlled alpha release checklist.
+- Add a provider-neutral MCP stdio seam for trusted configured local capability
+  servers. Discovered tools remain exact-approval external side effects under
+  Sam's lease, revocation, cancellation, result-bound, and audit rules; malformed
+  or changing catalogs and protocol failures fail closed.
+- Add a validated schema-versioned TOML configuration layer with defaults, user
+  and workspace files, environment overrides, and CLI precedence. Keep secrets
+  and learned runtime state separate.
+- Categorize `sam doctor` readiness, including platform/tooling, provider and
+  conversational-model state, Whisper assets/service, system voices, audio,
+  UI, workspace, and supervisor state without changing the machine.
+- Add deterministic Windows/Linux GitHub CI for Python/frontend quality plus
+  source/wheel build, version consistency, and installed-CLI smoke validation.
+- Deep-freeze registered tool schemas and invocation arguments so nested mutable
+  model metadata cannot alter trusted validation or capability identity.
+- Re-hash candidates after health observation and verify the persisted rollback
+  hash; mutation rolls back or fails closed rather than becoming known-good.
 - Prefer an isolated Edge/Chrome/Chromium application window after UI readiness;
-  retain `--ui-mode browser` and automatic normal-browser fallback. Window lifetime
-  remains independent; shutdown requests graceful closure of Sam-owned windows only.
+  retain `--ui-mode browser` and automatic normal-browser fallback. Prevent
+  duplicate supervisors per Sam root and request graceful shutdown when the owned
+  app window closes, without terminating unrelated browser processes.
+- Show truthful core startup/reconnect, provider, model, speech, privacy and
+  degradation status in quiet controls. Clarify control effects and improve
+  bounded transcript role styling and scrolling.
+- Add an acceptance-pending responsive amber Canvas field driven by existing
+  state/audio metrics, with bounded rendering, hidden-state suspension and reduced
+  motion. It is a branch UI checkpoint, not the completed Visual Engine v1.
 
 - Infer speech language from assistant responses, retaining context for ambiguous
   short replies. Select installed Windows voices by locale/language with explicit

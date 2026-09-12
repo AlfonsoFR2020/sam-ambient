@@ -1,53 +1,60 @@
 # Sam implementation state
 
-Updated: 2026-09-09
+Updated: 2026-09-12
 
 ## MVP status
 
-- Ambient-shell checkpoint: installed Chromium-family app mode is preferred via a
-  supervisor launcher adapter/private `.sam/ui-profile`; normal-browser fallback
-  and `--ui-mode browser` retained. Browser lifetime never controls core health.
-  Windows requests WM_CLOSE for owned PID only, never kills browser processes;
-  Linux/manual-close fallback remains. No native framework or dependency added.
-- `d9c5530` commits the shell checkpoint; owned Windows launch/WM_CLOSE exited 0.
-  The warm Canvas 2D field replaces the sphere:
-  5 ribbons/64 lights, <=30 fps, <=4M pixels, hidden/reduced-motion/shutdown suspension.
-  Quiet Controls contain status/voice details and Quit; transcript is bounded/readable.
-  Automated preview: desktop/small windows, state mappings, reduced-motion freeze,
-  Escape focus, Ctrl+Q Cancel/Confirm/stopped, no console errors; CPU drawing around
-  0.3–0.4 ms at 1280×720 (not a GPU/mobile benchmark). Frontend: 50 tests,
-  Biome, TypeScript and production build pass. Rejected UI not reused.
-- Shell lifecycle polish uses an OS-released per-root instance lock; duplicate
-  launches exit with the existing UI URL. Dedicated-window exit requests graceful,
-  idempotent supervisor shutdown; fallback tabs remain independent. No browser
-  process is killed and stale lock files do not block restart.
-- UI opens on static-HTTP readiness and shows actual core startup/reconnect state.
-  Controls presents model selection/source, STT, TTS/voice and local/cloud policy;
-  compact degraded notices say what remains usable. Tooltips distinguish speech
-  stop, audio toggles, emergency cancellation, capability revoke and Quit; bounded
-  transcript content auto-scrolls without moving the ambient composition.
-
+- Productization backbone: schema-v1 TOML now configures actual supervisor/runtime
+  behavior with defaults -> user -> workspace -> environment -> explicit CLI
+  precedence. Unsupported keys/types fail early. Secrets and SQLite last-good
+  state stay separate. The standard-library implementation adds no dependency.
+- Doctor now categorizes runtime, uv, browser, writable root, local providers and
+  chat models, Whisper assets/service, system TTS voices, audio directions, UI,
+  and supervisor/security state. It is read-only and supplies shared structured
+  readiness data for a future installer. Current host: LM Studio installed/stopped;
+  Whisper assets available; Windows TTS, audio, UI, Python and root ready.
+- Cross-platform GitHub CI repeats Python/Ruff and frontend/Biome/type/build gates
+  on Windows/Linux, then builds wheel/sdist and smoke-installs the wheel. Version
+  consistency is checked locally; publishing remains explicitly manual. Current
+  local gate: 348 Python passed / 2 skipped and 45 frontend passed; Ruff, Biome,
+  typecheck, Vite build, distributions, metadata and installed CLI smoke pass.
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
-  Cancellable PCM remains provider-neutral and cloud speech disabled. Silent WAV
-  synthesis passed for es-ES Helena/en-US David; physical voice remains unvalidated.
-- Hardening gate: 306 Python tests plus Ruff/format pass. Composed acceptance covers
-  language/voice switch, synthesis, underrun recovery, cancellation and shutdown;
-  output waits for PCM and TTS stdin is timeout-bound.
+  Existing cancellable PCM contract retained; cloud speech remains disabled.
+  Silent live Windows WAV
+  synthesis passed for installed es-ES Helena and en-US David voices. No microphone
+  or speaker playback used; physical recognition/barge-in remain unvalidated.
+- Hardening gate: 306 Python tests pass, two existing skips; Ruff/format pass.
+  No frontend changes. Composed multi-turn acceptance covers language/voice switch,
+  PCM subprocess synthesis, underrun recovery, stale/duplicate cancellation and
+  shutdown. Output waits for PCM; underruns no longer abort speech; last-frame
+  cancellation cannot claim completion. TTS stdin is now timeout-bound.
+- Read-only audit: system-default audio devices and Whisper assets available;
+  Whisper/LM Studio stopped, Ollama absent. Bootstrap/preferences/filtering/owned
+  cleanup pass controlled tests; no service manipulation or new live model claim.
+- Branch checkpoint (`feature/ambient-shell`, not merged into `dev`): an isolated
+  Chromium-family app window with browser fallback, per-root single-instance lock,
+  graceful owned-window shutdown, truthful startup/status controls, and bounded
+  transcript polish are implemented. Its Canvas visual remains user-unaccepted and
+  is intended to evolve toward [Visual Engine v1](VISUAL_ENGINE_V1.md); the visual
+  engine specification is authoritative and is not yet fully implemented.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
-- 0.1.2 release gate: 288 Python tests (two justified skips) and 45 frontend tests,
-  lint/format/typecheck/build passed.
+- 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
+  Ollama and unavailable unprivileged Windows symlink creation). Frontend:
+  45 tests, Biome lint/version-file format, TypeScript typecheck, and Vite
+  production build pass.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
   `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
-- Release artifacts are the 0.1.2 wheel/source archive; the wheel includes UI,
-  launchers, example configuration, license, and notices.
+- The release build produces `dist/sam_ambient-0.1.2-py3-none-any.whl` and
+  `dist/sam_ambient-0.1.2.tar.gz`. The wheel contains the production UI, launchers,
+  configuration example, license, and third-party notices.
 - Original Sam material is Apache-2.0; NOTICE attributes Copyright 2026
   Alfonso Ernesto de la Fuente Ruiz, PhD. Bundled React/MIT notices are retained.
 
 ## 0.1.2 first-run behavior
 
-- App/browser handoff occurs once per supervisor lifetime after UI HTTP readiness,
-  so actual core connection/startup is visible. Errors print a manual URL.
+- Browser handoff occurs once per supervisor lifetime after core and UI HTTP
+  readiness. Browser errors print a manual URL; browser lifetime is independent.
 - Quit Sam / Ctrl+Q uses a focused in-app Confirm quit / Cancel dialog, then a trusted
   shutdown channel. Acknowledged shutdown stops frontend reconnects. No LLM tool
   can quit Sam. Controls also exposes Quit; the stopped screen is unambiguous.
@@ -110,7 +117,14 @@ Updated: 2026-09-09
   atomic. Process output, time, cwd, argv, and environment are bounded.
 - Approval is invocation-specific and separate from capability authority.
   Epoch-based global revoke invalidates leases/pending approvals, blocks new
-  work, and cancels compatible active work; the model cannot restore authority.
+  work, and cancels compatible active work; nested schemas/arguments are immutable
+  after construction and the model cannot restore authority.
+- External capability Stage 1 adds a standard-library MCP stdio client beneath
+  the same executor. Trusted user/explicit config owns structured launch argv;
+  workspace config and models cannot launch servers. Discovery creates immutable
+  descriptors but no authority; all calls need exact approval and current epoch.
+  Catalog drift, malformed/oversized data, timeout, cancellation, crash, and
+  revocation fail closed. No server, remote transport, or automation is installed.
 
 ## Resilience and updates
 
@@ -124,8 +138,8 @@ Updated: 2026-09-09
 - Phase 8 stages contained local artifacts in version directories, verifies
   identity/provenance/SHA-256, runs bounded structured validation, atomically
   replaces `active.json`, observes Phase 7 health, commits last-known-good only
-  after stability, and automatically rolls back or enters safe mode on double
-  failure.
+  after stability plus a second hash check, and automatically rolls back. A changed
+  rollback artifact fails closed into safe mode rather than executing.
 - The stable core launcher re-reads and re-hashes `active.json` on every restart
   and executes only a contained fixed `sam_core.py` entry point. An absent
   pointer uses the installed package; an invalid pointer fails closed.
@@ -166,30 +180,18 @@ Updated: 2026-09-09
   SQLite commit before monitoring; allow TTS startup during a tentative candidate
   and recover into SPEAKING. UI projects actual voice state on reconnect and shows
   Transcribing during final STT, plus Listening/Thinking/Speaking/Microphone muted.
-- Prior physical diagnostics: 5–29 s segments, low-confidence language guesses,
-  background transcripts and VAD-only cancellation before TTS. Owner halted voice
-  acceptance; recognition, segmentation, echo/barge-in and latency remain unverified.
 - `72d083f` retains uncertain language; active turn/generation/token validation
   precedes cancellation callbacks so stale STT cleanup cannot cancel new speech.
   Controlled tests do not establish every physical cutoff cause.
 
 ## Known limitations / post-MVP priorities
 
-- STT readiness: Windows probes `/health`, starts existing
-  `.sam/runtime/whisper-b4938/Release/whisper-server.exe` and `.sam/models/ggml-base.bin`
-  if needed, with an 8 s bound. Only owned services stop. Missing assets retain text;
-  hardware recognition/barge-in and real stopped-provider loading remain unvalidated.
-
-- First: validate Linux hardware end to end, tune physical barge-in latency and
-  echo handling, and evaluate platform AEC plus streaming/partial STT.
-- Next: improve permissively distributable Linux voice quality and consume the
-  documented TOML settings schema (0.1.1 uses explicit CLI options).
-- Then: implement native Tauri packaging (Rust/Cargo; Windows additionally
-  needs MSVC), a trusted supervisor self-update bootstrap, and Windows Job
-  Object descendant cleanup.
-- Later: owner-approved AT-SPI/native semantic desktop capabilities and external
-  worker/MCP adapters. No desktop automation, autonomous coding, or agent-worker
-  orchestration is in the MVP.
+- Physical voice/Linux hardware acceptance and a seamless installer remain open.
+- Native shell work remains on its separate unmerged feature branch. This ambient
+  shell branch also remains pending product/visual acceptance and is not in `dev`.
+  The rejected ambient experiment is not part of this branch or `dev`.
+- Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
+  future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 
 ## Commands
 

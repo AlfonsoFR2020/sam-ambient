@@ -84,6 +84,24 @@ def _local_assets(root: Path) -> tuple[Path, Path]:
     return executable, model
 
 
+def local_asset_status(root: Path) -> dict[str, object]:
+    """Report expected local asset paths without starting a service."""
+    root = root.resolve()
+    executable = root / ".sam/runtime/whisper-b4938/Release/whisper-server.exe"
+    model = root / ".sam/models/ggml-base.bin"
+    try:
+        _local_assets(root)
+        available, detail = True, "whisper.cpp executable and multilingual model are present"
+    except SpeechRecognitionUnavailable as error:
+        available, detail = False, str(error)
+    return {
+        "available": available,
+        "executable": str(executable),
+        "model": str(model),
+        "detail": detail,
+    }
+
+
 class WhisperCppServerSTT:
     """Finalize utterances through whisper.cpp's multipart `/inference` API."""
 

@@ -40,14 +40,27 @@ stale events and coalesces high-frequency visualization updates. Text, approvals
 provider/model selection, and connection status stay secondary to the ambient
 field. Visual preferences remain local to the UI.
 
-The ambient scene is Canvas 2D: five bounded ribbon paths and 64 lights, fed by
-the existing reducer's normalized input/output metrics. A ref-driven loop avoids
-per-frame React updates, draws at most 30 fps, caps device scale at 1.5/four million
-pixels, and pauses while hidden. Reduced motion redraws only on state/metric/resize
-changes without ongoing geometry motion; shutdown unmounts the canvas. No animation
-dependency, worker, WebGL stack or rejected-branch composition is reused.
-Vite-only `dev/preview.html?transport=browser` exercises the real event decoder and
-reducer with explicit state/energy controls and CPU draw timing. It is not packaged.
+[Sam Visual Engine v1](VISUAL_ENGINE_V1.md) specifies the future shell-neutral
+renderer, audio/state contract and visual settings. It is a design specification,
+not a description of a completed renderer. This branch's acceptance-pending Canvas
+field remains a bounded shell-neutral checkpoint fed by the current reducer; it
+does not define the future geometry. Its Vite-only preview exercises the real event
+decoder and reducer and is not packaged.
+
+## Configuration and readiness
+
+`SamSettings` is the validated, versioned user-intent boundary. Standard-library
+TOML loading merges safe defaults, per-user and workspace files, bounded `SAM_*`
+environment overrides, then options explicitly present on the CLI. The same
+resolved values feed supervisor launch specifications and direct runtime/doctor
+commands. Unknown fields fail closed. Credentials are adapter environment/service
+configuration, and learned last-good provider/model data remains operational
+SQLite state; neither is written into user TOML.
+
+Doctor probes existing adapters and produces bounded facts. A pure readiness
+classifier maps them to stable user/action categories, providing the shared seam
+for a future installer without giving installer logic separate dependency rules.
+It does not install applications or download models.
 
 ## Voice and providers
 
@@ -100,7 +113,9 @@ side effects. Runtime code validates scope and invocation-specific approvals.
 Authorized paths reject traversal and resolved symlink/junction escapes.
 Bounded process argv uses `shell=False`; execution still has owner OS permissions.
 Global revoke advances the authority epoch, invalidates approvals/leases, and
-cancels compatible work. The model cannot authorize itself or restore authority.
+cancels compatible work. Tool schemas and invocation arguments are recursively
+immutable after trusted construction. The model cannot authorize itself or restore
+authority.
 
 ## Persistence and updates
 
@@ -110,10 +125,42 @@ Versioned artifacts remain separate from live code; trusted validation precedes
 atomic `active.json` replacement. The stable launcher resolves and re-hashes the
 active core's fixed entry point on each restart. Candidates become last-known-good
 only after health observation. Failure restores the previous version; double
-failure enters safe mode. Supervisor self-update requires a later trusted bootstrap.
+failure enters safe mode. Candidate content is re-hashed after observation and the
+rollback target must retain its persisted trusted hash. Supervisor self-update
+requires a later trusted bootstrap.
 
 ## External adapters
 
-Models, STT, TTS, and platform capabilities are replaceable adapters. Native Tauri,
-MCP/deskwright capability providers, and delegated coding workers are future
-integrations. They are not implemented, and none owns supervisor/update authority.
+Models, STT, TTS, and platform capabilities are replaceable adapters. Sam now has
+a bounded MCP stdio client for trusted configured local capability servers. It
+implements current per-request metadata/server discovery, paginated tools/list,
+tools/call, cancellation, and stdio
+shutdown without a new SDK dependency. Streamable HTTP is a future transport;
+legacy SSE is intentionally excluded.
+
+```mermaid
+flowchart TD
+    Model[Model / planner] --> Policy[Sam policy + exact approval]
+    Policy --> Adapter[External capability adapter]
+    Adapter --> MCP[MCP client / stdio transport]
+    MCP --> Server[Configured local MCP server]
+    Server --> Backend[OS / application backend]
+```
+
+Discovery creates recursively immutable, collision-safe Sam descriptors. All
+external tools are approval-required external side effects. Sam checks a catalog
+fingerprint again before execution; results remain untrusted bounded data. Existing
+lease epochs, Emergency Stop, cancellation, stale-generation, and audit rules stay
+authoritative. Models and workspace config cannot supply server launch details.
+
+Deskwright remains a future Linux GNOME/Wayland server launched as a trusted local
+command below this boundary. Semantic actions and headless/private desktop sessions
+are backend behavior, never a policy bypass. Delegated workers are also future;
+none owns supervisor/update authority.
+
+## Release assurance
+
+Local scripts remain authoritative for development. GitHub Actions repeats the
+deterministic Python and frontend quality gates on Windows/Linux, then builds the
+wheel/source distribution and installs the wheel for a CLI/metadata smoke check.
+Live provider/audio checks and publishing are deliberately human-controlled.
