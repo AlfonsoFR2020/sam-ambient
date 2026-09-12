@@ -6,7 +6,7 @@ later implementation. It does not authorize a shell merge or change voice policy
 
 ## 1. Visual identity and renderer decision
 
-Sam is a luminous amber spheroid with fluid wrapping bands, a quiet inner glow
+Sam is a luminous amber spheroid with fragmented wrapping peels, a quiet inner glow
 and a few orbiting lights. The reference is the spherical, flowing, warm-light
 language of [sam-logo.png](../sam-logo.png), not its lettering, pixels or outline.
 Never animate that PNG or import the rejected ambient composition.
@@ -20,7 +20,7 @@ Never animate that PNG or import the rejected ambient composition.
 - No HUD, spinner, texture atlas, physics, raymarching, volumetrics or postprocess bloom.
 
 Decision: a small custom **WebGL2** renderer, without a rendering library. Depth,
-surface lighting and continuously deforming spherical ribbons justify it over
+surface lighting and depth-occluded spherical peels justify it over
 Canvas/SVG. Canvas would require CPU projection and depth sorting; SVG would add
 many animated nodes. A deliberately simpler Canvas 2D fallback shares the input
 and motion model. Neither renderer owns application state or audio devices.
@@ -41,40 +41,52 @@ segments: at most 1,225 vertices and 2,208 triangles. Keep static unit normals/U
 in immutable buffers. Base spheroid axes are `(1, 1.06, 0.96)`; state opening can
 change the Y axis by at most 0.04. The final radial bound in section 5 is mandatory.
 
-### Fluid spherical bands
+### Fragmented loxodromic peels
 
-Use 3/4/5 ribbons at low/medium/high quality. For band `j`, parameter `u` spans
-`[-1.8, 1.8]`, with evenly spaced samples and two transverse vertices per sample:
+The loxodromes are invisible mathematical carriers, never complete visible
+ribbons. Render 6/9/14 independent elongated peels at low/medium/high quality,
+with 16/20/24 centerline samples each. Each peel stores a carrier/family,
+center parameter, half-length, angular half-width, radial lift, opacity, phase,
+speed and seeded orientation/tilt. Two transverse vertices per sample form one
+batched indexed peel draw; static `q`, transverse side and peel identity are vertex
+attributes, while time/state/audio are uniforms. Do not rebuild meshes on the CPU.
+
+For peel `i`, `q` spans `[-1,+1]`:
 
 ```text
 latitude  phi(u) = atan(sinh(u))
-longitude lambda_j(u,t) = k_j(t)*u + 2*pi*j/N + phase_j(t)
+u_i(q,t) = center_i + speed_i*t + q*halfLength_i
+longitude lambda_i(u,t) = k_i(t)*u + familyPhase_i
 C = (cos(phi)*cos(lambda), sin(phi), cos(phi)*sin(lambda))
-k_j(t) = 1.65 + 0.12*sin(0.07*t + seedPhase_j)
+k_i(t) = 1.65 + 0.12*sin(0.07*t + seedPhase_i)
 T = normalize(dC/du)
 B = normalize(cross(C,T))
-w(u,t) = halfWidth(t) * smoothstep(0,0.22,1.8-abs(u))
-surfaceDirection = normalize(C*cos(v*w) + B*sin(v*w)), v in {-1,+1}
+endFade(q) = smoothstep(0,0.18,1-abs(q))
+w_i(q,t) = halfWidth_i(t) * endFade(q)
+surfaceDirection = normalize(C*cos(v*w_i) + B*sin(v*w_i)), v in {-1,+1}
+position = displacedOrbSurface(surfaceDirection) + normal(C)*lift_i(t)
 ```
 
 For fixed `k`, `d(lambda)/d(phi) = k/cos(phi)`: this is a constant-bearing
-loxodrome away from the poles, not a helix pasted in screen space. Tapered ends
-stop near latitude +/-71 degrees. The slow change in pitch makes it rhumb-like
-over time. Use the analytic derivative for `T`; include time-varying `k` as a
-uniform, not per-frame CPU mesh reconstruction.
+loxodrome away from the poles, not a helix pasted in screen space. Each short
+interval stays within `u in [-1.8,1.8]`, wrapping its center periodically without
+crossing the pole limit. Half-length is seeded in `[0.22,0.58]`; angular half-width
+in `[0.018,0.055]`, opacity in `[0.28,0.72]`, and drift speed in
+`[0.006,0.018]` rad/s with seeded direction. Soft end alpha uses `endFade^2`.
 
-Rotate each ribbon's direction by a fixed seeded tilt of at most 12 degrees
-around X/Z, then evaluate the same surface displacement as the sphere. Add a
-radial lift of `0.012 + 0.018*separation`, plus a smooth travelling lift of at
-most 0.008. This prevents z-fighting. Angular half-width stays in `[0.035,0.085]`
-radians. End taper is the only exception to this minimum width.
+Rotate each carrier by a fixed seeded tilt of at most 12 degrees around X/Z,
+then evaluate the same surface displacement as the sphere. Radial lift stays in
+`[0.010,0.032]`, with any later audio/state addition capped at 0.018; this keeps
+peels close to the body rather than flying free. State separation may change tilt
+by at most another 4 degrees and width/lift within these bounds. Nearby fragments
+can align, overlap and share travelling highlights to suggest reconnection; there
+is no topology merge/split, physics or fragment spawning.
 
-Integrate `phase_j` at 0.015 rad/s plus a state-dependent drift bounded by
-0.02 rad/s; offsets are seeded, not random each frame. Separation changes tilt
-by at most another 4 degrees and lift/width, never scatters entire ribbons.
-Projected tilted ribbons overlap and occlude naturally. Travelling highlights
-and widening at overlaps suggest reconnection; **no topology changes or actual
-merging** are required. A smooth highlight ridge follows each centerline.
+Draw the opaque orb first with depth writes. Draw all semi-transparent peels in
+one batch afterward with depth test on and depth writes off, using bounded
+premultiplied emissive blending. Back-side fragments disappear behind the orb
+naturally. Do not CPU crop or sort them merely for horizon visibility; a small
+`smoothstep(0.0,0.15,dot(normal,view))` horizon fade may soften entry and exit.
 
 ### Orientation, lights, particles
 
@@ -276,9 +288,9 @@ displacement(n) = clamp(
 ```
 
 Apply radial displacement before spheroid scale. The final body distance from
-center must remain within `[0.84,1.26]`, ribbons within 1.31, halo within 1.65.
+center must remain within `[0.84,1.26]`, peels within 1.31, halo within 1.65.
 Enforce bounds after all settings/expression/state combinations, not only defaults.
-Low band changes broad curvature/breathing; mid band changes ribbon width,
+Low band changes broad curvature/breathing; mid band changes peel width,
 separation and pitch by at most 0.08; high band changes only fine ripples/particles.
 Waveform coefficients never exceed 0.006 total displacement. Orbital speed changes
 follow 250 ms filtering; audio does not directly set angles. Limit luminance change
@@ -293,16 +305,16 @@ by 250 ms recovery. Oscillators continue in phase; transitions never restart loo
 
 | Foreground | Radius / glow | Opening / spin rad/s | Silent identity and audio treatment |
 | --- | --- | --- | --- |
-| Idle | 1.00 / .24 | .10 / .045 | Coherent bands, 8 s breathing, slow light travel. |
-| Listening | 1.035 / .31 | .65 / .055 | Open tilted bands, outward rim emphasis; input drives broad response. |
+| Idle | 1.00 / .24 | .10 / .045 | Coherent peels, 8 s breathing, slow light travel. |
+| Listening | 1.035 / .31 | .65 / .055 | Open/lift peels, outward rim emphasis; input drives broad response. |
 | Transcribing | .985 / .32 | .22 / .030 | Captured opening converges once over 450 ms; aligned ridges remain until done. |
-| Thinking | .955 / .29 | .08 / .025 | Tight bands, inward phase drift, focused inner light; no revolution-as-progress cue. |
-| Speaking | 1.015 / .38 | .40 / .065 | Broad luminous ribbons with travelling highlights; strongest output coupling. |
+| Thinking | .955 / .29 | .08 / .025 | Peels tighten toward body, inward drift, focused inner light; no progress spinner. |
+| Speaking | 1.015 / .38 | .40 / .065 | Stronger bounded peel width/lift and travelling highlights; strongest output coupling. |
 | Interrupted | .94 / .26 | .12 / .020 | One contraction/rephasing per serial, no red flash; then actual next state. |
 | Resuming | towards speaking | towards speaking | 300 ms opening ramp; fresh output resumes, old energy never replays. |
 
 For transcribing, capture the last opening value, not audio content. Ramp to the
-target without endlessly repeating a resolving gesture. Reverse ribbon phase
+target without endlessly repeating a resolving gesture. Reverse peel phase
 drift gently while thinking; no literal inward travel beyond the bounded lift.
 Interruption rephasing is a maximum 0.12-radian target offset eased continuously.
 
@@ -335,7 +347,7 @@ refs own renderer state. **No setState, DOM measurement or allocation per frame.
 One requestAnimationFrame scheduler checks the chosen cadence; integrate using
 monotonic delta time capped at 50 ms. No catch-up simulation after a stall.
 Preallocate typed arrays, meshes and uniforms; upload only uniforms per draw.
-Batch all ribbons; instance particle quads. Render halo, opaque body, ribbons,
+Batch all peels; instance particle quads. Render halo, opaque body, peels,
 particles in at most four draw calls. Body writes depth; translucent surfaces
 depth-test without depth writes using bounded premultiplied additive light.
 Use one active canvas, one depth buffer, no offscreen render targets or textures.
@@ -367,14 +379,14 @@ on screenshots. Shaders are bundled static source compatible with current CSP.
 ## 8. Performance envelope and quality
 
 These are implementation/acceptance budgets, **not measurements of current Sam**.
-Maintain the same warm sphere, wrapping bands and state geometry at every level.
+Maintain the same warm sphere, fragmented peels and state geometry at every level.
 
 | Budget | Low | Medium | High |
 | --- | --- | --- | --- |
 | Sphere segments longitude x latitude | 32 x 16 | 48 x 24 | 64 x 32 |
 | Sphere vertices / triangles, upper bound | 561 / 960 | 1225 / 2208 | 2145 / 3968 |
-| Ribbons x centerline samples | 3 x 64 | 4 x 96 | 5 x 128 |
-| Ribbon vertices / triangles | 384 / 378 | 768 / 760 | 1280 / 1270 |
+| Peels x centerline samples | 6 x 16 | 9 x 20 | 14 x 24 |
+| Peel vertices / triangles | 192 / 180 | 360 / 342 | 672 / 644 |
 | Particles / lights | 12 / 1 | 24 / 2 | 40 / 3 |
 | Idle / active FPS | 24 / 30 | 30 / 60 | 30 / 60 |
 | DPR cap / backing-pixel cap | 1 / 1M | 1.5 / 2M | 2 / 3M |
@@ -392,12 +404,25 @@ separately from model inference and compositor contention; no claim based on
 requestAnimationFrame interval alone. GPU timer queries are optional diagnostics,
 never a rendering requirement. Record device, viewport, DPR and quality in reports.
 
-AUTO starts medium on desktop, low on mobile/coarse-pointer constrained displays;
-platform hints select only an initial preset. Over a 5-second visible active
+Visual quality controls richness; device profile constrains the allowed envelope.
+Profiles are `auto`, `mobile_2020`, `low_power`, `desktop`, and `high_end`.
+`mobile_2020` formally supports 360x640 through 390x844 CSS portrait viewports at
+effective DPR 1, low geometry, no required MSAA/offscreen targets/textures/post
+processing, <=4 draws, about 24 FPS idle and 30 FPS active. `low_power` shares the
+low cap at other viewport shapes. `desktop` caps AUTO at medium until measured
+headroom promotes it; `high_end` permits high but never changes visual identity.
+An explicit lower profile always caps an explicit or automatic richer quality, so
+this remains one resolved budget rather than a quality/profile matrix. Desktop
+developers can force `mobile_2020` for repeatable feedback. Do not use GPU strings.
+
+AUTO starts medium only for explicit desktop/high-end profiles and low otherwise;
+platform hints select only an initial conservative preset. Over a 5-second visible active
 window, if >10% of intervals exceed 1.5x the frame budget, lower resolution first,
-then particle count, then mesh/ribbon sampling and cadence. Change at most once
-per 5 seconds. Preserve at least three bands. Recover one level after 30 seconds
-of stable headroom, at most to the initial preset; explicit high is user-selected.
+then particle count, then mesh/peel sampling and cadence. Change at most once
+per 5 seconds. Preserve at least six peels. Recover one level after 30 seconds
+of stable headroom; AUTO on desktop/high_end may promote through high after sustained
+measured headroom. Explicit profiles remain hard caps and explicit quality a desired
+ceiling, not proof that the device can sustain it.
 Ignore hidden/startup windows in adaptation. Poor performance at minimum selects
 Canvas after two bad windows; report the fallback in settings, do not probe GPU
 vendor strings as proof of capability. Explicit quality still obeys memory caps.
@@ -438,6 +463,7 @@ documentation together, without changing the meaning of existing keys:
 enabled = true
 renderer = "auto"        # auto | webgl2 | canvas2d; failures still fall back
 quality = "auto"         # auto | low | medium | high
+device_profile = "auto"  # auto | mobile_2020 | low_power | desktop | high_end
 intensity = 0.82         # 0..1, overall emission scale
 motion_intensity = 0.6   # 0..1, scales spatial speeds/excursions
 audio_reactivity = 0.7   # 0..1, scales measured feature contribution
@@ -535,7 +561,7 @@ ElevenLabs/Hume-style adapters may supply such data; no integration is implied.
 | --- | --- | --- |
 | A | Typed visual contract, current-state adapter, optional extractor + fixtures; envelope-only path first. | High-reasoning / short: correlation and numerical contract; routine test implementation. |
 | B | Isolated WebGL lifecycle, sphere, lighting, layout and static fallback. | Implementation-heavy; bounded shader/resource review. |
-| C | Rhumb ribbons, normals, bounded displacement, seeded light/particles. | Implementation-heavy; high-reasoning / short mathematical verification. |
+| C | Fragmented rhumb-carrier peels, normals, bounded displacement, seeded lights/particles. | Implementation-heavy; high-reasoning / short mathematical verification. |
 | D | Continuous state/audio evaluator, duplex composition, cancellation/expiry tests. | High-reasoning / short, then implementation-heavy wiring. |
 | E | Validated visual config and existing-controls integration, documentation. | Routine/repetitive (low-reasoning) against this fixed contract. |
 | F | Quality adaptation, Canvas fallback, reduced motion, loss/visibility cleanup. | Implementation-heavy; lifecycle edge cases require focused review. |
