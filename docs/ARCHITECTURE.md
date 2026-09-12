@@ -40,12 +40,13 @@ stale events and coalesces high-frequency visualization updates. Text, approvals
 provider/model selection, and connection status stay secondary to the ambient
 field. Visual preferences remain local to the UI.
 
-[Sam Visual Engine v1](VISUAL_ENGINE_V1.md) specifies the future shell-neutral
-renderer, audio/state contract and visual settings. It is a design specification,
-not a description of a completed renderer. This branch's acceptance-pending Canvas
-field remains a bounded shell-neutral checkpoint fed by the current reducer; it
-does not define the future geometry. Its Vite-only preview exercises the real event
-decoder and reducer and is not packaged.
+[Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
+renderer, audio/state and visual-settings specification. This branch implements its
+Stage A/B foundation: a typed envelope-only adapter and isolated WebGL2 spheroid,
+batched fragmented peels and analytic lighting, with Canvas/CSS fallback. Full
+state/audio choreography, spectral extraction, persistent settings, measured quality
+adaptation and human visual acceptance remain pending. The Vite-only preview uses
+the real event decoder and reducer and is not packaged.
 
 ## Configuration and readiness
 

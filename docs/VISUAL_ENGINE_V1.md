@@ -1,8 +1,10 @@
 # Sam Visual Engine v1
 
-Status: implementation specification, not implemented on `dev`. Design revision 1.
-This document owns the renderer, input, motion, quality and settings decisions for
-later implementation. It does not authorize a shell merge or change voice policy.
+Status: implementation specification, not implemented on `dev`. The Stage A/B
+foundation is implemented only on `feature/ambient-shell`; choreography, persistent
+settings, measured adaptation and human acceptance remain pending. Design revision 1.
+This document owns the renderer, input, motion, quality and settings decisions. It
+does not authorize a shell merge or change voice policy.
 
 ## 1. Visual identity and renderer decision
 
@@ -455,8 +457,10 @@ IPC, filesystem, network calls or Tauri imports inside the engine.
 ## 10. Settings contract and general Sam rule
 
 Proposed additive namespace for Sam's schema-v1 configuration; **these keys are
-not supported by today's loader**. Implementation must register validation and
-documentation together, without changing the meaning of existing keys:
+not supported by today's loader**. The foundation validates an equivalent typed UI
+boundary, maps the existing intensity/reduced-motion controls, and keeps quality and
+device-profile selection session-local. A later implementation must register
+persistent validation and documentation together, without changing existing keys:
 
 ```toml
 [visual]

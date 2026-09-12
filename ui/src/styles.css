@@ -113,6 +113,33 @@ input {
   display: block;
   width: 100%;
   height: 100%;
+  pointer-events: none;
+}
+
+.ambient-scene.visual-engine--static::before,
+.ambient-scene.visual-engine--static::after {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  content: "";
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.ambient-scene.visual-engine--static::before {
+  width: min(56vmin, 620px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #ffd39b, #e86e31 30%, #8f2b14 72%, #321009);
+  box-shadow: 0 0 12vmin #d8522638;
+}
+
+.ambient-scene.visual-engine--static::after {
+  width: min(44vmin, 490px);
+  height: min(8vmin, 88px);
+  border: 1px solid #ffd29e66;
+  border-radius: 50%;
+  box-shadow: 0 0 2vmin #f38a424d;
 }
 
 .status {

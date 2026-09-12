@@ -25,6 +25,7 @@ import { BrowserEventTransport } from "./transport/browser";
 import { type NativeEventSource, TauriLocalTransport } from "./transport/tauri";
 import { browserScheduler, type ProtocolTransport } from "./transport/transport";
 import { WebSocketTransport } from "./transport/websocket";
+import { settingsFromCurrentControls } from "./visual-engine/settings";
 
 declare global {
   interface Window {
@@ -153,6 +154,10 @@ export default function App() {
   const [commandError, setCommandError] = useState<string>();
   const [textRequest, setTextRequest] = useState("");
   const visual = toAmbientVisualModel(state, preferences.brightness / 100);
+  const visualSettings = useMemo(
+    () => settingsFromCurrentControls(preferences.brightness, preferences.reducedMotion),
+    [preferences.brightness, preferences.reducedMotion],
+  );
   const runtimeStatus = statusPresentation(state);
   stateRef.current = state;
 
@@ -227,7 +232,7 @@ export default function App() {
   return (
     <main className="sam-shell" data-reduced-motion={preferences.reducedMotion || undefined}>
       {!quitRequested && !state.applicationStopped && (
-        <AmbientScene model={visual} reducedMotion={preferences.reducedMotion} />
+        <AmbientScene model={visual} state={state} settings={visualSettings} />
       )}
       <header className="status">
         <span className="status__mark" data-connected={visual.connected} />

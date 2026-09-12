@@ -4,10 +4,9 @@ Updated: 2026-09-12
 
 ## MVP status
 
-- Productization backbone: schema-v1 TOML now configures actual supervisor/runtime
-  behavior with defaults -> user -> workspace -> environment -> explicit CLI
-  precedence. Unsupported keys/types fail early. Secrets and SQLite last-good
-  state stay separate. The standard-library implementation adds no dependency.
+- Productization backbone: schema-v1 TOML configures supervisor/runtime behavior
+  with defaults -> user -> workspace -> environment -> explicit CLI precedence.
+  Unsupported keys/types fail early; secrets and SQLite last-good state stay separate.
 - Doctor now categorizes runtime, uv, browser, writable root, local providers and
   chat models, Whisper assets/service, system TTS voices, audio directions, UI,
   and supervisor/security state. It is read-only and supplies shared structured
@@ -21,9 +20,8 @@ Updated: 2026-09-12
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
   Existing cancellable PCM contract retained; cloud speech remains disabled.
-  Silent live Windows WAV
-  synthesis passed for installed es-ES Helena and en-US David voices. No microphone
-  or speaker playback used; physical recognition/barge-in remain unvalidated.
+  Silent Windows WAV synthesis passed for installed es-ES Helena and en-US David;
+  physical recognition, playback and barge-in remain unvalidated.
 - Hardening gate: 306 Python tests pass, two existing skips; Ruff/format pass.
   No frontend changes. Composed multi-turn acceptance covers language/voice switch,
   PCM subprocess synthesis, underrun recovery, stale/duplicate cancellation and
@@ -35,9 +33,9 @@ Updated: 2026-09-12
 - Branch checkpoint (`feature/ambient-shell`, not merged into `dev`): an isolated
   Chromium-family app window with browser fallback, per-root single-instance lock,
   graceful owned-window shutdown, truthful startup/status controls, and bounded
-  transcript polish are implemented. Its Canvas visual remains user-unaccepted and
-  is intended to evolve toward [Visual Engine v1](VISUAL_ENGINE_V1.md); the visual
-  engine specification is authoritative and is not yet fully implemented.
+  transcript polish are implemented. [Visual Engine v1](VISUAL_ENGINE_V1.md) Stage
+  A/B adds typed inputs, a WebGL2 amber spheroid, batched peels, mobile budgets and
+  Canvas/CSS fallbacks. Choreography, saved settings and acceptance remain pending.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
@@ -98,7 +96,7 @@ Updated: 2026-09-12
 
 ## UI and protocol
 
-- React 19 + TypeScript + Canvas/CSS renders the ambient state, normalized voice/TTS
+- React 19 + TypeScript + WebGL2/Canvas/CSS renders ambient state and voice/TTS
   metrics, concise transcript, interruption, tool approval, update, offline,
   reconnect, reduced-motion, and intensity state.
 - `sam-ui` is a small loopback-only static HTTP component on port 8766. It
