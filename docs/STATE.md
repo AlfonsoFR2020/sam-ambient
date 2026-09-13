@@ -165,18 +165,17 @@ Updated: 2026-09-13
   confirmed language or en/es with one retry; only confidence >=0.8 updates it.
   Confident other languages remain valid. Silence markers are discarded and
   10-frame pre-roll retains speech onset; INFO never logs transcript text.
-- Fixed two deterministic voice races: wait for model-start/ledger readiness after
-  SQLite commit before monitoring; allow TTS startup during a tentative candidate
-  and recover into SPEAKING. UI projects actual voice state on reconnect and shows
-  Transcribing during final STT, plus Listening/Thinking/Speaking/Microphone muted.
+- Voice monitoring waits for model-start/ledger readiness after SQLite commit;
+  TTS can start during tentative candidates. UI projects actual turn state on reconnect.
 - `72d083f` retains uncertain language; active turn/generation/token validation
   precedes cancellation callbacks so stale STT cleanup cannot cancel new speech.
   Controlled tests do not establish every physical cutoff cause.
-- Human-acceptance hardening debounces binary WebRTC VAD, rejects bracketed
-  non-speech captions, and requires credible transcript evidence during playback;
-  strong overlap with current assistant output is suppressed as self-echo.
-  PortAudio/runtime monotonic clocks are reconciled before strict transitions;
-  capture failures log their source, retry twice, and remain manually retryable.
+- VAD hysteresis, bracket-caption filtering, playback echo rejection and reconciled clocks remain.
+- Lifecycle correction detaches final STT streams before awaiting and disposes rejected/noise buffers.
+  Controller confirmations cancel once; input health cannot force model/TTS OFFLINE.
+  Device retries are bounded; protocol/service errors halt retry. Finals cannot reopen endpoints.
+  Gate: 71 bounded Python tests + 10 focused tests after the confidence guard; Ruff/diff pass.
+  Sustained-noise endpointing and physical voice remain unaccepted; no AEC or VAD tuning added.
 - LM Studio now distinguishes installed/loaded models: explicit/last-good choices
   win, a sole chat model may load automatically, and multiple candidates require
   selection. Model load has a separate cancellable 120-second bound. Startup/error

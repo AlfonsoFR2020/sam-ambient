@@ -110,6 +110,8 @@ _ALLOWED_TRANSITIONS: dict[VoiceState, frozenset[VoiceState]] = {
     ),
     VoiceState.INTERRUPTION_CANDIDATE: frozenset(
         {
+            VoiceState.THINKING,
+            VoiceState.SPEAKING,
             VoiceState.USER_SPEAKING,
             VoiceState.INTERRUPTED,
             VoiceState.RECOVERING,
@@ -509,6 +511,18 @@ class TurnManager:
         if candidate_cancelled is not None:
             events.insert(0, candidate_cancelled)
         return tuple(events)
+
+    def reject_interruption(self, at_ms: int, reason: str) -> tuple[ProtocolEvent, ...]:
+        """Dispose only a tentative candidate; retain the active response's eligibility."""
+
+        self._check_time(at_ms)
+        if self.state not in {VoiceState.INTERRUPTION_CANDIDATE, VoiceState.RECOVERING}:
+            return ()
+        target = self._candidate_origin_state or VoiceState.SPEAKING
+        cancelled = self._candidate_stt_cancelled_event(at_ms, reason)
+        self._clear_interruption_candidate()
+        recovered = self._transition(target, at_ms, reason)
+        return (recovered,) if cancelled is None else (cancelled, recovered)
 
     def on_audio_restored(self, at_ms: int) -> tuple[ProtocolEvent, ...]:
         self._check_time(at_ms)

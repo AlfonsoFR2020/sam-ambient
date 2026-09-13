@@ -83,8 +83,12 @@ No assets are downloaded. Missing/invalid assets and startup failures report
 their expected paths. Custom endpoints must already be running. Sam stops only
 the STT process it started; after correcting an unavailable service, restart Sam.
 Text requests remain available; `--no-voice` disables microphone capture. Capture
-failures are retried twice; Controls exposes the concrete reason and a speech-input
-retry. Development logs retain the exception site and conversational stage timings.
+device failures are retried twice. Protocol/lifecycle faults and unavailable speech
+services are classified separately in development logs and stop automatic input retry;
+correct the cause, then re-enable the microphone. An active model response may still
+speak. Backend `voice_input` health reports degradation/recovery independently of turn
+state; richer presentation of these health details remains UI follow-up work.
+Development logs retain the exception site and conversational stage timings.
 
 ## Visual motion
 

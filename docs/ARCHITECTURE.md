@@ -72,6 +72,13 @@ text must be credible and probable overlap with current assistant output is reje
 before it becomes a user turn. Shared cancellation IDs reach model/TTS/tools. A delivery ledger records
 generated, queued, and spoken chunks. Real hardware AEC remains future work.
 
+Each interruption candidate owns one STT stream. Finalization removes that stream
+from the capture path before awaiting its result; final/rejected/cancelled streams
+cannot receive further frames. Confirmations pass through the interruption controller
+before event publication. Capture availability is reported as `component.health`
+for `voice_input`, independently of model/TTS state. Input failure disposes only
+tentative candidates; it cannot force a healthy response's playback OFFLINE.
+
 TTS keeps the existing `synthesize(text, voice, language, cancellation)` PCM-frame
 iterator. Each frame carries format/sample-rate metadata; synthesis may buffer
 internally (System.Speech) or stream, while playback remains a separate adapter.

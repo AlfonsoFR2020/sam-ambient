@@ -14,8 +14,15 @@ from typing import Any
 from uuid import uuid4
 
 from sam_ambient import __version__
+from sam_ambient.adapters.audio.sounddevice import AudioDeviceError
 from sam_ambient.adapters.computer import PlatformAppOpenAdapter, TkClipboardAdapter
 from sam_ambient.adapters.process import SubprocessAdapter
+from sam_ambient.adapters.stt.whisper_cpp import (
+    SpeechAudioLimitExceeded,
+    SpeechRecognitionProtocolError,
+    SpeechRecognitionTimeout,
+    SpeechRecognitionUnavailable,
+)
 from sam_ambient.adapters.ui import DEFAULT_UI_BRIDGE_PORT, WebSocketCoreBridge
 from sam_ambient.core.protocol import (
     CancellationTarget,
@@ -79,6 +86,7 @@ from sam_ambient.core.voice import (
     Transcript,
     VoiceActivityDetector,
     VoiceInputPipeline,
+    VoicePipelineEnded,
     VoiceStreamContext,
     normalized_audio_metrics,
 )
@@ -110,6 +118,18 @@ def _frame_after_protocol_clock(frame: AudioFrame, protocol_ms: int) -> AudioFra
     return (
         replace(frame, monotonic_ms=protocol_ms + 1) if frame.monotonic_ms <= protocol_ms else frame
     )
+
+
+def _voice_failure(error: Exception) -> tuple[str, bool]:
+    if isinstance(error, SpeechRecognitionProtocolError):
+        return "Speech stream protocol error; re-enable speech input after checking logs", False
+    if isinstance(error, (SpeechRecognitionUnavailable, SpeechRecognitionTimeout)):
+        return "Speech recognition service unavailable; check the local Whisper service", False
+    if isinstance(error, SpeechAudioLimitExceeded):
+        return "Speech segment exceeded its limit; pause before trying again", False
+    if isinstance(error, (AudioDeviceError, OSError, VoicePipelineEnded)):
+        return "Microphone capture interrupted", True
+    return "Voice lifecycle error; check development logs", False
 
 
 @dataclass(frozen=True, slots=True)
@@ -912,7 +932,7 @@ class SamRuntime:
                 if not result.transcript.text:
                     continue
                 response = await self._start_voice_turn(result.transcript, token)
-                while committed := await self._monitor_barge_in(response):
+                while committed := await self._monitor_response_capture(response):
                     await asyncio.gather(response, return_exceptions=True)
                     if not committed[0].text:
                         committed[1].cancel("no_speech")
@@ -925,30 +945,15 @@ class SamRuntime:
                     return
             except Exception as error:
                 self._voice_restart_failures += 1
-                detail = str(error).strip() or "no additional detail"
-                retrying = self._voice_restart_failures <= 2 and not self._closed
+                detail, recoverable = _voice_failure(error)
+                retrying = recoverable and self._voice_restart_failures <= 2 and not self._closed
                 log.exception(
-                    "Microphone/STT unavailable (%s: %s); %s; text input remains available",
+                    "Voice input failed (%s: %s); %s; text input remains available",
                     type(error).__name__,
                     detail,
                     "retrying capture" if retrying else "automatic retries exhausted",
                 )
-                try:
-                    await self._publish_all(
-                        self.voice_turns.on_audio_lost(
-                            self._next_event_ms(),
-                            (
-                                f"Microphone stream failed: {detail}; retrying"
-                                if retrying
-                                else (
-                                    f"Speech recognition unavailable: {detail}; "
-                                    "toggle microphone to retry"
-                                )
-                            )[:500],
-                        )
-                    )
-                except RuntimeError:
-                    pass
+                await self._capture_health(detail, retrying=retrying)
                 if not retrying:
                     return
                 await asyncio.sleep(0.25 * self._voice_restart_failures)
@@ -957,6 +962,53 @@ class SamRuntime:
                 self._voice_listen_token = None
                 if self._active_token is not token:
                     self.cancellations.discard(token.cancellation_id)
+
+    async def _capture_health(
+        self, reason: str, *, retrying: bool = False, at_ms: int | None = None
+    ) -> None:
+        # Capture health is independent of model/TTS eligibility. Do not emit
+        # COMPONENT_ERROR / OFFLINE for a failed input while output remains usable.
+        await self.events.publish(
+            ProtocolEvent(
+                type=EventType.COMPONENT_HEALTH,
+                monotonic_ms=self._next_event_ms() if at_ms is None else at_ms,
+                session_id=self.session_id,
+                payload={
+                    "component": "voice_input",
+                    "state": "healthy" if reason == "ready" else "degraded",
+                    "reason": reason,
+                    "retrying": retrying,
+                },
+            )
+        )
+
+    async def _monitor_response_capture(
+        self, response: asyncio.Task[None]
+    ) -> tuple[Transcript, CancellationToken] | None:
+        for attempt in range(3):
+            try:
+                return await self._monitor_barge_in(response)
+            except (OperationCancelled, asyncio.CancelledError):
+                raise
+            except Exception as error:
+                reason, recoverable = _voice_failure(error)
+                retrying = recoverable and attempt < 2 and not response.done()
+                log.exception("Voice input monitoring failed (%s)", type(error).__name__)
+                events = self.voice_turns.reject_interruption(
+                    self._next_event_ms(), "capture_candidate_disposed"
+                )
+                self.interruptions.apply(events)
+                await self._publish_all(events)
+                await self._capture_health(reason, retrying=retrying)
+                if not retrying:
+                    # The response still owns its token and may complete TTS.
+                    # Terminal input faults require an explicit re-enable.
+                    self._microphone_enabled.clear()
+                    self.controls.microphone_enabled = False
+                    await asyncio.gather(response, return_exceptions=True)
+                    return None
+                await asyncio.sleep(0.25 * (attempt + 1))
+        return None
 
     async def _start_voice_turn(
         self,
@@ -1003,7 +1055,7 @@ class SamRuntime:
         candidate_token: CancellationToken | None = None
         endpoint_since: int | None = None
         final_transcript: Transcript | None = None
-        candidate_suppressed = False
+        capture_ready = False
         controller = BargeInController(
             vad=self.voice.vad,
             turn_manager=self.voice_turns,
@@ -1012,6 +1064,9 @@ class SamRuntime:
         )
         try:
             async for frame in frame_stream:
+                if not capture_ready:
+                    capture_ready = True
+                    await self._capture_health("ready", at_ms=frame.monotonic_ms)
                 # Model/TTS transitions and PortAudio frames originate from
                 # separate monotonic samplers. Rapid runtime events can advance
                 # the protocol clock a few milliseconds past the next captured
@@ -1019,46 +1074,111 @@ class SamRuntime:
                 # turn state machine.
                 if frame.monotonic_ms <= self._last_event_ms:
                     frame = _frame_after_protocol_clock(frame, self._last_event_ms)
+                self._last_event_ms = frame.monotonic_ms
                 if response.done() and self.voice_turns.state in {
                     VoiceState.IDLE,
                     VoiceState.ERROR,
                     VoiceState.OFFLINE,
                 }:
                     return None
+                if final_transcript is not None and candidate_token is not None:
+                    # A final result is immutable. Wait out any remaining endpoint
+                    # interval without extending it with new capture frames.
+                    events = self.voice_turns.on_time(frame.monotonic_ms)
+                    await self._publish_all(events)
+                    if any(event.type == EventType.TURN_COMMITTED for event in events):
+                        return final_transcript, candidate_token
+                    continue
                 if (
                     endpoint_since is not None
                     and candidate_stream is not None
                     and candidate_token is not None
                     and frame.monotonic_ms - endpoint_since >= 350
                 ):
-                    final_transcript = await candidate_stream.finalize(candidate_token)
+                    # Detach BEFORE awaiting. Finalization is terminal even when
+                    # rejected or when it fails; this stream can never be pushed again.
+                    finalizing, candidate_stream = candidate_stream, None
+                    endpoint_since = None
+                    try:
+                        final_transcript = await finalizing.finalize(candidate_token)
+                    except BaseException:
+                        await finalizing.cancel(candidate_token.cancellation_id, "finalize_failed")
+                        raise
+                    if (
+                        candidate_token.is_cancelled
+                        or self.voice_turns.state
+                        not in {
+                            VoiceState.INTERRUPTION_CANDIDATE,
+                            VoiceState.RECOVERING,
+                            VoiceState.USER_SPEAKING,
+                            VoiceState.ENDPOINT_CANDIDATE,
+                        }
+                        or candidate_token.cancellation_id
+                        not in {
+                            self.voice_turns.candidate_cancellation_id,
+                            self.voice_turns.cancellation_id,
+                        }
+                    ):
+                        await finalizing.cancel(candidate_token.cancellation_id, "stale_final")
+                        self.cancellations.discard(candidate_token.cancellation_id)
+                        candidate_token = None
+                        final_transcript = None
+                        continue
                     snapshot = (
                         self.delivery.snapshot(self._active_generation_id)
                         if self._active_generation_id
                         else None
                     )
-                    if snapshot is None or not _looks_like_playback_echo(
+                    probable_echo = snapshot is not None and _looks_like_playback_echo(
                         final_transcript.text, snapshot.generated_text
-                    ):
-                        await self._publish_all(
-                            self.voice_turns.on_transcript(
-                                frame.monotonic_ms,
-                                final_transcript.text,
-                                is_final=True,
-                                confidence=final_transcript.confidence or 0.5,
+                    )
+                    if probable_echo:
+                        final_transcript = Transcript("", True, final_transcript.confidence)
+                    tentative = self.voice_turns.state in {
+                        VoiceState.INTERRUPTION_CANDIDATE,
+                        VoiceState.RECOVERING,
+                    }
+                    if not tentative or final_transcript.text.strip():
+                        if tentative:
+                            await controller.process_transcript(
+                                self._next_event_ms(),
+                                final_transcript,
+                                cancellation_id=candidate_token.cancellation_id,
                             )
+                        else:
+                            await self._publish_all(
+                                self.voice_turns.on_transcript(
+                                    self._next_event_ms(),
+                                    final_transcript.text,
+                                    is_final=True,
+                                    confidence=final_transcript.confidence
+                                    if final_transcript.confidence is not None
+                                    else 0.5,
+                                )
+                            )
+                    if self.voice_turns.state in {
+                        VoiceState.INTERRUPTION_CANDIDATE,
+                        VoiceState.RECOVERING,
+                    }:
+                        events = self.voice_turns.reject_interruption(
+                            self._next_event_ms(), "candidate_final_rejected"
                         )
-                    else:
-                        log.info("Suppressed finalized playback self-echo candidate")
-                        await candidate_stream.cancel(
-                            candidate_token.cancellation_id, "probable_playback_echo"
+                        self.interruptions.apply(events)
+                        await self._publish_all(events)
+                        await finalizing.cancel(
+                            candidate_token.cancellation_id, "candidate_rejected"
                         )
                         self.cancellations.discard(candidate_token.cancellation_id)
-                        candidate_stream = None
                         candidate_token = None
-                        endpoint_since = None
-                        candidate_suppressed = True
                         final_transcript = None
+                    else:
+                        # Consume the final before a later audio frame can reopen
+                        # the endpoint. Finalization already observed endpoint silence.
+                        events = self.voice_turns.on_time(self._next_event_ms())
+                        await self._publish_all(events)
+                        if any(event.type == EventType.TURN_COMMITTED for event in events):
+                            return final_transcript, candidate_token
+                    continue
                 if self.voice_turns.state in {
                     VoiceState.THINKING,
                     VoiceState.SPEAKING,
@@ -1117,7 +1237,7 @@ class SamRuntime:
                     self.voice_turns.state
                     in {VoiceState.INTERRUPTION_CANDIDATE, VoiceState.RECOVERING}
                     and candidate_stream is None
-                    and not candidate_suppressed
+                    and candidate_token is None
                 ):
                     cancellation_id = self.voice_turns.candidate_cancellation_id
                     turn_id = self.voice_turns.candidate_turn_id
@@ -1143,6 +1263,7 @@ class SamRuntime:
                         self.cancellations.discard(candidate_token.cancellation_id)
                         candidate_stream = None
                         candidate_token = None
+                        final_transcript = None
                         endpoint_since = None
                         continue
                     await candidate_stream.push_audio(frame, candidate_token)
@@ -1195,11 +1316,13 @@ class SamRuntime:
             if close_frames is not None:
                 await close_frames()
             monitor.cancel("barge_in_monitor_stopped")
-            if candidate_stream is not None and candidate_token is not None:
+            if candidate_token is not None:
                 if self.voice_turns.state is not VoiceState.COMMITTING:
-                    await candidate_stream.cancel(
-                        candidate_token.cancellation_id, "barge_in_monitor_stopped"
-                    )
+                    if candidate_stream is not None:
+                        await candidate_stream.cancel(
+                            candidate_token.cancellation_id, "barge_in_monitor_stopped"
+                        )
+                    candidate_token.cancel("barge_in_monitor_stopped")
                     self.cancellations.discard(candidate_token.cancellation_id)
         return None
 

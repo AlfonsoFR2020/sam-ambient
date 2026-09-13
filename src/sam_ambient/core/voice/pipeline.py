@@ -174,7 +174,28 @@ class VoiceInputPipeline:
                         )
                     )
                     listening_started = True
+                    await self._publish(
+                        ProtocolEvent(
+                            type=EventType.COMPONENT_HEALTH,
+                            monotonic_ms=frame.monotonic_ms,
+                            session_id=self._turn_manager.session_id,
+                            payload={
+                                "component": "voice_input",
+                                "state": "healthy",
+                                "reason": "ready",
+                                "retrying": False,
+                            },
+                        )
+                    )
                 audio_frames += 1
+                if final_transcript is not None:
+                    # Final STT may lower confidence and lengthen the remaining
+                    # endpoint wait. Do not reopen or re-finalize its terminal stream.
+                    time_events = self._turn_manager.on_time(frame.monotonic_ms)
+                    await self._publish_all(time_events)
+                    if any(event.type == EventType.TURN_COMMITTED for event in time_events):
+                        return VoiceInputResult(final_transcript, audio_frames)
+                    continue
                 vad_result = self._vad.analyze(frame)
                 await self._publish(self._level_event(frame, vad_result.speech_probability))
                 vad_events = self._turn_manager.on_vad(
@@ -182,6 +203,10 @@ class VoiceInputPipeline:
                     vad_result.speech_probability,
                 )
                 await self._publish_all(vad_events)
+                if stt_stream is not None and self._turn_manager.state is VoiceState.LISTENING:
+                    # A subminimum noise burst was rejected. Its audio must not
+                    # accumulate across unrelated future bursts in the same STT stream.
+                    return VoiceInputResult(Transcript("", is_final=True), audio_frames)
                 if stt_stream is None:
                     pre_roll.append(frame)
                 if stt_stream is None and self._turn_manager.state is VoiceState.USER_SPEAKING:
@@ -195,7 +220,7 @@ class VoiceInputPipeline:
                     for buffered in pre_roll:
                         await stt_stream.push_audio(buffered, cancellation)
                     pre_roll.clear()
-                elif stt_stream is not None:
+                elif stt_stream is not None and final_transcript is None:
                     await stt_stream.push_audio(frame, cancellation)
                 if self._turn_manager.state is VoiceState.ENDPOINT_CANDIDATE:
                     if candidate_since_ms is None:

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Dispose finalized/rejected speech candidates before accepting more audio, apply
+  confirmed interruption cancellation through the controller, and preserve an
+  in-flight response's TTS eligibility during input failure. Discard short rejected
+  noise buffers; classify capture, service, and protocol faults separately.
 - Consolidate acceptance-pending and longer-term work in a maintained roadmap and
   add a human-controlled alpha release checklist.
 - Add a provider-neutral MCP stdio seam for trusted configured local capability

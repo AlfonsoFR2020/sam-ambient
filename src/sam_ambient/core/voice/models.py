@@ -113,6 +113,10 @@ class Transcript:
         if not isinstance(self.is_final, bool):
             raise TypeError("is_final must be a boolean")
         normalized = " ".join(self.text.split())
+        # Short bracket-only captions denote non-speech, independently of language
+        # or adapter. Never promote them to conversational or interruption evidence.
+        if len(normalized) <= 48 and normalized.startswith("[") and normalized.endswith("]"):
+            normalized = ""
         object.__setattr__(self, "text", normalized)
         if self.confidence is not None:
             if not isinstance(self.confidence, int | float) or isinstance(self.confidence, bool):
