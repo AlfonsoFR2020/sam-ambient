@@ -9,7 +9,7 @@ from sam_ambient.adapters import local_discovery as discovery
 from sam_ambient.core.providers import DataBoundary
 from sam_ambient.core.storage.sqlite import SQLiteSessionStore
 from sam_ambient.core.turns import CancellationToken
-from sam_ambient.runtime import RuntimeConfig, SamRuntime
+from sam_ambient.runtime import RuntimeConfig, SamRuntime, _looks_like_playback_echo
 from tests.unit.test_conversation_context import ConversationProvider
 
 
@@ -17,7 +17,7 @@ def test_stopped_lms_starts_and_loads_existing_preferred_model(monkeypatch):
     commands = []
     service = discovery.LocalService("lm-studio", discovery.LM_STUDIO_URL, "lms.exe")
 
-    async def command(argv):
+    async def command(argv, **_options):
         commands.append(argv)
 
     async def probe(item):
@@ -107,7 +107,7 @@ def test_bootstrap_timeout_is_bounded_and_ownership_cleanup_idempotent(monkeypat
     async def scenario():
         service = discovery.LocalService("lm-studio", discovery.LM_STUDIO_URL, "lms")
         await discovery.bootstrap_service(service, None, [])
-        assert deadlines == [20] and "TimeoutError" in service.detail
+        assert deadlines == [145] and "TimeoutError" in service.detail
         process = SimpleNamespace(returncode=None, terminate=lambda: None, wait=AsyncMock())
         stopped = []
         process.terminate = lambda: stopped.append(True)
@@ -118,6 +118,43 @@ def test_bootstrap_timeout_is_bounded_and_ownership_cleanup_idempotent(monkeypat
         process.wait.assert_awaited_once()
 
     asyncio.run(scenario())
+
+
+def test_playback_echo_match_requires_strong_multiword_overlap():
+    spoken = "The answer is forty two and here is why."
+    assert _looks_like_playback_echo("the answer is forty two", spoken)
+    assert not _looks_like_playback_echo("please stop now", spoken)
+    assert not _looks_like_playback_echo("stop", spoken)
+
+
+def test_lm_studio_auto_loads_only_one_unambiguous_installed_model(monkeypatch):
+    commands = []
+
+    async def command(argv, **options):
+        commands.append((argv, options))
+
+    async def probe(service):
+        service.running = True
+        service.models = []
+
+    monkeypatch.setattr(discovery, "_local_command", command)
+    monkeypatch.setattr(discovery, "probe_service", probe)
+    multiple = discovery.LocalService(
+        "lm-studio", discovery.LM_STUDIO_URL, "lms", True, [], ["alpha", "beta"]
+    )
+    asyncio.run(discovery.bootstrap_service(multiple, None, []))
+    assert commands == []
+    assert "several conversational models" in multiple.detail
+
+    async def loaded_probe(service):
+        service.running = True
+        service.models = ["only"] if commands else []
+
+    monkeypatch.setattr(discovery, "probe_service", loaded_probe)
+    single = discovery.LocalService("lm-studio", discovery.LM_STUDIO_URL, "lms", True, [], ["only"])
+    asyncio.run(discovery.bootstrap_service(single, None, []))
+    assert commands[0][0][1:3] == ("load", "only")
+    assert commands[0][1]["timeout_s"] == 120
 
 
 def test_owned_ollama_child_is_reaped_but_running_services_are_not(monkeypatch):

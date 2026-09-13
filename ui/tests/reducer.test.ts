@@ -60,6 +60,42 @@ describe("protocol state reduction", () => {
     expect(state.transcript[0]?.text).toBe("Hello Sam.");
   });
 
+  it("deduplicates a correlated committed transcript and preserves its role", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("transcript.final", 20, { role: "user", text: "draft" }, { turn_id: "turn-1" }),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event("transcript.final", 21, { role: "user", text: "final" }, { turn_id: "turn-1" }),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "transcript.final",
+        22,
+        { role: "assistant", text: "answer" },
+        { turn_id: "turn-1", generation_id: "generation-1" },
+      ),
+    );
+    expect(state.transcript).toHaveLength(2);
+    expect(state.transcript[0]).toMatchObject({ role: "user", text: "final" });
+    expect(state.transcript[1]).toMatchObject({ role: "assistant", text: "answer" });
+  });
+
+  it("retains an actionable component failure until listening recovers", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("component.error", 20, {
+        component: "audio",
+        reason: "Microphone stream failed; retrying",
+      }),
+    );
+    expect(state.diagnosticReason).toContain("Microphone stream failed");
+    state = reduceProtocolEvent(state, event("voice.state_changed", 21, { to: "LISTENING" }));
+    expect(state.diagnosticReason).toBeUndefined();
+  });
+
   it("shows interruption and marks the delivered assistant entry", () => {
     let state = reduceProtocolEvent(
       resetUiState(),

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 import sys
 from array import array
@@ -14,6 +15,8 @@ from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
 from sam_ambient.core.voice.delivery import InterruptionCoordinator, InterruptionEffects
 from sam_ambient.core.voice.interfaces import AudioInput, SpeechToText, VoiceActivityDetector
 from sam_ambient.core.voice.models import AudioFrame, SampleFormat, Transcript, VoiceStreamContext
+
+log = logging.getLogger(__name__)
 
 
 class VoicePipelineEnded(RuntimeError):
@@ -145,8 +148,12 @@ class VoiceInputPipeline:
         self._unknown_confidence = unknown_confidence
 
     async def run(self, cancellation: CancellationToken) -> VoiceInputResult:
-        if self._turn_manager.state is not VoiceState.IDLE:
-            raise RuntimeError("voice input pipeline must start from IDLE")
+        if self._turn_manager.state not in {
+            VoiceState.IDLE,
+            VoiceState.ERROR,
+            VoiceState.OFFLINE,
+        }:
+            raise RuntimeError("voice input pipeline must start from an inactive state")
 
         stt_stream = None
         candidate_since_ms: int | None = None
@@ -204,6 +211,10 @@ class VoiceInputPipeline:
                 if stt_stream is not None and self._should_finalize(
                     frame.monotonic_ms, candidate_since_ms
                 ):
+                    log.info(
+                        "conversation_timing stage=speech_endpoint_detected audio_ms=%d",
+                        frame.monotonic_ms,
+                    )
                     await self._publish(
                         ProtocolEvent(
                             type=EventType.VOICE_STATE_CHANGED,
@@ -219,6 +230,10 @@ class VoiceInputPipeline:
                         )
                     )
                     final_transcript = await stt_stream.finalize(cancellation)
+                    log.info(
+                        "conversation_timing stage=stt_final_available audio_ms=%d",
+                        frame.monotonic_ms,
+                    )
                     if final_transcript != last_partial:
                         await self._publish_transcript(frame.monotonic_ms, final_transcript)
                         last_partial = final_transcript

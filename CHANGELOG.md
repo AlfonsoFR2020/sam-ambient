@@ -31,6 +31,10 @@
   envelope inputs; continuous state/audio choreography; a custom WebGL2 amber
   spheroid with drifting fragmented peels, analytic lights and sparse particles;
   explicit mobile budgets; and Canvas/CSS fallbacks. Human acceptance remains pending.
+- Harden human-acceptance startup and voice reliability: load only an explicit,
+  remembered, or sole installed chat model; debounce VAD; suppress playback
+  self-echo; recover capture failures; and expose actionable startup/error state,
+  safe hotkeys, correlated transcripts, and stage timing. Physical acceptance remains pending.
 
 - Infer speech language from assistant responses, retaining context for ambiguous
   short replies. Select installed Windows voices by locale/language with explicit

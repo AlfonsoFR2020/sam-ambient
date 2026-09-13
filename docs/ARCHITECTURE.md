@@ -67,8 +67,9 @@ It does not install applications or download models.
 
 Bounded PCM frames connect sounddevice, WebRTC VAD, the loopback whisper.cpp
 final-STT adapter, the turn state machine, and system TTS. Interruption first
-becomes a candidate; duration/transcript heuristics decide whether to cancel or
-recover. Shared cancellation IDs reach model/TTS/tools. A delivery ledger records
+becomes a candidate. During playback, VAD alone cannot commit it: final candidate
+text must be credible and probable overlap with current assistant output is rejected
+before it becomes a user turn. Shared cancellation IDs reach model/TTS/tools. A delivery ledger records
 generated, queued, and spoken chunks. Real hardware AEC remains future work.
 
 TTS keeps the existing `synthesize(text, voice, language, cancellation)` PCM-frame
@@ -96,8 +97,10 @@ and [model APIs](https://lmstudio.ai/docs/developer/rest/endpoints); loaded mode
 are preferred when native metadata exists. Compatible-only servers supply their
 advertised model IDs, excluding declared/named embeddings; Ollama models must
 declare completion capability. Diagnostics stay read-only. Application startup
-can run structured `ollama serve` / `lms server start` and load an installed LM
-model, with a 20-second per-backend deadline and no downloads. Existing services
+can run structured `ollama serve` / `lms server start` with short readiness bounds.
+LM model loading is a separate cancellable 120-second phase; only an explicit,
+remembered, or sole installed chat model is auto-loaded. Multiple candidates
+require configuration, and no downloads occur. Existing services
 are never stopped or restarted. Only direct Sam-owned Ollama children are reaped;
 the shared LM daemon/server is retained and Sam-loaded models have a 600-second
 idle TTL. No authority or settings are granted by model-generated content.

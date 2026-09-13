@@ -105,7 +105,7 @@ def test_02_genuine_mid_sentence_interruption_preserves_spoken_prefix() -> None:
         queue.mark_spoken(first, 880)
 
         manager.on_vad(900, 0.9)
-        events = manager.on_time(1080)
+        events = manager.on_transcript(1080, "Stop please", is_final=False, confidence=0.9)
         effects = coordinator.apply(events)
 
         assert manager.state is VoiceState.USER_SPEAKING
@@ -154,7 +154,9 @@ def test_04_interruption_cancels_every_queued_tts_chunk() -> None:
             )
         manager.on_vad(900, 0.9)
 
-        coordinator.apply(manager.on_time(1080))
+        coordinator.apply(
+            manager.on_transcript(1080, "Stop please", is_final=False, confidence=0.9)
+        )
         snapshot = ledger.snapshot("generation-1")
 
         assert queue.pending == 0
@@ -248,7 +250,7 @@ def test_08_brief_pause_inside_interruption_preserves_candidate() -> None:
     manager.on_vad(1050, 0.9)
 
     assert manager.on_time(1129) == ()
-    manager.on_time(1130)
+    manager.on_transcript(1130, "Please wait", is_final=False, confidence=0.9)
 
     assert manager.state is VoiceState.USER_SPEAKING
     assert manager.turn_id == "candidate-turn-1"
@@ -273,7 +275,7 @@ def test_10_model_finishes_exactly_as_interruption_is_confirmed() -> None:
     manager.on_vad(900, 0.9)
     manager.on_model_completed(1080, generation_id="generation-1")
 
-    events = manager.on_time(1080)
+    events = manager.on_transcript(1080, "Stop please", is_final=False, confidence=0.9)
     coordinator.apply(events)
 
     assert all(event.type != EventType.MODEL_CANCELLED for event in events)
@@ -304,7 +306,9 @@ def test_11_tts_chunk_finishes_exactly_as_cancellation_arrives() -> None:
         manager.on_vad(900, 0.9)
         assert queue.mark_spoken(first, 1080)
 
-        effects = coordinator.apply(manager.on_time(1080))
+        effects = coordinator.apply(
+            manager.on_transcript(1080, "Stop please", is_final=False, confidence=0.9)
+        )
 
         assert effects.delivery is not None
         assert effects.delivery.spoken_text == "heard"
@@ -319,7 +323,7 @@ def test_12_duplicate_cancellation_request_is_idempotent() -> None:
     begin_speaking(manager)
     cancellations, _ledger, _queue, coordinator = make_runtime()
     manager.on_vad(900, 0.9)
-    events = manager.on_time(1080)
+    events = manager.on_transcript(1080, "Stop please", is_final=False, confidence=0.9)
 
     first = coordinator.apply(events)
     second = coordinator.apply(events)
@@ -333,7 +337,7 @@ def test_13_stale_model_and_tts_completion_cannot_mutate_new_turn() -> None:
     manager = make_manager()
     begin_speaking(manager)
     manager.on_vad(900, 0.9)
-    manager.on_time(1080)
+    manager.on_transcript(1080, "Stop please", is_final=False, confidence=0.9)
     new_turn = manager.turn_id
 
     assert manager.on_model_completed(1081, generation_id="generation-1") == ()
@@ -445,10 +449,10 @@ def test_18_aggressive_balanced_conservative_policy_differences() -> None:
     assert aggressive.state is VoiceState.USER_SPEAKING
     assert balanced.state is VoiceState.INTERRUPTION_CANDIDATE
     assert conservative.state is VoiceState.INTERRUPTION_CANDIDATE
-    balanced.on_time(1080)
+    balanced.on_transcript(1080, "Wait please", is_final=False, confidence=0.7)
     assert balanced.state is VoiceState.USER_SPEAKING
     assert conservative.on_time(1187) == ()
-    conservative.on_time(1188)
+    conservative.on_transcript(1188, "Wait please", is_final=True, confidence=0.9)
     assert conservative.state is VoiceState.USER_SPEAKING
 
 

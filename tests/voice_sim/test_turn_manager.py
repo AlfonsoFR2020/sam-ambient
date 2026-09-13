@@ -67,20 +67,15 @@ def test_pause_mid_sentence_does_not_commit_and_speech_can_resume() -> None:
     )
 
 
-def test_sustained_user_speech_interrupts_and_changes_turn_identity() -> None:
+def test_sustained_vad_during_playback_requires_transcript_evidence() -> None:
     manager = make_manager()
     begin_agent_speech(manager)
     manager.on_vad(900, 0.9)
 
     events = manager.on_time(1080)
 
-    assert manager.state is VoiceState.USER_SPEAKING
-    assert manager.turn_id == "generated-turn-1"
-    assert manager.cancellation_id == "generated-cancel-1"
-    cancelled = next(event for event in events if event.type == EventType.TTS_CANCELLED)
-    assert cancelled.turn_id == "turn-1"
-    assert cancelled.generation_id == "generation-1"
-    assert cancelled.cancellation_id == "cancel-1"
+    assert manager.state is VoiceState.INTERRUPTION_CANDIDATE
+    assert all(event.type != EventType.TTS_CANCELLED for event in events)
 
 
 def test_interruption_mode_changes_confirmation_threshold() -> None:
@@ -89,14 +84,14 @@ def test_interruption_mode_changes_confirmation_threshold() -> None:
     aggressive.on_vad(900, 0.9)
     assert aggressive.on_time(1007) == ()
     aggressive.on_time(1008)
-    assert aggressive.state is VoiceState.USER_SPEAKING
+    assert aggressive.state is VoiceState.INTERRUPTION_CANDIDATE
 
     conservative = make_manager(TurnConfig(interruption_mode=InterruptionMode.CONSERVATIVE))
     begin_agent_speech(conservative)
     conservative.on_vad(900, 0.9)
     assert conservative.on_time(1187) == ()
     conservative.on_time(1188)
-    assert conservative.state is VoiceState.USER_SPEAKING
+    assert conservative.state is VoiceState.INTERRUPTION_CANDIDATE
 
 
 def test_credible_transcript_confirms_interruption_before_duration_threshold() -> None:

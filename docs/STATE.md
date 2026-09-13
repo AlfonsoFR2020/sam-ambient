@@ -153,27 +153,18 @@ Updated: 2026-09-13
 - Ollama and whisper.cpp were not running on this host; `sam doctor` reported
   both unavailable while confirming UI, audio, TTS, roots, active version, and
   supervisor state without exposing secrets.
-- Windows `dev` live text acceptance now passes two UI turns using the owner's
-  installed `google/gemma-4-e2b` Q4_K_M through LM Studio at
-  `http://127.0.0.1:1234/v1` (4096-token context; no cloud fallback).
-  Fixed missing model conversation history using bounded committed SQLite
-  messages (12 records / 6000 characters), excluding other sessions/current turn.
-  Follow-up correctly recalled the user's fact; complete text-response intervals
-  were 2.72 s and 0.51 s, not first-token measurements. Four focused tests pass.
-  Physical voice acceptance is not yet passed: owner reports unreliable Spanish
-  recognition, premature TTS cutoff, and unclear processing-state indication.
+- Windows live text acceptance passes two contextual turns with the installed
+  `google/gemma-4-e2b` via LM Studio (local-only). Bounded SQLite history fixes
+  context; complete response intervals were 2.72 s and 0.51 s. Physical voice
+  remains unaccepted after recognition, self-echo and status problems.
 - Voice reliability continuation: whisper.cpp b4938 CPU server and multilingual
   `ggml-base.bin` installed in ignored `.sam/runtime` / `.sam/models`; LM Studio
   uses its installed Vulkan runtime. No additional model was downloaded this run.
   Default system input/output are used without hardcoded hardware selection.
-- Final STT now explicitly requests auto language plus verbose detection metadata.
-  Adapter-configurable preferences default to en/es; uncertain detection prefers
-  recent confirmed language, with one bounded retry when needed. Only detection
-  at the configured confidence threshold (default 0.8) updates that preference;
-  uncertain en/es switches and forced fallbacks do not overwrite it. Confident other
-  languages remain accepted; older servers without metadata retain auto behavior.
-  High no-speech results/known sound markers are discarded; 10-frame pre-roll
-  retains speech onset. INFO logs language probability/duration, not transcript.
+- Final STT requests auto language/metadata. Uncertain detection prefers recent
+  confirmed language or en/es with one retry; only confidence >=0.8 updates it.
+  Confident other languages remain valid. Silence markers are discarded and
+  10-frame pre-roll retains speech onset; INFO never logs transcript text.
 - Fixed two deterministic voice races: wait for model-start/ledger readiness after
   SQLite commit before monitoring; allow TTS startup during a tentative candidate
   and recover into SPEAKING. UI projects actual voice state on reconnect and shows
@@ -181,6 +172,16 @@ Updated: 2026-09-13
 - `72d083f` retains uncertain language; active turn/generation/token validation
   precedes cancellation callbacks so stale STT cleanup cannot cancel new speech.
   Controlled tests do not establish every physical cutoff cause.
+- Human-acceptance hardening debounces binary WebRTC VAD, rejects bracketed
+  non-speech captions, and requires credible transcript evidence during playback;
+  strong overlap with current assistant output is suppressed as self-echo.
+  PortAudio/runtime monotonic clocks are reconciled before strict transitions;
+  capture failures log their source, retry twice, and remain manually retryable.
+- LM Studio now distinguishes installed/loaded models: explicit/last-good choices
+  win, a sole chat model may load automatically, and multiple candidates require
+  selection. Model load has a separate cancellable 120-second bound. Startup/error
+  details, correlated transcripts, Ctrl+M, and stage timing are automated; physical
+  voice and visual acceptance remain pending.
 
 ## Known limitations / post-MVP priorities
 

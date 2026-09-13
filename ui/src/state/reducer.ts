@@ -227,6 +227,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ...next,
       connection: "connected",
       applicationStopped: false,
+      samVersion: boundedText(event.payload.sam_version, 32),
       provider: boundedText(event.payload.provider),
       model: boundedText(event.payload.model),
       selectionReason: boundedText(event.payload.selection_reason, 500),
@@ -319,6 +320,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         event.payload.to === "ENDPOINT_CANDIDATE" && event.payload.reason === "stt_finalizing"
           ? "COMMITTING"
           : event.payload.to,
+      diagnosticReason: event.payload.to === "LISTENING" ? undefined : next.diagnosticReason,
     };
   } else if (event.type === "voice.level") {
     next = {
@@ -357,11 +359,22 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         text,
         interrupted: Boolean(event.payload.interrupted),
         monotonicMs: event.monotonic_ms,
+        turnId: event.turn_id,
+        generationId: event.generation_id,
       };
+      const duplicateIndex = next.transcript.findIndex(
+        (item) =>
+          item.role === role &&
+          ((entry.generationId && item.generationId === entry.generationId) ||
+            (!entry.generationId && entry.turnId && item.turnId === entry.turnId)),
+      );
+      const transcript = [...next.transcript];
+      if (duplicateIndex >= 0) transcript[duplicateIndex] = entry;
+      else transcript.push(entry);
       next = {
         ...next,
         provisionalTranscript: null,
-        transcript: [...next.transcript.slice(-11), entry],
+        transcript: transcript.slice(-12),
       };
     }
   } else if (event.type === "tts.cancelled") {
@@ -434,6 +447,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ...next,
       priorConversationalState: next.conversationalState,
       conversationalState: "ERROR",
+      diagnosticReason:
+        boundedText(event.payload.reason, 500) ??
+        boundedText(event.payload.error, 500) ??
+        "A local component failed. Text controls may remain available.",
     };
   }
   return next;

@@ -396,6 +396,11 @@ class WhisperCppServerSTT:
             "[laughter]",
         }:
             text = ""
+        # Whisper conventions use a short bracket-only caption for detected
+        # non-speech sounds. Do not turn keyboard/noise captions into user turns.
+        stripped = text.strip()
+        if len(stripped) <= 48 and stripped.startswith("[") and stripped.endswith("]"):
+            text = ""
         return Transcript(text=text, is_final=True, confidence=None)
 
 

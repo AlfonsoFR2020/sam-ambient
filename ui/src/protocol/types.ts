@@ -103,6 +103,8 @@ export interface TranscriptEntry {
   text: string;
   interrupted: boolean;
   monotonicMs: number;
+  turnId?: string;
+  generationId?: string;
 }
 
 export interface VoiceMetrics {
@@ -113,6 +115,7 @@ export interface VoiceMetrics {
 }
 
 export interface UiState {
+  samVersion?: string;
   applicationStopped?: boolean;
   provider?: string;
   model?: string;
@@ -142,6 +145,7 @@ export interface UiState {
   pendingToolApproval: ToolApprovalRequest | null;
   updateActivity: UpdateActivity | null;
   protocolError?: string;
+  diagnosticReason?: string;
 }
 
 export const INITIAL_UI_STATE: UiState = {

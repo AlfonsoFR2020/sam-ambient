@@ -230,7 +230,7 @@ async def probe_service(service: LocalService) -> None:
         await transport.aclose()
 
 
-async def _local_command(argv: tuple[str, ...]) -> None:
+async def _local_command(argv: tuple[str, ...], *, timeout_s: float = 20) -> None:
     """Bounded CLI requests; never shell strings or interactive prompts."""
     process = await asyncio.create_subprocess_exec(
         *argv,
@@ -239,7 +239,7 @@ async def _local_command(argv: tuple[str, ...]) -> None:
         stderr=asyncio.subprocess.DEVNULL,
     )
     try:
-        async with asyncio.timeout(20):
+        async with asyncio.timeout(timeout_s):
             assert process.stdout is not None
             raw = await process.stdout.read(65_537)
             if len(raw) > 65_536:
@@ -257,7 +257,9 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
     if not service.executable or service.id not in {"ollama", "lm-studio"}:
         return
     try:
-        async with asyncio.timeout(20):
+        # Service startup remains short; only an explicitly chosen, already
+        # installed LM model receives the longer bounded loading window below.
+        async with asyncio.timeout(145):
             if not service.running and not service.server_running:
                 log.info(
                     "Starting installed %s on %s (bounded wait; no download)",
@@ -291,19 +293,27 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
                     )
                     owned.append(process)
                 service.started_by_sam = True
+            readiness_attempts = 0
             while not service.running:
                 await probe_service(service)
                 if not service.running:
+                    readiness_attempts += 1
+                    if readiness_attempts >= 80:
+                        raise TimeoutError("provider service readiness exceeded 20 seconds")
                     await asyncio.sleep(0.25)
             if service.id == "lm-studio" and not service.models and service.available_models:
                 # Never evict a loaded model to satisfy a stale preference.
-                model = (
-                    requested
-                    if requested in service.available_models
-                    else service.available_models[0]
-                )
+                model = requested if requested in service.available_models else None
+                if model is None and len(service.available_models) == 1:
+                    model = service.available_models[0]
+                if model is None:
+                    service.detail = (
+                        "server running; several conversational models are installed; "
+                        "choose one in configuration"
+                    )
+                    return
                 log.info(
-                    "Loading installed %s model %s (4096 context; 600 s idle TTL)",
+                    "Loading installed %s model %s (separate 120 s model-load phase)",
                     service.id,
                     model,
                 )
@@ -319,7 +329,8 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
                         "--ttl",
                         "600",
                         "--yes",
-                    )
+                    ),
+                    timeout_s=120,
                 )
                 await probe_service(service)
             if service.started_by_sam:
@@ -332,7 +343,7 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
                 service.detail += "; already running; reused"
     except (OSError, RuntimeError, TimeoutError) as error:
         service.detail = (
-            f"local startup/load failed ({type(error).__name__}, 20 s limit); "
+            f"local startup/load failed ({type(error).__name__}); "
             "check installed runtime/model; no downloads attempted"
         )
         log.warning("%s: %s", service.id, service.detail)

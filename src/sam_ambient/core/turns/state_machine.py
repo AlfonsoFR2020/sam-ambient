@@ -261,7 +261,11 @@ class TurnManager:
                 )
             )
         elif self.state is VoiceState.INTERRUPTION_CANDIDATE:
-            if is_speech and self._should_confirm_interruption(at_ms):
+            if (
+                is_speech
+                and self._should_confirm_interruption(at_ms)
+                and self._candidate_origin_state is not VoiceState.SPEAKING
+            ):
                 events.extend(self._confirm_interruption(at_ms, "sustained_speech"))
             elif not is_speech:
                 self._end_interruption_speech(at_ms)
@@ -332,6 +336,10 @@ class TurnManager:
             self.state is VoiceState.INTERRUPTION_CANDIDATE
             and self._vad_active
             and self._should_confirm_interruption(at_ms)
+            # While audio is physically playing, sustained VAD alone cannot
+            # distinguish the owner from speaker bleed. A credible transcript
+            # must confirm the interruption; THINKING remains duration-capable.
+            and self._candidate_origin_state is not VoiceState.SPEAKING
         ):
             return self._confirm_interruption(at_ms, "sustained_speech")
         elif self.state is VoiceState.RECOVERING:

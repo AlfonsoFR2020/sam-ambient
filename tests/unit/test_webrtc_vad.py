@@ -25,15 +25,24 @@ def frame_for(
     return AudioFrame(audio_format, data, monotonic_ms=0, sequence=0)
 
 
-def test_webrtc_vad_maps_native_decision_without_inventing_probability() -> None:
+def test_webrtc_vad_debounces_activation_and_release() -> None:
     native = FakeDetector(True)
     detector = WebRtcVoiceActivityDetector(2, detector=native)
 
+    first = detector.analyze(frame_for())
+    second = detector.analyze(frame_for())
     result = detector.analyze(frame_for())
 
+    assert first.is_speech is False and second.is_speech is False
     assert result.is_speech is True
     assert result.speech_probability == 1.0
     assert native.calls[0][1] == 16_000
+
+    native.result = False
+    assert detector.analyze(frame_for()).is_speech is True
+    assert detector.analyze(frame_for()).is_speech is True
+    assert detector.analyze(frame_for()).is_speech is True
+    assert detector.analyze(frame_for()).is_speech is False
 
 
 def test_webrtc_vad_rejects_incompatible_frames() -> None:

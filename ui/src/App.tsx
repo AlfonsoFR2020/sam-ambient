@@ -46,13 +46,24 @@ const chooseTransport = (): ProtocolTransport => {
 
 function Transcript({ state }: { state: UiState }) {
   const region = useRef<HTMLElement>(null);
+  const followNewest = useRef(true);
   useEffect(() => {
-    if (region.current) region.current.scrollTop = region.current.scrollHeight;
+    if (region.current && followNewest.current)
+      region.current.scrollTop = region.current.scrollHeight;
   });
   if (!state.transcript.length && !state.provisionalTranscript) return null;
   return (
-    <section ref={region} className="transcript" aria-label="Transcript" aria-live="polite">
-      {state.transcript.slice(-3).map((entry) => (
+    <section
+      ref={region}
+      className="transcript"
+      aria-label="Transcript"
+      aria-live="polite"
+      onScroll={(event) => {
+        const node = event.currentTarget;
+        followNewest.current = node.scrollHeight - node.scrollTop - node.clientHeight < 28;
+      }}
+    >
+      {state.transcript.map((entry) => (
         <p
           className={`transcript__line transcript__line--${entry.role}`}
           data-interrupted={entry.interrupted || undefined}
@@ -70,6 +81,56 @@ function Transcript({ state }: { state: UiState }) {
         </p>
       )}
     </section>
+  );
+}
+
+const editableTarget = (target: EventTarget | null): boolean =>
+  target instanceof HTMLInputElement ||
+  target instanceof HTMLSelectElement ||
+  target instanceof HTMLTextAreaElement ||
+  (target instanceof HTMLElement && target.isContentEditable);
+
+export function StartupCard({ state }: { state: UiState }) {
+  const presentation = statusPresentation(state);
+  const visible = !state.sessionId || !state.model || Boolean(state.diagnosticReason);
+  if (!visible || state.applicationStopped) return null;
+  const steps = [
+    { label: "Starting core", ready: Boolean(state.sessionId) },
+    { label: "Detecting local AI providers", ready: Boolean(state.provider) },
+    {
+      label: state.model
+        ? `Local model ready · ${state.model}`
+        : "Selecting a conversational model",
+      ready: Boolean(state.model),
+    },
+    {
+      label: state.sttStatus?.toLowerCase().includes("ready")
+        ? "Speech recognition ready"
+        : "Checking speech recognition",
+      ready: Boolean(state.sttStatus),
+    },
+    { label: "Ready", ready: Boolean(state.model && state.sessionId) },
+  ];
+  return (
+    <aside className="startup-card" aria-live="polite">
+      <div className="startup-card__identity" aria-hidden="true">
+        S
+      </div>
+      <div>
+        <h1>Sam</h1>
+        {state.samVersion && <small>Version {state.samVersion}</small>}
+      </div>
+      <ol>
+        {steps.map((step) => (
+          <li data-ready={step.ready || undefined} key={step.label}>
+            {step.label}
+          </li>
+        ))}
+      </ol>
+      {(state.diagnosticReason || presentation.notice) && (
+        <p>{state.diagnosticReason ?? presentation.notice}</p>
+      )}
+    </aside>
   );
 }
 
@@ -153,6 +214,7 @@ export default function App() {
   const [quitRequested, setQuitRequested] = useState(false);
   const [commandError, setCommandError] = useState<string>();
   const [textRequest, setTextRequest] = useState("");
+  const [presentedLabel, setPresentedLabel] = useState("Starting Sam");
   const visual = toAmbientVisualModel(state, preferences.brightness / 100);
   const visualSettings = useMemo(
     () => settingsFromCurrentControls(preferences.brightness, preferences.reducedMotion),
@@ -173,6 +235,14 @@ export default function App() {
     preference.addEventListener("change", change);
     return () => preference.removeEventListener("change", change);
   }, []);
+
+  useEffect(() => {
+    const next = runtimeStatus.label ?? visual.label;
+    if (next === presentedLabel) return;
+    const urgent = next === "Needs attention" || next === "Offline" || next === "Stopped";
+    const timeout = window.setTimeout(() => setPresentedLabel(next), urgent ? 0 : 180);
+    return () => window.clearTimeout(timeout);
+  }, [presentedLabel, runtimeStatus.label, visual.label]);
 
   const applyAction = useCallback(
     (action: ControlAction) => {
@@ -202,6 +272,7 @@ export default function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      const editing = editableTarget(event.target);
       if (event.key === "Escape") {
         if (controlsOpen) controlsButton.current?.focus();
         setControlsOpen(false);
@@ -212,12 +283,12 @@ export default function App() {
         quitSam();
       } else if (
         event.key.toLowerCase() === "m" &&
-        !event.ctrlKey &&
+        event.ctrlKey &&
         !event.metaKey &&
-        !(event.target instanceof HTMLInputElement) &&
-        !(event.target instanceof HTMLSelectElement) &&
-        !(event.target instanceof HTMLTextAreaElement)
+        !event.shiftKey &&
+        !editing
       ) {
+        event.preventDefault();
         applyAction({ type: "microphone.set", enabled: !stateRef.current.microphoneEnabled });
       } else if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "x") {
         event.preventDefault();
@@ -234,13 +305,12 @@ export default function App() {
       {!quitRequested && !state.applicationStopped && (
         <AmbientScene model={visual} state={state} settings={visualSettings} />
       )}
+      <StartupCard state={state} />
       <header className="status">
         <span className="status__mark" data-connected={visual.connected} />
         <strong>Sam</strong>
         <span>
-          {state.applicationStopped
-            ? "Stopped · you can close this window"
-            : (runtimeStatus.label ?? visual.label)}
+          {state.applicationStopped ? "Stopped · you can close this window" : presentedLabel}
         </span>
         {!state.capabilityAuthorityActive && (
           <small className="status__authority" title={state.capabilityAuthorityReason}>
@@ -319,9 +389,20 @@ export default function App() {
               applyAction({ type: "microphone.set", enabled: !state.microphoneEnabled })
             }
             title="Turn listening on or off. Text requests remain available."
+            aria-keyshortcuts="Control+M"
           >
             Microphone {state.microphoneEnabled ? "on" : "muted"}
           </button>
+          {/(speech|microphone)/i.test(state.diagnosticReason ?? "") && (
+            <button
+              type="button"
+              disabled={pending || state.connection !== "connected"}
+              onClick={() => applyAction({ type: "microphone.set", enabled: true })}
+              title="Reopen the system-default microphone and speech-recognition stream."
+            >
+              Retry speech input
+            </button>
+          )}
           <button
             type="button"
             disabled={pending || state.connection !== "connected"}
@@ -346,6 +427,7 @@ export default function App() {
             disabled={state.connection !== "connected"}
             onClick={() => applyAction({ type: "emergency_stop" })}
             title="Cancel the active model response, tools, queued speech and playback."
+            aria-keyshortcuts="Control+Shift+X"
           >
             Emergency stop
           </button>
@@ -406,7 +488,9 @@ export default function App() {
               }
             />
           </label>
-          <p className="controls__hint">M mute · Ctrl Shift X stop · Ctrl Q quit · Esc close</p>
+          <p className="controls__hint">
+            Ctrl M microphone · Ctrl Shift X emergency stop · Ctrl Q quit · Esc close controls
+          </p>
         </section>
       )}
       {(state.protocolError || commandError) && (

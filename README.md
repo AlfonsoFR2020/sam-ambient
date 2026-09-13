@@ -146,8 +146,10 @@ uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000
 Selection is deterministic: explicit configuration first, then the last successful
 local provider/model, then Ollama, LM Studio, and `--local-compatible-url`.
 Stale saved preferences fall back; explicit unavailable choices stay degraded.
-Startup waits at most 20 seconds per installed backend attempt. Running services
-are reused without restart or model eviction. Sam-owned Ollama children stop on
+Provider startup/readiness stays short; an explicit, remembered, or sole installed
+LM Studio chat model gets a separate cancellable 120-second load window. Multiple
+installed candidates require an explicit choice. Running services are reused
+without restart or model eviction. Sam-owned Ollama children stop on
 exit; the shared LM Studio service remains running (Sam loads use a 10-minute
 idle TTL). Expand the provider status for the selection reason and STT/TTS status.
 `sam doctor` remains read-only and groups findings as READY, AVAILABLE, OPTIONAL,

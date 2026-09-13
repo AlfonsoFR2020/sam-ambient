@@ -59,6 +59,7 @@ def test_whisper_silence_is_not_conversation_and_legacy_metadata_is_supported():
     assert WhisperCppServerSTT._decode_transcript(b'{"text":"[Music]"}').text == ""
     assert WhisperCppServerSTT._decode_transcript('{"text":"[Música]"}'.encode()).text == ""
     assert WhisperCppServerSTT._decode_transcript(b'{"text":"[BLANK_AUDIO]"}').text == ""
+    assert WhisperCppServerSTT._decode_transcript(b'{"text":"[typing]"}').text == ""
     assert (
         WhisperCppServerSTT._decode_transcript(
             json.dumps({"text": "Hallucination", "segments": [{"no_speech_prob": 0.94}]}).encode()

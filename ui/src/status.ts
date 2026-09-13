@@ -45,6 +45,7 @@ export function statusPresentation(state: UiState): StatusPresentation {
     limitations.push("Voice input is unavailable; text input remains available.");
   if (unavailable(state.ttsBackend))
     limitations.push("Spoken output is unavailable; responses remain readable.");
+  if (state.diagnosticReason) limitations.unshift(state.diagnosticReason);
   return {
     notice: limitations.length ? limitations.join(" ") : undefined,
     limitations,

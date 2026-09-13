@@ -59,8 +59,10 @@ does not mean a service or model is ready.
 ## LM Studio / lms / llmster is unavailable
 
 Check `lms daemon status --json --quiet` and `lms server status --json --quiet`.
-Application startup attempts `lms server start` on loopback and loads an existing
-conversational model if none is loaded (20-second combined deadline). A missing
+Application startup attempts `lms server start` on loopback and loads an explicit,
+remembered, or sole installed conversational model if none is loaded. Service
+readiness stays short; model loading has a separate 120-second bound. Multiple
+installed chat models require explicit selection. A missing
 `lms` CLI, no installed chat model, or startup/load failure is reported. If it
 fails, check the same installation using its UI/CLI and restart Sam. The default API endpoint is
 `http://127.0.0.1:1234/v1`; a running port reported by `lms` is also recognized.
@@ -80,7 +82,9 @@ On Windows, voice startup checks HTTP health and can start the existing
 No assets are downloaded. Missing/invalid assets and startup failures report
 their expected paths. Custom endpoints must already be running. Sam stops only
 the STT process it started; after correcting an unavailable service, restart Sam.
-Text requests remain available; `--no-voice` disables microphone capture.
+Text requests remain available; `--no-voice` disables microphone capture. Capture
+failures are retried twice; Controls exposes the concrete reason and a speech-input
+retry. Development logs retain the exception site and conversational stage timings.
 
 ## Visual motion
 

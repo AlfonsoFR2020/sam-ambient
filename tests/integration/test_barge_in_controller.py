@@ -87,7 +87,7 @@ def frame(at_ms: int, *, speech: bool) -> AudioFrame:
     )
 
 
-def test_continuous_audio_confirms_barge_in_and_cancels_before_publish() -> None:
+def test_playback_coincident_audio_waits_for_transcript_evidence() -> None:
     async def scenario() -> None:
         manager = TurnManager(
             "session",
@@ -107,17 +107,10 @@ def test_continuous_audio_confirms_barge_in_and_cancels_before_publish() -> None
         await controller.process_audio_frame(frame(900, speech=True))
         result = await controller.process_audio_frame(frame(1080, speech=True))
 
-        assert manager.state is VoiceState.USER_SPEAKING
-        assert result.effects.cancellation_applied
-        assert result.effects.response_cancellation_applied
-        assert result.effects.candidate_cancellation_applied is False
-        assert result.effects.logical_stop_latency_ms == 0
-        assert cancellation_seen_by_publish == [True, True]
-        tts_cancelled = next(
-            event for event in result.events if event.type == EventType.TTS_CANCELLED
-        )
-        assert tts_cancelled.payload["spoken_text"] == ""
-        assert tts_cancelled.payload["unspoken_text"] == ""
+        assert manager.state is VoiceState.INTERRUPTION_CANDIDATE
+        assert not result.effects.cancellation_applied
+        assert cancellation_seen_by_publish == []
+        assert not any(event.type == EventType.TTS_CANCELLED for event in result.events)
 
     asyncio.run(scenario())
 

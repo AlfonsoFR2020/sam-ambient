@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { StartupCard } from "../src/App";
 import { QuitDialog, ShutdownStatus } from "../src/QuitDialog";
 import { RuntimeStatus } from "../src/RuntimeStatus";
 import { reduceProtocolEvent, resetUiState } from "../src/state/reducer";
@@ -12,6 +13,7 @@ describe("startup and shutdown presentation", () => {
       type: "system.ready",
       monotonic_ms: 1,
       payload: {
+        sam_version: "0.1.2",
         provider: "lm-studio",
         model: "chat",
         selection_reason: "started by Sam",
@@ -36,6 +38,10 @@ describe("startup and shutdown presentation", () => {
     ]) {
       expect(html).toContain(value);
     }
+    const startup = renderToStaticMarkup(
+      createElement(StartupCard, { state: { ...state, model: undefined } }),
+    );
+    expect(startup).toContain("0.1.2");
   });
 
   it("shows actionable degradation instead of a vague model placeholder", () => {

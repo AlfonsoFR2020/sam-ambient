@@ -207,12 +207,78 @@ input {
   line-height: 1.45;
 }
 
+.startup-card {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 14px;
+  width: min(430px, calc(100vw - 40px));
+  padding: 22px;
+  border: 1px solid #94725888;
+  border-radius: 16px;
+  color: #eadac8;
+  background: #1d1612ed;
+  box-shadow: 0 22px 70px #0009;
+  backdrop-filter: blur(18px);
+}
+
+.startup-card__identity {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  color: #3b170a;
+  background: radial-gradient(circle at 35% 30%, #ffd39b, #e86e31 50%, #8f2b14);
+  box-shadow: 0 0 22px #e86e3155;
+  font-weight: 700;
+}
+
+.startup-card h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 550;
+  letter-spacing: 0.12em;
+}
+
+.startup-card small {
+  color: #a88d76;
+}
+
+.startup-card ol,
+.startup-card p {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+}
+
+.startup-card ol {
+  display: grid;
+  gap: 7px;
+  padding-left: 24px;
+  color: #aa927e;
+  font-size: 0.8rem;
+}
+
+.startup-card li[data-ready="true"] {
+  color: #efc28f;
+}
+
+.startup-card p {
+  border-top: 1px solid #94725844;
+  padding-top: 12px;
+  color: #f1c397;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
 .transcript {
   position: absolute;
+  right: clamp(24px, 5vw, 64px);
   bottom: clamp(74px, 13vh, 132px);
   z-index: 1;
-  width: min(680px, calc(100vw - 48px));
-  max-height: 24vh;
+  width: min(520px, 38vw);
+  max-height: 46vh;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-color: #c18a5855 transparent;
@@ -512,6 +578,18 @@ input {
   .tool-activity {
     right: 20px;
     bottom: 72px;
+  }
+
+  .startup-card {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .transcript {
+    right: 20px;
+    left: 20px;
+    width: auto;
+    max-height: 34vh;
   }
 }
 

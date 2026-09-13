@@ -1,6 +1,8 @@
 import asyncio
 from collections.abc import AsyncIterator
 
+import pytest
+
 from sam_ambient.core.protocol import EventType, ProtocolEvent
 from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
 from sam_ambient.core.voice import (
@@ -9,6 +11,7 @@ from sam_ambient.core.voice import (
     Transcript,
     VadResult,
     VoiceInputPipeline,
+    VoicePipelineEnded,
 )
 
 
@@ -119,5 +122,35 @@ def test_voice_input_pipeline_emits_levels_transcript_and_committed_turn() -> No
         committed = events[commit_index]
         assert committed.payload["text"] == "What time is it?"
         assert committed.cancellation_id == "voice-cancel"
+
+    asyncio.run(scenario())
+
+
+def test_voice_input_pipeline_can_reopen_after_capture_error() -> None:
+    async def scenario() -> None:
+        audio_format = AudioFormat(sample_rate_hz=1_000)
+        manager = TurnManager("session")
+        manager.on_audio_lost(0, "capture_failed")
+        events: list[ProtocolEvent] = []
+
+        async def publish(event: ProtocolEvent) -> None:
+            events.append(event)
+
+        pipeline = VoiceInputPipeline(
+            capture=FakeCapture([AudioFrame(audio_format, b"\0" * 40, monotonic_ms=1, sequence=0)]),
+            vad=SequenceVad(),
+            stt=FakeStt(),
+            turn_manager=manager,
+            publish=publish,
+        )
+        with pytest.raises(VoicePipelineEnded):
+            await pipeline.run(CancellationToken("retry-cancel"))
+
+        assert manager.state is VoiceState.LISTENING
+        assert any(
+            event.type == EventType.VOICE_STATE_CHANGED
+            and event.payload.get("reason") == "listening_started"
+            for event in events
+        )
 
     asyncio.run(scenario())

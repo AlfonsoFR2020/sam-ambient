@@ -78,11 +78,12 @@ Selection order: explicit CLI configuration → last successful local provider/m
 saved preferences do not prevent fallback discovery; an explicit unavailable
 choice is not silently replaced. No automatic cloud fallback occurs.
 
-Installed stopped Ollama/LM Studio services receive a bounded startup attempt
-(20 seconds per backend including readiness/loading). Sam reuses running services.
-For LM Studio, if no chat model is loaded, it chooses the saved installed model
-or the first sorted installed chat model, with 4096-token context and 600-second
-idle TTL. It never evicts an existing loaded model. It cannot install missing
+Installed stopped Ollama/LM Studio services receive a bounded startup attempt.
+Sam reuses running services. For LM Studio, if no chat model is loaded, Sam loads
+an explicit/saved installed model, or the sole installed conversational model.
+Several candidates require an explicit choice. Loading has its own cancellable
+120-second bound, with 4096-token context and 600-second idle TTL. It never evicts
+an existing loaded model. It cannot install missing
 runtimes/models or manage authenticated servers automatically.
 
 Explicit choices, when needed:
