@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createParticleGeometry,
   createPeelDescriptors,
   createPeelGeometry,
   createSphereGeometry,
@@ -34,6 +35,7 @@ describe("visual quality and geometry", () => {
     expect(budget).toMatchObject({
       peels: 6,
       peelSamples: 16,
+      particles: 12,
       lights: 1,
       idleFps: 24,
       activeFps: 30,
@@ -58,6 +60,18 @@ describe("visual quality and geometry", () => {
         expect(peel.lift).toBeLessThanOrEqual(0.032);
       }
       expect(createPeelGeometry(budget).vertices).toEqual(geometry.vertices);
+    }
+  });
+
+  it("creates bounded deterministic sparse particle parameters", () => {
+    for (const budget of Object.values(RENDER_BUDGETS)) {
+      const particles = createParticleGeometry(budget.particles);
+      expect(particles.count).toBe(budget.particles);
+      expect(particles.vertices).toEqual(createParticleGeometry(budget.particles).vertices);
+      for (let index = 0; index < particles.count; index++) {
+        expect(particles.vertices[index * 4 + 1]).toBeGreaterThanOrEqual(1.1);
+        expect(particles.vertices[index * 4 + 1]).toBeLessThanOrEqual(1.4);
+      }
     }
   });
 

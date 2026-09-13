@@ -8,6 +8,7 @@ export interface RenderBudget {
   readonly sphereLatitude: number;
   readonly peels: number;
   readonly peelSamples: number;
+  readonly particles: number;
   readonly lights: number;
   readonly idleFps: number;
   readonly activeFps: number;
@@ -23,6 +24,7 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     sphereLatitude: 16,
     peels: 6,
     peelSamples: 16,
+    particles: 12,
     lights: 1,
     idleFps: 24,
     activeFps: 30,
@@ -36,6 +38,7 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     sphereLatitude: 24,
     peels: 9,
     peelSamples: 20,
+    particles: 24,
     lights: 2,
     idleFps: 30,
     activeFps: 60,
@@ -49,6 +52,7 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     sphereLatitude: 32,
     peels: 14,
     peelSamples: 24,
+    particles: 40,
     lights: 3,
     idleFps: 30,
     activeFps: 60,

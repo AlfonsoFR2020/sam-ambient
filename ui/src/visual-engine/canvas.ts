@@ -1,22 +1,7 @@
 import type { RendererBackend } from "./backend";
+import { MotionEvaluator } from "./motion";
 import type { RenderBudget } from "./quality";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
-
-const stateRadius: Readonly<Record<VisualInputV1["interaction"]["foreground"], number>> = {
-  idle: 1,
-  listening: 1.035,
-  transcribing: 0.985,
-  thinking: 0.955,
-  speaking: 1.015,
-  interrupted: 0.94,
-  resuming: 1,
-};
-
-const liveEnvelope = (receivedMs: number, envelope: number, now: number): number => {
-  const age = Math.max(0, now - receivedMs);
-  if (age >= 1000) return 0;
-  return envelope * (age <= 250 ? 1 : Math.exp(-(age - 250) / 180));
-};
 
 export class CanvasBackend implements RendererBackend {
   readonly kind = "canvas2d" as const;
@@ -24,6 +9,8 @@ export class CanvasBackend implements RendererBackend {
   private height = 1;
   private gradient?: CanvasGradient;
   private input?: VisualInputV1;
+  private readonly motion: MotionEvaluator;
+  private readonly reducedMotionMedia: MediaQueryList | undefined;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -31,7 +18,13 @@ export class CanvasBackend implements RendererBackend {
     private readonly budget: RenderBudget,
     private settings: VisualEngineSettings,
     private readonly seed: number,
-  ) {}
+  ) {
+    this.motion = new MotionEvaluator(seed);
+    this.reducedMotionMedia =
+      typeof matchMedia === "undefined"
+        ? undefined
+        : matchMedia("(prefers-reduced-motion: reduce)");
+  }
 
   update(input: VisualInputV1): void {
     if (
@@ -72,20 +65,13 @@ export class CanvasBackend implements RendererBackend {
     const input = this.input;
     context.clearRect(0, 0, this.width, this.height);
     if (!input || !this.settings.enabled) return;
-    const reduced = this.settings.reducedMotion === "on";
-    const feature = input.interaction.speaking ? input.audio.output : input.audio.input;
-    const audio = feature
-      ? liveEnvelope(feature.receivedMs, feature.envelope, now) *
-        (input.interaction.speaking ? 1 : 0.55)
-      : 0;
-    const radius =
-      Math.min(this.width, this.height) *
-      0.28 *
-      (stateRadius[input.interaction.foreground] + this.settings.audioReactivity * audio * 0.055);
+    const reduced = this.reducedMotion();
+    const frame = this.motion.evaluate(input, now, this.settings, this.budget, reduced);
+    const radius = Math.min(this.width, this.height) * 0.28 * frame.radius;
     const cx = this.width / 2;
     const cy = this.height * 0.48;
     context.save();
-    context.globalAlpha = 0.45 * this.settings.glowIntensity;
+    context.globalAlpha = (0.28 + frame.glow * 0.42) * this.settings.glowIntensity;
     context.fillStyle = "#d65324";
     context.beginPath();
     context.arc(cx, cy, radius * 1.28, 0, Math.PI * 2);
@@ -98,16 +84,17 @@ export class CanvasBackend implements RendererBackend {
     context.globalCompositeOperation = "lighter";
     context.lineCap = "round";
     for (let peel = 0; peel < Math.min(3, this.budget.peels); peel++) {
-      const phase = reduced ? 0 : now * 0.000012 * (peel % 2 ? -1 : 1) + this.seed * 1e-5;
-      context.globalAlpha = 0.3 + peel * 0.12;
+      const phase = frame.peelTravel * 0.12 * (peel % 2 ? -1 : 1) + this.seed * 1e-5;
+      context.globalAlpha = (0.28 + peel * 0.1) * frame.peelEmission;
       context.strokeStyle = peel === 1 ? "#ffd29e" : "#f08a42";
-      context.lineWidth = radius * (0.025 + peel * 0.007);
+      context.lineWidth = radius * (0.025 + peel * 0.007) * frame.peelWidth;
       context.beginPath();
       for (let sample = 0; sample < 32; sample++) {
         const q = sample / 31 - 0.5;
         const angle = phase + peel * 2.05 + q * (1.4 + peel * 0.15);
-        const x = cx + Math.cos(angle) * radius * Math.cos(q * 1.3);
-        const y = cy + Math.sin(angle) * radius * 0.45 + q * radius * 1.1;
+        const opening = 1 + frame.opening * 0.05;
+        const x = cx + Math.cos(angle) * radius * Math.cos(q * 1.3) * opening;
+        const y = cy + Math.sin(angle) * radius * 0.45 * opening + q * radius * 1.1;
         if (sample === 0) context.moveTo(x, y);
         else context.lineTo(x, y);
       }
@@ -119,5 +106,11 @@ export class CanvasBackend implements RendererBackend {
   dispose(): void {
     this.input = undefined;
     this.gradient = undefined;
+  }
+
+  private reducedMotion(): boolean {
+    if (this.settings.reducedMotion === "on") return true;
+    if (this.settings.reducedMotion === "off") return false;
+    return this.reducedMotionMedia?.matches ?? false;
   }
 }

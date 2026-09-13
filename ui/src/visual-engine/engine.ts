@@ -43,6 +43,7 @@ export class VisualEngine {
   private readonly cancelFrame: (handle: number) => void;
   private readonly createCanvas: () => HTMLCanvasElement;
   private readonly backendFactory: BackendFactory;
+  private readonly reducedMotionMedia: MediaQueryList | undefined;
 
   constructor(options: VisualEngineOptions = {}) {
     this.settings = resolveVisualEngineSettings(options.settings);
@@ -53,6 +54,10 @@ export class VisualEngine {
     this.cancelFrame = options.cancelFrame ?? ((handle) => cancelAnimationFrame(handle));
     this.createCanvas = options.createCanvas ?? (() => document.createElement("canvas"));
     this.backendFactory = options.backendFactory ?? defaultFactory;
+    this.reducedMotionMedia =
+      typeof matchMedia === "undefined"
+        ? undefined
+        : matchMedia("(prefers-reduced-motion: reduce)");
   }
 
   mount(host: HTMLElement): void {
@@ -172,9 +177,7 @@ export class VisualEngine {
   private reducedMotion(): boolean {
     if (this.settings.reducedMotion === "on") return true;
     if (this.settings.reducedMotion === "off") return false;
-    return (
-      typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches
-    );
+    return this.reducedMotionMedia?.matches ?? false;
   }
 
   private syncLoop(): void {

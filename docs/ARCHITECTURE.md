@@ -42,11 +42,11 @@ field. Visual preferences remain local to the UI.
 
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. This branch implements its
-Stage A/B foundation: a typed envelope-only adapter and isolated WebGL2 spheroid,
-batched fragmented peels and analytic lighting, with Canvas/CSS fallback. Full
-state/audio choreography, spectral extraction, persistent settings, measured quality
-adaptation and human visual acceptance remain pending. The Vite-only preview uses
-the real event decoder and reducer and is not packaged.
+Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded
+continuous state/audio motion, batched fragmented peels, analytic lights and sparse
+particles, with Canvas/CSS fallback. Spectral extraction, persistent settings,
+measured quality adaptation and human visual acceptance remain pending. The compiled
+static bundle uses the real event decoder and reducer; this branch remains unmerged.
 
 ## Configuration and readiness
 

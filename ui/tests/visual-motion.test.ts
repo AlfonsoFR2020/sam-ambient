@@ -1,0 +1,227 @@
+import { describe, expect, it } from "vitest";
+import { MotionEvaluator, STATE_TARGETS } from "../src/visual-engine/motion";
+import { RENDER_BUDGETS } from "../src/visual-engine/quality";
+import {
+  DEFAULT_VISUAL_ENGINE_SETTINGS,
+  type VisualForeground,
+  type VisualInputV1,
+} from "../src/visual-engine/types";
+
+const visualInput = (
+  foreground: VisualForeground,
+  overrides: Partial<VisualInputV1> = {},
+): VisualInputV1 => ({
+  version: 1,
+  streamKey: "runtime",
+  sequence: 1,
+  receivedMs: 0,
+  audio: {},
+  interaction: {
+    foreground,
+    listening: foreground === "listening",
+    speaking: foreground === "speaking" || foreground === "resuming",
+    floor: foreground === "speaking" ? "sam" : foreground === "listening" ? "user" : "none",
+    acknowledgement: false,
+    userPause: false,
+    reasoning: foreground === "thinking",
+    delegatedWork: false,
+    responseReady: false,
+    interruptSerial: foreground === "interrupted" ? 1 : 0,
+    availability: "ready",
+  },
+  ...overrides,
+});
+
+const evaluateTwice = (input: VisualInputV1, seed = 12) => {
+  const evaluator = new MotionEvaluator(seed);
+  evaluator.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+  return evaluator.evaluate(input, 80, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+};
+
+describe("continuous Visual Engine motion", () => {
+  it("defines distinct state targets without separate clips", () => {
+    expect(STATE_TARGETS.listening.opening).toBeGreaterThan(STATE_TARGETS.idle.opening);
+    expect(STATE_TARGETS.thinking.opening).toBeLessThan(STATE_TARGETS.idle.opening);
+    expect(STATE_TARGETS.speaking.glow).toBeGreaterThan(STATE_TARGETS.listening.glow);
+    expect(STATE_TARGETS.interrupted.radius).toBeLessThan(STATE_TARGETS.thinking.radius);
+    expect(STATE_TARGETS.thinking.drift).toBeLessThan(0);
+  });
+
+  it("smooths target changes while oscillator phases continue", () => {
+    const evaluator = new MotionEvaluator(30);
+    const idle = visualInput("idle");
+    evaluator.evaluate(idle, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const initialSpin = evaluator.evaluate(
+      idle,
+      80,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    ).spin;
+    const frame = evaluator.evaluate(
+      visualInput("listening"),
+      160,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect(frame.opening).toBeGreaterThan(STATE_TARGETS.idle.opening);
+    expect(frame.opening).toBeLessThan(STATE_TARGETS.listening.opening);
+    expect(frame.spin).toBeGreaterThan(initialSpin);
+  });
+
+  it("keeps zero-audio idle alive and deterministic", () => {
+    const first = new MotionEvaluator(42);
+    const second = new MotionEvaluator(42);
+    const input = visualInput("idle");
+    first.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    second.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const a = first.evaluate(input, 80, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const b = second.evaluate(input, 80, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    expect(a.spin).toBe(b.spin);
+    expect(a.breathPhase).toBe(b.breathPhase);
+    expect(a.envelope).toBe(0);
+    expect(a.spin).not.toBe(0);
+    expect(a.surfaceDeformation).toBeGreaterThan(0);
+  });
+
+  it("bounds maximum audio response and uses output as the strongest channel", () => {
+    const frame = evaluateTwice({
+      ...visualInput("speaking"),
+      audio: { output: { receivedMs: 0, envelope: 1 } },
+    });
+    expect(frame.radius).toBeGreaterThan(STATE_TARGETS.speaking.radius);
+    expect(frame.radius).toBeLessThanOrEqual(1.1);
+    expect(frame.glow).toBeLessThanOrEqual(0.85);
+    expect(frame.surfaceDeformation).toBeLessThanOrEqual(0.026);
+    expect(frame.surfaceRipple).toBeLessThanOrEqual(0.022);
+    expect(frame.highlight).toBeLessThanOrEqual(0.12);
+    expect(frame.peelLift).toBeLessThanOrEqual(0.018);
+    expect(frame.peelWidth).toBeLessThanOrEqual(1.35);
+  });
+
+  it("combines simultaneous input/output by maximum rather than summing", () => {
+    const outputOnly = evaluateTwice({
+      ...visualInput("speaking"),
+      audio: { output: { receivedMs: 0, envelope: 0.6 } },
+    }).envelope;
+    const duplex = evaluateTwice({
+      ...visualInput("speaking"),
+      audio: {
+        input: { receivedMs: 0, envelope: 1, activity: 1 },
+        output: { receivedMs: 0, envelope: 0.6 },
+      },
+      interaction: {
+        ...visualInput("speaking").interaction,
+        listening: true,
+        speaking: true,
+        floor: "shared",
+      },
+    });
+    expect(duplex.envelope).toBeCloseTo(outputOnly, 8);
+    expect(duplex.opening).toBeGreaterThan(STATE_TARGETS.speaking.opening);
+  });
+
+  it("keeps orthogonal cognition cues secondary to the foreground", () => {
+    const base = visualInput("speaking");
+    const frame = evaluateTwice({
+      ...base,
+      interaction: { ...base.interaction, reasoning: true, delegatedWork: true },
+      audio: { output: { receivedMs: 0, envelope: 0.4 } },
+    });
+    expect(frame.foreground).toBe("speaking");
+    expect(frame.reasoningCue).toBeGreaterThan(0);
+    expect(frame.delegatedCue).toBeGreaterThan(frame.reasoningCue);
+  });
+
+  it("fires interruption once and decays without replay", () => {
+    const evaluator = new MotionEvaluator(4);
+    evaluator.evaluate(
+      visualInput("speaking"),
+      0,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    const interrupted = evaluator.evaluate(
+      visualInput("interrupted"),
+      80,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    const firstImpulse = interrupted.interruption;
+    const repeated = evaluator.evaluate(
+      visualInput("interrupted"),
+      160,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect(firstImpulse).toBe(1);
+    expect(repeated.interruption).toBeLessThan(firstImpulse);
+    expect(repeated.peelRephase).toBeLessThanOrEqual(0.12);
+  });
+
+  it("baselines a historical interrupt serial when a renderer attaches", () => {
+    const evaluator = new MotionEvaluator(8);
+    const idle = visualInput("idle");
+    const frame = evaluator.evaluate(
+      {
+        ...idle,
+        interaction: { ...idle.interaction, interruptSerial: 7 },
+      },
+      100,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect(frame.interruption).toBe(0);
+    expect(frame.peelRephase).toBe(0);
+  });
+
+  it("expires stale output and cannot retain its excitation", () => {
+    const evaluator = new MotionEvaluator(9);
+    const input = {
+      ...visualInput("speaking"),
+      audio: { output: { receivedMs: 0, envelope: 1 } },
+    };
+    evaluator.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    evaluator.evaluate(input, 80, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const stale = evaluator.evaluate(
+      input,
+      1200,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect(stale.outputEnvelope).toBe(0);
+    expect(stale.envelope).toBeLessThan(0.5);
+  });
+
+  it("freezes continuous motion in reduced mode while retaining state identity", () => {
+    const settings = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, reducedMotion: "on" as const };
+    const evaluator = new MotionEvaluator(17);
+    const idle = evaluator.evaluate(visualInput("idle"), 0, settings, RENDER_BUDGETS.low);
+    const phase = idle.spin;
+    const listening = evaluator.evaluate(
+      visualInput("listening"),
+      1000,
+      settings,
+      RENDER_BUDGETS.low,
+    );
+    expect(listening.spin).toBe(phase);
+    expect(listening.opening).toBe(STATE_TARGETS.listening.opening);
+    expect(listening.surfaceDeformation).toBe(0);
+    expect(listening.particleExcitation).toBe(0);
+    expect(listening.reducedMotion).toBe(true);
+  });
+
+  it("reuses one bounded frame without per-frame allocation", () => {
+    const evaluator = new MotionEvaluator(5);
+    const input = visualInput("idle");
+    const first = evaluator.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const second = evaluator.evaluate(
+      input,
+      80,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect(first).toBe(second);
+    expect(second.radius).toBeGreaterThanOrEqual(0.92);
+    expect(second.radius).toBeLessThanOrEqual(1.1);
+  });
+});

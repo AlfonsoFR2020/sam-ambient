@@ -28,9 +28,9 @@
   degradation status in quiet controls. Clarify control effects and improve
   bounded transcript role styling and scrolling.
 - Add the acceptance-pending Visual Engine v1 foundation: typed provider-neutral
-  envelope inputs; a custom WebGL2 amber spheroid, batched fragmented peels and
-  analytic lights; explicit mobile budgets; and Canvas/CSS fallbacks. Full
-  choreography and human visual acceptance remain pending.
+  envelope inputs; continuous state/audio choreography; a custom WebGL2 amber
+  spheroid with drifting fragmented peels, analytic lights and sparse particles;
+  explicit mobile budgets; and Canvas/CSS fallbacks. Human acceptance remains pending.
 
 - Infer speech language from assistant responses, retaining context for ambiguous
   short replies. Select installed Windows voices by locale/language with explicit

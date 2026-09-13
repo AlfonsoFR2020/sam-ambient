@@ -5,6 +5,11 @@ export interface IndexedGeometry {
   readonly indices: Uint16Array;
 }
 
+export interface ArrayGeometry {
+  readonly vertices: Float32Array;
+  readonly count: number;
+}
+
 export interface PeelDescriptor {
   readonly family: number;
   readonly center: number;
@@ -110,4 +115,22 @@ export function createPeelGeometry(budget: RenderBudget, seed?: number): Indexed
     base += budget.peelSamples * 2;
   }
   return { vertices, indices };
+}
+
+/** Seeded analytic particle parameters: phase, shell radius, inclination and size. */
+export function createParticleGeometry(count: number, seed = 0x5a17): ArrayGeometry {
+  const random = seeded(seed ^ 0x9e37_79b9);
+  const vertices = new Float32Array(count * 4);
+  for (let index = 0; index < count; index++) {
+    vertices.set(
+      [
+        random() * Math.PI * 2,
+        1.1 + random() * 0.3,
+        (random() * 2 - 1) * (Math.PI / 5.2),
+        1.1 + random() * 1.25,
+      ],
+      index * 4,
+    );
+  }
+  return { vertices, count };
 }
