@@ -116,6 +116,23 @@ input {
   pointer-events: none;
 }
 
+.ambient-scene__interaction {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(64vmin, 720px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  transform: translate(-50%, -50%);
+}
+
+.ambient-scene__interaction:active {
+  cursor: grabbing;
+}
+
 .ambient-scene.visual-engine--static::before,
 .ambient-scene.visual-engine--static::after {
   position: absolute;
@@ -563,7 +580,8 @@ input {
   color: #d8b98f;
 }
 
-.brightness {
+.brightness,
+.visual-setting {
   display: flex;
   grid-column: 1 / -1;
   align-items: center;
@@ -573,7 +591,9 @@ input {
   font-size: 0.75rem;
 }
 
-.brightness input {
+.brightness input,
+.visual-setting input,
+.visual-setting select {
   width: 180px;
   accent-color: #9bb7dd;
 }

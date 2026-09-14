@@ -78,6 +78,21 @@ def test_persistence_schema_never_contains_raw_microphone_audio(tmp_path: Path) 
     assert "raw_audio" not in schema
 
 
+def test_visual_preferences_round_trip_as_separate_runtime_state(tmp_path: Path) -> None:
+    path = tmp_path / "sam.db"
+    settings = {
+        "quality": "high",
+        "device_profile": "mobile_2020",
+        "intensity": 0.8,
+        "motion_intensity": 0.4,
+        "audio_reactivity": 0.7,
+        "particle_density": 0.3,
+        "reduced_motion": "system",
+    }
+    SQLiteSessionStore(path).remember_visual_preferences(settings)
+    assert SQLiteSessionStore(path).visual_preferences() == settings
+
+
 def test_crash_journal_and_component_status_are_bounded_and_recoverable(tmp_path: Path) -> None:
     store = SupervisorStore(tmp_path / "sam.db", maximum_crash_records=2)
     status = ComponentStatus("sam-core", HealthState.DEGRADED, "instance", 123)

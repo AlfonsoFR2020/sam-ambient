@@ -12,6 +12,7 @@ import platform
 import shutil
 import sys
 from collections.abc import Callable, Sequence
+from dataclasses import asdict
 from importlib.resources import files
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -660,6 +661,7 @@ async def _serve_runtime(
             ),
             state_db=Path(args.state_db) if args.state_db else None,
             tts_voice=args.tts_voice,
+            visual_settings=asdict(args._sam_settings.visual),
         ),
         voice=voice,
         tts=tts,

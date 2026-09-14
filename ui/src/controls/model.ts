@@ -4,6 +4,7 @@ import {
   EMERGENCY_STOP_TARGETS,
 } from "../protocol/commands";
 import type { ControlCommand, UiState } from "../protocol/types";
+import type { VisualEngineSettings } from "../visual-engine/types";
 
 export interface VisualPreferences {
   transcriptVisible: boolean;
@@ -32,7 +33,8 @@ export type ControlAction =
   | { type: "capabilities.revoke_all" }
   | { type: "transcript.set"; visible: boolean }
   | { type: "reduced_motion.set"; enabled: boolean }
-  | { type: "brightness.set"; value: number };
+  | { type: "brightness.set"; value: number }
+  | { type: "visual_settings.set"; settings: VisualEngineSettings };
 
 export function commandForAction(
   action: ControlAction,
@@ -71,6 +73,23 @@ export function commandForAction(
     return createControlCommand(
       "control.model.select",
       { provider: action.provider, model: action.model, remember: action.remember },
+      state,
+      runtime,
+    );
+  }
+  if (action.type === "visual_settings.set") {
+    const settings = action.settings;
+    return createControlCommand(
+      "control.visual_settings.set",
+      {
+        quality: settings.quality,
+        device_profile: settings.deviceProfile,
+        intensity: settings.intensity,
+        motion_intensity: settings.motionIntensity,
+        audio_reactivity: settings.audioReactivity,
+        particle_density: settings.particleDensity,
+        reduced_motion: settings.reducedMotion,
+      },
       state,
       runtime,
     );

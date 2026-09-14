@@ -42,6 +42,7 @@ export const CONTROL_COMMAND_TYPES = [
   "control.capabilities.revoke_all",
   "control.providers.rescan",
   "control.model.select",
+  "control.visual_settings.set",
   "control.application.restart",
   "control.application.quit",
 ] as const;
@@ -172,6 +173,15 @@ export interface UiState {
   diagnosticReason?: string;
   startupLifecycle: StartupLifecycle;
   providerCatalog: readonly ProviderCatalogEntry[];
+  visualSettings?: {
+    quality: "auto" | "low" | "medium" | "high";
+    deviceProfile: "auto" | "mobile_2020" | "low_power" | "desktop" | "high_end";
+    intensity: number;
+    motionIntensity: number;
+    audioReactivity: number;
+    particleDensity: number;
+    reducedMotion: "system" | "on" | "off";
+  };
 }
 
 export const INITIAL_UI_STATE: UiState = {

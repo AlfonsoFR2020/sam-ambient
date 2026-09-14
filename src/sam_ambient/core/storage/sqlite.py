@@ -99,6 +99,25 @@ class SQLiteSessionStore:
                 (json.dumps([provider, model]),),
             )
 
+    def visual_preferences(self) -> dict[str, object] | None:
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT value FROM runtime_metadata WHERE key='visual_preferences'"
+                ).fetchone()
+            value = json.loads(row[0]) if row else None
+            return dict(value) if isinstance(value, dict) else None
+        except (sqlite3.DatabaseError, ValueError, TypeError):
+            return None
+
+    def remember_visual_preferences(self, value: dict[str, object]) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """INSERT OR REPLACE INTO runtime_metadata(key,value)
+                   VALUES ('visual_preferences',?)""",
+                (json.dumps(value, sort_keys=True, allow_nan=False),),
+            )
+
     def session_id(self) -> str:
         try:
             with self._connect() as connection:

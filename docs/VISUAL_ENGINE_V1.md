@@ -1,8 +1,9 @@
 # Sam Visual Engine v1
 
-Status: implementation specification, not implemented on `dev`. The Stage A/B
-foundation is implemented only on `feature/ambient-shell`; choreography, persistent
-settings, measured adaptation and human acceptance remain pending. Design revision 1.
+Status: implementation specification, not implemented on `dev`. The foundation,
+state choreography, direct manipulation, persistent visual preferences and bounded
+measured adaptation are acceptance-pending work on `feature/ambient-shell`.
+Spectral/prosodic mapping and human acceptance remain pending. Design revision 1.
 This document owns the renderer, input, motion, quality and settings decisions. It
 does not authorize a shell merge or change voice policy.
 
@@ -308,10 +309,10 @@ by 250 ms recovery. Oscillators continue in phase; transitions never restart loo
 | Foreground | Radius / glow | Opening / spin rad/s | Silent identity and audio treatment |
 | --- | --- | --- | --- |
 | Idle | 1.00 / .24 | .10 / .045 | Coherent peels, 8 s breathing, slow light travel. |
-| Listening | 1.035 / .31 | .65 / .055 | Open/lift peels, outward rim emphasis; input drives broad response. |
-| Transcribing | .985 / .32 | .22 / .030 | Captured opening converges once over 450 ms; aligned ridges remain until done. |
-| Thinking | .955 / .29 | .08 / .025 | Peels tighten toward body, inward drift, focused inner light; no progress spinner. |
-| Speaking | 1.015 / .38 | .40 / .065 | Stronger bounded peel width/lift and travelling highlights; strongest output coupling. |
+| Listening | 1.05 / .34 | .78 / .055 | Open/lift peels, outward rim emphasis; input drives broad response. |
+| Transcribing | .97 / .34 | .14 / .030 | Captured opening converges once over 450 ms; aligned ridges remain until done. |
+| Thinking | .945 / .31 | .04 / .025 | Peels tighten toward body, inward drift, focused inner light; no progress spinner. |
+| Speaking | 1.025 / .44 | .50 / .065 | Stronger bounded peel width/lift and travelling highlights; strongest output coupling. |
 | Interrupted | .94 / .26 | .12 / .020 | One contraction/rephasing per serial, no red flash; then actual next state. |
 | Resuming | towards speaking | towards speaking | 300 ms opening ramp; fresh output resumes, old energy never replays. |
 
@@ -360,8 +361,10 @@ ResizeObserver updates backing storage only when dimensions change. The layout
 supplies the unobstructed ambient rectangle after controls/transcript allocation.
 Let `S=min(width,height)`, rest body diameter `0.56*S`; maximum halo diameter
 is `0.924*S` at the 1.65 radius bound. Fit the maximum halo bound, not just the rest
-sphere. No fixed desktop pixel cap; use the same rule on small windows. Canvas
-ignores pointer events and has `aria-hidden`; it never obscures focus targets.
+sphere. No fixed desktop pixel cap; use the same rule on small windows. The canvas
+remains `aria-hidden` and ignores pointer events. A bounded app-owned interaction
+region over the orb accepts primary mouse or single-touch rotation; transcript,
+controls and dialogs remain outside it and retain normal hit testing.
 
 Page visibility, zero-size canvas or offscreen intersection suspends rAF and
 drawing. Stopped availability draws one final static frame and suspends until a
@@ -456,11 +459,11 @@ IPC, filesystem, network calls or Tauri imports inside the engine.
 
 ## 10. Settings contract and general Sam rule
 
-Proposed additive namespace for Sam's schema-v1 configuration; **these keys are
-not supported by today's loader**. The foundation validates an equivalent typed UI
-boundary, maps the existing intensity/reduced-motion controls, and keeps quality and
-device-profile selection session-local. A later implementation must register
-persistent validation and documentation together, without changing existing keys:
+Sam's schema-v1 loader now supports the user-facing quality, device profile,
+intensity, motion, audio reactivity, particle density and reduced-motion keys below.
+The trusted owner control persists those values in Sam's runtime state so Controls
+changes survive interface reload and Sam restart. Renderer selection, glow and theme
+remain specification-level extensions rather than advertised persisted settings:
 
 ```toml
 [visual]
@@ -483,9 +486,9 @@ Keep existing defaults -> user -> workspace -> environment -> explicit CLI
 precedence; add no environment/CLI switches solely for completeness. Export only
 resolved visual settings to the UI, never the full config or credentials.
 
-Persist explicit settings through the existing config boundary when implemented;
-automatic quality/fallback and detected capabilities are ephemeral runtime state.
-Browser controls may hold session overrides but must label unsaved changes.
+TOML supplies the configured baseline; explicit owner changes made in Controls are
+stored separately as runtime preferences and override that baseline on later starts.
+Automatic quality/fallback and detected capabilities remain ephemeral runtime state.
 Map existing brightness percentage to intensity once, and existing reduced-motion
 control to the override; do not multiply two brightness preferences. No settings
 migration is performed by this design pass. Themes select predefined palettes

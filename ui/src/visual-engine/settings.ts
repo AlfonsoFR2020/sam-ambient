@@ -77,6 +77,11 @@ export function resolveVisualEngineSettings(
       value.audioReactivity,
       DEFAULT_VISUAL_ENGINE_SETTINGS.audioReactivity,
     ),
+    particleDensity: bounded(
+      "visual.particle_density",
+      value.particleDensity,
+      DEFAULT_VISUAL_ENGINE_SETTINGS.particleDensity,
+    ),
     glowIntensity: bounded(
       "visual.glow_intensity",
       value.glowIntensity,

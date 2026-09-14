@@ -65,6 +65,7 @@ export interface VisualEngineSettings {
   readonly intensity: number;
   readonly motionIntensity: number;
   readonly audioReactivity: number;
+  readonly particleDensity: number;
   readonly glowIntensity: number;
   readonly reducedMotion: ReducedMotionPreference;
 }
@@ -77,6 +78,7 @@ export const DEFAULT_VISUAL_ENGINE_SETTINGS: VisualEngineSettings = Object.freez
   intensity: 0.82,
   motionIntensity: 0.6,
   audioReactivity: 0.7,
+  particleDensity: 0.6,
   glowIntensity: 0.5,
   reducedMotion: "system",
 });

@@ -11,6 +11,7 @@ import {
   serializeControlCommand,
 } from "../src/protocol/commands";
 import { INITIAL_UI_STATE } from "../src/protocol/types";
+import { DEFAULT_VISUAL_ENGINE_SETTINGS } from "../src/visual-engine/types";
 
 const runtime = { nowMs: () => 123, nextId: () => "command-1" };
 
@@ -90,6 +91,30 @@ describe("control command protocol", () => {
     expect(
       commandForAction({ type: "reduced_motion.set", enabled: true }, INITIAL_UI_STATE, runtime),
     ).toBeNull();
+  });
+
+  it("serializes typed persistent visual settings through the owner control", () => {
+    const command = commandForAction(
+      {
+        type: "visual_settings.set",
+        settings: {
+          ...DEFAULT_VISUAL_ENGINE_SETTINGS,
+          quality: "high",
+          deviceProfile: "mobile_2020",
+          particleDensity: 0.25,
+        },
+      },
+      INITIAL_UI_STATE,
+      runtime,
+    );
+    expect(command).toMatchObject({
+      type: "control.visual_settings.set",
+      payload: {
+        quality: "high",
+        device_profile: "mobile_2020",
+        particle_density: 0.25,
+      },
+    });
   });
 
   it("serializes text requests and correlated tool approval decisions", () => {

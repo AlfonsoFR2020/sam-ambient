@@ -26,7 +26,8 @@ import { BrowserEventTransport } from "./transport/browser";
 import { type NativeEventSource, TauriLocalTransport } from "./transport/tauri";
 import { browserScheduler, type ProtocolTransport } from "./transport/transport";
 import { WebSocketTransport } from "./transport/websocket";
-import { settingsFromCurrentControls } from "./visual-engine/settings";
+import { resolveVisualEngineSettings } from "./visual-engine/settings";
+import { DEFAULT_VISUAL_ENGINE_SETTINGS, type VisualEngineSettings } from "./visual-engine/types";
 
 declare global {
   interface Window {
@@ -409,8 +410,10 @@ export default function App() {
   const stateRef = useRef(state);
   const [preferences, setPreferences] = useState(() => ({
     ...DEFAULT_VISUAL_PREFERENCES,
-    reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   }));
+  const [visualSettings, setVisualSettings] = useState<VisualEngineSettings>(
+    DEFAULT_VISUAL_ENGINE_SETTINGS,
+  );
   const [controlsOpen, setControlsOpen] = useState(false);
   const [quitConfirmation, setQuitConfirmation] = useState(false);
   const [restartConfirmation, setRestartConfirmation] = useState(false);
@@ -419,11 +422,7 @@ export default function App() {
   const [commandError, setCommandError] = useState<string>();
   const [textRequest, setTextRequest] = useState("");
   const [presentedLabel, setPresentedLabel] = useState("Starting Sam");
-  const visual = toAmbientVisualModel(state, preferences.brightness / 100);
-  const visualSettings = useMemo(
-    () => settingsFromCurrentControls(preferences.brightness, preferences.reducedMotion),
-    [preferences.brightness, preferences.reducedMotion],
-  );
+  const visual = toAmbientVisualModel(state, visualSettings.intensity);
   const runtimeStatus = statusPresentation(state);
   stateRef.current = state;
 
@@ -433,12 +432,8 @@ export default function App() {
   }, [client]);
 
   useEffect(() => {
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const change = () =>
-      setPreferences((current) => ({ ...current, reducedMotion: preference.matches }));
-    preference.addEventListener("change", change);
-    return () => preference.removeEventListener("change", change);
-  }, []);
+    if (state.visualSettings) setVisualSettings(resolveVisualEngineSettings(state.visualSettings));
+  }, [state.visualSettings]);
 
   useEffect(() => {
     const next = runtimeStatus.label ?? visual.label;
@@ -475,6 +470,15 @@ export default function App() {
     else await document.documentElement.requestFullscreen();
   }, []);
 
+  const persistVisual = useCallback(
+    (patch: Partial<VisualEngineSettings>) => {
+      const next = resolveVisualEngineSettings({ ...visualSettings, ...patch });
+      setVisualSettings(next);
+      applyAction({ type: "visual_settings.set", settings: next });
+    },
+    [applyAction, visualSettings],
+  );
+
   const quitSam = useCallback(() => {
     if (stateRef.current.connection !== "connected") return;
     setQuitConfirmation(true);
@@ -509,7 +513,10 @@ export default function App() {
 
   const pending = state.pendingCommandIds.length > 0;
   return (
-    <main className="sam-shell" data-reduced-motion={preferences.reducedMotion || undefined}>
+    <main
+      className="sam-shell"
+      data-reduced-motion={visualSettings.reducedMotion === "on" || undefined}
+    >
       {!quitRequested && !state.applicationStopped && (
         <AmbientScene model={visual} state={state} settings={visualSettings} />
       )}
@@ -703,31 +710,114 @@ export default function App() {
               Transcript {preferences.transcriptVisible ? "shown" : "hidden"}
             </ControlButton>
             <ControlButton
-              help="Reduce continuous visual movement while preserving status feedback."
-              onClick={() =>
-                applyAction({ type: "reduced_motion.set", enabled: !preferences.reducedMotion })
-              }
-            >
-              Reduced motion {preferences.reducedMotion ? "on" : "off"}
-            </ControlButton>
-            <ControlButton
               help="Enter or leave fullscreen. Escape exits fullscreen."
               onClick={() => void toggleFullscreen()}
             >
               Toggle fullscreen
             </ControlButton>
-            <label className="brightness">
-              <span>Intensity</span>
+            <label className="visual-setting">
+              <span>Quality</span>
+              <select
+                value={visualSettings.quality}
+                onChange={(event) =>
+                  persistVisual({
+                    quality: event.currentTarget.value as VisualEngineSettings["quality"],
+                  })
+                }
+                title="Controls visual detail. Auto adapts to performance."
+              >
+                <option value="auto">Auto</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+            <label className="visual-setting">
+              <span>Performance profile</span>
+              <select
+                value={visualSettings.deviceProfile}
+                onChange={(event) =>
+                  persistVisual({
+                    deviceProfile: event.currentTarget
+                      .value as VisualEngineSettings["deviceProfile"],
+                  })
+                }
+                title="Limits rendering for a target device or power level."
+              >
+                <option value="auto">Auto</option>
+                <option value="mobile_2020">2020 smartphone</option>
+                <option value="low_power">Low power</option>
+                <option value="desktop">Desktop</option>
+                <option value="high_end">High-end desktop</option>
+              </select>
+            </label>
+            <label className="visual-setting">
+              <span>Visual intensity</span>
               <input
                 aria-label="Visual intensity"
                 type="range"
-                min="25"
+                min="0"
                 max="100"
-                value={preferences.brightness}
+                value={Math.round(visualSettings.intensity * 100)}
                 onChange={(event) =>
-                  applyAction({ type: "brightness.set", value: Number(event.currentTarget.value) })
+                  persistVisual({ intensity: Number(event.currentTarget.value) / 100 })
                 }
               />
+            </label>
+            <label className="visual-setting">
+              <span>Motion</span>
+              <input
+                aria-label="Motion intensity"
+                type="range"
+                min="0"
+                max="100"
+                value={Math.round(visualSettings.motionIntensity * 100)}
+                onChange={(event) =>
+                  persistVisual({ motionIntensity: Number(event.currentTarget.value) / 100 })
+                }
+              />
+            </label>
+            <label className="visual-setting">
+              <span>Audio reactivity</span>
+              <input
+                aria-label="Audio reactivity"
+                type="range"
+                min="0"
+                max="100"
+                value={Math.round(visualSettings.audioReactivity * 100)}
+                onChange={(event) =>
+                  persistVisual({ audioReactivity: Number(event.currentTarget.value) / 100 })
+                }
+              />
+            </label>
+            <label className="visual-setting">
+              <span>Particles</span>
+              <input
+                aria-label="Particle amount"
+                type="range"
+                min="0"
+                max="100"
+                value={Math.round(visualSettings.particleDensity * 100)}
+                onChange={(event) =>
+                  persistVisual({ particleDensity: Number(event.currentTarget.value) / 100 })
+                }
+              />
+            </label>
+            <label className="visual-setting">
+              <span>Reduced motion</span>
+              <select
+                value={visualSettings.reducedMotion}
+                onChange={(event) =>
+                  persistVisual({
+                    reducedMotion: event.currentTarget
+                      .value as VisualEngineSettings["reducedMotion"],
+                  })
+                }
+              >
+                <option value="system">Follow system</option>
+                <option value="on">On</option>
+                <option value="off">Off</option>
+              </select>
             </label>
           </section>
           <section className="controls__group" aria-labelledby={`${controlsId}-application`}>

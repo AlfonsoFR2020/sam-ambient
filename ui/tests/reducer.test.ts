@@ -45,6 +45,31 @@ describe("protocol state reduction", () => {
     expect(oldSession).toBe(state);
   });
 
+  it("accepts validated visual settings from ready and control acknowledgement", () => {
+    const payload = {
+      quality: "high",
+      device_profile: "mobile_2020",
+      intensity: 0.9,
+      motion_intensity: 0.4,
+      audio_reactivity: 0.8,
+      particle_density: 0.25,
+      reduced_motion: "system",
+    };
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("system.ready", 1, { state: "IDLE", visual_settings: payload }),
+    );
+    expect(state.visualSettings).toMatchObject({ quality: "high", deviceProfile: "mobile_2020" });
+    state = reduceProtocolEvent(
+      state,
+      event("control.acknowledged", 2, {
+        command_id: "visual",
+        visual_settings: { ...payload, quality: "low" },
+      }),
+    );
+    expect(state.visualSettings?.quality).toBe("low");
+  });
+
   it("distinguishes provisional and committed transcripts", () => {
     let state = reduceProtocolEvent(
       resetUiState(),

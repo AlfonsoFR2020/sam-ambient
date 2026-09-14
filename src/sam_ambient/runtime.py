@@ -132,6 +132,31 @@ def _voice_failure(error: Exception) -> tuple[str, bool]:
     return "Voice lifecycle error; check development logs", False
 
 
+_VISUAL_CHOICES = {
+    "quality": {"auto", "low", "medium", "high"},
+    "device_profile": {"auto", "mobile_2020", "low_power", "desktop", "high_end"},
+    "reduced_motion": {"system", "on", "off"},
+}
+_VISUAL_UNITS = {"intensity", "motion_intensity", "audio_reactivity", "particle_density"}
+
+
+def _validated_visual_settings(value: Mapping[str, object]) -> dict[str, object]:
+    if set(value) != {*_VISUAL_CHOICES, *_VISUAL_UNITS}:
+        raise ValueError("visual settings must contain the supported fields exactly")
+    result: dict[str, object] = {}
+    for name, allowed in _VISUAL_CHOICES.items():
+        item = value[name]
+        if not isinstance(item, str) or item not in allowed:
+            raise ValueError(f"visual setting {name} has an unsupported value")
+        result[name] = item
+    for name in _VISUAL_UNITS:
+        item = value[name]
+        if not isinstance(item, (int, float)) or isinstance(item, bool) or not 0 <= item <= 1:
+            raise ValueError(f"visual setting {name} must be from 0 to 1")
+        result[name] = float(item)
+    return result
+
+
 @dataclass(frozen=True, slots=True)
 class RuntimeConfig:
     workspace_root: Path
@@ -152,6 +177,17 @@ class RuntimeConfig:
     model_unavailable_reason: str | None = None
     startup_provider: str | None = None
     startup_model: str | None = None
+    visual_settings: Mapping[str, object] = field(
+        default_factory=lambda: {
+            "quality": "auto",
+            "device_profile": "auto",
+            "intensity": 0.82,
+            "motion_intensity": 0.6,
+            "audio_reactivity": 0.7,
+            "particle_density": 0.6,
+            "reduced_motion": "system",
+        }
+    )
 
     def __post_init__(self) -> None:
         canonical = self.workspace_root.resolve(strict=True)
@@ -172,6 +208,9 @@ class RuntimeConfig:
         object.__setattr__(self, "workspace_root", canonical)
         if self.state_db is not None:
             object.__setattr__(self, "state_db", self.state_db.resolve(strict=False))
+        object.__setattr__(
+            self, "visual_settings", _validated_visual_settings(self.visual_settings)
+        )
 
 
 @dataclass(slots=True)
@@ -344,6 +383,13 @@ class SamRuntime:
         self._model_unavailable_reason = config.model_unavailable_reason
         self.config = config
         self.state = SQLiteSessionStore(config.state_db) if config.state_db is not None else None
+        self._visual_settings = dict(config.visual_settings)
+        persisted_visual = self.state.visual_preferences() if self.state is not None else None
+        if persisted_visual is not None:
+            try:
+                self._visual_settings = _validated_visual_settings(persisted_visual)
+            except ValueError:
+                log.warning("Ignoring invalid persisted visual preferences")
         self.session_id = self.state.session_id() if self.state is not None else str(uuid4())
         self._recovered_message_count = (
             len(self.state.recent(limit=50)) if self.state is not None else 0
@@ -413,6 +459,7 @@ class SamRuntime:
                 refresh_providers=self._refresh_providers,
                 request_restart=self._request_restart,
                 request_shutdown=self._request_shutdown,
+                set_visual_settings=self._set_visual_settings,
             ),
             clock_ms=self._next_event_ms,
         )
@@ -504,6 +551,13 @@ class SamRuntime:
         if self._provider_refresh_task is not None:
             self._provider_refresh_task.cancel()
         asyncio.get_running_loop().call_later(0.05, self.restart_requested.set)
+
+    async def _set_visual_settings(self, value: Mapping[str, object]) -> Mapping[str, object]:
+        settings = _validated_visual_settings(value)
+        self._visual_settings = settings
+        if self.state is not None:
+            self.state.remember_visual_preferences(settings)
+        return {"visual_settings": settings}
 
     async def _refresh_providers(
         self, provider_id: str | None, model: str | None, remember: bool
@@ -1575,6 +1629,7 @@ class SamRuntime:
                     else None
                 ),
                 "cloud_allowed": self.config.allow_cloud,
+                "visual_settings": self._visual_settings,
                 "tools": [descriptor.id for descriptor in self.tools.descriptors()],
                 "capability_authority_active": authority.active,
                 "capability_authority_epoch": authority.epoch,

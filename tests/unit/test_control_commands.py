@@ -23,6 +23,7 @@ class RecordingBindings:
         self.revocations: list[str] = []
         self.refreshes: list[tuple[str | None, str | None, bool]] = []
         self.restarts: list[str] = []
+        self.visual_settings: list[dict[str, object]] = []
 
     async def set_microphone(self, enabled: bool) -> None:
         self.microphone.append(enabled)
@@ -62,6 +63,10 @@ class RecordingBindings:
     async def restart(self, command: ControlCommand) -> None:
         self.restarts.append(command.command_id)
 
+    async def set_visual_settings(self, value: dict[str, object]) -> dict[str, object]:
+        self.visual_settings.append(dict(value))
+        return {"visual_settings": dict(value)}
+
 
 def command(
     command_type: ControlCommandType,
@@ -84,6 +89,35 @@ def test_control_command_round_trip_and_version_rejection() -> None:
     invalid["protocol"] = 2
     with pytest.raises(ProtocolError, match="unsupported protocol"):
         ControlCommand.from_dict(invalid)
+
+
+def test_visual_settings_use_a_trusted_deduplicated_owner_control() -> None:
+    async def scenario() -> None:
+        recording = RecordingBindings()
+        dispatcher = ControlDispatcher(
+            CoreControlBindings(
+                recording.set_microphone,
+                recording.set_tts_output,
+                recording.cancel,
+                set_visual_settings=recording.set_visual_settings,
+            )
+        )
+        payload = {
+            "quality": "high",
+            "device_profile": "mobile_2020",
+            "intensity": 0.8,
+            "motion_intensity": 0.5,
+            "audio_reactivity": 0.7,
+            "particle_density": 0.3,
+            "reduced_motion": "system",
+        }
+        request = command(ControlCommandType.VISUAL_SETTINGS_SET, "visual", payload)
+        first = await dispatcher.dispatch(request)
+        second = await dispatcher.dispatch(request)
+        assert first is second
+        assert recording.visual_settings == [payload]
+
+    asyncio.run(scenario())
 
 
 def test_dispatcher_applies_controls_and_deduplicates_emergency_stop() -> None:

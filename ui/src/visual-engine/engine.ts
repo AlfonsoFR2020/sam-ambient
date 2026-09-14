@@ -1,5 +1,7 @@
 import type { BackendFactory, RendererBackend, RendererKind } from "./backend";
 import { CanvasBackend } from "./canvas";
+import { AdaptiveQualityGovernor } from "./governor";
+import { OrbInteraction } from "./interaction";
 import { effectivePixelRatio, type RenderBudget, resolveRenderBudget } from "./quality";
 import { resolveVisualEngineSettings } from "./settings";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -35,6 +37,8 @@ export class VisualEngine {
   private intersecting = true;
   private frame = 0;
   private lastDraw = 0;
+  private readonly interaction = new OrbInteraction();
+  private readonly governor: AdaptiveQualityGovernor;
   private resizeObserver?: ResizeObserver;
   private intersectionObserver?: IntersectionObserver;
   private readonly seed: number;
@@ -48,6 +52,7 @@ export class VisualEngine {
   constructor(options: VisualEngineOptions = {}) {
     this.settings = resolveVisualEngineSettings(options.settings);
     this.budget = resolveRenderBudget(this.settings);
+    this.governor = new AdaptiveQualityGovernor(this.budget.quality);
     this.seed = options.seed ?? 0x5a17;
     this.clock = options.clock ?? (() => performance.now());
     this.requestFrame = options.requestFrame ?? ((callback) => requestAnimationFrame(callback));
@@ -104,6 +109,7 @@ export class VisualEngine {
       nextBudget.quality !== this.budget.quality || next.renderer !== this.settings.renderer;
     this.settings = next;
     this.budget = nextBudget;
+    this.governor.reset(nextBudget.quality);
     if (rebuild && this.host) this.createBackend();
     else this.backend?.configure(next);
     this.resize(this.width, this.height, globalThis.devicePixelRatio || 1);
@@ -122,6 +128,24 @@ export class VisualEngine {
   setVisible(visible: boolean): void {
     this.visible = visible;
     this.syncLoop();
+  }
+
+  beginInteraction(x: number, y: number, now = this.clock()): void {
+    this.interaction.begin(x, y, now);
+  }
+
+  moveInteraction(x: number, y: number, now = this.clock()): void {
+    if (!this.interaction.move(x, y, now)) return;
+    this.pushOrientation();
+    this.backend?.render(now);
+  }
+
+  endInteraction(): void {
+    this.interaction.end(this.reducedMotion());
+  }
+
+  cancelInteraction(): void {
+    this.interaction.cancel();
   }
 
   get rendererKind(): RendererKind {
@@ -155,7 +179,19 @@ export class VisualEngine {
     const active = this.input?.interaction.foreground !== "idle";
     const fps = active ? this.budget.activeFps : this.budget.idleFps;
     if (!this.lastDraw || now - this.lastDraw >= 1000 / fps) {
+      this.interaction.step(this.lastDraw ? (now - this.lastDraw) / 1000 : 0, this.reducedMotion());
+      this.pushOrientation();
+      const started = this.clock();
       this.backend?.render(now);
+      const measured = Math.max(0, this.clock() - started);
+      const adapted = this.governor.observe(measured, now, this.settings, this.budget, true);
+      if (adapted) {
+        const adaptedBudget = resolveRenderBudget(this.settings, { measuredQuality: adapted });
+        if (adaptedBudget.quality !== this.budget.quality) {
+          this.budget = adaptedBudget;
+          this.createBackend();
+        }
+      }
       this.lastDraw = now;
     }
     this.frame = this.requestFrame(this.tick);
@@ -215,6 +251,7 @@ export class VisualEngine {
       if (!backend) continue;
       this.canvas = canvas;
       this.backend = backend;
+      this.pushOrientation();
       canvas.addEventListener("webglcontextlost", this.onContextLost);
       this.host.appendChild(canvas);
       if (this.input) backend.update(this.input);
@@ -236,4 +273,8 @@ export class VisualEngine {
       this.syncLoop();
     }
   };
+
+  private pushOrientation(): void {
+    this.backend?.setObjectOrientation?.(this.interaction.orientationMatrix());
+  }
 }

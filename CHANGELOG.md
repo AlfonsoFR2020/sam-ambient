@@ -39,6 +39,9 @@
   explicit mobile budgets; and Canvas/CSS fallbacks. Refine desktop tessellation,
   peel proportions/orientations, warm lighting, breathing and restrained particles
   after initial review. Human acceptance remains pending.
+- Add direct mouse/touch orb rotation with damped inertia, persisted visual quality
+  and device-profile controls, deterministic mobile-budget emulation, bounded
+  measured Auto-quality adaptation, and clearer silent state choreography.
 - Harden human-acceptance startup and voice reliability: load only an explicit,
   remembered, or sole installed chat model; keep LM Studio's installed and loaded
   inventories distinct; and expose cancellable long-load, Rescan, model choice,

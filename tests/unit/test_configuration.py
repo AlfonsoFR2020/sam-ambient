@@ -55,6 +55,8 @@ def test_missing_config_uses_safe_defaults_and_explicit_missing_fails(tmp_path):
     assert settings.voice.preferred_languages == ("en", "es")
     assert not settings.capabilities.workspace_write
     assert not settings.privacy.allow_cloud
+    assert settings.visual.quality == "auto"
+    assert settings.visual.device_profile == "auto"
     with pytest.raises(ConfigurationError, match="does not exist"):
         load_settings(
             project_root=tmp_path, explicit_path=tmp_path / "missing.toml", environment={}
@@ -132,6 +134,30 @@ open_ui = false
     assert args.preferred_languages == ("es", "en")
     assert args.stt_url.endswith(":9090")
     assert args.no_tts and args.no_ui
+
+
+def test_visual_settings_are_typed_and_bounded(tmp_path):
+    config = tmp_path / "visual.toml"
+    _write(
+        config,
+        """[visual]
+quality = "high"
+device_profile = "mobile_2020"
+intensity = 0.9
+motion_intensity = 0.4
+audio_reactivity = 0.8
+particle_density = 0.25
+reduced_motion = "system"
+""",
+    )
+    settings = load_settings(project_root=tmp_path, explicit_path=config, environment={})
+    assert settings.visual.quality == "high"
+    assert settings.visual.device_profile == "mobile_2020"
+    assert settings.visual.particle_density == 0.25
+
+    _write(config, '[visual]\nquality = "ultra"\n')
+    with pytest.raises(ConfigurationError, match=r"visual\.quality"):
+        load_settings(project_root=tmp_path, explicit_path=config, environment={})
 
 
 def test_trusted_mcp_server_configuration_is_structured_and_bounded(tmp_path):

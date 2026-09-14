@@ -29,6 +29,7 @@ SubmitUserMessage = Callable[[str, ControlCommand], Awaitable[None]]
 ResolveToolApproval = Callable[[ControlCommand, bool], Awaitable[bool]]
 RevokeCapabilities = Callable[[str], Awaitable[Mapping[str, object]]]
 RefreshProviders = Callable[[str | None, str | None, bool], Awaitable[Mapping[str, object]]]
+SetVisualSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,6 +43,7 @@ class CoreControlBindings:
     refresh_providers: RefreshProviders | None = None
     request_restart: Callable[[ControlCommand], Awaitable[None]] | None = None
     request_shutdown: Callable[[ControlCommand], Awaitable[None]] | None = None
+    set_visual_settings: SetVisualSettings | None = None
 
 
 class ControlDispatcher:
@@ -153,6 +155,10 @@ class ControlDispatcher:
                 raise RuntimeError("Application restart is unavailable")
             await self._bindings.request_restart(command)
             payload["application_restarting"] = True
+        elif command_type is ControlCommandType.VISUAL_SETTINGS_SET:
+            if self._bindings.set_visual_settings is None:
+                raise RuntimeError("Visual settings are unavailable")
+            payload.update(await self._bindings.set_visual_settings(command.payload))
         elif command_type is ControlCommandType.APPLICATION_QUIT:
             if command.payload:
                 raise ValueError("Quit Sam does not accept arguments")

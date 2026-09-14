@@ -18,9 +18,10 @@ planned or acceptance-pending work. Priorities may change after real use.
 
 - Refine silhouette antialiasing and efficient material/specular cues; widen/lift
   and vary peel carriers/fragments, state breathing, lights, and sparse particles.
-- Add cheap damped pointer rotation, preserving the 2020+ phone budget and a
-  desktop override that emulates mobile/low-power profiles.
-- Consider waveform/spectral mappings only after the envelope-driven baseline is accepted.
+- Human-accept the implemented damped pointer rotation, persisted profile controls,
+  low-power emulation, adaptive quality, and strengthened state readability.
+- Consider waveform/spectral and prosody/theme mappings only after the
+  envelope-driven baseline is accepted.
 
 ## Productization
 

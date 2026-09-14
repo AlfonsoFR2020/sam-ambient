@@ -36,7 +36,9 @@ Updated: 2026-09-14
   transcript polish are implemented. [Visual Engine v1](VISUAL_ENGINE_V1.md) Stages
   A-D add typed inputs, bounded motion, a WebGL2 amber orb, drifting peels, analytic
   lights/particles and mobile fallbacks. Desktop geometry/material baselines were
-  strengthened after initial review; saved settings and final acceptance remain pending.
+  strengthened after initial review. Acceptance-pending direct mouse/touch rotation,
+  damped inertia, persisted typed visual preferences, mobile-profile emulation and a
+  bounded measured Auto-quality governor are implemented; final acceptance remains pending.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:

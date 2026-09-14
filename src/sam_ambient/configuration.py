@@ -51,6 +51,17 @@ class PrivacySettings:
 
 
 @dataclass(frozen=True, slots=True)
+class VisualSettings:
+    quality: str = "auto"
+    device_profile: str = "auto"
+    intensity: float = 0.82
+    motion_intensity: float = 0.6
+    audio_reactivity: float = 0.7
+    particle_density: float = 0.6
+    reduced_motion: str = "system"
+
+
+@dataclass(frozen=True, slots=True)
 class McpServerSettings:
     """Trusted local MCP launch specification (never model-controlled)."""
 
@@ -74,6 +85,7 @@ class SamSettings:
     application: ApplicationSettings = field(default_factory=ApplicationSettings)
     capabilities: CapabilitySettings = field(default_factory=CapabilitySettings)
     privacy: PrivacySettings = field(default_factory=PrivacySettings)
+    visual: VisualSettings = field(default_factory=VisualSettings)
     external: ExternalSettings = field(default_factory=ExternalSettings)
     sources: tuple[Path, ...] = ()
 
@@ -88,6 +100,17 @@ _SCHEMA: dict[str, frozenset[str]] = {
     "application": frozenset({"root", "open_ui"}),
     "capabilities": frozenset({"workspace_write"}),
     "privacy": frozenset({"allow_cloud"}),
+    "visual": frozenset(
+        {
+            "quality",
+            "device_profile",
+            "intensity",
+            "motion_intensity",
+            "audio_reactivity",
+            "particle_density",
+            "reduced_motion",
+        }
+    ),
     "external": frozenset({"mcp_servers"}),
 }
 
@@ -297,6 +320,7 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
     application = values.get("application", {})
     capabilities = values.get("capabilities", {})
     privacy = values.get("privacy", {})
+    visual = values.get("visual", {})
     external = values.get("external", {})
     preference = _string(provider.get("preference", "auto"), "provider.preference")
     if preference not in {"auto", "ollama", "lm-studio", "openai-compatible"}:
@@ -338,6 +362,25 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
         ),
         privacy=PrivacySettings(
             allow_cloud=_boolean(privacy.get("allow_cloud", False), "privacy.allow_cloud")
+        ),
+        visual=VisualSettings(
+            quality=_choice(
+                visual.get("quality", "auto"), "visual.quality", {"auto", "low", "medium", "high"}
+            ),
+            device_profile=_choice(
+                visual.get("device_profile", "auto"),
+                "visual.device_profile",
+                {"auto", "mobile_2020", "low_power", "desktop", "high_end"},
+            ),
+            intensity=_unit(visual.get("intensity", 0.82), "visual.intensity"),
+            motion_intensity=_unit(visual.get("motion_intensity", 0.6), "visual.motion_intensity"),
+            audio_reactivity=_unit(visual.get("audio_reactivity", 0.7), "visual.audio_reactivity"),
+            particle_density=_unit(visual.get("particle_density", 0.6), "visual.particle_density"),
+            reduced_motion=_choice(
+                visual.get("reduced_motion", "system"),
+                "visual.reduced_motion",
+                {"system", "on", "off"},
+            ),
         ),
         external=ExternalSettings(mcp_servers=_mcp_servers(external.get("mcp_servers", []))),
         sources=sources,
@@ -419,6 +462,19 @@ def _boolean(value: Any, name: str) -> bool:
     if type(value) is not bool:
         raise ConfigurationError(f"{name} must be a boolean")
     return value
+
+
+def _unit(value: Any, name: str) -> float:
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 <= value <= 1:
+        raise ConfigurationError(f"{name} must be a number from 0 to 1")
+    return float(value)
+
+
+def _choice(value: Any, name: str, allowed: set[str]) -> str:
+    choice = _string(value, name)
+    if choice not in allowed:
+        raise ConfigurationError(f"{name} has an unsupported value")
+    return choice
 
 
 def _string(value: Any, name: str) -> str:

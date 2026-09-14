@@ -81,6 +81,14 @@ normal `--ui-mode browser` tab does not stop Sam.
 - **Transcript**, **Reduced motion**, **Intensity**, and fullscreen are local
   presentation preferences, not permissions for the model.
 
+The **Display** controls also provide visual quality, a performance profile,
+motion, audio reactivity, and particle amount. **2020 smartphone** deliberately
+uses Sam's low-power mobile budget even on a desktop; **Auto** starts conservatively
+and adapts only from measured render cost. These owner preferences survive interface
+reload and Sam restart, while automatic quality decisions do not. Drag the orb with
+a mouse or one finger to reorient it; reduced motion keeps direct reorientation but
+suppresses inertial and autonomous movement.
+
 Keyboard: **Ctrl+M** toggles the microphone outside text fields;
 **Ctrl+Shift+X** performs Emergency stop even while a text field is focused;
 **Ctrl+Q** opens quit confirmation even while a text field is focused; **Ctrl+R**

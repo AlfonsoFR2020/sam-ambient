@@ -21,6 +21,7 @@ uniform float u_breath_phase;
 uniform float u_ripple_phase;
 uniform float u_deformation;
 uniform float u_ripple;
+uniform mat3 u_object_orientation;
 out vec3 v_normal;
 out vec3 v_position;
 mat3 rotateX(float a){float c=cos(a),s=sin(a);return mat3(1.,0.,0.,0.,c,s,0.,-s,c);}
@@ -37,7 +38,7 @@ void main(){
   vec3 gradient=.012*cos(pA)*axisA+u_deformation*1.65*cos(pB)*axisB+u_ripple*2.45*cos(pC)*axisC;
   gradient-=a_normal*dot(gradient,a_normal);
   vec3 localNormal=normalize(a_normal-gradient/max(.9,u_radius+deformation));
-  mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin);
+  mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin)*u_object_orientation;
   vec3 position=a_position*(u_radius+deformation);
   position.y*=1.06;
   v_position=rotation*position;
@@ -54,6 +55,7 @@ uniform int u_light_count;
 uniform float u_light_phase;
 uniform float u_rim;
 uniform float u_highlight;
+uniform mat3 u_object_orientation;
 out vec4 color;
 void main(){
   vec3 n=normalize(v_normal), view=vec3(0.,0.,1.);
@@ -124,7 +126,7 @@ void main(){
   vec3 direction=normalize(c*cos(side*peelWidth*fade)+across*sin(side*peelWidth*fade));
   mat3 local=rotateX(a_motion.y)*rotateZ(a_motion.z);
   direction=local*direction;
-  mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin);
+  mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin)*u_object_orientation;
   float deformation=.006*sin(2.0*dot(direction,normalize(vec3(.7,.2,.6)))+u_breath_phase)+u_deformation*.55*sin(3.0*dot(direction,normalize(vec3(-.25,.91,.32)))+u_ripple_phase)+u_ripple*.35*sin(7.0*dot(direction,normalize(vec3(.41,-.36,.84)))-u_ripple_phase*.71);
   float lift=a_surface.y+u_peel_lift*(.68+.32*sin(a_surface.w+u_peel_travel*.43));
   vec3 position=direction*(u_radius+deformation+lift);
@@ -158,7 +160,9 @@ uniform float u_phase;
 uniform float u_excitation;
 uniform float u_radius;
 uniform float u_point_scale;
+uniform float u_density;
 uniform vec2 u_scale;
+uniform mat3 u_object_orientation;
 out float v_alpha;
 void main(){
   float cadence=.72+fract(a_particle.x*.159)*.46;
@@ -167,8 +171,8 @@ void main(){
   float incline=a_particle.z;
   vec3 point=vec3(cos(angle)*shell,sin(angle*.83+a_particle.x)*shell*.72,sin(angle)*shell);
   point.yz=mat2(cos(incline),-sin(incline),sin(incline),cos(incline))*point.yz;
-  point*=u_radius;
-  v_alpha=smoothstep(-.08,.2,point.z)*(.24+u_excitation*.34);
+  point=u_object_orientation*point*u_radius;
+  v_alpha=smoothstep(-.08,.2,point.z)*(.24+u_excitation*.34)*u_density;
   gl_Position=vec4(point.xy*u_scale,-point.z*.25,1.);
   gl_PointSize=a_particle.w*u_point_scale*(1.18+u_excitation*.62);
 }`;
@@ -326,6 +330,7 @@ export class WebGLBackend implements RendererBackend {
     readonly lightPhase: WebGLUniformLocation;
     readonly rim: WebGLUniformLocation;
     readonly highlight: WebGLUniformLocation;
+    readonly orientation: WebGLUniformLocation;
   };
   private readonly peelUniforms: CommonUniforms & {
     readonly spin: WebGLUniformLocation;
@@ -342,6 +347,7 @@ export class WebGLBackend implements RendererBackend {
     readonly rephase: WebGLUniformLocation;
     readonly highlight: WebGLUniformLocation;
     readonly emission: WebGLUniformLocation;
+    readonly orientation: WebGLUniformLocation;
   };
   private readonly haloUniforms: {
     readonly aspect: WebGLUniformLocation;
@@ -354,6 +360,8 @@ export class WebGLBackend implements RendererBackend {
     readonly radius: WebGLUniformLocation;
     readonly pointScale: WebGLUniformLocation;
     readonly scale: WebGLUniformLocation;
+    readonly orientation: WebGLUniformLocation;
+    readonly density: WebGLUniformLocation;
   };
   private readonly motion: MotionEvaluator;
   private input?: VisualInputV1;
@@ -390,6 +398,7 @@ export class WebGLBackend implements RendererBackend {
       lightPhase: location(gl, this.orbProgram, "u_light_phase"),
       rim: location(gl, this.orbProgram, "u_rim"),
       highlight: location(gl, this.orbProgram, "u_highlight"),
+      orientation: location(gl, this.orbProgram, "u_object_orientation"),
     };
     this.peelUniforms = {
       ...this.commonUniformLocations(this.peelProgram),
@@ -407,6 +416,7 @@ export class WebGLBackend implements RendererBackend {
       rephase: location(gl, this.peelProgram, "u_rephase"),
       highlight: location(gl, this.peelProgram, "u_highlight"),
       emission: location(gl, this.peelProgram, "u_emission"),
+      orientation: location(gl, this.peelProgram, "u_object_orientation"),
     };
     this.haloUniforms = {
       aspect: location(gl, this.haloProgram, "u_aspect"),
@@ -419,6 +429,8 @@ export class WebGLBackend implements RendererBackend {
       radius: location(gl, this.particleProgram, "u_radius"),
       pointScale: location(gl, this.particleProgram, "u_point_scale"),
       scale: location(gl, this.particleProgram, "u_scale"),
+      orientation: location(gl, this.particleProgram, "u_object_orientation"),
+      density: location(gl, this.particleProgram, "u_density"),
     };
     this.motion = new MotionEvaluator(seed);
     this.orb = indexedResource(
@@ -447,6 +459,7 @@ export class WebGLBackend implements RendererBackend {
     const particleGeometry = createParticleGeometry(budget.particles, seed);
     this.particles = arrayResource(gl, particleGeometry.vertices, particleGeometry.count);
     gl.clearColor(0, 0, 0, 0);
+    this.setObjectOrientation(new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]));
   }
 
   update(input: VisualInputV1): void {
@@ -460,6 +473,16 @@ export class WebGLBackend implements RendererBackend {
 
   configure(settings: VisualEngineSettings): void {
     this.settings = settings;
+  }
+
+  setObjectOrientation(matrix: Float32Array): void {
+    const gl = this.gl;
+    gl.useProgram(this.orbProgram);
+    gl.uniformMatrix3fv(this.orbUniforms.orientation, false, matrix);
+    gl.useProgram(this.peelProgram);
+    gl.uniformMatrix3fv(this.peelUniforms.orientation, false, matrix);
+    gl.useProgram(this.particleProgram);
+    gl.uniformMatrix3fv(this.particleUniforms.orientation, false, matrix);
   }
 
   resize(width: number, height: number, dpr: number): void {
@@ -518,6 +541,7 @@ export class WebGLBackend implements RendererBackend {
     gl.uniform1f(this.particleUniforms.excitation, frame.particleExcitation);
     gl.uniform1f(this.particleUniforms.radius, frame.radius);
     gl.uniform1f(this.particleUniforms.pointScale, this.pointScale);
+    gl.uniform1f(this.particleUniforms.density, this.settings.particleDensity);
     gl.uniform2f(this.particleUniforms.scale, this.scaleX, this.scaleY);
     gl.bindVertexArray(this.particles.vao);
     gl.drawArrays(gl.POINTS, 0, this.particles.count);

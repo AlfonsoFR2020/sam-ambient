@@ -59,6 +59,7 @@ class ControlCommandType(StrEnum):
     CAPABILITIES_REVOKE_ALL = "control.capabilities.revoke_all"
     PROVIDERS_RESCAN = "control.providers.rescan"
     MODEL_SELECT = "control.model.select"
+    VISUAL_SETTINGS_SET = "control.visual_settings.set"
     APPLICATION_RESTART = "control.application.restart"
     APPLICATION_QUIT = "control.application.quit"
 

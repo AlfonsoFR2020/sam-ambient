@@ -71,6 +71,43 @@ const providerCatalog = (value: unknown): ProviderCatalogEntry[] =>
 const authorityEpoch = (value: unknown): number | null =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
 
+const visualSettings = (value: unknown): UiState["visualSettings"] => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const item = value as Record<string, unknown>;
+  const quality = item.quality;
+  const deviceProfile = item.device_profile;
+  const reducedMotion = item.reduced_motion;
+  const unit = (name: string) => {
+    const result = item[name];
+    return typeof result === "number" && Number.isFinite(result) && result >= 0 && result <= 1
+      ? result
+      : undefined;
+  };
+  const intensity = unit("intensity");
+  const motionIntensity = unit("motion_intensity");
+  const audioReactivity = unit("audio_reactivity");
+  const particleDensity = unit("particle_density");
+  if (
+    !["auto", "low", "medium", "high"].includes(String(quality)) ||
+    !["auto", "mobile_2020", "low_power", "desktop", "high_end"].includes(String(deviceProfile)) ||
+    !["system", "on", "off"].includes(String(reducedMotion)) ||
+    intensity === undefined ||
+    motionIntensity === undefined ||
+    audioReactivity === undefined ||
+    particleDensity === undefined
+  )
+    return undefined;
+  return {
+    quality: quality as NonNullable<UiState["visualSettings"]>["quality"],
+    deviceProfile: deviceProfile as NonNullable<UiState["visualSettings"]>["deviceProfile"],
+    intensity,
+    motionIntensity,
+    audioReactivity,
+    particleDensity,
+    reducedMotion: reducedMotion as NonNullable<UiState["visualSettings"]>["reducedMotion"],
+  };
+};
+
 function speechSelection(value: unknown): string | undefined {
   if (!value || typeof value !== "object" || !("voice" in value)) return undefined;
   const voice = value.voice;
@@ -286,6 +323,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         typeof event.payload.cloud_allowed === "boolean"
           ? event.payload.cloud_allowed
           : next.cloudAllowed,
+      visualSettings: visualSettings(event.payload.visual_settings) ?? next.visualSettings,
       conversationalState: readyState,
       microphoneEnabled:
         typeof event.payload.microphone_enabled === "boolean"
@@ -521,6 +559,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         event.type === "control.acknowledged" && event.payload.application_restarting === true
           ? "starting"
           : next.startupLifecycle,
+      visualSettings: visualSettings(event.payload.visual_settings) ?? next.visualSettings,
     };
   } else if (event.type === "component.error") {
     next = {
