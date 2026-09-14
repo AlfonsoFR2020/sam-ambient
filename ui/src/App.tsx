@@ -1,4 +1,5 @@
 import {
+  type ButtonHTMLAttributes,
   useCallback,
   useEffect,
   useId,
@@ -90,6 +91,58 @@ const editableTarget = (target: EventTarget | null): boolean =>
   target instanceof HTMLTextAreaElement ||
   (target instanceof HTMLElement && target.isContentEditable);
 
+interface ShortcutInput {
+  key: string;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  metaKey: boolean;
+}
+
+export type ShortcutIntent = "close_surface" | "quit" | "microphone" | "emergency_stop";
+
+export function shortcutIntent(input: ShortcutInput, editing: boolean): ShortcutIntent | null {
+  const key = input.key.toLowerCase();
+  if (key === "escape") return "close_surface";
+  if (input.ctrlKey && input.shiftKey && key === "x") return "emergency_stop";
+  if (editing) return null;
+  if (input.ctrlKey && !input.shiftKey && !input.metaKey && key === "m") return "microphone";
+  if (input.ctrlKey && !input.shiftKey && !input.metaKey && key === "q") return "quit";
+  return null;
+}
+
+function ControlButton({
+  help,
+  className,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { help: string }) {
+  const helpId = useId();
+  return (
+    <div className="control-with-help">
+      <button
+        {...props}
+        className={className}
+        type={props.type ?? "button"}
+        title={help}
+        aria-describedby={helpId}
+      />
+      <span className="control-tooltip" id={helpId} role="tooltip">
+        {help}
+      </span>
+    </div>
+  );
+}
+
+const friendlyStartupReason = (reason: string | undefined): string | undefined => {
+  if (!reason) return undefined;
+  if (/several local conversational models/i.test(reason))
+    return "Several local models are available. Choose one to continue.";
+  if (/no usable local chat model/i.test(reason))
+    return "No conversational model is ready. Rescan after starting or loading a local model.";
+  if (/startup\/load failed/i.test(reason))
+    return "A local model was found, but it could not be loaded. Retry or choose another model.";
+  return reason;
+};
+
 export function StartupCard({
   state,
   dismissed = false,
@@ -106,15 +159,15 @@ export function StartupCard({
   const providerSelectId = useId();
   const modelSelectId = useId();
   const presentation = statusPresentation(state);
-  const providers = state.providerCatalog.filter(
-    (provider) => provider.running || provider.models.length || provider.installedModels.length,
-  );
+  const providers = state.providerCatalog;
   const allChoices = providers.flatMap((provider) =>
     [...new Set([...provider.models, ...provider.installedModels])].map((model) => ({
       provider: provider.id,
       model,
       loaded: provider.models.includes(model),
       current: provider.id === state.provider && model === state.model,
+      recommended:
+        provider.id === state.pendingProvider && model === state.pendingModel && !state.model,
     })),
   );
   const [providerChoice, setProviderChoice] = useState("auto");
@@ -125,6 +178,8 @@ export function StartupCard({
   const [remember, setRemember] = useState(true);
   const visible = !dismissed && state.startupLifecycle !== "dismissed";
   if (!visible || state.applicationStopped) return null;
+  const technicalReason = state.diagnosticReason ?? presentation.notice;
+  const displayedReason = friendlyStartupReason(technicalReason);
   const steps = [
     { label: "Starting core", ready: Boolean(state.sessionId) },
     { label: "Detecting local AI providers", ready: Boolean(state.provider) },
@@ -146,7 +201,16 @@ export function StartupCard({
     { label: "Ready", ready: Boolean(state.model && state.sessionId) },
   ];
   return (
-    <aside className="startup-card" aria-live="polite">
+    <aside className="startup-card" aria-label="Sam startup" aria-live="polite">
+      <button
+        className="startup-card__close"
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss startup information"
+        title="Hide this startup panel. Sam's readiness does not change."
+      >
+        ×
+      </button>
       <div className="startup-card__identity" aria-hidden="true">
         S
       </div>
@@ -162,8 +226,12 @@ export function StartupCard({
           </li>
         ))}
       </ol>
-      {(state.diagnosticReason || presentation.notice) && (
-        <p>{state.diagnosticReason ?? presentation.notice}</p>
+      {displayedReason && <p>{displayedReason}</p>}
+      {technicalReason && displayedReason !== technicalReason && (
+        <details className="startup-card__details">
+          <summary>Technical details</summary>
+          <small>{technicalReason}</small>
+        </details>
       )}
       {(allChoices.length > 1 || state.startupLifecycle === "waiting_for_model_choice") && (
         <div className="startup-card__choice">
@@ -178,11 +246,23 @@ export function StartupCard({
           >
             <option value="auto">Automatic / recommended</option>
             {providers.map((provider) => (
-              <option key={provider.id} value={provider.id}>
-                {provider.id} · {provider.running ? "running" : "installed"}
+              <option
+                key={provider.id}
+                value={provider.id}
+                disabled={!provider.models.length && !provider.installedModels.length}
+              >
+                {provider.id} ·{" "}
+                {provider.running
+                  ? "Available"
+                  : provider.installedModels.length
+                    ? "Installed"
+                    : "Unavailable"}
               </option>
             ))}
           </select>
+          <small>
+            Automatic uses an explicit or last-used valid model, or the sole local model.
+          </small>
           <label htmlFor={modelSelectId}>Conversational model</label>
           <select
             id={modelSelectId}
@@ -196,7 +276,13 @@ export function StartupCard({
                 value={`${item.provider}\t${item.model}`}
               >
                 {item.provider} · {item.model} ·{" "}
-                {item.current ? "current" : item.loaded ? "loaded" : "installed"}
+                {item.current
+                  ? "Current"
+                  : item.recommended
+                    ? "Last used / recommended"
+                    : item.loaded
+                      ? "Loaded"
+                      : "Installed"}
               </option>
             ))}
           </select>
@@ -212,7 +298,7 @@ export function StartupCard({
       )}
       <div className="startup-card__actions">
         <button type="button" onClick={() => applyAction({ type: "providers.rescan" })}>
-          Rescan
+          {state.startupLifecycle === "blocked" ? "Retry / Rescan" : "Rescan"}
         </button>
         {choice && (
           <button
@@ -235,6 +321,11 @@ export function StartupCard({
           </button>
         )}
       </div>
+      {!state.model && (
+        <small className="startup-card__dismiss-note">
+          Hiding this panel does not make a conversational model ready.
+        </small>
+      )}
     </aside>
   );
 }
@@ -386,32 +477,29 @@ export default function App() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const editing = editableTarget(event.target);
-      if (event.key === "Escape") {
-        if (controlsOpen) controlsButton.current?.focus();
-        setControlsOpen(false);
-        setQuitConfirmation(false);
-        setRestartConfirmation(false);
+      const intent = shortcutIntent(event, editing);
+      if (intent === "close_surface") {
+        if (quitConfirmation) setQuitConfirmation(false);
+        else if (restartConfirmation) setRestartConfirmation(false);
+        else if (controlsOpen) {
+          setControlsOpen(false);
+          controlsButton.current?.focus();
+        } else if (!startupDismissed) setStartupDismissed(true);
         if (document.fullscreenElement) void document.exitFullscreen();
-      } else if (event.ctrlKey && event.key.toLowerCase() === "q") {
+      } else if (intent === "quit") {
         event.preventDefault();
         quitSam();
-      } else if (
-        event.key.toLowerCase() === "m" &&
-        event.ctrlKey &&
-        !event.metaKey &&
-        !event.shiftKey &&
-        !editing
-      ) {
+      } else if (intent === "microphone") {
         event.preventDefault();
         applyAction({ type: "microphone.set", enabled: !stateRef.current.microphoneEnabled });
-      } else if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "x") {
+      } else if (intent === "emergency_stop") {
         event.preventDefault();
         applyAction({ type: "emergency_stop" });
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [applyAction, quitSam, controlsOpen]);
+  }, [applyAction, controlsOpen, quitConfirmation, quitSam, restartConfirmation, startupDismissed]);
 
   const pending = state.pendingCommandIds.length > 0;
   return (
@@ -488,161 +576,168 @@ export default function App() {
       {controlsOpen && (
         <section className="controls" id={controlsId} aria-label="Sam controls">
           <RuntimeStatus state={state} />
-          <form
-            className="controls__request"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const text = textRequest.trim();
-              if (!text || state.connection !== "connected") return;
-              applyAction({ type: "user_message.submit", text });
-              setTextRequest("");
-            }}
-          >
-            <label htmlFor={`${controlsId}-request`}>Text request</label>
-            <div>
-              <input
-                id={`${controlsId}-request`}
-                type="text"
-                value={textRequest}
-                maxLength={4000}
-                placeholder="Ask Sam…"
-                onChange={(event) => setTextRequest(event.currentTarget.value)}
-              />
-              <button
-                type="submit"
-                disabled={!textRequest.trim() || pending || state.connection !== "connected"}
-              >
-                Send
-              </button>
-            </div>
-          </form>
-          <button
-            type="button"
-            disabled={pending || state.connection !== "connected"}
-            onClick={() => {
-              setStartupDismissed(false);
-              applyAction({ type: "providers.rescan" });
-            }}
-            title="Refresh local providers and installed or loaded conversational models."
-          >
-            Rescan providers/models
-          </button>
-          <button
-            type="button"
-            disabled={state.connection !== "connected"}
-            onClick={() => setRestartConfirmation(true)}
-            title="Restart Sam's managed core without stopping external model services."
-          >
-            Restart Sam
-          </button>
-          <button
-            type="button"
-            disabled={pending || state.connection !== "connected"}
-            onClick={() =>
-              applyAction({ type: "microphone.set", enabled: !state.microphoneEnabled })
-            }
-            title="Turn listening on or off. Text requests remain available."
-            aria-keyshortcuts="Control+M"
-          >
-            Microphone {state.microphoneEnabled ? "on" : "muted"}
-          </button>
-          {/(speech|microphone)/i.test(state.diagnosticReason ?? "") && (
-            <button
-              type="button"
-              disabled={pending || state.connection !== "connected"}
-              onClick={() => applyAction({ type: "microphone.set", enabled: true })}
-              title="Reopen the system-default microphone and speech-recognition stream."
+          <section className="controls__group" aria-labelledby={`${controlsId}-conversation`}>
+            <h2 id={`${controlsId}-conversation`}>Conversation &amp; voice</h2>
+            <form
+              className="controls__request"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const text = textRequest.trim();
+                if (!text || state.connection !== "connected") return;
+                applyAction({ type: "user_message.submit", text });
+                setTextRequest("");
+              }}
             >
-              Retry speech input
-            </button>
-          )}
-          <button
-            type="button"
-            disabled={pending || state.connection !== "connected"}
-            onClick={() =>
-              applyAction({ type: "tts_output.set", enabled: !state.ttsOutputEnabled })
-            }
-            title="Turn future spoken replies on or off. Text responses remain visible."
-          >
-            Voice {state.ttsOutputEnabled ? "on" : "muted"}
-          </button>
-          <button
-            type="button"
-            disabled={state.connection !== "connected"}
-            onClick={() => applyAction({ type: "stop_speaking" })}
-            title="Stop only the current spoken reply. Sam remains active."
-          >
-            Stop speaking
-          </button>
-          <button
-            className="controls__emergency"
-            type="button"
-            disabled={state.connection !== "connected"}
-            onClick={() => applyAction({ type: "emergency_stop" })}
-            title="Cancel the active model response, tools, queued speech and playback."
-            aria-keyshortcuts="Control+Shift+X"
-          >
-            Emergency stop
-          </button>
-          <button
-            className="controls__capability-revoke"
-            type="button"
-            disabled={
-              pending || state.connection !== "connected" || !state.capabilityAuthorityActive
-            }
-            onClick={() => applyAction({ type: "capabilities.revoke_all" })}
-            title="Revoke computer-action authority and pending approvals until trusted restoration."
-          >
-            {state.capabilityAuthorityActive ? "Disable all capabilities" : "Capabilities disabled"}
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              applyAction({ type: "transcript.set", visible: !preferences.transcriptVisible })
-            }
-            title="Show or hide the conversation transcript on this device."
-          >
-            Transcript {preferences.transcriptVisible ? "shown" : "hidden"}
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              applyAction({ type: "reduced_motion.set", enabled: !preferences.reducedMotion })
-            }
-            title="Reduce continuous ambient animation on this device."
-          >
-            Reduced motion {preferences.reducedMotion ? "on" : "off"}
-          </button>
-          <button
-            type="button"
-            onClick={() => void toggleFullscreen()}
-            title="Enter or leave fullscreen presentation. Escape also exits."
-          >
-            Toggle fullscreen
-          </button>
-          <button
-            type="button"
-            disabled={state.connection !== "connected" || quitRequested}
-            onClick={quitSam}
-            title="Stop Sam and close its window where supported (Ctrl+Q)"
-          >
-            Quit Sam
-          </button>
-          <label className="brightness">
-            <span>Intensity</span>
-            <input
-              aria-label="Visual intensity"
-              type="range"
-              min="25"
-              max="100"
-              value={preferences.brightness}
-              onChange={(event) =>
-                applyAction({ type: "brightness.set", value: Number(event.currentTarget.value) })
+              <label htmlFor={`${controlsId}-request`}>Text request</label>
+              <div>
+                <input
+                  id={`${controlsId}-request`}
+                  type="text"
+                  value={textRequest}
+                  maxLength={4000}
+                  placeholder="Ask Sam…"
+                  onChange={(event) => setTextRequest(event.currentTarget.value)}
+                />
+                <button
+                  type="submit"
+                  disabled={!textRequest.trim() || pending || state.connection !== "connected"}
+                >
+                  Send
+                </button>
+              </div>
+            </form>
+            <ControlButton
+              help="Enable or pause microphone capture. Ctrl+M."
+              disabled={pending || state.connection !== "connected"}
+              onClick={() =>
+                applyAction({ type: "microphone.set", enabled: !state.microphoneEnabled })
               }
-            />
-          </label>
+              aria-keyshortcuts="Control+M"
+            >
+              Microphone {state.microphoneEnabled ? "on" : "muted"}
+            </ControlButton>
+            {/(speech|microphone)/i.test(state.diagnosticReason ?? "") && (
+              <ControlButton
+                help="Retry the system-default microphone and local speech-recognition stream."
+                disabled={pending || state.connection !== "connected"}
+                onClick={() => applyAction({ type: "microphone.set", enabled: true })}
+              >
+                Retry speech input
+              </ControlButton>
+            )}
+            <ControlButton
+              help="Enable or mute future spoken replies. Text responses remain visible."
+              disabled={pending || state.connection !== "connected"}
+              onClick={() =>
+                applyAction({ type: "tts_output.set", enabled: !state.ttsOutputEnabled })
+              }
+            >
+              Voice {state.ttsOutputEnabled ? "on" : "muted"}
+            </ControlButton>
+            <ControlButton
+              help="Stop the current spoken response without shutting down Sam."
+              disabled={state.connection !== "connected"}
+              onClick={() => applyAction({ type: "stop_speaking" })}
+            >
+              Stop speaking
+            </ControlButton>
+          </section>
+          <section className="controls__group" aria-labelledby={`${controlsId}-system`}>
+            <h2 id={`${controlsId}-system`}>System &amp; model</h2>
+            <ControlButton
+              help="Check again for available local AI services and models."
+              disabled={pending || state.connection !== "connected"}
+              onClick={() => {
+                setStartupDismissed(false);
+                applyAction({ type: "providers.rescan" });
+              }}
+            >
+              Rescan providers/models
+            </ControlButton>
+            <ControlButton
+              help="Restart Sam's managed components. External model services are left alone."
+              disabled={state.connection !== "connected"}
+              onClick={() => setRestartConfirmation(true)}
+            >
+              Restart Sam
+            </ControlButton>
+          </section>
+          <section className="controls__group" aria-labelledby={`${controlsId}-safety`}>
+            <h2 id={`${controlsId}-safety`}>Safety</h2>
+            <ControlButton
+              className="controls__emergency"
+              help="Immediately cancel the active response, tools, queued speech and playback. Ctrl+Shift+X."
+              disabled={state.connection !== "connected"}
+              onClick={() => applyAction({ type: "emergency_stop" })}
+              aria-keyshortcuts="Control+Shift+X"
+            >
+              Emergency stop
+            </ControlButton>
+            <ControlButton
+              className="controls__capability-revoke"
+              help="Prevent Sam from using computer-control capabilities until trusted restoration."
+              disabled={
+                pending || state.connection !== "connected" || !state.capabilityAuthorityActive
+              }
+              onClick={() => applyAction({ type: "capabilities.revoke_all" })}
+            >
+              {state.capabilityAuthorityActive
+                ? "Disable all capabilities"
+                : "Capabilities disabled"}
+            </ControlButton>
+          </section>
+          <section className="controls__group" aria-labelledby={`${controlsId}-display`}>
+            <h2 id={`${controlsId}-display`}>Display</h2>
+            <ControlButton
+              help="Show or hide the conversation transcript on this device."
+              onClick={() =>
+                applyAction({ type: "transcript.set", visible: !preferences.transcriptVisible })
+              }
+            >
+              Transcript {preferences.transcriptVisible ? "shown" : "hidden"}
+            </ControlButton>
+            <ControlButton
+              help="Reduce continuous visual movement while preserving status feedback."
+              onClick={() =>
+                applyAction({ type: "reduced_motion.set", enabled: !preferences.reducedMotion })
+              }
+            >
+              Reduced motion {preferences.reducedMotion ? "on" : "off"}
+            </ControlButton>
+            <ControlButton
+              help="Enter or leave fullscreen. Escape exits fullscreen."
+              onClick={() => void toggleFullscreen()}
+            >
+              Toggle fullscreen
+            </ControlButton>
+            <label className="brightness">
+              <span>Intensity</span>
+              <input
+                aria-label="Visual intensity"
+                type="range"
+                min="25"
+                max="100"
+                value={preferences.brightness}
+                onChange={(event) =>
+                  applyAction({ type: "brightness.set", value: Number(event.currentTarget.value) })
+                }
+              />
+            </label>
+          </section>
+          <section className="controls__group" aria-labelledby={`${controlsId}-application`}>
+            <h2 id={`${controlsId}-application`}>Application</h2>
+            <ControlButton
+              help="Stop Sam and close its owned window where supported. Ctrl+Q."
+              disabled={state.connection !== "connected" || quitRequested}
+              onClick={quitSam}
+              aria-keyshortcuts="Control+Q"
+            >
+              Quit Sam
+            </ControlButton>
+          </section>
           <p className="controls__hint">
-            Ctrl M microphone · Ctrl Shift X emergency stop · Ctrl Q quit · Esc close controls
+            Ctrl+M microphone · Ctrl+Shift+X emergency stop · Ctrl+Q Quit Sam · Esc closes the
+            current Controls or dialog surface, never Sam
           </p>
         </section>
       )}

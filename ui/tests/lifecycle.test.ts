@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { StartupCard } from "../src/App";
+import { StartupCard, shortcutIntent } from "../src/App";
 import { QuitDialog, ShutdownStatus } from "../src/QuitDialog";
 import { RuntimeStatus } from "../src/RuntimeStatus";
 import { reduceProtocolEvent, resetUiState } from "../src/state/reducer";
@@ -70,10 +70,27 @@ describe("startup and shutdown presentation", () => {
     };
     const html = renderToStaticMarkup(createElement(StartupCard, { state }));
     expect(html).toContain("Automatic / recommended");
-    expect(html).toContain("loaded-chat · loaded");
-    expect(html).toContain("installed-chat · installed");
+    expect(html).toContain("loaded-chat · Loaded");
+    expect(html).toContain("installed-chat · Installed");
     expect(html).toContain("Remember this choice");
     expect(html).toContain("Continue in available mode");
+    expect(html).toContain("Dismiss startup information");
+    expect(html).toContain("does not make a conversational model ready");
+  });
+
+  it("keeps text-entry shortcuts safe while retaining the global emergency stop", () => {
+    const key = (value: string, shiftKey = false) => ({
+      key: value,
+      ctrlKey: true,
+      shiftKey,
+      metaKey: false,
+    });
+    expect(shortcutIntent(key("m"), false)).toBe("microphone");
+    expect(shortcutIntent(key("m"), true)).toBeNull();
+    expect(shortcutIntent(key("q"), false)).toBe("quit");
+    expect(shortcutIntent(key("q"), true)).toBeNull();
+    expect(shortcutIntent(key("x", true), true)).toBe("emergency_stop");
+    expect(shortcutIntent({ ...key("Escape"), ctrlKey: false }, true)).toBe("close_surface");
   });
 
   it("provides native modal semantics, distinct confirmation and cancellation", () => {

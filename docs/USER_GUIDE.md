@@ -82,8 +82,9 @@ normal `--ui-mode browser` tab does not stop Sam.
   presentation preferences, not permissions for the model.
 
 Keyboard: **Ctrl+M** toggles the microphone outside text fields;
-**Ctrl+Shift+X** performs Emergency stop; **Ctrl+Q** opens quit confirmation;
-**Escape** closes Controls or exits fullscreen, never Sam.
+**Ctrl+Shift+X** performs Emergency stop even while a text field is focused;
+**Ctrl+Q** opens quit confirmation outside text fields; **Escape** closes the
+current Controls/dialog surface or exits fullscreen, never Sam.
 
 File access is constrained to authorized roots (`--root` selects the workspace).
 Writes additionally need `--allow-workspace-write` and approval. Process requests

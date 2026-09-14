@@ -222,7 +222,23 @@ input {
   box-shadow: 0 22px 70px #0009;
   backdrop-filter: blur(18px);
   max-height: calc(100dvh - 40px);
+  overflow-x: hidden;
   overflow-y: auto;
+}
+
+.startup-card__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #94725844;
+  border-radius: 50%;
+  color: #d8b99c;
+  background: #120e0b80;
+  cursor: pointer;
 }
 
 .startup-card__identity {
@@ -255,7 +271,9 @@ input {
 }
 
 .startup-card__choice,
-.startup-card__actions {
+.startup-card__actions,
+.startup-card__details,
+.startup-card__dismiss-note {
   grid-column: 1 / -1;
 }
 
@@ -267,12 +285,26 @@ input {
 }
 
 .startup-card__choice select {
+  width: 100%;
   min-width: 0;
   border: 1px solid #94725866;
   border-radius: 10px;
   padding: 8px;
   color: #eadac8;
   background: #130f0d;
+}
+
+.startup-card__choice small,
+.startup-card__dismiss-note,
+.startup-card__details small {
+  color: #a88d76;
+  line-height: 1.4;
+}
+
+.startup-card__details summary {
+  color: #bfa085;
+  cursor: pointer;
+  font-size: 0.74rem;
 }
 
 .startup-card__actions {
@@ -331,6 +363,7 @@ input {
 .transcript__line {
   margin: 0.45rem 0;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .transcript__line--user {
@@ -405,7 +438,67 @@ input {
   box-shadow: 0 18px 60px #0007;
   backdrop-filter: blur(18px);
   max-height: calc(100dvh - 130px);
+  overflow-x: hidden;
   overflow-y: auto;
+}
+
+.controls__group {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 0 2px;
+  border-top: 1px solid #b4c3de16;
+}
+
+.controls__group h2 {
+  grid-column: 1 / -1;
+  margin: 0 2px 2px;
+  color: #b89b82;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-with-help {
+  position: relative;
+  min-width: 0;
+}
+
+.control-with-help > button {
+  width: 100%;
+  height: 100%;
+}
+
+.control-tooltip {
+  position: absolute;
+  z-index: 8;
+  right: 0;
+  bottom: calc(100% + 6px);
+  width: max-content;
+  max-width: min(250px, calc(100vw - 80px));
+  padding: 6px 8px;
+  border: 1px solid #94725855;
+  border-radius: 8px;
+  color: #eadac8;
+  background: #120e0bf2;
+  box-shadow: 0 8px 24px #0007;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(3px);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.control-with-help > button:hover + .control-tooltip,
+.control-with-help > button:focus-visible + .control-tooltip {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .controls__request {
@@ -628,6 +721,40 @@ input {
     left: 20px;
     width: auto;
     max-height: 34vh;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+}
+
+@media (max-width: 430px) {
+  .startup-card {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    padding: 18px 16px;
+  }
+
+  .controls,
+  .controls-reveal {
+    left: 12px;
+  }
+
+  .controls {
+    width: calc(100vw - 24px);
+    grid-template-columns: 1fr;
+  }
+
+  .controls__group {
+    grid-template-columns: 1fr;
+  }
+
+  .control-tooltip {
+    right: auto;
+    left: 0;
+  }
+
+  .transcript {
+    right: 12px;
+    left: 12px;
   }
 }
 
