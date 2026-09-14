@@ -195,11 +195,17 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
             browser_task = asyncio.create_task(open_and_watch_window())
 
     shutdown_task = None
+    restart_task = None
 
     def request_shutdown() -> None:
         nonlocal shutdown_task
         if shutdown_task is None:
             shutdown_task = asyncio.create_task(supervisor.shutdown())
+
+    def request_restart() -> None:
+        nonlocal restart_task
+        if restart_task is None or restart_task.done():
+            restart_task = asyncio.create_task(supervisor.restart_component("sam-core"))
 
     async def open_and_watch_window() -> None:
         opened_at = time.monotonic()
@@ -215,7 +221,7 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
 
     supervisor = Supervisor(
         tuple(components),
-        SubprocessLauncher(request_shutdown=request_shutdown),
+        SubprocessLauncher(request_shutdown=request_shutdown, request_restart=request_restart),
         store,
         on_ready=ready,
     )
@@ -233,6 +239,8 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
         await supervisor.shutdown()
         if shutdown_task is not None:
             await shutdown_task
+        if restart_task is not None:
+            await asyncio.gather(restart_task, return_exceptions=True)
         if browser_task is not None:
             browser_task.cancel()
             await asyncio.gather(browser_task, return_exceptions=True)

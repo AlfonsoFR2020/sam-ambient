@@ -6,10 +6,16 @@ from unittest.mock import AsyncMock
 import pytest
 
 from sam_ambient.adapters import local_discovery as discovery
+from sam_ambient.core.protocol import ControlCommand, ControlCommandType
 from sam_ambient.core.providers import DataBoundary
 from sam_ambient.core.storage.sqlite import SQLiteSessionStore
 from sam_ambient.core.turns import CancellationToken
-from sam_ambient.runtime import RuntimeConfig, SamRuntime, _looks_like_playback_echo
+from sam_ambient.runtime import (
+    ProviderRefresh,
+    RuntimeConfig,
+    SamRuntime,
+    _looks_like_playback_echo,
+)
 from tests.unit.test_conversation_context import ConversationProvider
 
 
@@ -73,7 +79,8 @@ def test_preference_and_stale_preference_fallback(monkeypatch):
         result = await discovery.discover_local(bootstrap=True, preferred=("lm-studio", "previous"))
         assert (result.selected.id, result.model) == ("lm-studio", "previous")
         result = await discovery.discover_local(preferred=("lm-studio", "deleted"))
-        assert result.model == "alpha"
+        assert result.model is None
+        assert "Several local conversational models" in result.reason
 
         async def unavailable_lm(service):
             if service.id == "ollama":
@@ -81,7 +88,8 @@ def test_preference_and_stale_preference_fallback(monkeypatch):
 
         monkeypatch.setattr(discovery, "probe_service", unavailable_lm)
         result = await discovery.discover_local(bootstrap=True, preferred=("lm-studio", "previous"))
-        assert result.selected.id == "ollama"
+        assert result.selected is None
+        assert "Several local conversational models" in result.reason
         result = await discovery.discover_local(provider="lm-studio", preferred=("ollama", "alpha"))
         assert result.selected is None  # Explicit configuration is never silently replaced.
 
@@ -107,7 +115,7 @@ def test_bootstrap_timeout_is_bounded_and_ownership_cleanup_idempotent(monkeypat
     async def scenario():
         service = discovery.LocalService("lm-studio", discovery.LM_STUDIO_URL, "lms")
         await discovery.bootstrap_service(service, None, [])
-        assert deadlines == [145] and "TimeoutError" in service.detail
+        assert deadlines == [205] and "TimeoutError" in service.detail
         process = SimpleNamespace(returncode=None, terminate=lambda: None, wait=AsyncMock())
         stopped = []
         process.terminate = lambda: stopped.append(True)
@@ -154,7 +162,29 @@ def test_lm_studio_auto_loads_only_one_unambiguous_installed_model(monkeypatch):
     single = discovery.LocalService("lm-studio", discovery.LM_STUDIO_URL, "lms", True, [], ["only"])
     asyncio.run(discovery.bootstrap_service(single, None, []))
     assert commands[0][0][1:3] == ("load", "only")
-    assert commands[0][1]["timeout_s"] == 120
+    assert commands[0][1]["timeout_s"] == 180
+
+
+def test_lm_studio_model_load_failure_is_bounded_and_cancellation_propagates(monkeypatch):
+    service = discovery.LocalService(
+        "lm-studio",
+        discovery.LM_STUDIO_URL,
+        "lms",
+        True,
+        [],
+        ["google/gemma"],
+    )
+    monkeypatch.setattr(discovery, "probe_service", AsyncMock())
+    command = AsyncMock(side_effect=TimeoutError("fixture model-load deadline"))
+    monkeypatch.setattr(discovery, "_local_command", command)
+
+    asyncio.run(discovery.bootstrap_service(service, "google/gemma", []))
+    assert "startup/load failed (TimeoutError)" in service.detail
+    assert command.call_args.kwargs["timeout_s"] == 180
+
+    command.side_effect = asyncio.CancelledError()
+    with pytest.raises(asyncio.CancelledError):
+        asyncio.run(discovery.bootstrap_service(service, "google/gemma", []))
 
 
 def test_owned_ollama_child_is_reaped_but_running_services_are_not(monkeypatch):
@@ -181,6 +211,51 @@ def test_owned_ollama_child_is_reaped_but_running_services_are_not(monkeypatch):
         launch.reset_mock()
         await discovery.bootstrap_service(service, None, owned)
         launch.assert_not_called()
+
+    asyncio.run(scenario())
+
+
+def test_runtime_rescan_hot_adopts_ready_local_provider(tmp_path):
+    async def scenario():
+        initial = ConversationProvider()
+        selected = ConversationProvider()
+        selected.id = "lm-studio"
+
+        async def refresh(provider, model):
+            assert (provider, model) == ("lm-studio", "google/gemma")
+            return ProviderRefresh(
+                selected,
+                "google/gemma",
+                "explicit owner selection",
+                ({"id": "lm-studio", "running": True, "models": ["google/gemma"]},),
+            )
+
+        runtime = SamRuntime(
+            initial,
+            RuntimeConfig(tmp_path, port=0),
+            provider_refresher=refresh,
+        )
+        try:
+            event = await runtime.controls.dispatch(
+                ControlCommand(
+                    type=ControlCommandType.MODEL_SELECT,
+                    command_id="select",
+                    monotonic_ms=1,
+                    session_id=runtime.session_id,
+                    payload={
+                        "provider": "lm-studio",
+                        "model": "google/gemma",
+                        "remember": True,
+                    },
+                )
+            )
+            assert event.payload["provider_refresh_started"] is True
+            assert runtime._provider_refresh_task is not None
+            await runtime._provider_refresh_task
+            assert runtime.provider is selected
+            assert runtime._model == "google/gemma"
+        finally:
+            await runtime.close()
 
     asyncio.run(scenario())
 
@@ -270,7 +345,7 @@ def test_cli_reads_last_good_and_reaps_owned_children_after_failure(tmp_path, mo
         with pytest.raises(RuntimeError, match="fixture"):
             await cli.run_runtime(args)
         assert discover.call_args.kwargs["preferred"] == ("lm-studio", "previous")
-        assert discover.call_args.kwargs["bootstrap"] is True
+        assert discover.call_args.kwargs["bootstrap"] is False
         result.aclose.assert_awaited_once()
         provider.aclose.assert_awaited_once()
         args = cli.build_parser().parse_args(["doctor", "--root", str(tmp_path)])

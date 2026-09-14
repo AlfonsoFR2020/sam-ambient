@@ -76,11 +76,53 @@ async def lms_status(executable: str, subject: str) -> dict:
             raw = await process.stdout.read(16_385)
             if len(raw) > 16_384:
                 return {}
-            await process.wait()
+            if await process.wait() != 0:
+                return {}
             body = json.loads(raw)
             return body if isinstance(body, dict) else {}
     except (OSError, ValueError, TimeoutError):
         return {}
+    finally:
+        if process is not None and process.returncode is None:
+            try:
+                process.kill()
+            except ProcessLookupError:
+                pass
+            await process.wait()
+
+
+async def lms_models(executable: str) -> list[str]:
+    """Read the installed LM Studio inventory without loading or downloading."""
+
+    process = None
+    try:
+        async with asyncio.timeout(4):
+            process = await asyncio.create_subprocess_exec(
+                executable,
+                "ls",
+                "--json",
+                "--quiet",
+                stdin=asyncio.subprocess.DEVNULL,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            assert process.stdout is not None
+            raw = await process.stdout.read(262_145)
+            if len(raw) > 262_144 or await process.wait() != 0:
+                return []
+            body = json.loads(raw)
+            rows = body.get("models", body.get("data", [])) if isinstance(body, dict) else body
+            if not isinstance(rows, list):
+                return []
+            string_ids = [row for row in rows[:256] if isinstance(row, str)]
+            return (
+                _ids(rows, "modelKey")
+                or _ids(rows, "id")
+                or _ids(rows, "path")
+                or sorted({value for value in string_ids if 0 < len(value) <= 256})
+            )
+    except (OSError, ValueError, TimeoutError):
+        return []
     finally:
         if process is not None and process.returncode is None:
             try:
@@ -98,6 +140,7 @@ class LocalService:
     running: bool = False
     models: list[str] = field(default_factory=list)
     available_models: list[str] = field(default_factory=list)
+    installed_models: list[str] = field(default_factory=list)
     detail: str = "unavailable"
     daemon_running: bool | None = None
     started_by_sam: bool = False
@@ -111,6 +154,8 @@ class Discovery:
     model: str | None
     reason: str
     owned_processes: list[asyncio.subprocess.Process] = field(default_factory=list, repr=False)
+    pending_provider: str | None = None
+    pending_model: str | None = None
 
     async def aclose(self) -> None:
         while self.owned_processes:
@@ -133,6 +178,8 @@ class Discovery:
                 "provider": self.selected.id if self.selected else None,
                 "model": self.model,
                 "reason": self.reason,
+                "pending_provider": self.pending_provider,
+                "pending_model": self.pending_model,
             },
         }
 
@@ -158,7 +205,8 @@ def _ids(rows: object, key: str) -> list[str]:
 async def probe_service(service: LocalService) -> None:
     service.running = False
     service.models = []
-    service.available_models = []
+    installed = service.installed_models.copy()
+    service.available_models = installed
     transport = HttpxJsonTransport(
         trust_env=False, verify=service.endpoint.startswith("https:"), max_response_bytes=512 * 1024
     )
@@ -192,6 +240,7 @@ async def probe_service(service: LocalService) -> None:
                     name for name, usable in zip(names, supported, strict=True) if usable
                 ]
                 service.available_models = service.models.copy()
+                service.installed_models = service.models.copy()
             else:
                 body = await transport.request_json(
                     "GET", service.endpoint + "/models", timeout_s=2, cancellation=token
@@ -209,6 +258,7 @@ async def probe_service(service: LocalService) -> None:
                         rows = native.get("data")
                         if isinstance(rows, list):
                             service.available_models = _ids(rows, "id")
+                            service.installed_models = service.available_models.copy()
                             service.models = _ids(
                                 [
                                     row
@@ -222,7 +272,11 @@ async def probe_service(service: LocalService) -> None:
                         pass
             service.running = True
             service.detail = (
-                "ready" if service.models else "server running; install/load a conversational model"
+                "ready"
+                if service.models
+                else "server running; installed chat model available but not loaded"
+                if service.installed_models
+                else "server running; no conversational model installed"
             )
     except Exception as error:
         service.detail = f"unreachable ({type(error).__name__})"
@@ -259,7 +313,7 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
     try:
         # Service startup remains short; only an explicitly chosen, already
         # installed LM model receives the longer bounded loading window below.
-        async with asyncio.timeout(145):
+        async with asyncio.timeout(205):
             if not service.running and not service.server_running:
                 log.info(
                     "Starting installed %s on %s (bounded wait; no download)",
@@ -301,11 +355,12 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
                     if readiness_attempts >= 80:
                         raise TimeoutError("provider service readiness exceeded 20 seconds")
                     await asyncio.sleep(0.25)
-            if service.id == "lm-studio" and not service.models and service.available_models:
+            inventory = service.installed_models or service.available_models
+            if service.id == "lm-studio" and requested not in service.models and inventory:
                 # Never evict a loaded model to satisfy a stale preference.
-                model = requested if requested in service.available_models else None
-                if model is None and len(service.available_models) == 1:
-                    model = service.available_models[0]
+                model = requested if requested in inventory else None
+                if model is None and requested is None and len(inventory) == 1:
+                    model = inventory[0]
                 if model is None:
                     service.detail = (
                         "server running; several conversational models are installed; "
@@ -313,7 +368,7 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
                     )
                     return
                 log.info(
-                    "Loading installed %s model %s (separate 120 s model-load phase)",
+                    "Loading installed %s model %s (separate 180 s model-load phase)",
                     service.id,
                     model,
                 )
@@ -330,9 +385,11 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
                         "600",
                         "--yes",
                     ),
-                    timeout_s=120,
+                    timeout_s=180,
                 )
                 await probe_service(service)
+                if model not in service.models:
+                    raise RuntimeError("loaded model was not advertised by the serving endpoint")
             if service.started_by_sam:
                 service.detail += "; started by Sam" + (
                     "; shared LM Studio service retained on exit"
@@ -363,10 +420,10 @@ async def discover_local(
     if provider == "openai-compatible" and not base_url:
         raise ValueError("--base-url is required for an explicit compatible provider")
     lms = find_lms()
-    daemon, server = (
-        await asyncio.gather(lms_status(lms, "daemon"), lms_status(lms, "server"))
+    daemon, server, installed_lm = (
+        await asyncio.gather(lms_status(lms, "daemon"), lms_status(lms, "server"), lms_models(lms))
         if lms
-        else ({}, {})
+        else ({}, {}, [])
     )
     lm_url = LM_STUDIO_URL
     if server.get("running") is True and type(server.get("port")) is int:
@@ -386,6 +443,8 @@ async def discover_local(
     ]
     services[1].daemon_running = daemon.get("status") == "running" if daemon else None
     services[1].server_running = server.get("running") if server else None
+    services[1].installed_models = installed_lm
+    services[1].available_models = installed_lm.copy()
     if ollama_url != DEFAULT_OLLAMA_BASE_URL:
         services.insert(1, LocalService("ollama", DEFAULT_OLLAMA_BASE_URL, shutil.which("ollama")))
     if provider == "openai-compatible":
@@ -398,22 +457,53 @@ async def discover_local(
             service.detail += "; CLI not found; start external service or install runtime"
     lm = next(service for service in services if service.id == "lm-studio")
     if lm.executable and not lm.running:
-        lm.detail += "; installed. Start your local server with lms server start, then restart Sam"
-    explicit = provider != "auto" or base_url is not None
+        lm.detail += "; installed; Sam can start it after a model is selected"
+    explicit_provider = provider != "auto" or base_url is not None
     owned: list[asyncio.subprocess.Process] = []
     order = services.copy()
-    if preferred and not explicit:
+    if preferred and not explicit_provider:
         order.sort(key=lambda service: service.id != preferred[0])
-    if bootstrap:
+    desired: tuple[str, str] | None = None
+    if model:
+        targets = [item for item in order if provider == "auto" or item.id == provider]
+        target = next(
+            (
+                item
+                for item in targets
+                if model in set(item.models + item.installed_models + item.available_models)
+            ),
+            None,
+        )
+        if target:
+            desired = (target.id, model)
+    elif preferred and not explicit_provider:
+        target = next((item for item in services if item.id == preferred[0]), None)
+        if target and preferred[1] in set(
+            target.models + target.installed_models + target.available_models
+        ):
+            desired = preferred
+    candidates = sorted(
+        {
+            (service.id, candidate)
+            for service in services
+            if not explicit_provider or service.id == provider
+            for candidate in (
+                service.installed_models or service.available_models or service.models
+            )
+            if not model or candidate == model
+        }
+    )
+    if desired is None:
+        if len(candidates) == 1:
+            desired = candidates[0]
+    if bootstrap and desired:
         try:
             for service in order:
-                if explicit and service.id != ("ollama" if provider == "auto" else provider):
+                if service.id != desired[0]:
                     continue
-                if not service.running or not service.models:
-                    await bootstrap_service(
-                        service, model or (preferred[1] if preferred else None), owned
-                    )
-                if service.running and service.models and (not model or model in service.models):
+                if not service.running or desired[1] not in service.models:
+                    await bootstrap_service(service, desired[1], owned)
+                if service.running and desired[1] in service.models:
                     break
         except BaseException:
             await Discovery([], None, None, "cancelled", owned).aclose()
@@ -421,39 +511,38 @@ async def discover_local(
     eligible = [
         service
         for service in order
-        if service.running and service.models and (not model or model in service.models)
+        if desired and service.id == desired[0] and service.running and desired[1] in service.models
     ]
-    if explicit:
-        expected = "ollama" if provider == "auto" else provider
-        target = next(service for service in services if service.id == expected)
-        eligible = [target] if target in eligible else []
     selected = eligible[0] if eligible else None
     reason = (
         (
             "explicit configuration"
-            if explicit
+            if explicit_provider or model
             else "last successful local provider/model"
-            if preferred and selected.id == preferred[0]
-            else "local priority: Ollama, LM Studio, configured compatible"
+            if preferred and desired == preferred
+            else "sole installed local conversational model"
         )
         if selected
-        else "No usable local chat model. " + "; ".join(f"{s.id}: {s.detail}" for s in services)
+        else (
+            "Several local conversational models are installed; choose one"
+            if len(candidates) > 1 and not desired
+            else "No usable local chat model. " + "; ".join(f"{s.id}: {s.detail}" for s in services)
+        )
     )
     if selected:
         reason += "; " + (
             "started by Sam" if selected.started_by_sam else "already running; reused"
         )
-    chosen = model or (
-        preferred[1]
-        if preferred
-        and selected
-        and selected.id == preferred[0]
-        and preferred[1] in selected.models
-        else selected.models[0]
-        if selected
-        else None
+    chosen = desired[1] if desired and selected else None
+    return Discovery(
+        services,
+        selected,
+        chosen if selected else None,
+        reason,
+        owned,
+        desired[0] if desired and not selected else None,
+        desired[1] if desired and not selected else None,
     )
-    return Discovery(services, selected, chosen if selected else None, reason, owned)
 
 
 def provider_for(service: LocalService) -> LLMProvider:

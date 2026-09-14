@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import copy
 import json
 import logging
 import os
@@ -174,7 +175,7 @@ async def discover_provider(
     if args.provider == "openai-compatible" and not args.compatible_is_local:
         return create_provider(args), args.model, None
     preferred = None
-    if bootstrap or getattr(args, "command", None) == "doctor":
+    if bootstrap or getattr(args, "command", None) in {"doctor", "runtime"}:
         from sam_ambient.core.storage import SQLiteSessionStore
 
         try:
@@ -557,17 +558,47 @@ def _print_doctor(report: dict[str, object], *, verbose: bool = False) -> None:
 
 async def run_runtime(args: argparse.Namespace) -> int:
     args.state_db = args.state_db or str(Path(args.root) / ".sam/state.db")
-    provider, model, discovery = await discover_provider(args, bootstrap=True)
+    provider, model, discovery = await discover_provider(args, bootstrap=False)
+    discoveries = [discovery] if discovery is not None else []
+
+    async def refresh(provider_id: str | None, requested_model: str | None):
+        from sam_ambient.runtime import ProviderRefresh
+
+        refresh_args = copy.copy(args)
+        if provider_id is not None:
+            refresh_args.provider = provider_id
+            if provider_id != args.provider:
+                refresh_args.base_url = (
+                    args.local_compatible_url if provider_id == "openai-compatible" else None
+                )
+        if requested_model is not None:
+            refresh_args.model = requested_model
+        refreshed_provider, refreshed_model, refreshed = await discover_provider(
+            refresh_args, bootstrap=True
+        )
+        catalog = tuple(refreshed.to_dict()["providers"]) if refreshed else ()
+        reason = refreshed.reason if refreshed else "explicit configuration"
+        if refreshed is not None and refreshed.selected is None:
+            await refreshed_provider.aclose()
+            await refreshed.aclose()
+            return ProviderRefresh(None, None, reason, catalog)
+        if refreshed is not None:
+            discoveries.append(refreshed)
+        return ProviderRefresh(refreshed_provider, refreshed_model, reason, catalog)
+
     try:
-        return await _serve_runtime(args, provider, model, discovery)
+        return await _serve_runtime(args, provider, model, discovery, refresh)
     finally:
-        if discovery is not None:
-            await discovery.aclose()
+        await asyncio.gather(*(item.aclose() for item in discoveries), return_exceptions=True)
         await provider.aclose()
 
 
 async def _serve_runtime(
-    args: argparse.Namespace, provider: LLMProvider, model: str | None, discovery: Discovery | None
+    args: argparse.Namespace,
+    provider: LLMProvider,
+    model: str | None,
+    discovery: Discovery | None,
+    provider_refresher=None,
 ) -> int:
     from sam_ambient.adapters.mcp import McpClient, McpError
 
@@ -612,6 +643,8 @@ async def _serve_runtime(
             model_unavailable_reason=discovery.reason
             if discovery and not discovery.selected
             else None,
+            startup_provider=discovery.pending_provider if discovery else None,
+            startup_model=discovery.pending_model if discovery else None,
             stt_status=stt_status,
             allow_cloud=args.allow_cloud,
             workspace_writable=args.allow_workspace_write,
@@ -631,6 +664,7 @@ async def _serve_runtime(
         voice=voice,
         tts=tts,
         audio_output=output,
+        provider_refresher=provider_refresher,
     )
     mcp_clients: list[McpClient] = []
     try:
@@ -651,6 +685,8 @@ async def _serve_runtime(
                 server.server_id,
                 len(external_tools),
             )
+        if discovery is not None:
+            runtime._provider_catalog = tuple(discovery.to_dict()["providers"])
         await runtime.start()
         health_state = "HEALTHY"
         health_detail = "runtime ready"
@@ -687,19 +723,35 @@ async def _serve_runtime(
         log.info("Core bridge: ws://127.0.0.1:%d", runtime.bridge.port)
 
         async def await_quit() -> None:
-            await runtime.shutdown_requested.wait()
+            shutdown = asyncio.create_task(runtime.shutdown_requested.wait())
+            restart = asyncio.create_task(runtime.restart_requested.wait())
+            done, pending = await asyncio.wait(
+                {shutdown, restart}, return_when=asyncio.FIRST_COMPLETED
+            )
+            for task in pending:
+                task.cancel()
+            await asyncio.gather(*pending, return_exceptions=True)
             if args.runtime_instance_id:
                 print(
-                    "SAM_SHUTDOWN " + json.dumps({"instance_id": args.runtime_instance_id}),
+                    ("SAM_RESTART " if restart in done else "SAM_SHUTDOWN ")
+                    + json.dumps({"instance_id": args.runtime_instance_id}),
                     flush=True,
                 )
             else:
                 stop.set()
 
         quit_task = asyncio.create_task(await_quit())
+        bootstrap_task = None
+        if provider_refresher is not None and (
+            model is None or discovery is None or not discovery.selected
+        ):
+            bootstrap_task = asyncio.create_task(runtime._refresh_providers(None, None, False))
         try:
             await serve_until_stop(runtime.serve_forever(), stop)
         finally:
+            if bootstrap_task is not None:
+                bootstrap_task.cancel()
+                await asyncio.gather(bootstrap_task, return_exceptions=True)
             quit_task.cancel()
             await asyncio.gather(quit_task, return_exceptions=True)
         return 0

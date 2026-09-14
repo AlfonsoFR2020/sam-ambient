@@ -39,8 +39,14 @@ class ProcessLauncher(Protocol):
 class SubprocessLauncher:
     """Launch only trusted argv specifications, never shell strings."""
 
-    def __init__(self, *, request_shutdown: Callable[[], None] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        request_shutdown: Callable[[], None] | None = None,
+        request_restart: Callable[[], None] | None = None,
+    ) -> None:
         self.request_shutdown = request_shutdown
+        self.request_restart = request_restart
 
     async def launch(self, spec: ComponentSpec, context: LaunchContext) -> ManagedProcess:
         command = list(spec.command)
@@ -74,6 +80,7 @@ class SubprocessLauncher:
             process,
             instance_id=context.instance_id,
             request_shutdown=self.request_shutdown if spec.component_id == "sam-core" else None,
+            request_restart=self.request_restart if spec.component_id == "sam-core" else None,
         )
 
 
@@ -84,10 +91,12 @@ class SubprocessManagedProcess:
         *,
         instance_id: str = "",
         request_shutdown: Callable[[], None] | None = None,
+        request_restart: Callable[[], None] | None = None,
     ) -> None:
         self._process = process
         self._instance_id = instance_id
         self._request_shutdown = request_shutdown
+        self._request_restart = request_restart
         self._drain_task: asyncio.Task[None] | None = None
 
     @property
@@ -132,6 +141,13 @@ class SubprocessManagedProcess:
                         continue
                     if isinstance(payload, dict) and payload == {"instance_id": self._instance_id}:
                         self._request_shutdown()
+                elif self._request_restart is not None and line.startswith(b"SAM_RESTART "):
+                    try:
+                        payload = json.loads(line[len(b"SAM_RESTART ") :])
+                    except (ValueError, UnicodeError):
+                        continue
+                    if isinstance(payload, dict) and payload == {"instance_id": self._instance_id}:
+                        self._request_restart()
         except (ValueError, asyncio.CancelledError):
             pass
 

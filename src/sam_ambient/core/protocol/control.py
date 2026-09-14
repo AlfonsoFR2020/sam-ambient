@@ -28,6 +28,7 @@ CancelActive = Callable[[frozenset[CancellationTarget], str], Awaitable[None]]
 SubmitUserMessage = Callable[[str, ControlCommand], Awaitable[None]]
 ResolveToolApproval = Callable[[ControlCommand, bool], Awaitable[bool]]
 RevokeCapabilities = Callable[[str], Awaitable[Mapping[str, object]]]
+RefreshProviders = Callable[[str | None, str | None, bool], Awaitable[Mapping[str, object]]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +39,8 @@ class CoreControlBindings:
     submit_user_message: SubmitUserMessage | None = None
     resolve_tool_approval: ResolveToolApproval | None = None
     revoke_capabilities: RevokeCapabilities | None = None
+    refresh_providers: RefreshProviders | None = None
+    request_restart: Callable[[ControlCommand], Awaitable[None]] | None = None
     request_shutdown: Callable[[ControlCommand], Awaitable[None]] | None = None
 
 
@@ -124,6 +127,32 @@ class ControlDispatcher:
             if self._bindings.revoke_capabilities is None:
                 raise RuntimeError("global capability revocation is unavailable")
             payload.update(await self._bindings.revoke_capabilities("ui_global_capability_revoke"))
+        elif command_type in {ControlCommandType.PROVIDERS_RESCAN, ControlCommandType.MODEL_SELECT}:
+            if self._bindings.refresh_providers is None:
+                raise RuntimeError("Provider discovery is unavailable")
+            provider = command.payload.get("provider")
+            model = command.payload.get("model")
+            remember = command.payload.get("remember", False)
+            if provider is not None and (not isinstance(provider, str) or not provider.strip()):
+                raise ValueError("provider must be a non-blank string")
+            if model is not None and (not isinstance(model, str) or not model.strip()):
+                raise ValueError("model must be a non-blank string")
+            if not isinstance(remember, bool):
+                raise ValueError("remember must be boolean")
+            if command_type is ControlCommandType.PROVIDERS_RESCAN and command.payload:
+                raise ValueError("Rescan does not accept arguments")
+            if command_type is ControlCommandType.MODEL_SELECT and (
+                provider is None or model is None
+            ):
+                raise ValueError("Model selection requires provider and model")
+            payload.update(await self._bindings.refresh_providers(provider, model, remember))
+        elif command_type is ControlCommandType.APPLICATION_RESTART:
+            if command.payload:
+                raise ValueError("Restart Sam does not accept arguments")
+            if self._bindings.request_restart is None:
+                raise RuntimeError("Application restart is unavailable")
+            await self._bindings.request_restart(command)
+            payload["application_restarting"] = True
         elif command_type is ControlCommandType.APPLICATION_QUIT:
             if command.payload:
                 raise ValueError("Quit Sam does not accept arguments")

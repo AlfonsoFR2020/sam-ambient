@@ -7,13 +7,13 @@ import json
 import logging
 import re
 import time
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from sam_ambient import __version__
+from sam_ambient import __author__, __product_name__, __version__
 from sam_ambient.adapters.audio.sounddevice import AudioDeviceError
 from sam_ambient.adapters.computer import PlatformAppOpenAdapter, TkClipboardAdapter
 from sam_ambient.adapters.process import SubprocessAdapter
@@ -150,6 +150,8 @@ class RuntimeConfig:
     provider_selection_reason: str = "explicit runtime provider"
     stt_status: str = "not configured"
     model_unavailable_reason: str | None = None
+    startup_provider: str | None = None
+    startup_model: str | None = None
 
     def __post_init__(self) -> None:
         canonical = self.workspace_root.resolve(strict=True)
@@ -190,6 +192,17 @@ class RuntimeVoiceAdapters:
     capture: AudioInput
     vad: VoiceActivityDetector
     stt: SpeechToText
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderRefresh:
+    provider: LLMProvider | None
+    model: str | None
+    reason: str
+    catalog: tuple[Mapping[str, object], ...] = ()
+
+
+ProviderRefresher = Callable[[str | None, str | None], Awaitable[ProviderRefresh]]
 
 
 class _ToolCallAccumulator:
@@ -319,10 +332,16 @@ class SamRuntime:
         voice: RuntimeVoiceAdapters | None = None,
         tts: TextToSpeech | None = None,
         audio_output: AudioOutput | None = None,
+        provider_refresher: ProviderRefresher | None = None,
     ) -> None:
         if (tts is None) != (audio_output is None):
             raise ValueError("TTS and audio output must be configured together")
         self.provider = provider
+        self._provider_refresher = provider_refresher
+        self._provider_refresh_lock = asyncio.Lock()
+        self._provider_catalog: tuple[Mapping[str, object], ...] = ()
+        self._provider_selection_reason = config.provider_selection_reason
+        self._model_unavailable_reason = config.model_unavailable_reason
         self.config = config
         self.state = SQLiteSessionStore(config.state_db) if config.state_db is not None else None
         self.session_id = self.state.session_id() if self.state is not None else str(uuid4())
@@ -368,10 +387,12 @@ class SamRuntime:
         self._microphone_enabled = asyncio.Event()
         self._microphone_enabled.set()
         self._tasks: set[asyncio.Task[None]] = set()
+        self._provider_refresh_task: asyncio.Task[None] | None = None
         self._model = config.model
         self._last_event_ms = -1
         self._closed = False
         self.shutdown_requested = asyncio.Event()
+        self.restart_requested = asyncio.Event()
         self.tool_executor = ToolExecutor(
             self.tools,
             CapabilityPolicy(allow_external_side_effects=True),
@@ -389,6 +410,8 @@ class SamRuntime:
                 submit_user_message=self._submit_from_control,
                 resolve_tool_approval=self._resolve_tool_approval,
                 revoke_capabilities=self._revoke_capabilities,
+                refresh_providers=self._refresh_providers,
+                request_restart=self._request_restart,
                 request_shutdown=self._request_shutdown,
             ),
             clock_ms=self._next_event_ms,
@@ -469,6 +492,96 @@ class SamRuntime:
         log.info("Quit Sam requested by UI owner control")
         await self._revoke_capabilities("owner_requested_shutdown")
         await self._cancel_active(frozenset(CancellationTarget), "application_shutdown")
+        if self._provider_refresh_task is not None:
+            self._provider_refresh_task.cancel()
+
+    async def _request_restart(self, command: ControlCommand) -> None:
+        if command.session_id != self.session_id:
+            raise ValueError("Restart Sam requires the current session")
+        log.info("Restart Sam requested by UI owner control")
+        await self._revoke_capabilities("owner_requested_restart")
+        await self._cancel_active(frozenset(CancellationTarget), "application_restart")
+        if self._provider_refresh_task is not None:
+            self._provider_refresh_task.cancel()
+        asyncio.get_running_loop().call_later(0.05, self.restart_requested.set)
+
+    async def _refresh_providers(
+        self, provider_id: str | None, model: str | None, remember: bool
+    ) -> Mapping[str, object]:
+        if self._provider_refresher is None:
+            raise RuntimeError("Provider discovery is unavailable")
+        if not self._active_done.is_set():
+            raise RuntimeError("Wait for the active response before changing models")
+        if self._provider_refresh_task is not None and not self._provider_refresh_task.done():
+            self._provider_refresh_task.cancel()
+            await asyncio.gather(self._provider_refresh_task, return_exceptions=True)
+        task = asyncio.create_task(self._perform_provider_refresh(provider_id, model, remember))
+        self._provider_refresh_task = task
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
+        return {"provider_refresh_started": True}
+
+    async def _perform_provider_refresh(
+        self, provider_id: str | None, model: str | None, remember: bool
+    ) -> None:
+        async with self._provider_refresh_lock:
+            target_provider = provider_id or self.config.startup_provider
+            target_model = model or self.config.startup_model
+            await self._publish_provider_status(
+                "loading_model" if target_model else "scanning",
+                provider=target_provider,
+                model=target_model,
+            )
+            try:
+                result = await self._provider_refresher(provider_id, model)
+            except asyncio.CancelledError:
+                raise
+            except Exception as error:
+                reason = (
+                    f"Local provider refresh failed ({type(error).__name__}); "
+                    "retry or choose another model"
+                )
+                self._model_unavailable_reason = reason
+                log.exception("Provider refresh failed: %s", error)
+                await self._publish_provider_status("blocked", reason=reason)
+                return
+            self._provider_catalog = result.catalog
+            self._provider_selection_reason = result.reason
+            if result.provider is None or result.model is None:
+                self._model_unavailable_reason = result.reason
+                await self._publish_provider_status("blocked", reason=result.reason)
+                return
+            previous = self.provider
+            registry = ProviderRegistry()
+            registry.register(result.provider)
+            self.provider = result.provider
+            self.providers = registry
+            self.router = ProviderRouter(registry)
+            self._model = result.model
+            self._model_unavailable_reason = None
+            if (
+                remember
+                and self.state is not None
+                and result.provider.data_boundary is DataBoundary.LOCAL
+            ):
+                await asyncio.to_thread(
+                    self.state.remember_local_model, result.provider.id, result.model
+                )
+            if previous is not result.provider:
+                await previous.aclose()
+            await self._publish_provider_status(
+                "ready", provider=result.provider.id, model=result.model, reason=result.reason
+            )
+
+    async def _publish_provider_status(self, state: str, **payload: object) -> None:
+        await self.events.publish(
+            ProtocolEvent(
+                type="provider.discovery",
+                monotonic_ms=self._next_event_ms(),
+                session_id=self.session_id,
+                payload={"state": state, "catalog": list(self._provider_catalog), **payload},
+            )
+        )
 
     def submit_user_message(self, text: str, *, session_id: str | None = None) -> str:
         if self._closed:
@@ -1437,9 +1550,13 @@ class SamRuntime:
                 "sam_version": __version__,
                 "microphone_enabled": self.controls.microphone_enabled,
                 "tts_output_enabled": self.controls.tts_output_enabled,
-                "provider": self.provider.id,
+                "sam_name": __product_name__,
+                "sam_author": __author__,
+                "provider": self.provider.id if self._model else None,
                 "model": self._model,
-                "selection_reason": self.config.provider_selection_reason,
+                "selection_reason": self._provider_selection_reason,
+                "provider_catalog": list(self._provider_catalog),
+                "model_unavailable_reason": self._model_unavailable_reason,
                 "stt_status": self.config.stt_status,
                 "tts_backend": getattr(
                     self.tts, "backend_id", "configured" if self.tts else "disabled/unavailable"

@@ -111,7 +111,8 @@ def test_discovery_priority_explicit_selection_and_no_model(monkeypatch):
 
     async def scenario():
         auto = await discovery.discover_local()
-        assert auto.selected.id == "ollama" and auto.model == "alpha"
+        assert auto.selected is None
+        assert "Several local conversational models" in auto.reason
         explicit = await discovery.discover_local(provider="lm-studio", model="zeta")
         assert explicit.selected.id == "lm-studio" and explicit.model == "zeta"
         missing = await discovery.discover_local(provider="lm-studio", model="missing")
@@ -122,7 +123,9 @@ def test_discovery_priority_explicit_selection_and_no_model(monkeypatch):
                 await probe(service)
 
         monkeypatch.setattr(discovery, "probe_service", only_lm)
-        assert (await discovery.discover_local()).selected.id == "lm-studio"
+        result = await discovery.discover_local()
+        assert result.selected is None
+        assert "Several local conversational models" in result.reason
 
     asyncio.run(scenario())
 
@@ -137,11 +140,12 @@ def test_lms_headless_custom_port_and_stopped_actionable_status(monkeypatch):
         return {"status": "running"} if subject == "daemon" else {"running": True, "port": 1240}
 
     monkeypatch.setattr(discovery, "lms_status", status)
+    monkeypatch.setattr(discovery, "lms_models", AsyncMock(return_value=[]))
     monkeypatch.setattr(discovery, "probe_service", AsyncMock())
     result = asyncio.run(discovery.discover_local())
     lm = result.services[1]
     assert lm.endpoint == "http://127.0.0.1:1240/v1" and lm.daemon_running
-    assert "lms server start" in lm.detail
+    assert "Sam can start it after a model is selected" in lm.detail
     assert sorted(calls) == ["daemon", "server"]  # No ps/ls/load/start commands.
 
 
@@ -159,6 +163,29 @@ def test_lm_loaded_models_filtered_and_advertised_models_recorded(monkeypatch):
     asyncio.run(discovery.probe_service(service))
     assert service.models == ["loaded"]
     assert service.available_models == ["loaded", "unloaded"]
+    assert service.installed_models == ["loaded", "unloaded"]
+
+
+def test_lm_installed_inventory_is_independent_from_served_models(monkeypatch):
+    monkeypatch.delenv("OLLAMA_HOST", raising=False)
+    monkeypatch.setattr(discovery, "find_lms", lambda: "lms")
+    monkeypatch.setattr(discovery, "lms_status", AsyncMock(return_value={}))
+    monkeypatch.setattr(discovery, "lms_models", AsyncMock(return_value=["google/gemma-chat"]))
+
+    async def probe(service):
+        if service.id == "lm-studio":
+            service.running = True
+            service.models = []
+
+    monkeypatch.setattr(discovery, "probe_service", probe)
+    result = asyncio.run(discovery.discover_local(preferred=("lm-studio", "google/gemma-chat")))
+    lm = next(item for item in result.services if item.id == "lm-studio")
+    assert lm.installed_models == ["google/gemma-chat"]
+    assert lm.models == []
+    assert (result.pending_provider, result.pending_model) == (
+        "lm-studio",
+        "google/gemma-chat",
+    )
 
 
 def test_quit_is_direct_user_control_idempotent_and_not_a_tool(tmp_path):
@@ -224,6 +251,26 @@ def test_supervisor_shutdown_channel_rejects_stale_instance():
         )
         await managed._drain_stdout()
         assert called == ["quit"]
+
+    asyncio.run(scenario())
+
+
+def test_supervisor_restart_channel_rejects_stale_instance():
+    async def scenario():
+        reader = asyncio.StreamReader()
+        reader.feed_data(b'SAM_RESTART {"instance_id":"old"}\n')
+        reader.feed_data(b'SAM_RESTART {"instance_id":"current"}\n')
+        reader.feed_eof()
+        called = []
+
+        class Process:
+            stdout = reader
+
+        managed = SubprocessManagedProcess(
+            Process(), instance_id="current", request_restart=lambda: called.append("restart")
+        )
+        await managed._drain_stdout()
+        assert called == ["restart"]
 
     asyncio.run(scenario())
 

@@ -57,6 +57,9 @@ class ControlCommandType(StrEnum):
     TOOL_APPROVE = "control.tool.approve"
     TOOL_DENY = "control.tool.deny"
     CAPABILITIES_REVOKE_ALL = "control.capabilities.revoke_all"
+    PROVIDERS_RESCAN = "control.providers.rescan"
+    MODEL_SELECT = "control.model.select"
+    APPLICATION_RESTART = "control.application.restart"
     APPLICATION_QUIT = "control.application.quit"
 
 

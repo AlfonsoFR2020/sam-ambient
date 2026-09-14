@@ -21,6 +21,7 @@ class RecordingBindings:
         self.messages: list[str] = []
         self.approvals: list[tuple[str, bool]] = []
         self.revocations: list[str] = []
+        self.refreshes: list[tuple[str | None, str | None, bool]] = []
 
     async def set_microphone(self, enabled: bool) -> None:
         self.microphone.append(enabled)
@@ -50,6 +51,12 @@ class RecordingBindings:
             "capability_authority_active": False,
             "capability_authority_epoch": 1,
         }
+
+    async def refresh(
+        self, provider: str | None, model: str | None, remember: bool
+    ) -> dict[str, object]:
+        self.refreshes.append((provider, model, remember))
+        return {"provider_refresh_started": True}
 
 
 def command(
@@ -208,5 +215,40 @@ def test_global_revocation_rejects_payload_and_mismatched_approval() -> None:
         assert wrong_approval.type == EventType.CONTROL_REJECTED
         assert recording.revocations == []
         assert recording.approvals == []
+
+    asyncio.run(scenario())
+
+
+def test_provider_rescan_and_exact_model_selection_are_trusted_controls() -> None:
+    async def scenario() -> None:
+        recording = RecordingBindings()
+        dispatcher = ControlDispatcher(
+            CoreControlBindings(
+                recording.set_microphone,
+                recording.set_tts_output,
+                recording.cancel,
+                refresh_providers=recording.refresh,
+            )
+        )
+        rescanned = await dispatcher.dispatch(
+            command(ControlCommandType.PROVIDERS_RESCAN, "rescan")
+        )
+        selected = await dispatcher.dispatch(
+            command(
+                ControlCommandType.MODEL_SELECT,
+                "select",
+                {"provider": "lm-studio", "model": "google/gemma", "remember": True},
+            )
+        )
+        malformed = await dispatcher.dispatch(
+            command(ControlCommandType.MODEL_SELECT, "malformed", {"provider": "lm-studio"})
+        )
+        assert rescanned.type == EventType.CONTROL_ACKNOWLEDGED
+        assert selected.type == EventType.CONTROL_ACKNOWLEDGED
+        assert malformed.type == EventType.CONTROL_REJECTED
+        assert recording.refreshes == [
+            (None, None, False),
+            ("lm-studio", "google/gemma", True),
+        ]
 
     asyncio.run(scenario())
