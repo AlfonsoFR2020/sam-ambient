@@ -1,0 +1,1 @@
+{"main":{"identifier":"main","description":"Only native close coordination for Sam's bundled main window.","local":true,"windows":["main"],"permissions":["core:event:allow-listen","core:event:allow-unlisten"]}}

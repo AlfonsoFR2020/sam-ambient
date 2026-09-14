@@ -38,6 +38,6 @@ process argv and write/open targets remain visible before the owner decides.
 The development bridge uses subprotocol `sam.protocol.v1` over a bounded
 WebSocket bound to `127.0.0.1` by default. It checks browser origins, refuses
 non-loopback bindings, limits message and queue sizes, and carries EventBus
-events rather than maintaining a second conversation state. The future Tauri
+events rather than maintaining a second conversation state. The Tauri
 adapter may replace this transport without changing presentation or core
 protocol semantics.

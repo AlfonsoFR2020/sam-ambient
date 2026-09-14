@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Integrate a thin Tauri 2 native shell with the current ambient React UI and
+  Python runtime. Tauri owns the window, single-instance behavior, native identity,
+  one trusted supervisor child, and close coordination only; runtime and policy
+  responsibilities remain in the existing Python companion.
+- Preserve browser/app-window development fallback and route native window close
+  through Sam's existing confirmation, capability revocation, and graceful shutdown.
+- Add a fixed packaged-companion resource layout, sibling executable contract,
+  native icons, source-level Rust/Windows CI checks, and guarded NSIS packaging
+  scripts. Native packaging and publication remain human-controlled release work.
+- Accept the Tauri production origin at the loopback WebSocket boundary and add
+  deterministic tests for native close coordination and frozen sibling commands.
 - Track provider-service and model-load provenance independently for the current
   Sam runtime instance. Optional graceful-Quit policies can unload a verified
   Sam-loaded LM Studio model and stop a service Sam started; Restart, Emergency

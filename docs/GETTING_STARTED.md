@@ -13,7 +13,9 @@ window also stops Sam; closing a fallback browser tab does not. A second launch
 for the same root reports the existing local UI instead of competing for ports.
 
 Sam 0.1.2 runs as a Python application with a local browser UI. There is no
-seamless installer yet. Install prerequisites yourself; Sam downloads no models.
+seamless installer yet. The integrated native shell is unreleased development
+source, not an accepted package. Install prerequisites yourself; Sam downloads no
+models.
 
 ## Prerequisites
 
@@ -29,6 +31,29 @@ seamless installer yet. Install prerequisites yourself; Sam downloads no models.
 Node/pnpm is needed only to rebuild the frontend; the checkout includes compiled
 assets. Rust, Tauri and Windows MSVC Build Tools are not required to run Sam.
 
+### Native Windows development (unreleased)
+
+The browser path remains supported. Tauri 2 is a thin native window and lifecycle
+layer around the same React UI and Python runtime; it does not replace Sam's core.
+Native contributors need Node/pnpm, Rust/Cargo, WebView2, and on Windows the MSVC
+C++ Build Tools plus a Windows SDK:
+
+```sh
+cd ui
+pnpm install --frozen-lockfile
+pnpm native:dev
+```
+
+The development shell starts one trusted `sam-supervisor --no-ui` child and uses
+the existing localhost protocol. A second launch focuses the existing window.
+Closing the native window opens Sam's existing Quit confirmation, and acknowledged
+shutdown closes the window. Normal browser and Chromium app-window launch paths
+remain available.
+
+The repository also contains guarded companion and NSIS packaging scripts for
+later release work. They are intentionally outside this source-integration flow;
+do not treat their presence as package, signing, antivirus, or release acceptance.
+
 ## Start and send a first request
 
 From the repository directory:
@@ -40,7 +65,8 @@ uv run sam-ambient
 
 The supervisor starts the core and static UI. Startup may take several tens of
 seconds while an installed model loads. The browser opens once after readiness:
-[http://127.0.0.1:8766](http://127.0.0.1:8766). Closing it does not stop Sam.
+[http://127.0.0.1:8766](http://127.0.0.1:8766). Closing a fallback browser tab
+does not stop Sam; closing the owned app window requests graceful shutdown.
 Use **Controls → Text request**, type a short question, and press **Send**.
 Ask a follow-up: committed recent conversation context is retained locally.
 

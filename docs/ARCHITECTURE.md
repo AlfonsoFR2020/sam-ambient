@@ -52,6 +52,40 @@ measured quality adaptation. Spectral extraction, prosodic mapping and human vis
 acceptance remain pending. The compiled static bundle uses the real event decoder and
 reducer; this branch remains unmerged.
 
+## Native shell boundary
+
+The thin Tauri 2 executable owns only a native window, single-instance focus,
+native identity, one trusted supervisor child, and close coordination. React still
+owns presentation and speaks protocol-v1 over the localhost WebSocket. The Python
+companion still owns supervision, core/runtime behavior, models, voice, policy,
+tools, persistence, and updates. Tauri exposes no general filesystem, shell, or
+process capability to the frontend.
+
+```mermaid
+flowchart TD
+    Tauri[Tauri executable] --> React[React UI]
+    Browser[Browser / app-window fallback] --> React
+    React <--> WS[localhost WebSocket]
+    WS <--> Companion[Python companion]
+    Companion --> Supervisor[Supervisor]
+    Supervisor --> Core[Core runtime]
+    Core --> Models[Models]
+    Core --> Voice[Voice]
+    Core --> Policy[Policy and tools]
+```
+
+Development mode starts the trusted checkout command with `--no-ui`; release-mode
+source resolves only `companion/sam-supervisor[.exe]` under Tauri's resource
+directory and passes a writable per-user application-data root. A frozen supervisor
+may launch only fixed sibling `sam-core` and `sam-ui` executables. Normal native
+close emits a fixed event into React, which opens Sam's existing Quit confirmation;
+only acknowledged runtime shutdown enables the window to close. A bounded native
+exit fallback terminates only the supervisor child it created.
+
+The source tree includes the companion/resource layout and guarded Windows NSIS
+assembly path, but packaging, signing, antivirus review, and installer acceptance
+are separate release gates. Browser and Chromium app-window modes remain supported.
+
 ## Configuration and readiness
 
 `SamSettings` is the validated, versioned user-intent boundary. Standard-library

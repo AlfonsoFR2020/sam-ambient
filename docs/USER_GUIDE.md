@@ -2,6 +2,14 @@
 
 Start with [Getting started](GETTING_STARTED.md). Launch from your workspace using
 `uv run sam-ambient`; the browser is only a client, not the application's owner.
+The integrated, unreleased Tauri source provides an owned native window with the
+same React UI and protocol. Closing that window invokes the same in-app Quit
+confirmation; it does not bypass supervisor shutdown or capability revocation.
+The planned packaged companion needs no checkout or user Python. Browser mode
+remains a supported fallback. Provider/model and speech prerequisites remain
+external and are reported through the existing readiness experience. Native
+packaging, signing, security-software review, and combined human acceptance remain
+release gates; use the supported browser mode rather than bypassing a security alert.
 
 ## Conversation and status
 

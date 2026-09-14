@@ -4,6 +4,21 @@ Updated: 2026-09-14
 
 ## MVP status
 
+- Native integration checkpoint (`feature/ambient-shell`): the thin Tauri 2 shell
+  is reconciled with the frozen ambient React source. It owns the native window,
+  single-instance focus, identity/icons, one trusted supervisor child, fixed
+  packaged-companion resource boundary, and close coordination only. React still
+  connects over the localhost WebSocket; Python still owns supervisor/core,
+  models, voice, policy, tools, persistence, and updates. Browser and Chromium
+  app-window development fallbacks remain supported.
+- Native source includes frozen sibling-component handling, Tauri-origin protocol
+  coverage, lifecycle tests, icons, resource layout, Windows CI definitions, and
+  guarded companion/NSIS scripts. This merge performs no packaging, unsigned
+  companion execution, signing, release, or human acceptance. Integration gate:
+  41 focused Python tests and 103 frontend tests pass; Ruff, changed-file Biome,
+  TypeScript, Vite production build, Rust formatting/locked metadata, and diff
+  checks pass. A cold full Tauri compile was intentionally left for the next native
+  validation step because no local Cargo build cache exists.
 - Productization backbone: schema-v1 TOML configures supervisor/runtime behavior
   with defaults -> user -> workspace -> environment -> explicit CLI precedence.
   Unsupported keys/types fail early; secrets and SQLite last-good state stay separate.
@@ -56,11 +71,11 @@ Updated: 2026-09-14
   policies default to Keep; opt-in cleanup unloads only a Sam-loaded LM Studio model
   and stops only a service Sam started. Restart/failure/Emergency Stop never apply
   exit cleanup, unsupported providers fail closed, and timeouts cannot block shutdown.
-- Freeze candidate: `feature/ambient-shell` at `ba446508` is functionally complete
-  pending combined human acceptance and later native-shell integration. No further
-  feature work should land here except fixes required by reconciliation or acceptance;
-  the next structural task is reconciliation with `feature/native-shell`. This is not
-  a release-readiness claim.
+- Combined source candidate: `feature/ambient-shell` preserves the frozen ambient
+  behavior and now includes the native application boundary. No further feature work
+  should land here except fixes required by source validation or later acceptance.
+  Combined human acceptance and native package/release gates remain outstanding;
+  this is not a release-readiness claim.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
@@ -128,8 +143,9 @@ Updated: 2026-09-14
 - `sam-ui` is a small loopback-only static HTTP component on port 8766. It
   serves compiled assets with traversal rejection and a restrictive CSP; the
   UI uses protocol-v1 WebSocket transport to core port 8765 by default.
-- Native Tauri remains behind the existing injected transport boundary and is
-  not required for the browser-packaged MVP.
+- The integrated Tauri shell uses the same localhost protocol through the browser
+  transport and adds only fixed close coordination. The older injected transport
+  seam remains available; neither path is required for the browser-packaged MVP.
 
 ## Tools and security
 
@@ -214,9 +230,10 @@ Updated: 2026-09-14
 ## Known limitations / post-MVP priorities
 
 - Physical voice/Linux hardware acceptance and a seamless installer remain open.
-- Native shell work remains on its separate unmerged feature branch. This ambient
-  shell branch also remains pending product/visual acceptance and is not in `dev`.
-  The rejected ambient experiment is not part of this branch or `dev`.
+- Native and ambient source are integrated on this feature branch, but combined
+  product/visual/native acceptance, native compile/package verification, signing,
+  and release work remain open. The branch is not in `dev`; the rejected ambient
+  experiment is not part of this branch or `dev`.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 

@@ -5,9 +5,9 @@ planned or acceptance-pending work. Priorities may change after real use.
 
 ## Before the next major alpha
 
-- Human-accept `feature/ambient-shell` and fix only observed shell/visual defects.
-- Accept and merge `feature/native-shell`, then reconcile it cleanly with the
-  accepted ambient shell without importing the rejected `feature/ambient-ui`.
+- Human-accept the combined ambient/native source candidate and fix only observed
+  shell, visual, or native-boundary defects. The rejected `feature/ambient-ui`
+  remains excluded.
 - Physically accept the new sparse-noise endpointing bounds, then investigate any
   remaining continuously VAD-positive environmental noise and complete multi-turn
   voice, multilingual playback, and barge-in acceptance.
@@ -32,9 +32,9 @@ planned or acceptance-pending work. Priorities may change after real use.
 - Extend the current typed Settings surface only when real alternatives arrive,
   including visual themes and adapter-based STT/TTS choices. Keep Rescan, Reload,
   Restart, and Quit distinct owner controls.
-- Reconcile accepted ambient-shell and native-shell work, including native identity
-  and taskbar icon; recheck the version-sensitive architecture infographic. Native
-  plus ambient acceptance is the likely `0.2.0` boundary.
+- Validate the integrated native identity and taskbar icon, then recheck the
+  version-sensitive architecture infographic. Native plus ambient acceptance is
+  the likely `0.2.0` boundary.
 
 ## Computer agency
 

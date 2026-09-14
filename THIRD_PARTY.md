@@ -22,6 +22,8 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | idna | 3.19 | BSD-3-Clause | https://github.com/kjd/idna | Internationalized domain names | Transitive runtime dependency | Retain BSD notice |
 | typing-extensions | 4.16.0 | PSF-2.0 | https://github.com/python/typing_extensions | Runtime typing compatibility | Transitive runtime dependency | PSF notice |
 | Hatchling | >=1.27,<2 | MIT | https://github.com/pypa/hatch | Python package builds | Build-time dependency | MIT notice |
+| cx_Freeze / freeze-core | 8.6.4 / 0.7.5 | PSF-2.0 / PSF-derived | https://github.com/marcelotduarte/cx_Freeze | Directory-based self-contained Python companion | Build-only packager; freeze-core startup code is incorporated | Packager embeds the freeze-core license; companion also carries runtime dependency licenses |
+| Microsoft Visual C++ Redistributable runtime | 14.44.35211.0 | Microsoft redistributable terms | https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist | Self-contained CPython/native-extension runtime on Windows | Signed Microsoft redistributable DLLs extracted by cx_Freeze; no build tools included | Preserve the extracted Microsoft license files |
 | pytest | 8.4.2 | MIT | https://github.com/pytest-dev/pytest | Test runner | Development dependency | MIT notice |
 | Ruff | 0.16.5 | MIT | https://github.com/astral-sh/ruff | Lint and formatting | Development dependency | MIT notice |
 | Colorama | 0.4.6 | BSD-3-Clause | https://github.com/tartley/colorama | pytest Windows terminal support | Transitive development dependency | BSD notice |
@@ -39,6 +41,10 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | Node.js | 24.19.0 (bundled development runtime) | MIT and bundled component notices | https://nodejs.org/ | Frontend development runtime | External developer tool | Retain upstream notices if redistributed |
 | pnpm | 11.19.0 | MIT | https://pnpm.io/ | Lockfile-based frontend package manager | External developer tool | None |
 | React / React DOM | 19.1.1 | MIT | https://react.dev/ | Ambient UI rendering | Frontend runtime dependency | Retain MIT notice |
+| Tauri / tauri-build | 2.11.5 / 2.6.3 | Apache-2.0 OR MIT | https://github.com/tauri-apps/tauri | Thin native window and build boundary | Rust native-shell dependencies; no Sam policy or AI logic | Retain selected upstream notices when distributing native binaries |
+| Tauri single-instance plugin | 2.4.4 | Apache-2.0 OR MIT | https://github.com/tauri-apps/plugins-workspace | Focus the existing native Sam window before another runtime starts | Rust native-shell dependency | Retain selected upstream notices |
+| @tauri-apps/api / CLI | 2.11.1 / 2.11.4 | Apache-2.0 OR MIT | https://github.com/tauri-apps/tauri | Fixed close coordination and native development/build tooling | Frontend runtime / development dependencies | Retain selected upstream notices when redistributed |
+| NSIS | 3.11 | zlib/libpng plus separately licensed bundled compression modules | https://nsis.sourceforge.io/License | Per-user Windows installer assembly | Tauri-managed build tool; generated installer only, not an installed runtime dependency | Preserve applicable upstream license terms; no Sam modification to NSIS |
 | Vite / React plugin | 7.1.5 / 5.0.2 | MIT | https://vite.dev/ | Frontend development and production build | Development dependencies | Retain MIT notices |
 | TypeScript | 5.9.2 | Apache-2.0 | https://www.typescriptlang.org/ | Typed frontend compilation | Development dependency | Retain Apache-2.0 notice |
 | Vitest | 3.2.4 | MIT | https://vitest.dev/ | Deterministic frontend tests | Development dependency | Retain MIT notice |
@@ -56,7 +62,9 @@ All resolved Python runtime and development package versions above are
 hash-pinned in `uv.lock`. Frontend packages are pinned in `ui/pnpm-lock.yaml`;
 the resolved license set was checked from installed pnpm metadata and contains
 only MIT, MIT/Apache-2.0, Apache-2.0, BSD-3-Clause, ISC, and CC-BY-4.0 terms.
-Python dependencies are linked/imported packages, not copied project code.
+Python dependencies are linked/imported packages in source/wheel distributions.
+The native companion redistributes their bytecode/native runtime files and
+therefore carries their discovered license/notice files under `licenses/`.
 
 ## Bundled frontend notice
 

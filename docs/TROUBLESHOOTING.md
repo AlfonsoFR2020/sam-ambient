@@ -20,9 +20,9 @@ fallback discovery.
 Open **http://127.0.0.1:8766** manually. A failed browser handoff does not stop Sam.
 Development builds prefer installed Edge/Chrome/Chromium app mode in a Sam-only
 profile. `--ui-mode browser` bypasses it. There is no browser installation, native
-shell or force-kill fallback; if automatic window closure is refused, close the
-page yourself. Closing the dedicated window gracefully stops Sam; closing a
-fallback browser tab does not. A second launch reports the existing UI URL.
+shell fallback, or broad process-kill fallback; if automatic app-window closure is
+refused, close the stopped page yourself. Closing the dedicated window gracefully
+stops Sam; closing a fallback browser tab does not. A second launch reports the existing UI URL.
 The browser is opened once per launch; reconnecting or restarting the core does
 not open another window. Look for `sam-ui ready` and the UI URL in the console.
 **Starting Sam** means the UI is ready but the local core is still checking models
@@ -37,6 +37,21 @@ stopped and can be closed. Ctrl+C in the launch console also stops the managed
 components. Merely closing a fallback browser tab leaves Sam running.
 Confirmation is an in-app **Confirm quit / Cancel** dialog with keyboard focus;
 Escape cancels it. After acknowledgement, reconnection is disabled.
+
+## Native shell does not build
+
+The unreleased shell requires Rust/Cargo and Tauri's platform compiler
+prerequisites. On Windows, a missing linker usually means the MSVC C++ Build
+Tools or Windows SDK are absent, or the terminal predates their installation.
+Open a fresh developer terminal and inspect `pnpm exec tauri info`. WebView2 is
+the runtime renderer. These are developer build dependencies, not Sam runtime
+requirements; use the supported browser path while the native shell is unavailable.
+
+The native source expects a fixed `companion/sam-supervisor.exe` resource in
+release mode and fails clearly if it is absent. The guarded NSIS script is for
+controlled release validation only and must not be treated as a normal source
+check. Do not run unsigned packaged companions, bypass security software, sign,
+or publish artifacts as part of ordinary development validation.
 
 If uv reports a certificate-chain error behind a trusted corporate proxy, try
 `uv --native-tls sync --locked` to use the OS trust store; do not disable TLS verification.

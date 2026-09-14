@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import signal
 import sys
 import time
@@ -27,6 +28,18 @@ from sam_ambient.supervisor.browser import BrowserHandoff
 from sam_ambient.supervisor.single_instance import InstanceLock
 
 log = logging.getLogger(__name__)
+
+
+def _packaged_sibling(name: str) -> str | None:
+    """Return a trusted frozen companion executable beside this process."""
+
+    if not getattr(sys, "frozen", False):
+        return None
+    suffix = ".exe" if os.name == "nt" else ""
+    executable = Path(sys.executable).with_name(f"{name}{suffix}")
+    if not executable.is_file():
+        raise OSError(f"packaged Sam component is missing: {executable}")
+    return str(executable)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -75,10 +88,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ...]:
+    packaged = _packaged_sibling("sam-core")
     command = [
-        sys.executable,
-        "-m",
-        "sam_ambient.supervisor.component_launcher",
+        *(
+            [packaged]
+            if packaged
+            else [sys.executable, "-m", "sam_ambient.supervisor.component_launcher"]
+        ),
         "--component-root",
         str(root / ".sam/components/sam-core"),
         "--",
@@ -119,11 +135,9 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
 
 
 def _trusted_ui_command(args: argparse.Namespace) -> tuple[str, ...]:
+    packaged = _packaged_sibling("sam-ui")
     command = [
-        sys.executable,
-        "-m",
-        "sam_ambient",
-        "ui",
+        *([packaged] if packaged else [sys.executable, "-m", "sam_ambient", "ui"]),
         "--port",
         str(args.ui_port),
         "--log-level",

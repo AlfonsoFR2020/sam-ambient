@@ -64,6 +64,10 @@ Chromium. Use `uv run sam-ambient --ui-mode browser` for normal-browser/debug mo
 if no supported app browser is found, the default browser remains the fallback.
 Starting the same Sam root twice reports the existing local UI instead of creating
 competing runtimes. Closing the dedicated window gracefully stops Sam.
+The integrated, unreleased Tauri 2 shell provides the same ambient UI in a native
+window and starts a self-contained Python companion through a fixed resource
+boundary. It remains development-only until native packaging, signing, antivirus,
+and human acceptance gates are completed.
 On `dev`, speech follows detected response language using installed Windows voices
 with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
 speech service or additional voice installation is performed automatically.
@@ -84,13 +88,16 @@ speech service or additional voice installation is performed automatically.
 
 ```mermaid
 flowchart TD
-    UI[Ambient app window / browser] <--> Bridge[Local WebSocket protocol]
-    Bridge <--> Core[Sam core]
+    Tauri[Tauri native executable] --> React[React ambient UI]
+    Browser[App-window / browser fallback] --> React
+    React <--> Bridge[localhost WebSocket protocol]
+    Bridge <--> Companion[Python companion]
+    Companion --> Supervisor[sam-supervisor: resilience, updates, rollback]
+    Supervisor --> Core[Sam core]
     Core --> Voice[Voice and turn loop]
     Core --> Models[Model router]
     Core --> Policy[Capability policy and tools]
     Core --> Data[SQLite committed state]
-    Supervisor[sam-supervisor: resilience, updates, rollback] --> Core
     Supervisor --> Static[Static UI server]
     Models <--> Backends[External Ollama / LM Studio / compatible API]
 ```
@@ -115,6 +122,14 @@ Sam starts the supervisor, core, and static UI, then opens
 shows core/model/speech preparation rather than remaining blank. The core bridge
 uses localhost port 8765. Closing the dedicated window stops Sam; a normal browser
 fallback can be closed and reopened independently.
+
+Native-shell source lives in `ui/src-tauri`. Tauri supplies only the native
+window, application lifecycle, identity, and packaged-resource boundary; React
+remains the UI and Python remains the supervisor/core. Rust, Cargo, MSVC, and the
+Windows SDK are build dependencies, not intended end-user requirements. The
+guarded NSIS path bundles the Python companion, while providers, models, and
+Whisper assets remain external. Browser mode remains supported. See
+[Getting started](docs/GETTING_STARTED.md) for native development details.
 
 Use **Controls → Text request** to talk to the selected model.
 The development UI uses a warm, responsive light field rather than a solid sphere.
@@ -195,13 +210,14 @@ deterministic Python/frontend gates on Windows and Linux; releases remain manual
 ## Limits and direction
 
 Physical echo cancellation and Linux end-to-end voice tuning remain pending;
-STT is final-only. Native Tauri packaging and supervisor self-update are
-deferred. Windows guarantees direct-child termination, not full descendant
+STT is final-only. Native package/release validation and supervisor self-update
+are deferred. Windows guarantees direct-child termination, not full descendant
 containment. Local staged updates require trusted preparation and validation.
 
-Next: physical voice acceptance, acceptance of the native/ambient shell branches,
-and a seamless installer using the supported readiness layer. The local MCP stdio
-seam exists on `dev`; deskwright, remote MCP transports, and delegated workers are
+Next: combined native/ambient human acceptance, physical voice acceptance, and a
+seamless installer using the supported readiness layer. The integrated native
+source is not release approval. The local MCP stdio seam exists on `dev`;
+deskwright, remote MCP transports, and delegated workers are
 future integrations, not features of this release. See the [Roadmap](docs/ROADMAP.md).
 
 Longer term, Sam's architecture is intended to support increasingly capable
