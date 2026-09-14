@@ -44,10 +44,11 @@ If uv reports a certificate-chain error behind a trusted corporate proxy, try
 ## No local model selected
 
 The UI can load without an inference service, but Sam cannot respond without a
-usable model. Doctor shows each service and the selected model/reason. Start your
-existing model service if automatic startup fails, then restart Sam. Sam never downloads models.
-Automatic priority is last successful local selection, Ollama, LM Studio, then `--local-compatible-url`; explicit
-`--provider` / `--base-url` / `--model` selections take precedence and do not fall back.
+usable model. Doctor shows each service and the selected model/reason. Use the
+startup model picker when several models are installed, or **Rescan providers/models**
+after loading one externally. Sam never downloads models. A valid explicit choice
+wins, then a valid last-successful choice, then a sole installed conversational
+model; explicit `--provider` / `--base-url` / `--model` selections do not silently fall back.
 
 ## Ollama is installed but unavailable
 
@@ -61,14 +62,15 @@ does not mean a service or model is ready.
 Check `lms daemon status --json --quiet` and `lms server status --json --quiet`.
 Application startup attempts `lms server start` on loopback and loads an explicit,
 remembered, or sole installed conversational model if none is loaded. Service
-readiness stays short; model loading has a separate 120-second bound. Multiple
+readiness stays short; model loading has a separate 180-second bound. Multiple
 installed chat models require explicit selection. A missing
 `lms` CLI, no installed chat model, or startup/load failure is reported. If it
 fails, check the same installation using its UI/CLI and restart Sam. The default API endpoint is
 `http://127.0.0.1:1234/v1`; a running port reported by `lms` is also recognized.
 Use `--provider lm-studio --base-url http://127.0.0.1:PORT/v1` for an explicit port.
-When the server is stopped, downloaded model inventory may be unknown: `lms ps`
-and `lms ls` can wake the service, so passive discovery does not invoke them.
+Installed inventory comes from bounded structured `lms ls`; loaded/served state
+comes from local serving metadata. Thus an empty serving inventory does not mean
+that no model is installed.
 Local servers requiring API authentication are not selected by automatic discovery.
 
 ## No microphone or STT

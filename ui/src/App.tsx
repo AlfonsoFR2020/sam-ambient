@@ -90,17 +90,51 @@ const editableTarget = (target: EventTarget | null): boolean =>
   target instanceof HTMLTextAreaElement ||
   (target instanceof HTMLElement && target.isContentEditable);
 
-export function StartupCard({ state }: { state: UiState }) {
+export function StartupCard({
+  state,
+  dismissed = false,
+  onDismiss = () => undefined,
+  onRestart = () => undefined,
+  applyAction = () => undefined,
+}: {
+  state: UiState;
+  dismissed?: boolean;
+  onDismiss?: () => void;
+  onRestart?: () => void;
+  applyAction?: (action: ControlAction) => void;
+}) {
+  const providerSelectId = useId();
+  const modelSelectId = useId();
   const presentation = statusPresentation(state);
-  const visible = !state.sessionId || !state.model || Boolean(state.diagnosticReason);
+  const providers = state.providerCatalog.filter(
+    (provider) => provider.running || provider.models.length || provider.installedModels.length,
+  );
+  const allChoices = providers.flatMap((provider) =>
+    [...new Set([...provider.models, ...provider.installedModels])].map((model) => ({
+      provider: provider.id,
+      model,
+      loaded: provider.models.includes(model),
+      current: provider.id === state.provider && model === state.model,
+    })),
+  );
+  const [providerChoice, setProviderChoice] = useState("auto");
+  const choices = allChoices.filter(
+    (item) => providerChoice === "auto" || item.provider === providerChoice,
+  );
+  const [choice, setChoice] = useState("");
+  const [remember, setRemember] = useState(true);
+  const visible = !dismissed && state.startupLifecycle !== "dismissed";
   if (!visible || state.applicationStopped) return null;
   const steps = [
     { label: "Starting core", ready: Boolean(state.sessionId) },
     { label: "Detecting local AI providers", ready: Boolean(state.provider) },
     {
-      label: state.model
-        ? `Local model ready · ${state.model}`
-        : "Selecting a conversational model",
+      label:
+        state.startupLifecycle === "loading_model"
+          ? `Loading ${state.pendingModel ?? "local model"}…`
+          : state.model
+            ? `Local model ready · ${state.model}`
+            : "Selecting a conversational model",
       ready: Boolean(state.model),
     },
     {
@@ -117,8 +151,9 @@ export function StartupCard({ state }: { state: UiState }) {
         S
       </div>
       <div>
-        <h1>Sam</h1>
+        <h1>{state.samName ?? "Sam"}</h1>
         {state.samVersion && <small>Version {state.samVersion}</small>}
+        {state.samAuthor && <small>{state.samAuthor}</small>}
       </div>
       <ol>
         {steps.map((step) => (
@@ -130,6 +165,76 @@ export function StartupCard({ state }: { state: UiState }) {
       {(state.diagnosticReason || presentation.notice) && (
         <p>{state.diagnosticReason ?? presentation.notice}</p>
       )}
+      {(allChoices.length > 1 || state.startupLifecycle === "waiting_for_model_choice") && (
+        <div className="startup-card__choice">
+          <label htmlFor={providerSelectId}>Provider</label>
+          <select
+            id={providerSelectId}
+            value={providerChoice}
+            onChange={(event) => {
+              setProviderChoice(event.target.value);
+              setChoice("");
+            }}
+          >
+            <option value="auto">Automatic / recommended</option>
+            {providers.map((provider) => (
+              <option key={provider.id} value={provider.id}>
+                {provider.id} · {provider.running ? "running" : "installed"}
+              </option>
+            ))}
+          </select>
+          <label htmlFor={modelSelectId}>Conversational model</label>
+          <select
+            id={modelSelectId}
+            value={choice}
+            onChange={(event) => setChoice(event.target.value)}
+          >
+            <option value="">Choose a conversational model…</option>
+            {choices.map((item) => (
+              <option
+                key={`${item.provider}:${item.model}`}
+                value={`${item.provider}\t${item.model}`}
+              >
+                {item.provider} · {item.model} ·{" "}
+                {item.current ? "current" : item.loaded ? "loaded" : "installed"}
+              </option>
+            ))}
+          </select>
+          <label>
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+            />
+            Remember this choice
+          </label>
+        </div>
+      )}
+      <div className="startup-card__actions">
+        <button type="button" onClick={() => applyAction({ type: "providers.rescan" })}>
+          Rescan
+        </button>
+        {choice && (
+          <button
+            type="button"
+            onClick={() => {
+              const [provider, model] = choice.split("\t");
+              if (provider && model)
+                applyAction({ type: "model.select", provider, model, remember });
+            }}
+          >
+            Load selected model
+          </button>
+        )}
+        <button type="button" onClick={onDismiss}>
+          {state.model ? "Continue" : "Continue in available mode"}
+        </button>
+        {state.startupLifecycle === "blocked" && (
+          <button type="button" onClick={onRestart}>
+            Restart Sam
+          </button>
+        )}
+      </div>
     </aside>
   );
 }
@@ -211,6 +316,8 @@ export default function App() {
   }));
   const [controlsOpen, setControlsOpen] = useState(false);
   const [quitConfirmation, setQuitConfirmation] = useState(false);
+  const [restartConfirmation, setRestartConfirmation] = useState(false);
+  const [startupDismissed, setStartupDismissed] = useState(false);
   const [quitRequested, setQuitRequested] = useState(false);
   const [commandError, setCommandError] = useState<string>();
   const [textRequest, setTextRequest] = useState("");
@@ -243,6 +350,12 @@ export default function App() {
     const timeout = window.setTimeout(() => setPresentedLabel(next), urgent ? 0 : 180);
     return () => window.clearTimeout(timeout);
   }, [presentedLabel, runtimeStatus.label, visual.label]);
+
+  useEffect(() => {
+    if (state.startupLifecycle !== "ready_transition") return;
+    const timeout = window.setTimeout(() => setStartupDismissed(true), 900);
+    return () => window.clearTimeout(timeout);
+  }, [state.startupLifecycle]);
 
   const applyAction = useCallback(
     (action: ControlAction) => {
@@ -277,6 +390,7 @@ export default function App() {
         if (controlsOpen) controlsButton.current?.focus();
         setControlsOpen(false);
         setQuitConfirmation(false);
+        setRestartConfirmation(false);
         if (document.fullscreenElement) void document.exitFullscreen();
       } else if (event.ctrlKey && event.key.toLowerCase() === "q") {
         event.preventDefault();
@@ -305,7 +419,16 @@ export default function App() {
       {!quitRequested && !state.applicationStopped && (
         <AmbientScene model={visual} state={state} settings={visualSettings} />
       )}
-      <StartupCard state={state} />
+      <StartupCard
+        state={state}
+        dismissed={startupDismissed}
+        onDismiss={() => setStartupDismissed(true)}
+        onRestart={() => setRestartConfirmation(true)}
+        applyAction={(action) => {
+          setStartupDismissed(false);
+          applyAction(action);
+        }}
+      />
       <header className="status">
         <span className="status__mark" data-connected={visual.connected} />
         <strong>Sam</strong>
@@ -334,6 +457,17 @@ export default function App() {
           setQuitRequested(true);
           setControlsOpen(false);
           applyAction({ type: "application.quit" });
+        }}
+      />
+      <QuitDialog
+        mode="restart"
+        open={restartConfirmation && !state.applicationStopped}
+        onCancel={() => setRestartConfirmation(false)}
+        onConfirm={() => {
+          setRestartConfirmation(false);
+          setStartupDismissed(false);
+          setControlsOpen(false);
+          applyAction({ type: "application.restart" });
         }}
       />
       {(quitRequested || state.applicationStopped) && (
@@ -382,6 +516,25 @@ export default function App() {
               </button>
             </div>
           </form>
+          <button
+            type="button"
+            disabled={pending || state.connection !== "connected"}
+            onClick={() => {
+              setStartupDismissed(false);
+              applyAction({ type: "providers.rescan" });
+            }}
+            title="Refresh local providers and installed or loaded conversational models."
+          >
+            Rescan providers/models
+          </button>
+          <button
+            type="button"
+            disabled={state.connection !== "connected"}
+            onClick={() => setRestartConfirmation(true)}
+            title="Restart Sam's managed core without stopping external model services."
+          >
+            Restart Sam
+          </button>
           <button
             type="button"
             disabled={pending || state.connection !== "connected"}

@@ -3,6 +3,7 @@ import {
   INITIAL_UI_STATE,
   isConversationalState,
   type ProtocolEvent,
+  type ProviderCatalogEntry,
   TOOL_EVENT_TYPES,
   type ToolActivity,
   type ToolApprovalRequest,
@@ -30,7 +31,8 @@ const isStaleGeneration = (state: UiState, event: ProtocolEvent): boolean =>
       event.generation_id !== state.generationId &&
       (event.type.startsWith("model.") ||
         event.type.startsWith("tts.") ||
-        event.type.startsWith("tool.")),
+        event.type.startsWith("tool.") ||
+        (event.type === "transcript.final" && event.payload.role === "assistant")),
   );
 
 const isToolEvent = (type: string): type is ToolEventType =>
@@ -41,6 +43,30 @@ const boundedText = (value: unknown, maximum = 240): string | undefined => {
   const normalized = value.trim();
   return normalized.length <= maximum ? normalized : `${normalized.slice(0, maximum - 1)}…`;
 };
+
+const stringList = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
+    : [];
+
+const providerCatalog = (value: unknown): ProviderCatalogEntry[] =>
+  Array.isArray(value)
+    ? value.flatMap((item) => {
+        if (!item || typeof item !== "object") return [];
+        const row = item as Record<string, unknown>;
+        const id = boundedText(row.id, 80);
+        if (!id) return [];
+        return [
+          {
+            id,
+            running: row.running === true,
+            models: stringList(row.models),
+            installedModels: stringList(row.installed_models ?? row.available_models),
+            detail: boundedText(row.detail, 500) ?? "unavailable",
+          },
+        ];
+      })
+    : [];
 
 const authorityEpoch = (value: unknown): number | null =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
@@ -208,6 +234,14 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
 
   if (event.type === "system.ready") {
     const readyState = isConversationalState(event.payload.state) ? event.payload.state : "IDLE";
+    const readyCatalog = providerCatalog(event.payload.provider_catalog);
+    const readyModel = boundedText(event.payload.model);
+    const readyPendingProvider = boundedText(event.payload.pending_provider);
+    const readyPendingModel = boundedText(event.payload.pending_model);
+    const installedCount = readyCatalog.reduce(
+      (count, provider) => count + provider.installedModels.length,
+      0,
+    );
     const readyAuthorityEpoch = authorityEpoch(event.payload.capability_authority_epoch);
     const readyAuthority = startsNewSession
       ? {
@@ -228,12 +262,26 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       connection: "connected",
       applicationStopped: false,
       samVersion: boundedText(event.payload.sam_version, 32),
+      samName: boundedText(event.payload.sam_name, 80) ?? "Sam",
+      samAuthor: boundedText(event.payload.sam_author, 160),
       provider: boundedText(event.payload.provider),
-      model: boundedText(event.payload.model),
+      model: readyModel,
+      pendingProvider: readyPendingProvider,
+      pendingModel: readyPendingModel,
       selectionReason: boundedText(event.payload.selection_reason, 500),
       sttStatus: boundedText(event.payload.stt_status, 500),
       ttsBackend: boundedText(event.payload.tts_backend, 80),
       ttsSelection: speechSelection(event.payload.tts_selection),
+      providerCatalog: readyCatalog,
+      startupLifecycle: readyModel
+        ? "ready_transition"
+        : readyPendingModel
+          ? "loading_model"
+          : installedCount > 1
+            ? "waiting_for_model_choice"
+            : "blocked",
+      diagnosticReason:
+        boundedText(event.payload.model_unavailable_reason, 500) ?? next.diagnosticReason,
       cloudAllowed:
         typeof event.payload.cloud_allowed === "boolean"
           ? event.payload.cloud_allowed
@@ -266,7 +314,35 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         : {}),
     };
   }
-  if (event.type === "capability.authority_changed") {
+  if (event.type === "provider.discovery") {
+    const phase = boundedText(event.payload.state, 40);
+    const catalog = providerCatalog(event.payload.catalog);
+    const provider = boundedText(event.payload.provider, 80);
+    const model = boundedText(event.payload.model, 256);
+    const reason = boundedText(event.payload.reason, 500);
+    const startupLifecycle =
+      phase === "ready"
+        ? "ready_transition"
+        : phase === "loading_model"
+          ? "loading_model"
+          : phase === "scanning"
+            ? "scanning"
+            : phase === "blocked" &&
+                catalog.reduce((count, item) => count + item.installedModels.length, 0) > 1
+              ? "waiting_for_model_choice"
+              : "blocked";
+    next = {
+      ...next,
+      provider: phase === "ready" ? (provider ?? next.provider) : next.provider,
+      model: phase === "ready" ? (model ?? next.model) : next.model,
+      pendingProvider: phase === "loading_model" ? provider : undefined,
+      pendingModel: phase === "loading_model" ? model : undefined,
+      selectionReason: reason ?? next.selectionReason,
+      diagnosticReason: phase === "ready" ? undefined : (reason ?? next.diagnosticReason),
+      providerCatalog: catalog.length ? catalog : next.providerCatalog,
+      startupLifecycle,
+    };
+  } else if (event.type === "capability.authority_changed") {
     const changedEpoch = authorityEpoch(event.payload.epoch);
     const applies =
       changedEpoch !== null &&
@@ -374,7 +450,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       next = {
         ...next,
         provisionalTranscript: null,
-        transcript: transcript.slice(-12),
+        transcript: transcript.slice(-100),
       };
     }
   } else if (event.type === "tts.cancelled") {
@@ -441,6 +517,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         event.type === "control.rejected" && typeof event.payload.error === "string"
           ? event.payload.error
           : next.protocolError,
+      startupLifecycle:
+        event.type === "control.acknowledged" && event.payload.application_restarting === true
+          ? "starting"
+          : next.startupLifecycle,
     };
   } else if (event.type === "component.error") {
     next = {

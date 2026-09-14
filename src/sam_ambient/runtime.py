@@ -551,6 +551,12 @@ class SamRuntime:
                 self._model_unavailable_reason = result.reason
                 await self._publish_provider_status("blocked", reason=result.reason)
                 return
+            if not self._active_done.is_set():
+                await result.provider.aclose()
+                reason = "A response started during model discovery; wait for it, then Rescan"
+                self._model_unavailable_reason = reason
+                await self._publish_provider_status("blocked", reason=reason)
+                return
             previous = self.provider
             registry = ProviderRegistry()
             registry.register(result.provider)
@@ -1554,6 +1560,8 @@ class SamRuntime:
                 "sam_author": __author__,
                 "provider": self.provider.id if self._model else None,
                 "model": self._model,
+                "pending_provider": self.config.startup_provider,
+                "pending_model": self.config.startup_model,
                 "selection_reason": self._provider_selection_reason,
                 "provider_catalog": list(self._provider_catalog),
                 "model_unavailable_reason": self._model_unavailable_reason,

@@ -40,6 +40,9 @@ export const CONTROL_COMMAND_TYPES = [
   "control.tool.approve",
   "control.tool.deny",
   "control.capabilities.revoke_all",
+  "control.providers.rescan",
+  "control.model.select",
+  "control.application.restart",
   "control.application.quit",
 ] as const;
 
@@ -114,11 +117,32 @@ export interface VoiceMetrics {
   playbackEnvelope: number;
 }
 
+export type StartupLifecycle =
+  | "starting"
+  | "scanning"
+  | "waiting_for_model_choice"
+  | "loading_model"
+  | "blocked"
+  | "ready_transition"
+  | "dismissed";
+
+export interface ProviderCatalogEntry {
+  id: string;
+  running: boolean;
+  models: readonly string[];
+  installedModels: readonly string[];
+  detail: string;
+}
+
 export interface UiState {
   samVersion?: string;
+  samName?: string;
+  samAuthor?: string;
   applicationStopped?: boolean;
   provider?: string;
   model?: string;
+  pendingProvider?: string;
+  pendingModel?: string;
   selectionReason?: string;
   sttStatus?: string;
   ttsBackend?: string;
@@ -146,6 +170,8 @@ export interface UiState {
   updateActivity: UpdateActivity | null;
   protocolError?: string;
   diagnosticReason?: string;
+  startupLifecycle: StartupLifecycle;
+  providerCatalog: readonly ProviderCatalogEntry[];
 }
 
 export const INITIAL_UI_STATE: UiState = {
@@ -165,6 +191,8 @@ export const INITIAL_UI_STATE: UiState = {
   latestToolActivity: null,
   pendingToolApproval: null,
   updateActivity: null,
+  startupLifecycle: "starting",
+  providerCatalog: [],
 };
 
 export const isConversationalState = (value: unknown): value is ConversationalState =>

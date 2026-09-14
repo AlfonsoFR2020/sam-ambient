@@ -54,6 +54,28 @@ describe("startup and shutdown presentation", () => {
     expect(html).not.toContain("No model selected");
   });
 
+  it("shows available providers and distinguishes installed from loaded models", () => {
+    const state = {
+      ...resetUiState(),
+      startupLifecycle: "waiting_for_model_choice" as const,
+      providerCatalog: [
+        {
+          id: "lm-studio",
+          running: true,
+          models: ["loaded-chat"],
+          installedModels: ["loaded-chat", "installed-chat"],
+          detail: "ready",
+        },
+      ],
+    };
+    const html = renderToStaticMarkup(createElement(StartupCard, { state }));
+    expect(html).toContain("Automatic / recommended");
+    expect(html).toContain("loaded-chat · loaded");
+    expect(html).toContain("installed-chat · installed");
+    expect(html).toContain("Remember this choice");
+    expect(html).toContain("Continue in available mode");
+  });
+
   it("provides native modal semantics, distinct confirmation and cancellation", () => {
     const html = renderToStaticMarkup(
       createElement(QuitDialog, { open: false, onCancel() {}, onConfirm() {} }),

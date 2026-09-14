@@ -36,9 +36,11 @@
   spheroid with drifting fragmented peels, analytic lights and sparse particles;
   explicit mobile budgets; and Canvas/CSS fallbacks. Human acceptance remains pending.
 - Harden human-acceptance startup and voice reliability: load only an explicit,
-  remembered, or sole installed chat model; debounce VAD; suppress playback
-  self-echo; recover capture failures; and expose actionable startup/error state,
-  safe hotkeys, correlated transcripts, and stage timing. Physical acceptance remains pending.
+  remembered, or sole installed chat model; keep LM Studio's installed and loaded
+  inventories distinct; and expose cancellable long-load, Rescan, model choice,
+  Restart, stable reconnect, correlated transcript, and actionable startup state.
+  Also debounce VAD, suppress playback self-echo, recover capture failures, and
+  retain safe hotkeys and stage timing. Physical acceptance remains pending.
 
 - Infer speech language from assistant responses, retaining context for ambiguous
   short replies. Select installed Windows voices by locale/language with explicit

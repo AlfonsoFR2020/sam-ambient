@@ -60,6 +60,54 @@ describe("protocol state reduction", () => {
     expect(state.transcript[0]?.text).toBe("Hello Sam.");
   });
 
+  it("tracks provider scanning, model choice and ready transitions", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("provider.discovery", 10, {
+        state: "blocked",
+        reason: "Several local conversational models are installed; choose one",
+        catalog: [
+          {
+            id: "lm-studio",
+            running: true,
+            models: [],
+            installed_models: ["gemma", "qwen"],
+            detail: "installed but unloaded",
+          },
+        ],
+      }),
+    );
+    expect(state.startupLifecycle).toBe("waiting_for_model_choice");
+    expect(state.providerCatalog[0]?.installedModels).toEqual(["gemma", "qwen"]);
+    state = reduceProtocolEvent(
+      state,
+      event("provider.discovery", 11, {
+        state: "loading_model",
+        provider: "lm-studio",
+        model: "gemma",
+      }),
+    );
+    expect(state.startupLifecycle).toBe("loading_model");
+    expect(state.model).toBeUndefined();
+    expect(state.pendingModel).toBe("gemma");
+    state = reduceProtocolEvent(
+      state,
+      event("provider.discovery", 12, {
+        state: "ready",
+        provider: "lm-studio",
+        model: "gemma",
+        reason: "owner selection",
+      }),
+    );
+    expect(state).toMatchObject({
+      startupLifecycle: "ready_transition",
+      provider: "lm-studio",
+      model: "gemma",
+      diagnosticReason: undefined,
+      pendingModel: undefined,
+    });
+  });
+
   it("deduplicates a correlated committed transcript and preserves its role", () => {
     let state = reduceProtocolEvent(
       resetUiState(),
@@ -81,6 +129,88 @@ describe("protocol state reduction", () => {
     expect(state.transcript).toHaveLength(2);
     expect(state.transcript[0]).toMatchObject({ role: "user", text: "final" });
     expect(state.transcript[1]).toMatchObject({ role: "assistant", text: "answer" });
+  });
+
+  it("preserves two turns and rejects a stale assistant transcript", () => {
+    let state = resetUiState();
+    for (const [time, role, text, turn, generation] of [
+      [10, "user", "first", "t1", "g1"],
+      [11, "assistant", "answer one", "t1", "g1"],
+      [20, "user", "second", "t2", "g2"],
+      [21, "assistant", "answer two", "t2", "g2"],
+    ] as const) {
+      state = reduceProtocolEvent(
+        state,
+        event(
+          "transcript.final",
+          time,
+          { role, text },
+          { turn_id: turn, generation_id: generation },
+        ),
+      );
+    }
+    const stale = reduceProtocolEvent(
+      state,
+      event(
+        "transcript.final",
+        30,
+        { role: "assistant", text: "late old answer" },
+        { turn_id: "t1", generation_id: "g1" },
+      ),
+    );
+    expect(stale).toBe(state);
+    expect(state.transcript.map((item) => [item.role, item.text])).toEqual([
+      ["user", "first"],
+      ["assistant", "answer one"],
+      ["user", "second"],
+      ["assistant", "answer two"],
+    ]);
+  });
+
+  it("keeps equal user and assistant text distinct and reconciles a typed turn once", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "transcript.final",
+        10,
+        { role: "user", text: "Repeat this" },
+        { turn_id: "typed-turn", generation_id: "typed-generation" },
+      ),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "transcript.final",
+        11,
+        { role: "user", text: "Repeat this" },
+        { turn_id: "typed-turn", generation_id: "typed-generation" },
+      ),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "transcript.final",
+        12,
+        { role: "assistant", text: "Repeat this" },
+        { turn_id: "typed-turn", generation_id: "typed-generation" },
+      ),
+    );
+    expect(state.transcript.map((entry) => [entry.role, entry.text])).toEqual([
+      ["user", "Repeat this"],
+      ["assistant", "Repeat this"],
+    ]);
+  });
+
+  it("does not replay startup lifecycle for ordinary conversation state changes", () => {
+    const ready = {
+      ...resetUiState(),
+      startupLifecycle: "ready_transition" as const,
+    };
+    const speaking = reduceProtocolEvent(
+      ready,
+      event("voice.state_changed", 40, { to: "SPEAKING" }),
+    );
+    expect(speaking.startupLifecycle).toBe("ready_transition");
   });
 
   it("retains an actionable component failure until listening recovers", () => {

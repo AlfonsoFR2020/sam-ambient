@@ -260,6 +260,57 @@ def test_runtime_rescan_hot_adopts_ready_local_provider(tmp_path):
     asyncio.run(scenario())
 
 
+def test_runtime_ready_event_keeps_pending_model_distinct(tmp_path):
+    async def scenario():
+        runtime = SamRuntime(
+            ConversationProvider(),
+            RuntimeConfig(
+                tmp_path,
+                model_unavailable_reason="Installed model is not loaded",
+                startup_provider="lm-studio",
+                startup_model="google/gemma",
+            ),
+        )
+        try:
+            event = runtime._ready_event()
+            assert event.payload["model"] is None
+            assert event.payload["pending_provider"] == "lm-studio"
+            assert event.payload["pending_model"] == "google/gemma"
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_runtime_rescan_never_swaps_provider_during_an_active_turn(tmp_path):
+    async def scenario():
+        initial = ConversationProvider()
+        selected = ConversationProvider()
+        selected.id = "lm-studio"
+        selected.aclose = AsyncMock()
+        release = asyncio.Event()
+
+        async def refresh(_provider, _model):
+            await release.wait()
+            return ProviderRefresh(selected, "gemma", "ready")
+
+        runtime = SamRuntime(initial, RuntimeConfig(tmp_path, port=0), provider_refresher=refresh)
+        try:
+            await runtime._refresh_providers(None, None, False)
+            runtime._active_done.clear()
+            release.set()
+            assert runtime._provider_refresh_task is not None
+            await runtime._provider_refresh_task
+            assert runtime.provider is initial
+            assert "response started" in (runtime._model_unavailable_reason or "")
+            selected.aclose.assert_awaited_once()
+        finally:
+            runtime._active_done.set()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
 def test_embedding_models_and_unverified_ollama_capabilities_rejected(monkeypatch):
     async def request(self, method, url, **kwargs):
         if url.endswith("tags"):

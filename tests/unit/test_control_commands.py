@@ -22,6 +22,7 @@ class RecordingBindings:
         self.approvals: list[tuple[str, bool]] = []
         self.revocations: list[str] = []
         self.refreshes: list[tuple[str | None, str | None, bool]] = []
+        self.restarts: list[str] = []
 
     async def set_microphone(self, enabled: bool) -> None:
         self.microphone.append(enabled)
@@ -57,6 +58,9 @@ class RecordingBindings:
     ) -> dict[str, object]:
         self.refreshes.append((provider, model, remember))
         return {"provider_refresh_started": True}
+
+    async def restart(self, command: ControlCommand) -> None:
+        self.restarts.append(command.command_id)
 
 
 def command(
@@ -250,5 +254,29 @@ def test_provider_rescan_and_exact_model_selection_are_trusted_controls() -> Non
             (None, None, False),
             ("lm-studio", "google/gemma", True),
         ]
+
+    asyncio.run(scenario())
+
+
+def test_restart_is_a_session_bound_owner_control() -> None:
+    async def scenario() -> None:
+        recording = RecordingBindings()
+        dispatcher = ControlDispatcher(
+            CoreControlBindings(
+                recording.set_microphone,
+                recording.set_tts_output,
+                recording.cancel,
+                request_restart=recording.restart,
+            )
+        )
+        restarted = await dispatcher.dispatch(
+            command(ControlCommandType.APPLICATION_RESTART, "restart")
+        )
+        malformed = await dispatcher.dispatch(
+            command(ControlCommandType.APPLICATION_RESTART, "bad", {"component": "provider"})
+        )
+        assert restarted.payload["application_restarting"] is True
+        assert malformed.type == EventType.CONTROL_REJECTED
+        assert recording.restarts == ["restart"]
 
     asyncio.run(scenario())

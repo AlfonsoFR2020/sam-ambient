@@ -126,6 +126,26 @@ describe("control command protocol", () => {
     expect(decodeControlCommand(JSON.parse(serializeControlCommand(approval)))).toEqual(approval);
   });
 
+  it("serializes owner-only provider and restart controls", () => {
+    const state = { ...INITIAL_UI_STATE, sessionId: "session" };
+    expect(commandForAction({ type: "providers.rescan" }, state, runtime)?.type).toBe(
+      "control.providers.rescan",
+    );
+    expect(
+      commandForAction(
+        { type: "model.select", provider: "lm-studio", model: "gemma", remember: true },
+        state,
+        runtime,
+      ),
+    ).toMatchObject({
+      type: "control.model.select",
+      payload: { provider: "lm-studio", model: "gemma", remember: true },
+    });
+    expect(commandForAction({ type: "application.restart" }, state, runtime)?.type).toBe(
+      "control.application.restart",
+    );
+  });
+
   it("rejects a blank tool correlation id", () => {
     expect(() =>
       decodeControlCommand({

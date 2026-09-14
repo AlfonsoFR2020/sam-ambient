@@ -28,7 +28,10 @@ Expand the provider/model line for selection reason and STT/TTS status, also
 shown in Controls. Successful local responses remember the provider/model in
 `<root>/.sam/state.db`. Explicit CLI options override this preference; stale
 preferences fall back deterministically. There is no model download or automatic
-cloud switch. Restart Sam after changing external services.
+cloud switch. **Rescan providers/models** refreshes installed and loaded inventory
+and can adopt a newly available configured/remembered model without restarting.
+If several models are viable, the startup card asks for a provider/model choice
+and can remember it after successful local use.
 Before core readiness, the main view says **Starting Sam**; after a core restart it
 says **Reconnecting**. Degraded notices state what remains usable. Controls keeps
 the detailed provider/model, speech input, spoken output, selected voice, and
@@ -68,6 +71,9 @@ normal `--ui-mode browser` tab does not stop Sam.
 - **Emergency stop** cancels current model, tools, queued speech and playback.
 - **Disable all capabilities** revokes computer-action authority and pending
   approvals, preventing new tool execution. The model cannot restore authority.
+- **Rescan providers/models** reruns bounded local discovery and model readiness.
+- **Restart Sam** asks for confirmation, revokes/cancels active work, and restarts
+  managed Sam components without stopping externally owned model services.
 - **Quit Sam** in Controls (or Ctrl+Q) asks for confirmation, then shuts down
   the application. Cancel/Escape backs out; keyboard focus starts on Cancel.
   After acknowledgement the page says **Sam has stopped** and does not reconnect.

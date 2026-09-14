@@ -118,7 +118,7 @@ export class ProtocolClient {
           return;
         }
         this.session = session;
-        this.setState(withConnection(this.state, "connected"));
+        this.setState({ ...withConnection(this.state, "connected"), protocolError: undefined });
       })
       .catch((error: unknown) => {
         if (!this.running || epoch !== this.epoch) return;

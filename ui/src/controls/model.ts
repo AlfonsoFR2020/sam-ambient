@@ -23,6 +23,9 @@ export type ControlAction =
   | { type: "stop_speaking" }
   | { type: "emergency_stop" }
   | { type: "application.quit" }
+  | { type: "application.restart" }
+  | { type: "providers.rescan" }
+  | { type: "model.select"; provider: string; model: string; remember: boolean }
   | { type: "user_message.submit"; text: string }
   | { type: "tool.approve"; toolCallId: string }
   | { type: "tool.deny"; toolCallId: string }
@@ -57,6 +60,20 @@ export function commandForAction(
   }
   if (action.type === "application.quit") {
     return createControlCommand("control.application.quit", {}, state, runtime);
+  }
+  if (action.type === "application.restart") {
+    return createControlCommand("control.application.restart", {}, state, runtime);
+  }
+  if (action.type === "providers.rescan") {
+    return createControlCommand("control.providers.rescan", {}, state, runtime);
+  }
+  if (action.type === "model.select") {
+    return createControlCommand(
+      "control.model.select",
+      { provider: action.provider, model: action.model, remember: action.remember },
+      state,
+      runtime,
+    );
   }
   if (action.type === "emergency_stop") {
     return createControlCommand(

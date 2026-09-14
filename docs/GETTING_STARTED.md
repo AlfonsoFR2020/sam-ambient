@@ -73,16 +73,17 @@ structured `command` argv, optional absolute `working_directory`, bounded
 configuration cannot introduce process-launch authority. Discovery grants no
 permission: every external call still presents Sam's exact owner approval.
 
-Selection order: explicit CLI configuration → last successful local provider/model
-→ Ollama → LM Studio → explicitly configured compatible endpoint. Deleted/stopped
-saved preferences do not prevent fallback discovery; an explicit unavailable
+Selection order: a valid explicit provider/model → a valid last-successful local
+provider/model → the sole installed local conversational model. If several viable
+models remain, Sam asks you to choose instead of selecting by list order. A stale
+saved preference does not prevent fallback discovery; an explicit unavailable
 choice is not silently replaced. No automatic cloud fallback occurs.
 
 Installed stopped Ollama/LM Studio services receive a bounded startup attempt.
 Sam reuses running services. For LM Studio, if no chat model is loaded, Sam loads
 an explicit/saved installed model, or the sole installed conversational model.
 Several candidates require an explicit choice. Loading has its own cancellable
-120-second bound, with 4096-token context and 600-second idle TTL. It never evicts
+180-second bound, with 4096-token context and 600-second idle TTL. It never evicts
 an existing loaded model. It cannot install missing
 runtimes/models or manage authenticated servers automatically.
 
@@ -116,8 +117,13 @@ Use `--no-voice --no-tts` for text-only operation.
 
 ## Status, shutdown and common failures
 
-Expand the provider/model status to read why it was selected, whether Sam started
-or reused it, and STT/TTS readiness. No model means the UI can operate but cannot answer.
+The startup card shows discovery and long model-loading state. If action is needed,
+choose an installed conversational model or use **Rescan** after changing an
+external service; **Continue in available mode** leaves the non-model UI usable.
+Controls can rescan later without restarting, and **Restart Sam** restarts managed
+Sam components without stopping external provider services. Expand provider/model
+status to read why it was selected, whether Sam started or reused it, and STT/TTS
+readiness. No model means the UI can operate but cannot answer.
 `uv run sam doctor --root .` is read-only and reports categorized readiness plus
 actionable next steps. Add `--verbose` for bounded component inventories or
 `--json` for automation. `uv run sam-ambient --verbose` shows startup decisions
@@ -131,5 +137,6 @@ daemon/server is retained to avoid interrupting other users/apps.
 
 If the browser fails, open the URL manually. If no model is usable, check your
 runtime's installed chat models and the reported startup failure. If ports are
-occupied, check for an earlier Sam instance. Restart Sam after correcting an
-external service. See [Troubleshooting](TROUBLESHOOTING.md) and [User guide](USER_GUIDE.md).
+occupied, check for an earlier Sam instance. Rescan after correcting or externally
+loading a model; restart Sam only when the reported recovery action requires it.
+See [Troubleshooting](TROUBLESHOOTING.md) and [User guide](USER_GUIDE.md).

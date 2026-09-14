@@ -4,10 +4,12 @@ export function QuitDialog({
   open,
   onCancel,
   onConfirm,
+  mode = "quit",
 }: {
   open: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  mode?: "quit" | "restart";
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
@@ -30,10 +32,14 @@ export function QuitDialog({
         onCancel();
       }}
     >
-      <h2 id={title}>Quit Sam?</h2>
-      <p>Stop Sam and cancel running work. If this window stays open, you can safely close it.</p>
+      <h2 id={title}>{mode === "restart" ? "Restart Sam?" : "Quit Sam?"}</h2>
+      <p>
+        {mode === "restart"
+          ? "Cancel running work and restart Sam's managed core. External model services stay untouched."
+          : "Stop Sam and cancel running work. If this window stays open, you can safely close it."}
+      </p>
       <button type="button" onClick={onConfirm}>
-        Confirm quit
+        Confirm {mode}
       </button>{" "}
       <button ref={cancel} type="button" onClick={onCancel}>
         Cancel

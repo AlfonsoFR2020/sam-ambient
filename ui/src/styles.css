@@ -221,6 +221,8 @@ input {
   background: #1d1612ed;
   box-shadow: 0 22px 70px #0009;
   backdrop-filter: blur(18px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
 }
 
 .startup-card__identity {
@@ -250,6 +252,42 @@ input {
 .startup-card p {
   grid-column: 1 / -1;
   margin: 8px 0 0;
+}
+
+.startup-card__choice,
+.startup-card__actions {
+  grid-column: 1 / -1;
+}
+
+.startup-card__choice {
+  display: grid;
+  gap: 7px;
+  color: #c6aa91;
+  font-size: 0.76rem;
+}
+
+.startup-card__choice select {
+  min-width: 0;
+  border: 1px solid #94725866;
+  border-radius: 10px;
+  padding: 8px;
+  color: #eadac8;
+  background: #130f0d;
+}
+
+.startup-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.startup-card__actions button {
+  border: 1px solid #94725866;
+  border-radius: 999px;
+  padding: 7px 12px;
+  color: #f0c69c;
+  background: #a45b2d22;
+  cursor: pointer;
 }
 
 .startup-card ol {

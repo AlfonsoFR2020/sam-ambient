@@ -50,12 +50,35 @@ class ControlledTransport implements ProtocolTransport {
   }
 }
 
+class FailOnceTransport extends ControlledTransport {
+  attempts = 0;
+
+  override async connect(observer: TransportObserver): Promise<TransportSession> {
+    this.attempts += 1;
+    if (this.attempts === 1) throw new Error("Sam core WebSocket connection failed");
+    return super.connect(observer);
+  }
+}
+
 const flushPromises = async () => {
   await Promise.resolve();
   await Promise.resolve();
 };
 
 describe("protocol client", () => {
+  it("clears a transient startup connection error after reconnect succeeds", async () => {
+    const transport = new FailOnceTransport();
+    const scheduler = new ManualScheduler();
+    const client = new ProtocolClient(transport, scheduler, 5);
+    client.start();
+    await flushPromises();
+    expect(client.getSnapshot().protocolError).toContain("WebSocket connection failed");
+    scheduler.runDelay();
+    await flushPromises();
+    expect(client.getSnapshot()).toMatchObject({ connection: "connected" });
+    expect(client.getSnapshot().protocolError).toBeUndefined();
+    client.stop();
+  });
   it("stops reconnecting after acknowledged application shutdown", async () => {
     const transport = new ControlledTransport();
     const scheduler = new ManualScheduler();

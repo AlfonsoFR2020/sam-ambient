@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-13
+Updated: 2026-09-14
 
 ## MVP status
 
@@ -178,9 +178,12 @@ Updated: 2026-09-13
   Sustained-noise endpointing and physical voice remain unaccepted; no AEC or VAD tuning added.
 - LM Studio now distinguishes installed/loaded models: explicit/last-good choices
   win, a sole chat model may load automatically, and multiple candidates require
-  selection. Model load has a separate cancellable 120-second bound. Startup/error
-  details, correlated transcripts, Ctrl+M, and stage timing are automated; physical
-  voice and visual acceptance remain pending.
+  selection. Model load has a separate cancellable 180-second bound while ordinary
+  provider readiness remains short. Trusted Rescan can adopt newly available local
+  models; Restart affects managed Sam components only. The startup card has an
+  explicit dismissible lifecycle and compact picker; reconnect errors clear on
+  success and correlated roles/history remain stable. Physical voice and visual
+  acceptance remain pending.
 
 ## Known limitations / post-MVP priorities
 
