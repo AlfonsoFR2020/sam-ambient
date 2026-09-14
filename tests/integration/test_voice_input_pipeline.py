@@ -13,6 +13,7 @@ from sam_ambient.core.voice import (
     VoiceInputPipeline,
     VoicePipelineEnded,
 )
+from sam_ambient.core.voice.pipeline import EndpointingPolicy, SpeechEvidence
 
 
 class FakeCapture:
@@ -154,3 +155,34 @@ def test_voice_input_pipeline_can_reopen_after_capture_error() -> None:
         )
 
     asyncio.run(scenario())
+
+
+def test_endpoint_evidence_requires_sustained_resume_after_isolated_noise() -> None:
+    evidence = SpeechEvidence(EndpointingPolicy(resume_frames=3))
+
+    assert evidence.gate(VoiceState.ENDPOINT_CANDIDATE, 1.0) == 0.0
+    assert evidence.gate(VoiceState.ENDPOINT_CANDIDATE, 0.0) == 0.0
+    assert evidence.gate(VoiceState.ENDPOINT_CANDIDATE, 1.0) == 0.0
+    assert evidence.gate(VoiceState.ENDPOINT_CANDIDATE, 1.0) == 0.0
+    assert evidence.gate(VoiceState.ENDPOINT_CANDIDATE, 1.0) == 1.0
+
+
+def test_sparse_noise_candidate_is_bounded_but_long_speech_remains_open() -> None:
+    audio_format = AudioFormat()
+    policy = EndpointingPolicy(sparse_candidate_ms=1_000, recent_window_ms=400)
+    sparse = SpeechEvidence(policy)
+    sustained = SpeechEvidence(policy)
+
+    for sequence in range(70):
+        at_ms = sequence * 20
+        frame = AudioFrame(
+            audio_format,
+            b"\0" * 640,
+            monotonic_ms=at_ms,
+            sequence=sequence,
+        )
+        sparse.observe(frame, 1.0 if sequence % 20 == 0 else 0.0)
+        sustained.observe(frame, 1.0)
+
+    assert sparse.sparse_too_long(1_380)
+    assert not sustained.sparse_too_long(1_380)

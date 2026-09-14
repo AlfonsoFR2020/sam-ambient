@@ -8,8 +8,9 @@ planned or acceptance-pending work. Priorities may change after real use.
 - Human-accept `feature/ambient-shell` and fix only observed shell/visual defects.
 - Accept and merge `feature/native-shell`, then reconcile it cleanly with the
   accepted ambient shell without importing the rejected `feature/ambient-ui`.
-- Investigate sustained-noise/long-utterance VAD endpointing; then complete physical
-  multi-turn voice, multilingual playback, and barge-in acceptance.
+- Physically accept the new sparse-noise endpointing bounds, then investigate any
+  remaining continuously VAD-positive environmental noise and complete multi-turn
+  voice, multilingual playback, and barge-in acceptance.
 - Use existing stage timings to reduce observed latency, then accept the final
   transcript, startup, and compact-window behavior.
 - Run the full regression, package, documentation, and release-candidate gate.

@@ -39,6 +39,12 @@ Updated: 2026-09-14
   strengthened after initial review. Acceptance-pending direct mouse/touch rotation,
   damped inertia, persisted typed visual preferences, mobile-profile emulation and a
   bounded measured Auto-quality governor are implemented; final acceptance remains pending.
+- Voice endpointing now layers sustained-resume hysteresis and bounded speech-density
+  evidence over WebRTC VAD. Sparse clicks no longer repeatedly reset endpoint silence,
+  and a low-density candidate is discarded after 12 seconds instead of accumulating
+  pathological 30-60 second clips. The normal 0.65-1.1 second silence endpoint,
+  200 ms pre-roll, long sustained speech, and playback-aware barge-in remain intact.
+  Physical acoustic/AEC acceptance remains pending.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:

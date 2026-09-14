@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Require sustained VAD evidence to reopen an endpoint candidate, and reject
+  long open STT candidates when both recent and overall speech density remain
+  low. Keep 200 ms pre-roll, normal silence thresholds, long sustained speech,
+  barge-in ownership, and language authority unchanged.
 - Dispose finalized/rejected speech candidates before accepting more audio, apply
   confirmed interruption cancellation through the controller, and preserve an
   in-flight response's TTS eligibility during input failure. Discard short rejected

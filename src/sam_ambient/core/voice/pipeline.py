@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import math
 import sys
+import time
 from array import array
 from collections import deque
 from collections.abc import Awaitable, Callable
@@ -33,6 +34,62 @@ class VoiceInputResult:
 class BargeInResult:
     events: tuple[ProtocolEvent, ...]
     effects: InterruptionEffects
+
+
+@dataclass(frozen=True, slots=True)
+class EndpointingPolicy:
+    """Conservative evidence bounds layered above binary VAD output."""
+
+    resume_frames: int = 5
+    sparse_candidate_ms: int = 12_000
+    recent_window_ms: int = 1_500
+    minimum_overall_speech_ratio: float = 0.18
+    minimum_recent_speech_ratio: float = 0.25
+
+
+class SpeechEvidence:
+    """Track bounded speech density and require credible endpoint resumption."""
+
+    def __init__(self, policy: EndpointingPolicy | None = None) -> None:
+        self.policy = policy or EndpointingPolicy()
+        self.opened_ms: int | None = None
+        self.speech_ms = 0.0
+        self.total_ms = 0.0
+        self.resume_run = 0
+        self.recent: deque[tuple[int, float, bool]] = deque()
+
+    def gate(self, state: VoiceState, speech_probability: float) -> float:
+        speech = speech_probability >= 0.5
+        if state is not VoiceState.ENDPOINT_CANDIDATE:
+            self.resume_run = 0
+            return speech_probability
+        self.resume_run = self.resume_run + 1 if speech else 0
+        return speech_probability if self.resume_run >= self.policy.resume_frames else 0.0
+
+    def observe(self, frame: AudioFrame, speech_probability: float) -> None:
+        if self.opened_ms is None:
+            self.opened_ms = frame.monotonic_ms
+        duration = frame.duration_ms
+        speech = speech_probability >= 0.5
+        self.total_ms += duration
+        if speech:
+            self.speech_ms += duration
+        self.recent.append((frame.monotonic_ms, duration, speech))
+        cutoff = frame.monotonic_ms - self.policy.recent_window_ms
+        while self.recent and self.recent[0][0] < cutoff:
+            self.recent.popleft()
+
+    def sparse_too_long(self, at_ms: int) -> bool:
+        if self.opened_ms is None or at_ms - self.opened_ms < self.policy.sparse_candidate_ms:
+            return False
+        recent_total = sum(item[1] for item in self.recent)
+        recent_speech = sum(item[1] for item in self.recent if item[2])
+        overall_ratio = self.speech_ms / max(1.0, self.total_ms)
+        recent_ratio = recent_speech / max(1.0, recent_total)
+        return (
+            overall_ratio < self.policy.minimum_overall_speech_ratio
+            and recent_ratio < self.policy.minimum_recent_speech_ratio
+        )
 
 
 EventPublisher = Callable[[ProtocolEvent], Awaitable[None]]
@@ -164,6 +221,7 @@ class VoiceInputPipeline:
         frame_stream = self._capture.frames(cancellation)
         # Retain only 200 ms before VAD opens STT, so initial consonants aren't clipped.
         pre_roll: deque[AudioFrame] = deque(maxlen=10)
+        evidence = SpeechEvidence()
         try:
             async for frame in frame_stream:
                 if not listening_started:
@@ -198,9 +256,12 @@ class VoiceInputPipeline:
                     continue
                 vad_result = self._vad.analyze(frame)
                 await self._publish(self._level_event(frame, vad_result.speech_probability))
+                gated_probability = evidence.gate(
+                    self._turn_manager.state, vad_result.speech_probability
+                )
                 vad_events = self._turn_manager.on_vad(
                     frame.monotonic_ms,
-                    vad_result.speech_probability,
+                    gated_probability,
                 )
                 await self._publish_all(vad_events)
                 if stt_stream is not None and self._turn_manager.state is VoiceState.LISTENING:
@@ -222,6 +283,19 @@ class VoiceInputPipeline:
                     pre_roll.clear()
                 elif stt_stream is not None and final_transcript is None:
                     await stt_stream.push_audio(frame, cancellation)
+                if stt_stream is not None:
+                    evidence.observe(frame, vad_result.speech_probability)
+                    if evidence.sparse_too_long(frame.monotonic_ms):
+                        log.info(
+                            "Rejecting low-density voice candidate after %d ms",
+                            frame.monotonic_ms
+                            - (
+                                evidence.opened_ms
+                                if evidence.opened_ms is not None
+                                else frame.monotonic_ms
+                            ),
+                        )
+                        return VoiceInputResult(Transcript("", is_final=True), audio_frames)
                 if self._turn_manager.state is VoiceState.ENDPOINT_CANDIDATE:
                     if candidate_since_ms is None:
                         candidate_since_ms = frame.monotonic_ms
@@ -238,7 +312,12 @@ class VoiceInputPipeline:
                 ):
                     log.info(
                         "conversation_timing stage=speech_endpoint_detected audio_ms=%d",
-                        frame.monotonic_ms,
+                        frame.monotonic_ms
+                        - (
+                            evidence.opened_ms
+                            if evidence.opened_ms is not None
+                            else frame.monotonic_ms
+                        ),
                     )
                     await self._publish(
                         ProtocolEvent(
@@ -254,10 +333,11 @@ class VoiceInputPipeline:
                             },
                         )
                     )
+                    stt_started = time.monotonic()
                     final_transcript = await stt_stream.finalize(cancellation)
                     log.info(
-                        "conversation_timing stage=stt_final_available audio_ms=%d",
-                        frame.monotonic_ms,
+                        "conversation_timing stage=stt_final_available stt_ms=%d",
+                        round((time.monotonic() - stt_started) * 1000),
                     )
                     if final_transcript != last_partial:
                         await self._publish_transcript(frame.monotonic_ms, final_transcript)
