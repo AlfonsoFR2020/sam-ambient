@@ -78,17 +78,19 @@ describe("startup and shutdown presentation", () => {
     expect(html).toContain("does not make a conversational model ready");
   });
 
-  it("keeps text-entry shortcuts safe while retaining the global emergency stop", () => {
+  it("separates always-global recovery shortcuts from contextual convenience", () => {
     const key = (value: string, shiftKey = false) => ({
       key: value,
       ctrlKey: true,
       shiftKey,
       metaKey: false,
     });
+    expect(shortcutIntent({ ...key("m"), ctrlKey: false }, true)).toBeNull();
     expect(shortcutIntent(key("m"), false)).toBe("microphone");
     expect(shortcutIntent(key("m"), true)).toBeNull();
     expect(shortcutIntent(key("q"), false)).toBe("quit");
-    expect(shortcutIntent(key("q"), true)).toBeNull();
+    expect(shortcutIntent(key("q"), true)).toBe("quit");
+    expect(shortcutIntent(key("r"), true)).toBe("reload_interface");
     expect(shortcutIntent(key("x", true), true)).toBe("emergency_stop");
     expect(shortcutIntent({ ...key("Escape"), ctrlKey: false }, true)).toBe("close_surface");
   });

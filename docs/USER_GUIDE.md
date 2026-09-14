@@ -83,8 +83,10 @@ normal `--ui-mode browser` tab does not stop Sam.
 
 Keyboard: **Ctrl+M** toggles the microphone outside text fields;
 **Ctrl+Shift+X** performs Emergency stop even while a text field is focused;
-**Ctrl+Q** opens quit confirmation outside text fields; **Escape** closes the
-current Controls/dialog surface or exits fullscreen, never Sam.
+**Ctrl+Q** opens quit confirmation even while a text field is focused; **Ctrl+R**
+reloads only the interface and reconnects to the running core; **Escape** closes
+the current Controls/dialog surface or exits fullscreen, never Sam. Reload does
+not restart Sam or its model provider.
 
 File access is constrained to authorized roots (`--root` selects the workspace).
 Writes additionally need `--allow-workspace-write` and approval. Process requests

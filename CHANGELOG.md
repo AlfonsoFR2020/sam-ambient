@@ -31,7 +31,8 @@
 - Show truthful core startup/reconnect, provider, model, speech, privacy and
   degradation status in quiet controls. Clarify control effects and improve
   bounded transcript role styling and scrolling. Group owner controls, add
-  focus-accessible concise help, and keep startup/controls usable in narrow windows.
+  focus-accessible concise help, keep startup/controls usable in narrow windows,
+  and distinguish UI reload from managed restart and application quit.
 - Add the acceptance-pending Visual Engine v1 foundation: typed provider-neutral
   envelope inputs; continuous state/audio choreography; a custom WebGL2 amber
   spheroid with drifting fragmented peels, analytic lights and sparse particles;

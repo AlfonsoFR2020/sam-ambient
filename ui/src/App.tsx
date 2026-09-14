@@ -98,15 +98,21 @@ interface ShortcutInput {
   metaKey: boolean;
 }
 
-export type ShortcutIntent = "close_surface" | "quit" | "microphone" | "emergency_stop";
+export type ShortcutIntent =
+  | "close_surface"
+  | "quit"
+  | "reload_interface"
+  | "microphone"
+  | "emergency_stop";
 
 export function shortcutIntent(input: ShortcutInput, editing: boolean): ShortcutIntent | null {
   const key = input.key.toLowerCase();
   if (key === "escape") return "close_surface";
   if (input.ctrlKey && input.shiftKey && key === "x") return "emergency_stop";
+  if (input.ctrlKey && !input.shiftKey && !input.metaKey && key === "q") return "quit";
+  if (input.ctrlKey && !input.shiftKey && !input.metaKey && key === "r") return "reload_interface";
   if (editing) return null;
   if (input.ctrlKey && !input.shiftKey && !input.metaKey && key === "m") return "microphone";
-  if (input.ctrlKey && !input.shiftKey && !input.metaKey && key === "q") return "quit";
   return null;
 }
 
@@ -727,6 +733,13 @@ export default function App() {
           <section className="controls__group" aria-labelledby={`${controlsId}-application`}>
             <h2 id={`${controlsId}-application`}>Application</h2>
             <ControlButton
+              help="Reload only the Sam interface and reconnect to the running core. Models and managed components are not restarted. Ctrl+R."
+              onClick={() => window.location.reload()}
+              aria-keyshortcuts="Control+R"
+            >
+              Reload interface
+            </ControlButton>
+            <ControlButton
               help="Stop Sam and close its owned window where supported. Ctrl+Q."
               disabled={state.connection !== "connected" || quitRequested}
               onClick={quitSam}
@@ -736,8 +749,8 @@ export default function App() {
             </ControlButton>
           </section>
           <p className="controls__hint">
-            Ctrl+M microphone · Ctrl+Shift+X emergency stop · Ctrl+Q Quit Sam · Esc closes the
-            current Controls or dialog surface, never Sam
+            Ctrl+M microphone · Ctrl+Shift+X emergency stop · Ctrl+R reload interface · Ctrl+Q Quit
+            Sam · Esc closes the current Controls or dialog surface, never Sam
           </p>
         </section>
       )}
