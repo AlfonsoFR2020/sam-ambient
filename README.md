@@ -143,17 +143,20 @@ uv run sam-ambient --provider lm-studio --model your-loaded-model
 uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000/v1
 ```
 
-Selection is deterministic: explicit configuration first, then the last successful
-local provider/model, then Ollama, LM Studio, and `--local-compatible-url`.
+Selection is deterministic: a valid explicit local provider/model first, then a valid
+last-successful local choice, then the sole installed conversational model. Multiple
+viable models require owner selection rather than an arbitrary list-order choice.
 Stale saved preferences fall back; explicit unavailable choices stay degraded.
 Provider startup/readiness stays short; an explicit, remembered, or sole installed
 LM Studio chat model gets a separate cancellable 120-second load window. Multiple
-installed candidates require an explicit choice. Running services are reused
-without restart or model eviction. Sam-owned Ollama children stop on
-exit; the shared LM Studio service remains running (Sam loads use a 10-minute
-idle TTL). Expand the provider status for the selection reason and STT/TTS status.
+installed candidates require an explicit choice. Running services and loaded models
+are reused without transferring ownership. Graceful-Quit cleanup defaults to keeping
+resources; owner opt-in can unload only a model Sam loaded or stop only a service Sam
+started. Restart and Emergency Stop do not apply those exit policies. Expand the
+provider status for the selection reason and STT/TTS status.
 `sam doctor` remains read-only and groups findings as READY, AVAILABLE, OPTIONAL,
-MISSING, DEGRADED, or ACTION NEEDED. Restart Sam after externally changing services.
+MISSING, DEGRADED, or ACTION NEEDED. **Rescan providers/models** can detect bounded
+local availability changes without requiring a restart when safe.
 
 Voice input needs an audio device and a separately installed whisper.cpp
 server, defaulting to `http://127.0.0.1:8080`. Windows output uses System.Speech;

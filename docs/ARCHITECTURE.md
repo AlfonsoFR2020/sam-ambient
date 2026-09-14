@@ -38,15 +38,19 @@ adapters, provider router, tool executor, and session persistence. React/TypeScr
 consumes versioned events over the localhost WebSocket bridge. Its reducer rejects
 stale events and coalesces high-frequency visualization updates. Text, approvals,
 provider/model selection, and connection status stay secondary to the ambient
-field. Visual preferences remain local to the UI.
+field. Visual preferences use the typed runtime-settings boundary and persisted
+preference store; adaptive resolved quality remains renderer-local and is not
+persisted as user intent.
 
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. This branch implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded
 continuous state/audio motion, batched fragmented peels, analytic lights and sparse
-particles, with Canvas/CSS fallback. Spectral extraction, persistent settings,
-measured quality adaptation and human visual acceptance remain pending. The compiled
-static bundle uses the real event decoder and reducer; this branch remains unmerged.
+particles, with Canvas/CSS fallback. It also implements direct pointer/touch rotation,
+damped inertia, persisted typed visual settings, profile-capped mobile emulation and
+measured quality adaptation. Spectral extraction, prosodic mapping and human visual
+acceptance remain pending. The compiled static bundle uses the real event decoder and
+reducer; this branch remains unmerged.
 
 ## Configuration and readiness
 

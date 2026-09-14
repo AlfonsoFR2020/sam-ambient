@@ -56,6 +56,11 @@ Updated: 2026-09-14
   policies default to Keep; opt-in cleanup unloads only a Sam-loaded LM Studio model
   and stops only a service Sam started. Restart/failure/Emergency Stop never apply
   exit cleanup, unsupported providers fail closed, and timeouts cannot block shutdown.
+- Freeze candidate: `feature/ambient-shell` at `ba446508` is functionally complete
+  pending combined human acceptance and later native-shell integration. No further
+  feature work should land here except fixes required by reconciliation or acceptance;
+  the next structural task is reconciliation with `feature/native-shell`. This is not
+  a release-readiness claim.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
