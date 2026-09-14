@@ -662,6 +662,7 @@ async def _serve_runtime(
             state_db=Path(args.state_db) if args.state_db else None,
             tts_voice=args.tts_voice,
             visual_settings=asdict(args._sam_settings.visual),
+            audio_settings=asdict(args._sam_settings.audio),
         ),
         voice=voice,
         tts=tts,

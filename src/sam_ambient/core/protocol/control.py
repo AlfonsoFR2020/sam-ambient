@@ -30,6 +30,7 @@ ResolveToolApproval = Callable[[ControlCommand, bool], Awaitable[bool]]
 RevokeCapabilities = Callable[[str], Awaitable[Mapping[str, object]]]
 RefreshProviders = Callable[[str | None, str | None, bool], Awaitable[Mapping[str, object]]]
 SetVisualSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
+SetAudioSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,6 +45,7 @@ class CoreControlBindings:
     request_restart: Callable[[ControlCommand], Awaitable[None]] | None = None
     request_shutdown: Callable[[ControlCommand], Awaitable[None]] | None = None
     set_visual_settings: SetVisualSettings | None = None
+    set_audio_settings: SetAudioSettings | None = None
 
 
 class ControlDispatcher:
@@ -159,6 +161,10 @@ class ControlDispatcher:
             if self._bindings.set_visual_settings is None:
                 raise RuntimeError("Visual settings are unavailable")
             payload.update(await self._bindings.set_visual_settings(command.payload))
+        elif command_type is ControlCommandType.AUDIO_SETTINGS_SET:
+            if self._bindings.set_audio_settings is None:
+                raise RuntimeError("Audio settings are unavailable")
+            payload.update(await self._bindings.set_audio_settings(command.payload))
         elif command_type is ControlCommandType.APPLICATION_QUIT:
             if command.payload:
                 raise ValueError("Quit Sam does not accept arguments")

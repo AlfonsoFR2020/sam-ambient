@@ -117,6 +117,19 @@ describe("control command protocol", () => {
     });
   });
 
+  it("serializes application audio gains through one owner control", () => {
+    expect(
+      commandForAction(
+        { type: "audio_settings.set", inputGain: 0.7, outputGain: 1.2 },
+        INITIAL_UI_STATE,
+        runtime,
+      ),
+    ).toMatchObject({
+      type: "control.audio_settings.set",
+      payload: { input_gain: 0.7, output_gain: 1.2 },
+    });
+  });
+
   it("serializes text requests and correlated tool approval decisions", () => {
     const request = commandForAction(
       { type: "user_message.submit", text: "List the project files" },

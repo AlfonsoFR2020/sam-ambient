@@ -1,5 +1,6 @@
 import asyncio
 import threading
+from array import array
 from collections.abc import AsyncIterator
 
 import pytest
@@ -10,6 +11,7 @@ from sam_ambient.adapters.audio import (
     SoundDeviceCapture,
     SoundDeviceOutput,
 )
+from sam_ambient.adapters.audio.sounddevice import scale_audio_frame
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
 from sam_ambient.core.voice import AudioFormat, AudioFrame
 
@@ -32,6 +34,22 @@ class FakeInputStream:
 
     def close(self) -> None:
         self.closed = True
+
+
+def test_application_gain_scales_and_saturates_pcm_without_touching_unity() -> None:
+    samples = array("h", [-20_000, -1_000, 0, 1_000, 20_000])
+    frame = AudioFrame(AudioFormat(), samples.tobytes(), 1, 1)
+    assert scale_audio_frame(frame, 1) is frame
+    assert array("h", scale_audio_frame(frame, 0).data).tolist() == [0, 0, 0, 0, 0]
+    assert array("h", scale_audio_frame(frame, 2).data).tolist() == [
+        -32_768,
+        -2_000,
+        0,
+        2_000,
+        32_767,
+    ]
+    with pytest.raises(ValueError, match="between 0 and 2"):
+        scale_audio_frame(frame, 2.1)
 
 
 class BlockingInputStream(FakeInputStream):

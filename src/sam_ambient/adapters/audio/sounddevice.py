@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from array import array
 from collections.abc import AsyncIterable, AsyncIterator, Callable
 from typing import Any, Protocol
 
@@ -62,6 +63,7 @@ class SoundDeviceCapture:
         latency: str | float = "low",
         stream_factory: Callable[..., _InputStream] | None = None,
         clock_ms: Callable[[], int] | None = None,
+        gain: float = 1.0,
     ) -> None:
         self.audio_format = audio_format or AudioFormat()
         self.frame_duration_ms = frame_duration_ms
@@ -70,6 +72,10 @@ class SoundDeviceCapture:
         self._latency = latency
         self._stream_factory = stream_factory or sounddevice.RawInputStream
         self._clock_ms = clock_ms or (lambda: int(time.monotonic() * 1000))
+        self.gain = _validated_gain(gain)
+
+    def set_gain(self, gain: float) -> None:
+        self.gain = _validated_gain(gain)
 
     async def frames(self, cancellation: CancellationToken) -> AsyncIterator[AudioFrame]:
         cancellation.raise_if_cancelled()
@@ -98,12 +104,13 @@ class SoundDeviceCapture:
                     raise AudioInputOverflow(
                         "PortAudio input overflowed; audio continuity was lost"
                     )
-                yield AudioFrame(
+                frame = AudioFrame(
                     format=self.audio_format,
                     data=bytes(data),
                     monotonic_ms=self._clock_ms(),
                     sequence=sequence,
                 )
+                yield scale_audio_frame(frame, self.gain)
                 sequence += 1
         except asyncio.CancelledError as error:
             if cancellation.is_cancelled:
@@ -237,3 +244,34 @@ class SoundDeviceOutput:
 
 def _sounddevice_dtype(sample_format: SampleFormat) -> str:
     return "int16" if sample_format is SampleFormat.PCM_S16LE else "float32"
+
+
+def _validated_gain(gain: float) -> float:
+    if not isinstance(gain, (int, float)) or isinstance(gain, bool) or not 0 <= gain <= 2:
+        raise ValueError("application audio gain must be between 0 and 2")
+    return float(gain)
+
+
+def scale_audio_frame(frame: AudioFrame, gain: float) -> AudioFrame:
+    """Apply bounded application gain; unity returns the original immutable frame."""
+
+    gain = _validated_gain(gain)
+    if gain == 1:
+        return frame
+    code, low, high = (
+        ("h", -32_768, 32_767)
+        if frame.format.sample_format is SampleFormat.PCM_S16LE
+        else ("f", -1.0, 1.0)
+    )
+    samples = array(code)
+    samples.frombytes(frame.data)
+    for index, sample in enumerate(samples):
+        scaled = max(low, min(high, sample * gain))
+        samples[index] = round(scaled) if code == "h" else scaled
+    return AudioFrame(
+        frame.format,
+        samples.tobytes(),
+        frame.monotonic_ms,
+        frame.sequence,
+        frame.dropped_before,
+    )

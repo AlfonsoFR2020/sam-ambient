@@ -45,6 +45,10 @@ Updated: 2026-09-14
   pathological 30-60 second clips. The normal 0.65-1.1 second silence endpoint,
   200 ms pre-roll, long sustained speech, and playback-aware barge-in remain intact.
   Physical acoustic/AEC acceptance remains pending.
+- Schema-v1 and trusted owner controls now persist Sam application input and output
+  gains from 0-200%. Captured PCM is saturated once before all voice consumers;
+  synthesized PCM is saturated once before output metering/playback, so mute reports
+  zero emitted energy. These are not operating-system device-volume controls.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:

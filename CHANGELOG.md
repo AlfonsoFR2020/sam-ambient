@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add persisted `0-200%` Sam application input/output gains. Input gain is applied
+  before VAD/STT/barge-in; output gain is applied before emitted-level metering and
+  physical playback. These controls do not change operating-system mixer levels.
 - Require sustained VAD evidence to reopen an endpoint candidate, and reject
   long open STT candidates when both recent and overall speech density remain
   low. Keep 200 ms pre-roll, normal silence thresholds, long sustained speech,

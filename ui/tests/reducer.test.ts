@@ -70,6 +70,24 @@ describe("protocol state reduction", () => {
     expect(state.visualSettings?.quality).toBe("low");
   });
 
+  it("accepts bounded audio gains from ready and acknowledgement", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("system.ready", 1, {
+        state: "IDLE",
+        audio_settings: { input_gain: 0.5, output_gain: 1.5 },
+      }),
+    );
+    expect(state.audioSettings).toEqual({ inputGain: 0.5, outputGain: 1.5 });
+    state = reduceProtocolEvent(
+      state,
+      event("control.acknowledged", 2, {
+        audio_settings: { input_gain: 1, output_gain: 0 },
+      }),
+    );
+    expect(state.audioSettings).toEqual({ inputGain: 1, outputGain: 0 });
+  });
+
   it("distinguishes provisional and committed transcripts", () => {
     let state = reduceProtocolEvent(
       resetUiState(),

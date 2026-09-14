@@ -34,7 +34,8 @@ export type ControlAction =
   | { type: "transcript.set"; visible: boolean }
   | { type: "reduced_motion.set"; enabled: boolean }
   | { type: "brightness.set"; value: number }
-  | { type: "visual_settings.set"; settings: VisualEngineSettings };
+  | { type: "visual_settings.set"; settings: VisualEngineSettings }
+  | { type: "audio_settings.set"; inputGain: number; outputGain: number };
 
 export function commandForAction(
   action: ControlAction,
@@ -90,6 +91,14 @@ export function commandForAction(
         particle_density: settings.particleDensity,
         reduced_motion: settings.reducedMotion,
       },
+      state,
+      runtime,
+    );
+  }
+  if (action.type === "audio_settings.set") {
+    return createControlCommand(
+      "control.audio_settings.set",
+      { input_gain: action.inputGain, output_gain: action.outputGain },
       state,
       runtime,
     );

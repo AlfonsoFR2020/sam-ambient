@@ -30,7 +30,7 @@ planned or acceptance-pending work. Priorities may change after real use.
 - Establish Windows Authenticode signing plus antivirus/reputation validation.
 - Assemble the final installer and validate Linux packages on Linux hardware.
 - Add one understandable Settings surface for provider/model and ownership policy,
-  real input/output gain, visual quality/profile/theme, and adapter-based STT/TTS
+  provider exit ownership, visual theme, and adapter-based STT/TTS
   choices. Keep Rescan, Reload, Restart, and Quit distinct owner controls.
 - Reconcile accepted ambient-shell and native-shell work, including native identity
   and taskbar icon; recheck the version-sensitive architecture infographic. Native

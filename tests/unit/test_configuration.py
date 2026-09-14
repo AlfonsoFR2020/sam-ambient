@@ -160,6 +160,17 @@ reduced_motion = "system"
         load_settings(project_root=tmp_path, explicit_path=config, environment={})
 
 
+def test_audio_application_gains_are_typed_and_bounded(tmp_path):
+    config = tmp_path / "audio.toml"
+    _write(config, "[audio]\ninput_gain = 0.0\noutput_gain = 2.0\n")
+    settings = load_settings(project_root=tmp_path, explicit_path=config, environment={})
+    assert settings.audio.input_gain == 0
+    assert settings.audio.output_gain == 2
+    _write(config, "[audio]\ninput_gain = 2.1\n")
+    with pytest.raises(ConfigurationError, match=r"audio\.input_gain"):
+        load_settings(project_root=tmp_path, explicit_path=config, environment={})
+
+
 def test_trusted_mcp_server_configuration_is_structured_and_bounded(tmp_path):
     config = tmp_path / "mcp.toml"
     _write(

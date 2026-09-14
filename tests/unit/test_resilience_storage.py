@@ -93,6 +93,13 @@ def test_visual_preferences_round_trip_as_separate_runtime_state(tmp_path: Path)
     assert SQLiteSessionStore(path).visual_preferences() == settings
 
 
+def test_audio_preferences_round_trip_as_separate_runtime_state(tmp_path: Path) -> None:
+    path = tmp_path / "audio-state.db"
+    settings = {"input_gain": 0.75, "output_gain": 1.25}
+    SQLiteSessionStore(path).remember_audio_preferences(settings)
+    assert SQLiteSessionStore(path).audio_preferences() == settings
+
+
 def test_crash_journal_and_component_status_are_bounded_and_recoverable(tmp_path: Path) -> None:
     store = SupervisorStore(tmp_path / "sam.db", maximum_crash_records=2)
     status = ComponentStatus("sam-core", HealthState.DEGRADED, "instance", 123)

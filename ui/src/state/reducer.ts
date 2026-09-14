@@ -108,6 +108,25 @@ const visualSettings = (value: unknown): UiState["visualSettings"] => {
   };
 };
 
+const audioSettings = (value: unknown): UiState["audioSettings"] => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const item = value as Record<string, unknown>;
+  const inputGain = item.input_gain;
+  const outputGain = item.output_gain;
+  if (
+    typeof inputGain !== "number" ||
+    !Number.isFinite(inputGain) ||
+    inputGain < 0 ||
+    inputGain > 2 ||
+    typeof outputGain !== "number" ||
+    !Number.isFinite(outputGain) ||
+    outputGain < 0 ||
+    outputGain > 2
+  )
+    return undefined;
+  return { inputGain, outputGain };
+};
+
 function speechSelection(value: unknown): string | undefined {
   if (!value || typeof value !== "object" || !("voice" in value)) return undefined;
   const voice = value.voice;
@@ -324,6 +343,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
           ? event.payload.cloud_allowed
           : next.cloudAllowed,
       visualSettings: visualSettings(event.payload.visual_settings) ?? next.visualSettings,
+      audioSettings: audioSettings(event.payload.audio_settings) ?? next.audioSettings,
       conversationalState: readyState,
       microphoneEnabled:
         typeof event.payload.microphone_enabled === "boolean"
@@ -560,6 +580,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
           ? "starting"
           : next.startupLifecycle,
       visualSettings: visualSettings(event.payload.visual_settings) ?? next.visualSettings,
+      audioSettings: audioSettings(event.payload.audio_settings) ?? next.audioSettings,
     };
   } else if (event.type === "component.error") {
     next = {

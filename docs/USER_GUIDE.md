@@ -89,6 +89,12 @@ reload and Sam restart, while automatic quality decisions do not. Drag the orb w
 a mouse or one finger to reorient it; reduced motion keeps direct reorientation but
 suppresses inertial and autonomous movement.
 
+The **Conversation & voice** controls include **Microphone sensitivity** and
+**Output volume**, each from 0-200% with 100% as the default. They adjust Sam's
+application PCM signal, not the operating-system microphone or master-volume mixer.
+Changes are committed when a pointer drag or keyboard adjustment finishes and persist
+across interface reload and Sam restart.
+
 Keyboard: **Ctrl+M** toggles the microphone outside text fields;
 **Ctrl+Shift+X** performs Emergency stop even while a text field is focused;
 **Ctrl+Q** opens quit confirmation even while a text field is focused; **Ctrl+R**

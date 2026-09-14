@@ -20,6 +20,10 @@ preferred_languages = ["en", "es"]
 tts_enabled = true
 tts_voice = "default"
 
+[audio]
+input_gain = 1.0 # Sam application gain; does not change the OS microphone level
+output_gain = 1.0 # Sam application gain; does not change the OS master volume
+
 [privacy]
 allow_cloud = false
 

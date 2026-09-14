@@ -24,6 +24,7 @@ class RecordingBindings:
         self.refreshes: list[tuple[str | None, str | None, bool]] = []
         self.restarts: list[str] = []
         self.visual_settings: list[dict[str, object]] = []
+        self.audio_settings: list[dict[str, object]] = []
 
     async def set_microphone(self, enabled: bool) -> None:
         self.microphone.append(enabled)
@@ -66,6 +67,32 @@ class RecordingBindings:
     async def set_visual_settings(self, value: dict[str, object]) -> dict[str, object]:
         self.visual_settings.append(dict(value))
         return {"visual_settings": dict(value)}
+
+    async def set_audio_settings(self, value: dict[str, object]) -> dict[str, object]:
+        self.audio_settings.append(dict(value))
+        return {"audio_settings": dict(value)}
+
+
+def test_audio_settings_use_a_trusted_deduplicated_owner_control() -> None:
+    async def scenario() -> None:
+        recording = RecordingBindings()
+        dispatcher = ControlDispatcher(
+            CoreControlBindings(
+                recording.set_microphone,
+                recording.set_tts_output,
+                recording.cancel,
+                set_audio_settings=recording.set_audio_settings,
+            )
+        )
+        request = command(
+            ControlCommandType.AUDIO_SETTINGS_SET,
+            "audio",
+            {"input_gain": 0.7, "output_gain": 1.2},
+        )
+        assert await dispatcher.dispatch(request) is await dispatcher.dispatch(request)
+        assert recording.audio_settings == [{"input_gain": 0.7, "output_gain": 1.2}]
+
+    asyncio.run(scenario())
 
 
 def command(

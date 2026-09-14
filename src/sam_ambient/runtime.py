@@ -14,7 +14,7 @@ from typing import Any
 from uuid import uuid4
 
 from sam_ambient import __author__, __product_name__, __version__
-from sam_ambient.adapters.audio.sounddevice import AudioDeviceError
+from sam_ambient.adapters.audio.sounddevice import AudioDeviceError, scale_audio_frame
 from sam_ambient.adapters.computer import PlatformAppOpenAdapter, TkClipboardAdapter
 from sam_ambient.adapters.process import SubprocessAdapter
 from sam_ambient.adapters.stt.whisper_cpp import (
@@ -140,6 +140,18 @@ _VISUAL_CHOICES = {
 _VISUAL_UNITS = {"intensity", "motion_intensity", "audio_reactivity", "particle_density"}
 
 
+def _validated_audio_settings(value: Mapping[str, object]) -> dict[str, float]:
+    if set(value) != {"input_gain", "output_gain"}:
+        raise ValueError("audio settings must contain input_gain and output_gain exactly")
+    result: dict[str, float] = {}
+    for name in ("input_gain", "output_gain"):
+        item = value[name]
+        if not isinstance(item, (int, float)) or isinstance(item, bool) or not 0 <= item <= 2:
+            raise ValueError(f"audio setting {name} must be from 0 to 2")
+        result[name] = float(item)
+    return result
+
+
 def _validated_visual_settings(value: Mapping[str, object]) -> dict[str, object]:
     if set(value) != {*_VISUAL_CHOICES, *_VISUAL_UNITS}:
         raise ValueError("visual settings must contain the supported fields exactly")
@@ -188,6 +200,9 @@ class RuntimeConfig:
             "reduced_motion": "system",
         }
     )
+    audio_settings: Mapping[str, object] = field(
+        default_factory=lambda: {"input_gain": 1.0, "output_gain": 1.0}
+    )
 
     def __post_init__(self) -> None:
         canonical = self.workspace_root.resolve(strict=True)
@@ -211,6 +226,7 @@ class RuntimeConfig:
         object.__setattr__(
             self, "visual_settings", _validated_visual_settings(self.visual_settings)
         )
+        object.__setattr__(self, "audio_settings", _validated_audio_settings(self.audio_settings))
 
 
 @dataclass(slots=True)
@@ -384,12 +400,19 @@ class SamRuntime:
         self.config = config
         self.state = SQLiteSessionStore(config.state_db) if config.state_db is not None else None
         self._visual_settings = dict(config.visual_settings)
+        self._audio_settings = dict(config.audio_settings)
         persisted_visual = self.state.visual_preferences() if self.state is not None else None
         if persisted_visual is not None:
             try:
                 self._visual_settings = _validated_visual_settings(persisted_visual)
             except ValueError:
                 log.warning("Ignoring invalid persisted visual preferences")
+        persisted_audio = self.state.audio_preferences() if self.state is not None else None
+        if persisted_audio is not None:
+            try:
+                self._audio_settings = _validated_audio_settings(persisted_audio)
+            except ValueError:
+                log.warning("Ignoring invalid persisted audio preferences")
         self.session_id = self.state.session_id() if self.state is not None else str(uuid4())
         self._recovered_message_count = (
             len(self.state.recent(limit=50)) if self.state is not None else 0
@@ -398,6 +421,10 @@ class SamRuntime:
         self.cancellations = CancellationRegistry()
         self.voice_turns = TurnManager(self.session_id)
         self.voice = voice
+        if self.voice is not None:
+            set_gain = getattr(self.voice.capture, "set_gain", None)
+            if set_gain is not None:
+                set_gain(self._audio_settings["input_gain"])
         self.tts = tts
         self.audio_output = audio_output
         self.delivery = AssistantDeliveryLedger()
@@ -460,6 +487,7 @@ class SamRuntime:
                 request_restart=self._request_restart,
                 request_shutdown=self._request_shutdown,
                 set_visual_settings=self._set_visual_settings,
+                set_audio_settings=self._set_audio_settings,
             ),
             clock_ms=self._next_event_ms,
         )
@@ -558,6 +586,17 @@ class SamRuntime:
         if self.state is not None:
             self.state.remember_visual_preferences(settings)
         return {"visual_settings": settings}
+
+    async def _set_audio_settings(self, value: Mapping[str, object]) -> Mapping[str, object]:
+        settings = _validated_audio_settings(value)
+        self._audio_settings = settings
+        if self.voice is not None:
+            set_gain = getattr(self.voice.capture, "set_gain", None)
+            if set_gain is not None:
+                set_gain(settings["input_gain"])
+        if self.state is not None:
+            self.state.remember_audio_preferences(settings)
+        return {"audio_settings": settings}
 
     async def _refresh_providers(
         self, provider_id: str | None, model: str | None, remember: bool
@@ -1066,6 +1105,7 @@ class SamRuntime:
                     "conversation_timing stage=first_pcm generation=%s",
                     generation_id,
                 )
+            frame = scale_audio_frame(frame, self._audio_settings["output_gain"])
             rms, peak = normalized_audio_metrics(frame)
             await self._publish_generation(
                 EventType.TTS_LEVEL,
@@ -1630,6 +1670,7 @@ class SamRuntime:
                 ),
                 "cloud_allowed": self.config.allow_cloud,
                 "visual_settings": self._visual_settings,
+                "audio_settings": self._audio_settings,
                 "tools": [descriptor.id for descriptor in self.tools.descriptors()],
                 "capability_authority_active": authority.active,
                 "capability_authority_epoch": authority.epoch,

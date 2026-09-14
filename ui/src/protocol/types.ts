@@ -43,6 +43,7 @@ export const CONTROL_COMMAND_TYPES = [
   "control.providers.rescan",
   "control.model.select",
   "control.visual_settings.set",
+  "control.audio_settings.set",
   "control.application.restart",
   "control.application.quit",
 ] as const;
@@ -182,6 +183,7 @@ export interface UiState {
     particleDensity: number;
     reducedMotion: "system" | "on" | "off";
   };
+  audioSettings?: { inputGain: number; outputGain: number };
 }
 
 export const INITIAL_UI_STATE: UiState = {

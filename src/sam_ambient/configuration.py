@@ -35,6 +35,12 @@ class VoiceSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class AudioSettings:
+    input_gain: float = 1.0
+    output_gain: float = 1.0
+
+
+@dataclass(frozen=True, slots=True)
 class ApplicationSettings:
     root: Path = field(default_factory=Path.cwd)
     open_ui: bool = True
@@ -82,6 +88,7 @@ class SamSettings:
     schema_version: int = CONFIG_SCHEMA_VERSION
     provider: ProviderSettings = field(default_factory=ProviderSettings)
     voice: VoiceSettings = field(default_factory=VoiceSettings)
+    audio: AudioSettings = field(default_factory=AudioSettings)
     application: ApplicationSettings = field(default_factory=ApplicationSettings)
     capabilities: CapabilitySettings = field(default_factory=CapabilitySettings)
     privacy: PrivacySettings = field(default_factory=PrivacySettings)
@@ -97,6 +104,7 @@ _SCHEMA: dict[str, frozenset[str]] = {
     "voice": frozenset(
         {"stt_enabled", "stt_url", "preferred_languages", "tts_enabled", "tts_voice"}
     ),
+    "audio": frozenset({"input_gain", "output_gain"}),
     "application": frozenset({"root", "open_ui"}),
     "capabilities": frozenset({"workspace_write"}),
     "privacy": frozenset({"allow_cloud"}),
@@ -317,6 +325,7 @@ def _apply_environment(target: dict[str, Any], env: Mapping[str, str]) -> None:
 def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> SamSettings:
     provider = values.get("provider", {})
     voice = values.get("voice", {})
+    audio = values.get("audio", {})
     application = values.get("application", {})
     capabilities = values.get("capabilities", {})
     privacy = values.get("privacy", {})
@@ -350,6 +359,10 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
             preferred_languages=normalized_languages,
             tts_enabled=_boolean(voice.get("tts_enabled", True), "voice.tts_enabled"),
             tts_voice=_string(voice.get("tts_voice", "default"), "voice.tts_voice"),
+        ),
+        audio=AudioSettings(
+            input_gain=_gain(audio.get("input_gain", 1.0), "audio.input_gain"),
+            output_gain=_gain(audio.get("output_gain", 1.0), "audio.output_gain"),
         ),
         application=ApplicationSettings(
             root=root.resolve(strict=False),
@@ -467,6 +480,12 @@ def _boolean(value: Any, name: str) -> bool:
 def _unit(value: Any, name: str) -> float:
     if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 <= value <= 1:
         raise ConfigurationError(f"{name} must be a number from 0 to 1")
+    return float(value)
+
+
+def _gain(value: Any, name: str) -> float:
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 <= value <= 2:
+        raise ConfigurationError(f"{name} must be a number from 0 to 2")
     return float(value)
 
 

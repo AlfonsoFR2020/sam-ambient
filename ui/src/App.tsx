@@ -414,6 +414,7 @@ export default function App() {
   const [visualSettings, setVisualSettings] = useState<VisualEngineSettings>(
     DEFAULT_VISUAL_ENGINE_SETTINGS,
   );
+  const [audioSettings, setAudioSettings] = useState({ inputGain: 1, outputGain: 1 });
   const [controlsOpen, setControlsOpen] = useState(false);
   const [quitConfirmation, setQuitConfirmation] = useState(false);
   const [restartConfirmation, setRestartConfirmation] = useState(false);
@@ -434,6 +435,10 @@ export default function App() {
   useEffect(() => {
     if (state.visualSettings) setVisualSettings(resolveVisualEngineSettings(state.visualSettings));
   }, [state.visualSettings]);
+
+  useEffect(() => {
+    if (state.audioSettings) setAudioSettings(state.audioSettings);
+  }, [state.audioSettings]);
 
   useEffect(() => {
     const next = runtimeStatus.label ?? visual.label;
@@ -478,6 +483,9 @@ export default function App() {
     },
     [applyAction, visualSettings],
   );
+  const persistAudio = useCallback(() => {
+    applyAction({ type: "audio_settings.set", ...audioSettings });
+  }, [applyAction, audioSettings]);
 
   const quitSam = useCallback(() => {
     if (stateRef.current.connection !== "connected") return;
@@ -654,6 +662,48 @@ export default function App() {
             >
               Stop speaking
             </ControlButton>
+            <label
+              className="visual-setting"
+              title="Adjust Sam's captured microphone signal, not the operating-system microphone level."
+            >
+              <span>Microphone sensitivity</span>
+              <input
+                aria-label="Microphone sensitivity"
+                type="range"
+                min="0"
+                max="200"
+                value={Math.round(audioSettings.inputGain * 100)}
+                onChange={(event) =>
+                  setAudioSettings((current) => ({
+                    ...current,
+                    inputGain: Number(event.currentTarget.value) / 100,
+                  }))
+                }
+                onPointerUp={persistAudio}
+                onKeyUp={persistAudio}
+              />
+            </label>
+            <label
+              className="visual-setting"
+              title="Adjust Sam's playback signal, not the operating-system master volume."
+            >
+              <span>Output volume</span>
+              <input
+                aria-label="Output volume"
+                type="range"
+                min="0"
+                max="200"
+                value={Math.round(audioSettings.outputGain * 100)}
+                onChange={(event) =>
+                  setAudioSettings((current) => ({
+                    ...current,
+                    outputGain: Number(event.currentTarget.value) / 100,
+                  }))
+                }
+                onPointerUp={persistAudio}
+                onKeyUp={persistAudio}
+              />
+            </label>
           </section>
           <section className="controls__group" aria-labelledby={`${controlsId}-system`}>
             <h2 id={`${controlsId}-system`}>System &amp; model</h2>
