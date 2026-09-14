@@ -36,7 +36,9 @@
 - Add the acceptance-pending Visual Engine v1 foundation: typed provider-neutral
   envelope inputs; continuous state/audio choreography; a custom WebGL2 amber
   spheroid with drifting fragmented peels, analytic lights and sparse particles;
-  explicit mobile budgets; and Canvas/CSS fallbacks. Human acceptance remains pending.
+  explicit mobile budgets; and Canvas/CSS fallbacks. Refine desktop tessellation,
+  peel proportions/orientations, warm lighting, breathing and restrained particles
+  after initial review. Human acceptance remains pending.
 - Harden human-acceptance startup and voice reliability: load only an explicit,
   remembered, or sole installed chat model; keep LM Studio's installed and loaded
   inventories distinct; and expose cancellable long-load, Rescan, model choice,

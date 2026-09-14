@@ -340,7 +340,7 @@ export class MotionEvaluator {
     const expressionEnergy = expressionWeight * signed(input.expression?.energy);
     const expressionCoherence = expressionWeight * signed(input.expression?.coherence);
     const expressionWarmth = expressionWeight * signed(input.expression?.warmth);
-    const breath = reduced ? 0 : 0.01 * Math.sin(this.breathPhase);
+    const breath = reduced ? 0 : 0.014 * Math.sin(this.breathPhase);
     const contraction = this.interruption * 0.018;
 
     this.frame.foreground = input.interaction.foreground;

@@ -35,7 +35,8 @@ Updated: 2026-09-14
   graceful owned-window shutdown, truthful startup/status controls, and bounded
   transcript polish are implemented. [Visual Engine v1](VISUAL_ENGINE_V1.md) Stages
   A-D add typed inputs, bounded motion, a WebGL2 amber orb, drifting peels, analytic
-  lights/particles and mobile fallbacks; saved settings and acceptance remain pending.
+  lights/particles and mobile fallbacks. Desktop geometry/material baselines were
+  strengthened after initial review; saved settings and final acceptance remain pending.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:

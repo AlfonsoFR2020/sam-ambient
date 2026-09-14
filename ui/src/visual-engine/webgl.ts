@@ -57,7 +57,7 @@ uniform float u_highlight;
 out vec4 color;
 void main(){
   vec3 n=normalize(v_normal), view=vec3(0.,0.,1.);
-  float diffuse=.12;
+  float diffuse=.09;
   float specular=0.;
   for(int i=0;i<3;i++){
     if(i>=u_light_count) break;
@@ -67,12 +67,12 @@ void main(){
     vec3 orbit=vec3(cos(phase)*1.6,sin(phase*.83+fi)*1.3,1.35+sin(phase)*.18);
     orbit.yz=mat2(cos(incline),-sin(incline),sin(incline),cos(incline))*orbit.yz;
     vec3 light=normalize(orbit-v_position);
-    diffuse+=max(dot(n,light),0.)*(.46-fi*.065);
-    specular+=pow(max(dot(n,normalize(light+view)),0.),24.)*(.31-fi*.05);
+    diffuse+=max(dot(n,light),0.)*(.56-fi*.065);
+    specular+=pow(max(dot(n,normalize(light+view)),0.),18.)*(.48-fi*.055);
   }
   float rim=pow(1.-max(dot(n,view),0.),3.);
-  vec3 base=mix(vec3(.20,.025,.008),vec3(.95,.24,.045),clamp(diffuse,0.,1.));
-  vec3 linear=base*(.32+u_intensity*.78)+vec3(1.,.52,.16)*(specular+u_highlight*.22)+vec3(.82,.17,.025)*rim*u_rim;
+  vec3 base=mix(vec3(.145,.014,.004),vec3(.98,.255,.04),clamp(diffuse,0.,1.));
+  vec3 linear=base*(.28+u_intensity*.82)+vec3(1.,.49,.11)*(specular+u_highlight*.28)+vec3(.96,.24,.025)*rim*(u_rim+.08);
   linear=linear/(1.+linear);
   color=vec4(pow(linear,vec3(1./2.2)),1.);
 }`;
@@ -168,9 +168,9 @@ void main(){
   vec3 point=vec3(cos(angle)*shell,sin(angle*.83+a_particle.x)*shell*.72,sin(angle)*shell);
   point.yz=mat2(cos(incline),-sin(incline),sin(incline),cos(incline))*point.yz;
   point*=u_radius;
-  v_alpha=smoothstep(-.08,.2,point.z)*(.16+u_excitation*.28);
+  v_alpha=smoothstep(-.08,.2,point.z)*(.24+u_excitation*.34);
   gl_Position=vec4(point.xy*u_scale,-point.z*.25,1.);
-  gl_PointSize=a_particle.w*u_point_scale*(1.+u_excitation*.55);
+  gl_PointSize=a_particle.w*u_point_scale*(1.18+u_excitation*.62);
 }`;
 
 const PARTICLE_FRAGMENT = `#version 300 es

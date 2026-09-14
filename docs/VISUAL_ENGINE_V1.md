@@ -38,15 +38,15 @@ rest-radius units unless stated otherwise.
 ### Sphere
 
 An indexed latitude/longitude UV mesh has a duplicated longitude seam and no
-zero-area pole triangles. Medium uses 48 longitude segments and 24 latitude
-segments: at most 1,225 vertices and 2,208 triangles. Keep static unit normals/UVs
+zero-area pole triangles. Medium uses 72 longitude segments and 36 latitude
+segments: at most 2,701 vertices and 5,040 triangles. Keep static unit normals/UVs
 in immutable buffers. Base spheroid axes are `(1, 1.06, 0.96)`; state opening can
 change the Y axis by at most 0.04. The final radial bound in section 5 is mandatory.
 
 ### Fragmented loxodromic peels
 
 The loxodromes are invisible mathematical carriers, never complete visible
-ribbons. Render 6/9/14 independent elongated peels at low/medium/high quality,
+ribbons. Render 6/11/16 independent elongated peels at low/medium/high quality,
 with 16/20/24 centerline samples each. Each peel stores a carrier/family,
 center parameter, half-length, angular half-width, radial lift, opacity, phase,
 speed and seeded orientation/tilt. Two transverse vertices per sample form one
@@ -73,12 +73,12 @@ For fixed `k`, `d(lambda)/d(phi) = k/cos(phi)`: this is a constant-bearing
 loxodrome away from the poles, not a helix pasted in screen space. Each short
 interval stays within `u in [-1.8,1.8]`, wrapping its center periodically without
 crossing the pole limit. Half-length is seeded in `[0.22,0.58]`; angular half-width
-in `[0.018,0.055]`, opacity in `[0.28,0.72]`, and drift speed in
+in `[0.042,0.100]`, opacity in `[0.38,0.80]`, and drift speed in
 `[0.006,0.018]` rad/s with seeded direction. Soft end alpha uses `endFade^2`.
 
-Rotate each carrier by a fixed seeded tilt of at most 12 degrees around X/Z,
+Rotate each carrier by a fixed seeded tilt of at most 40 degrees around X/Z,
 then evaluate the same surface displacement as the sphere. Radial lift stays in
-`[0.010,0.032]`, with any later audio/state addition capped at 0.018; this keeps
+`[0.020,0.050]`, with any later audio/state addition capped at 0.018; this keeps
 peels close to the body rather than flying free. State separation may change tilt
 by at most another 4 degrees and width/lift within these bounds. Nearby fragments
 can align, overlap and share travelling highlights to suggest reconnection; there
@@ -385,10 +385,10 @@ Maintain the same warm sphere, fragmented peels and state geometry at every leve
 
 | Budget | Low | Medium | High |
 | --- | --- | --- | --- |
-| Sphere segments longitude x latitude | 32 x 16 | 48 x 24 | 64 x 32 |
-| Sphere vertices / triangles, upper bound | 561 / 960 | 1225 / 2208 | 2145 / 3968 |
-| Peels x centerline samples | 6 x 16 | 9 x 20 | 14 x 24 |
-| Peel vertices / triangles | 192 / 180 | 360 / 342 | 672 / 644 |
+| Sphere segments longitude x latitude | 32 x 16 | 72 x 36 | 96 x 48 |
+| Sphere vertices / triangles, upper bound | 561 / 960 | 2701 / 5040 | 4753 / 9024 |
+| Peels x centerline samples | 6 x 16 | 11 x 20 | 16 x 24 |
+| Peel vertices / triangles | 192 / 180 | 440 / 418 | 768 / 736 |
 | Particles / lights | 12 / 1 | 24 / 2 | 40 / 3 |
 | Idle / active FPS | 24 / 30 | 30 / 60 | 30 / 60 |
 | DPR cap / backing-pixel cap | 1 / 1M | 1.5 / 2M | 2 / 3M |

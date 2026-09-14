@@ -61,16 +61,16 @@ export function createSphereGeometry(longitude: number, latitude: number): Index
 export function createPeelDescriptors(count: number, seed = 0x5a17): readonly PeelDescriptor[] {
   const random = seeded(seed);
   return Array.from({ length: count }, (_, index) => ({
-    family: (index % 3) / 3,
+    family: (index / Math.max(1, count) + random() * 0.18) % 1,
     center: -1.25 + random() * 2.5,
     halfLength: 0.22 + random() * 0.36,
-    width: 0.018 + random() * 0.037,
-    lift: 0.01 + random() * 0.022,
-    opacity: 0.28 + random() * 0.44,
+    width: 0.042 + random() * 0.058,
+    lift: 0.02 + random() * 0.03,
+    opacity: 0.38 + random() * 0.42,
     phase: random() * Math.PI * 2,
     speed: (random() < 0.5 ? -1 : 1) * (0.006 + random() * 0.012),
-    tiltX: (random() * 2 - 1) * (Math.PI / 15),
-    tiltZ: (random() * 2 - 1) * (Math.PI / 15),
+    tiltX: (random() * 2 - 1) * (Math.PI / 4.5),
+    tiltZ: (random() * 2 - 1) * (Math.PI / 4.5),
   }));
 }
 
@@ -127,7 +127,7 @@ export function createParticleGeometry(count: number, seed = 0x5a17): ArrayGeome
         random() * Math.PI * 2,
         1.1 + random() * 0.3,
         (random() * 2 - 1) * (Math.PI / 5.2),
-        1.1 + random() * 1.25,
+        1.65 + random() * 1.55,
       ],
       index * 4,
     );

@@ -54,10 +54,12 @@ describe("visual quality and geometry", () => {
       for (const peel of descriptors) {
         expect(peel.halfLength).toBeGreaterThanOrEqual(0.22);
         expect(peel.halfLength).toBeLessThanOrEqual(0.58);
-        expect(peel.width).toBeGreaterThanOrEqual(0.018);
-        expect(peel.width).toBeLessThanOrEqual(0.055);
-        expect(peel.lift).toBeGreaterThanOrEqual(0.01);
-        expect(peel.lift).toBeLessThanOrEqual(0.032);
+        expect(peel.width).toBeGreaterThanOrEqual(0.042);
+        expect(peel.width).toBeLessThanOrEqual(0.1);
+        expect(peel.lift).toBeGreaterThanOrEqual(0.02);
+        expect(peel.lift).toBeLessThanOrEqual(0.05);
+        expect(Math.abs(peel.tiltX)).toBeLessThanOrEqual(Math.PI / 4.5);
+        expect(Math.abs(peel.tiltZ)).toBeLessThanOrEqual(Math.PI / 4.5);
       }
       expect(createPeelGeometry(budget).vertices).toEqual(geometry.vertices);
     }
@@ -76,9 +78,11 @@ describe("visual quality and geometry", () => {
   });
 
   it("bounds sphere topology and validates session settings", () => {
-    const sphere = createSphereGeometry(48, 24);
-    expect(sphere.vertices.length / 6).toBe(1225);
-    expect(sphere.indices.length / 3).toBe(2208);
+    expect(createSphereGeometry(32, 16).vertices.length / 6).toBe(561);
+    const sphere = createSphereGeometry(72, 36);
+    expect(sphere.vertices.length / 6).toBe(2701);
+    expect(sphere.indices.length / 3).toBe(5040);
+    expect(createSphereGeometry(96, 48).indices.length / 3).toBe(9024);
     expect(() => resolveVisualEngineSettings({ intensity: Number.NaN })).toThrow(/intensity/);
     expect(resolveVisualEngineSettings({ deviceProfile: "mobile_2020" }).deviceProfile).toBe(
       "mobile_2020",
