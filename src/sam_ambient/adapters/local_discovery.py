@@ -8,6 +8,7 @@ import logging
 import os
 import shutil
 from dataclasses import asdict, dataclass, field
+from enum import StrEnum
 from ipaddress import ip_address
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -21,6 +22,39 @@ from sam_ambient.core.turns import CancellationToken
 
 LM_STUDIO_URL = "http://127.0.0.1:1234/v1"
 log = logging.getLogger(__name__)
+
+
+class LifecycleIntent(StrEnum):
+    QUIT = "quit"
+    RESTART = "restart"
+    FAILURE = "failure"
+
+
+class CleanupStatus(StrEnum):
+    SUCCEEDED = "succeeded"
+    SKIPPED = "skipped"
+    UNSUPPORTED = "unsupported"
+    FAILED = "failed"
+
+
+@dataclass(frozen=True, slots=True)
+class CleanupPolicy:
+    model_on_exit: str = "keep"
+    provider_on_exit: str = "keep"
+
+    def __post_init__(self) -> None:
+        if self.model_on_exit not in {"keep", "unload_if_sam_loaded"}:
+            raise ValueError("unsupported model exit policy")
+        if self.provider_on_exit not in {"keep", "stop_if_sam_started"}:
+            raise ValueError("unsupported provider exit policy")
+
+
+@dataclass(frozen=True, slots=True)
+class CleanupResult:
+    resource: str
+    provider: str
+    status: CleanupStatus
+    detail: str
 
 
 def local_url(value: str) -> str:
@@ -145,6 +179,7 @@ class LocalService:
     daemon_running: bool | None = None
     started_by_sam: bool = False
     server_running: bool | None = None
+    models_loaded_by_sam: list[str] = field(default_factory=list, repr=False)
 
 
 @dataclass
@@ -157,23 +192,62 @@ class Discovery:
     pending_provider: str | None = None
     pending_model: str | None = None
 
-    async def aclose(self) -> None:
-        while self.owned_processes:
-            process = self.owned_processes.pop()
-            if process.returncode is None:
-                try:
-                    process.terminate()
-                except ProcessLookupError:
-                    pass
-            try:
-                await asyncio.wait_for(process.wait(), 2)
-            except TimeoutError:
-                process.kill()
-                await process.wait()
+    async def aclose(
+        self,
+        *,
+        intent: LifecycleIntent = LifecycleIntent.FAILURE,
+        policy: CleanupPolicy | None = None,
+    ) -> tuple[CleanupResult, ...]:
+        """Release only resources this discovery instance proved it created.
+
+        Restart/failure never invokes optional provider cleanup. Handles are not
+        reconstructed from persisted PIDs or current external state.
+        """
+        policy = policy or CleanupPolicy()
+        results: list[CleanupResult] = []
+        if intent is not LifecycleIntent.QUIT:
+            log.info("Provider cleanup skipped: lifecycle reason=%s", intent)
+            self.owned_processes.clear()
+            return tuple(results)
+
+        if policy.model_on_exit == "unload_if_sam_loaded":
+            for service in self.services:
+                for model in tuple(service.models_loaded_by_sam):
+                    result = await unload_owned_model(service, model)
+                    results.append(result)
+                    log.info(
+                        "Model cleanup provider=%s model=%s status=%s detail=%s",
+                        service.id,
+                        model,
+                        result.status,
+                        result.detail,
+                    )
+                service.models_loaded_by_sam.clear()
+        if policy.provider_on_exit == "stop_if_sam_started":
+            for service in self.services:
+                if not service.started_by_sam:
+                    continue
+                result = await stop_owned_service(service, self.owned_processes)
+                results.append(result)
+                log.info(
+                    "Provider cleanup provider=%s status=%s detail=%s",
+                    service.id,
+                    result.status,
+                    result.detail,
+                )
+        self.owned_processes.clear()
+        return tuple(results)
 
     def to_dict(self) -> dict:
         return {
-            "providers": [asdict(service) for service in self.services],
+            "providers": [
+                {
+                    key: value
+                    for key, value in asdict(service).items()
+                    if key != "models_loaded_by_sam"
+                }
+                for service in self.services
+            ],
             "selection": {
                 "provider": self.selected.id if self.selected else None,
                 "model": self.model,
@@ -306,6 +380,66 @@ async def _local_command(argv: tuple[str, ...], *, timeout_s: float = 20) -> Non
             await process.wait()
 
 
+async def unload_owned_model(service: LocalService, model: str) -> CleanupResult:
+    """Best-effort provider-neutral release with fail-closed provider support."""
+    if service.id == "lm-studio":
+        await probe_service(service)
+        if not service.running:
+            return CleanupResult("model", service.id, CleanupStatus.FAILED, "provider unavailable")
+    if model not in service.models:
+        return CleanupResult("model", service.id, CleanupStatus.SUCCEEDED, "already absent")
+    if service.id != "lm-studio" or not service.executable:
+        return CleanupResult(
+            "model", service.id, CleanupStatus.UNSUPPORTED, "adapter has no safe unload operation"
+        )
+    try:
+        await _local_command((service.executable, "unload", model, "--yes"), timeout_s=8)
+    except (OSError, RuntimeError, TimeoutError) as error:
+        return CleanupResult("model", service.id, CleanupStatus.FAILED, type(error).__name__)
+    return CleanupResult("model", service.id, CleanupStatus.SUCCEEDED, "unloaded")
+
+
+async def stop_owned_service(
+    service: LocalService, owned_processes: list[asyncio.subprocess.Process]
+) -> CleanupResult:
+    if not service.started_by_sam:
+        return CleanupResult("provider", service.id, CleanupStatus.SKIPPED, "external ownership")
+    if service.id == "lm-studio" and service.executable:
+        try:
+            await _local_command((service.executable, "server", "stop"), timeout_s=8)
+        except (OSError, RuntimeError, TimeoutError) as error:
+            return CleanupResult("provider", service.id, CleanupStatus.FAILED, type(error).__name__)
+        return CleanupResult("provider", service.id, CleanupStatus.SUCCEEDED, "stopped")
+    if service.id == "ollama" and owned_processes:
+        failed = False
+        for process in tuple(owned_processes):
+            if process.returncode is None:
+                try:
+                    process.terminate()
+                except ProcessLookupError:
+                    pass
+            try:
+                await asyncio.wait_for(process.wait(), 2)
+            except TimeoutError:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
+                try:
+                    await asyncio.wait_for(process.wait(), 2)
+                except TimeoutError:
+                    failed = True
+        return CleanupResult(
+            "provider",
+            service.id,
+            CleanupStatus.FAILED if failed else CleanupStatus.SUCCEEDED,
+            "owned process stop timed out" if failed else "owned process stopped",
+        )
+    return CleanupResult(
+        "provider", service.id, CleanupStatus.UNSUPPORTED, "no owned service handle"
+    )
+
+
 async def bootstrap_service(service: LocalService, requested: str | None, owned: list) -> None:
     """Start installed local backends only. No downloads or model eviction."""
     if not service.executable or service.id not in {"ollama", "lm-studio"}:
@@ -390,9 +524,10 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
                 await probe_service(service)
                 if model not in service.models:
                     raise RuntimeError("loaded model was not advertised by the serving endpoint")
+                service.models_loaded_by_sam.append(model)
             if service.started_by_sam:
                 service.detail += "; started by Sam" + (
-                    "; shared LM Studio service retained on exit"
+                    "; eligible for configured ownership-aware exit cleanup"
                     if service.id == "lm-studio"
                     else ""
                 )

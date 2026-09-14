@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Track provider-service and model-load provenance independently for the current
+  Sam runtime instance. Optional graceful-Quit policies can unload a verified
+  Sam-loaded LM Studio model and stop a service Sam started; Restart, Emergency
+  Stop, rescans, external resources, unsupported adapters, and future launches
+  gain no cleanup authority. Cleanup is structured, bounded, and best effort.
 - Add persisted `0-200%` Sam application input/output gains. Input gain is applied
   before VAD/STT/barge-in; output gain is applied before emitted-level metering and
   physical playback. These controls do not change operating-system mixer levels.

@@ -53,6 +53,7 @@ class FakeProcess:
         self.forced_stop = forced_stop
         self.exit: asyncio.Future[int] | None = None
         self.stop_calls = 0
+        self.stop_intents: list[str] = []
 
     async def wait_ready(self, timeout_s: float) -> HealthReport:
         del timeout_s
@@ -70,8 +71,9 @@ class FakeProcess:
             self.exit = asyncio.get_running_loop().create_future()
         return await self.exit
 
-    async def stop(self, timeout_s: float) -> bool:
+    async def stop(self, timeout_s: float, *, intent: str = "quit") -> bool:
         del timeout_s
+        self.stop_intents.append(intent)
         self.stop_calls += 1
         if self.exit is None:
             self.exit = asyncio.get_running_loop().create_future()
@@ -158,6 +160,7 @@ def test_normal_start_readiness_and_idempotent_shutdown(tmp_path: Path) -> None:
         await supervisor.shutdown()
 
         assert process.stop_calls == 1
+        assert process.stop_intents == ["quit"]
         assert supervisor.health is HealthState.STOPPED
         assert store.load_status("sam-core").health is HealthState.STOPPED  # type: ignore[union-attr]
 
@@ -224,7 +227,12 @@ def test_trusted_planned_restart_changes_instance_without_counting_a_crash(
         await eventually(lambda: supervisor.health is HealthState.HEALTHY)
 
         assert supervisor.statuses["sam-core"].instance_id != prior
+        assert (
+            launcher.contexts[0].application_instance_id
+            == launcher.contexts[1].application_instance_id
+        )
         assert supervisor.statuses["sam-core"].restart_count == 0
+        assert first.stop_intents == ["restart"]
         assert store.crashes() == ()
         assert store.security_state().capabilities_revoked is False
         await supervisor.shutdown()

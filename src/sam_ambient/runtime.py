@@ -152,6 +152,20 @@ def _validated_audio_settings(value: Mapping[str, object]) -> dict[str, float]:
     return result
 
 
+def _validated_lifecycle_settings(value: Mapping[str, object]) -> dict[str, str]:
+    if set(value) != {"model_on_exit", "provider_on_exit"}:
+        raise ValueError(
+            "lifecycle settings must contain model_on_exit and provider_on_exit exactly"
+        )
+    model = value["model_on_exit"]
+    provider = value["provider_on_exit"]
+    if model not in {"keep", "unload_if_sam_loaded"}:
+        raise ValueError("lifecycle model_on_exit has an unsupported value")
+    if provider not in {"keep", "stop_if_sam_started"}:
+        raise ValueError("lifecycle provider_on_exit has an unsupported value")
+    return {"model_on_exit": str(model), "provider_on_exit": str(provider)}
+
+
 def _validated_visual_settings(value: Mapping[str, object]) -> dict[str, object]:
     if set(value) != {*_VISUAL_CHOICES, *_VISUAL_UNITS}:
         raise ValueError("visual settings must contain the supported fields exactly")
@@ -203,6 +217,9 @@ class RuntimeConfig:
     audio_settings: Mapping[str, object] = field(
         default_factory=lambda: {"input_gain": 1.0, "output_gain": 1.0}
     )
+    lifecycle_settings: Mapping[str, object] = field(
+        default_factory=lambda: {"model_on_exit": "keep", "provider_on_exit": "keep"}
+    )
 
     def __post_init__(self) -> None:
         canonical = self.workspace_root.resolve(strict=True)
@@ -227,6 +244,9 @@ class RuntimeConfig:
             self, "visual_settings", _validated_visual_settings(self.visual_settings)
         )
         object.__setattr__(self, "audio_settings", _validated_audio_settings(self.audio_settings))
+        object.__setattr__(
+            self, "lifecycle_settings", _validated_lifecycle_settings(self.lifecycle_settings)
+        )
 
 
 @dataclass(slots=True)
@@ -401,6 +421,7 @@ class SamRuntime:
         self.state = SQLiteSessionStore(config.state_db) if config.state_db is not None else None
         self._visual_settings = dict(config.visual_settings)
         self._audio_settings = dict(config.audio_settings)
+        self._lifecycle_settings = dict(config.lifecycle_settings)
         persisted_visual = self.state.visual_preferences() if self.state is not None else None
         if persisted_visual is not None:
             try:
@@ -413,6 +434,12 @@ class SamRuntime:
                 self._audio_settings = _validated_audio_settings(persisted_audio)
             except ValueError:
                 log.warning("Ignoring invalid persisted audio preferences")
+        persisted_lifecycle = self.state.lifecycle_preferences() if self.state is not None else None
+        if persisted_lifecycle is not None:
+            try:
+                self._lifecycle_settings = _validated_lifecycle_settings(persisted_lifecycle)
+            except ValueError:
+                log.warning("Ignoring invalid persisted lifecycle preferences")
         self.session_id = self.state.session_id() if self.state is not None else str(uuid4())
         self._recovered_message_count = (
             len(self.state.recent(limit=50)) if self.state is not None else 0
@@ -488,6 +515,7 @@ class SamRuntime:
                 request_shutdown=self._request_shutdown,
                 set_visual_settings=self._set_visual_settings,
                 set_audio_settings=self._set_audio_settings,
+                set_lifecycle_settings=self._set_lifecycle_settings,
             ),
             clock_ms=self._next_event_ms,
         )
@@ -597,6 +625,13 @@ class SamRuntime:
         if self.state is not None:
             self.state.remember_audio_preferences(settings)
         return {"audio_settings": settings}
+
+    async def _set_lifecycle_settings(self, value: Mapping[str, object]) -> Mapping[str, object]:
+        settings = _validated_lifecycle_settings(value)
+        self._lifecycle_settings = settings
+        if self.state is not None:
+            self.state.remember_lifecycle_preferences(settings)
+        return {"lifecycle_settings": settings}
 
     async def _refresh_providers(
         self, provider_id: str | None, model: str | None, remember: bool
@@ -1671,6 +1706,7 @@ class SamRuntime:
                 "cloud_allowed": self.config.allow_cloud,
                 "visual_settings": self._visual_settings,
                 "audio_settings": self._audio_settings,
+                "lifecycle_settings": self._lifecycle_settings,
                 "tools": [descriptor.id for descriptor in self.tools.descriptors()],
                 "capability_authority_active": authority.active,
                 "capability_authority_epoch": authority.epoch,

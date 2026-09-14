@@ -57,6 +57,8 @@ def test_missing_config_uses_safe_defaults_and_explicit_missing_fails(tmp_path):
     assert not settings.privacy.allow_cloud
     assert settings.visual.quality == "auto"
     assert settings.visual.device_profile == "auto"
+    assert settings.lifecycle.model_on_exit == "keep"
+    assert settings.lifecycle.provider_on_exit == "keep"
     with pytest.raises(ConfigurationError, match="does not exist"):
         load_settings(
             project_root=tmp_path, explicit_path=tmp_path / "missing.toml", environment={}
@@ -168,6 +170,24 @@ def test_audio_application_gains_are_typed_and_bounded(tmp_path):
     assert settings.audio.output_gain == 2
     _write(config, "[audio]\ninput_gain = 2.1\n")
     with pytest.raises(ConfigurationError, match=r"audio\.input_gain"):
+        load_settings(project_root=tmp_path, explicit_path=config, environment={})
+
+
+def test_lifecycle_settings_are_typed_and_conservative(tmp_path):
+    config = tmp_path / "lifecycle.toml"
+    _write(
+        config,
+        """[lifecycle]
+model_on_exit = "unload_if_sam_loaded"
+provider_on_exit = "stop_if_sam_started"
+""",
+    )
+    settings = load_settings(project_root=tmp_path, explicit_path=config, environment={})
+    assert settings.lifecycle.model_on_exit == "unload_if_sam_loaded"
+    assert settings.lifecycle.provider_on_exit == "stop_if_sam_started"
+
+    _write(config, '[lifecycle]\nprovider_on_exit = "always_stop"\n')
+    with pytest.raises(ConfigurationError, match="unsupported value"):
         load_settings(project_root=tmp_path, explicit_path=config, environment={})
 
 

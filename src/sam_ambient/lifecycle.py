@@ -3,10 +3,10 @@
 import asyncio
 import sys
 import threading
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 
 
-def parent_stop_event() -> asyncio.Event:
+def parent_stop_event(on_intent: Callable[[str], None] | None = None) -> asyncio.Event:
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
 
@@ -15,7 +15,9 @@ def parent_stop_event() -> asyncio.Event:
         # prevents exit. Only a fixed instruction (or parent EOF) is accepted.
         while True:
             line = sys.stdin.readline(64)
-            if not line or line == "SAM_STOP\n":
+            if not line or line in {"SAM_STOP\n", "SAM_STOP quit\n", "SAM_STOP restart\n"}:
+                if on_intent is not None:
+                    on_intent("restart" if line == "SAM_STOP restart\n" else "quit")
                 try:
                     loop.call_soon_threadsafe(stop.set)
                 except RuntimeError:

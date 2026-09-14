@@ -170,6 +170,9 @@ def test_unavailable_stt_keeps_text_runtime_available(tmp_path, monkeypatch, cap
             serve_forever=AsyncMock(),
             bridge=SimpleNamespace(port=8765),
             shutdown_requested=asyncio.Event(),
+            restart_requested=asyncio.Event(),
+            _refresh_providers=AsyncMock(),
+            _lifecycle_settings={"model_on_exit": "keep", "provider_on_exit": "keep"},
             capability_authority=SimpleNamespace(snapshot=SimpleNamespace(active=True)),
         )
 

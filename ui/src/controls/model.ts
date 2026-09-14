@@ -35,7 +35,12 @@ export type ControlAction =
   | { type: "reduced_motion.set"; enabled: boolean }
   | { type: "brightness.set"; value: number }
   | { type: "visual_settings.set"; settings: VisualEngineSettings }
-  | { type: "audio_settings.set"; inputGain: number; outputGain: number };
+  | { type: "audio_settings.set"; inputGain: number; outputGain: number }
+  | {
+      type: "lifecycle_settings.set";
+      modelOnExit: "keep" | "unload_if_sam_loaded";
+      providerOnExit: "keep" | "stop_if_sam_started";
+    };
 
 export function commandForAction(
   action: ControlAction,
@@ -99,6 +104,17 @@ export function commandForAction(
     return createControlCommand(
       "control.audio_settings.set",
       { input_gain: action.inputGain, output_gain: action.outputGain },
+      state,
+      runtime,
+    );
+  }
+  if (action.type === "lifecycle_settings.set") {
+    return createControlCommand(
+      "control.lifecycle_settings.set",
+      {
+        model_on_exit: action.modelOnExit,
+        provider_on_exit: action.providerOnExit,
+      },
       state,
       runtime,
     );

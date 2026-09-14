@@ -28,7 +28,7 @@ class ManagedProcess(Protocol):
 
     async def wait(self) -> int: ...
 
-    async def stop(self, timeout_s: float) -> bool:
+    async def stop(self, timeout_s: float, *, intent: str = "quit") -> bool:
         """Stop the process and return whether a forced kill was required."""
 
 
@@ -55,6 +55,8 @@ class SubprocessLauncher:
                 (
                     "--runtime-instance-id",
                     context.instance_id,
+                    "--application-instance-id",
+                    context.application_instance_id,
                     "--capability-epoch",
                     str(context.capability_epoch),
                     "--state-db",
@@ -154,14 +156,16 @@ class SubprocessManagedProcess:
     async def wait(self) -> int:
         return await self._process.wait()
 
-    async def stop(self, timeout_s: float) -> bool:
+    async def stop(self, timeout_s: float, *, intent: str = "quit") -> bool:
+        if intent not in {"quit", "restart"}:
+            raise ValueError("managed process stop intent must be quit or restart")
         if self._process.returncode is not None:
             await self._finish_drain()
             return False
         # Graceful stop works on Windows too; escalation remains bounded.
         if self._process.stdin is not None:
             try:
-                self._process.stdin.write(b"SAM_STOP\n")
+                self._process.stdin.write(f"SAM_STOP {intent}\n".encode("ascii"))
                 await self._process.stdin.drain()
                 self._process.stdin.close()
             except (OSError, ConnectionError):

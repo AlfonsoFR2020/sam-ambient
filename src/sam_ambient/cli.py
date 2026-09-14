@@ -21,7 +21,13 @@ import sounddevice
 
 from sam_ambient import __version__
 from sam_ambient.adapters.audio import SoundDeviceCapture, SoundDeviceOutput
-from sam_ambient.adapters.local_discovery import Discovery, discover_local, provider_for
+from sam_ambient.adapters.local_discovery import (
+    CleanupPolicy,
+    Discovery,
+    LifecycleIntent,
+    discover_local,
+    provider_for,
+)
 from sam_ambient.adapters.ollama import (
     DEFAULT_OLLAMA_BASE_URL,
     OllamaProvider,
@@ -36,7 +42,7 @@ from sam_ambient.adapters.stt import (
 from sam_ambient.adapters.tts import SystemTextToSpeech, TextToSpeechUnavailable
 from sam_ambient.adapters.ui.demo import run_demo_bridge
 from sam_ambient.adapters.vad import WebRtcVoiceActivityDetector
-from sam_ambient.configuration import ConfigurationError, configure_namespace
+from sam_ambient.configuration import ConfigurationError, SamSettings, configure_namespace
 from sam_ambient.core.providers import (
     DataBoundary,
     LLMProvider,
@@ -55,6 +61,44 @@ from sam_ambient.supervisor import SupervisorStore, UpdateError, UpdateStore, re
 from sam_ambient.supervisor.browser import BrowserHandoff, ui_http_ready
 
 log = logging.getLogger(__name__)
+
+
+def _restore_instance_resource_ownership(
+    discovery: Discovery | None, ownership: dict[str, object]
+) -> None:
+    if discovery is None:
+        return
+    models = ownership.get("lm_studio_models", [])
+    if not isinstance(models, list):
+        return
+    claimed = {item for item in models if isinstance(item, str)}
+    for service in discovery.services:
+        if service.id == "lm-studio":
+            if ownership.get("lm_studio_service_started") is True and service.running:
+                service.started_by_sam = True
+            service.models_loaded_by_sam = sorted(
+                set(service.models_loaded_by_sam) | claimed.intersection(service.models)
+            )
+
+
+def _instance_resource_ownership(discovery: Discovery | None) -> dict[str, object]:
+    if discovery is None:
+        return {"lm_studio_models": [], "lm_studio_service_started": False}
+    models = {
+        model
+        for service in discovery.services
+        if service.id == "lm-studio"
+        for model in service.models_loaded_by_sam
+        if model in service.models
+    }
+    service_started = any(
+        service.id == "lm-studio" and service.started_by_sam and service.running
+        for service in discovery.services
+    )
+    return {
+        "lm_studio_models": sorted(models),
+        "lm_studio_service_started": service_started,
+    }
 
 
 def _add_provider_arguments(parser: argparse.ArgumentParser) -> None:
@@ -128,6 +172,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Permit the explicitly configured cloud provider before private tool data exists",
     )
     runtime.add_argument("--runtime-instance-id", help=argparse.SUPPRESS)
+    runtime.add_argument("--application-instance-id", help=argparse.SUPPRESS)
     runtime.add_argument("--capability-epoch", type=int, default=0, help=argparse.SUPPRESS)
     runtime.add_argument("--capabilities-revoked", action="store_true", help=argparse.SUPPRESS)
     runtime.add_argument("--safe-mode", action="store_true", help=argparse.SUPPRESS)
@@ -561,6 +606,20 @@ async def run_runtime(args: argparse.Namespace) -> int:
     args.state_db = args.state_db or str(Path(args.root) / ".sam/state.db")
     provider, model, discovery = await discover_provider(args, bootstrap=False)
     discoveries = [discovery] if discovery is not None else []
+    ownership_store = None
+    ownership: dict[str, object] = {}
+    if args.application_instance_id:
+        from sam_ambient.core.storage import SQLiteSessionStore
+
+        ownership_store = SQLiteSessionStore(Path(args.state_db))
+        ownership = ownership_store.instance_resource_ownership(args.application_instance_id)
+        _restore_instance_resource_ownership(discovery, ownership)
+    lifecycle_intent = LifecycleIntent.FAILURE
+    configured = getattr(args, "_sam_settings", SamSettings())
+    lifecycle_policy = CleanupPolicy(
+        configured.lifecycle.model_on_exit,
+        configured.lifecycle.provider_on_exit,
+    )
 
     async def refresh(provider_id: str | None, requested_model: str | None):
         from sam_ambient.runtime import ProviderRefresh
@@ -577,6 +636,15 @@ async def run_runtime(args: argparse.Namespace) -> int:
         refreshed_provider, refreshed_model, refreshed = await discover_provider(
             refresh_args, bootstrap=True
         )
+        _restore_instance_resource_ownership(refreshed, ownership)
+        if refreshed is not None and ownership_store is not None:
+            # Preserve newly proven loads and discard claims for models no longer
+            # observed as loaded. The random supervisor-lifetime id prevents a
+            # future independent Sam launch from inheriting this authority.
+            ownership.update(_instance_resource_ownership(refreshed))
+            ownership_store.remember_instance_resource_ownership(
+                args.application_instance_id, ownership
+            )
         catalog = tuple(refreshed.to_dict()["providers"]) if refreshed else ()
         reason = refreshed.reason if refreshed else "explicit configuration"
         if refreshed is not None and refreshed.selected is None:
@@ -588,9 +656,31 @@ async def run_runtime(args: argparse.Namespace) -> int:
         return ProviderRefresh(refreshed_provider, refreshed_model, reason, catalog)
 
     try:
-        return await _serve_runtime(args, provider, model, discovery, refresh)
+        lifecycle_intent, effective_policy = await _serve_runtime(
+            args, provider, model, discovery, refresh
+        )
+        lifecycle_policy = CleanupPolicy(
+            str(effective_policy["model_on_exit"]),
+            str(effective_policy["provider_on_exit"]),
+        )
+        return 0
     finally:
-        await asyncio.gather(*(item.aclose() for item in discoveries), return_exceptions=True)
+        cleanup = await asyncio.gather(
+            *(
+                item.aclose(intent=lifecycle_intent, policy=lifecycle_policy)
+                for item in discoveries
+            ),
+            return_exceptions=True,
+        )
+        for result in cleanup:
+            if isinstance(result, BaseException):
+                log.warning("Provider cleanup failed without blocking shutdown: %s", result)
+        if (
+            lifecycle_intent is LifecycleIntent.QUIT
+            and ownership_store is not None
+            and args.application_instance_id
+        ):
+            ownership_store.forget_instance_resource_ownership(args.application_instance_id)
         await provider.aclose()
 
 
@@ -600,10 +690,18 @@ async def _serve_runtime(
     model: str | None,
     discovery: Discovery | None,
     provider_refresher=None,
-) -> int:
+) -> tuple[LifecycleIntent, dict[str, object]]:
     from sam_ambient.adapters.mcp import McpClient, McpError
 
-    stop = parent_stop_event() if args.runtime_instance_id else asyncio.Event()
+    configured = getattr(args, "_sam_settings", SamSettings())
+
+    parent_intent = LifecycleIntent.QUIT
+
+    def set_parent_intent(value: str) -> None:
+        nonlocal parent_intent
+        parent_intent = LifecycleIntent(value)
+
+    stop = parent_stop_event(set_parent_intent) if args.runtime_instance_id else asyncio.Event()
     tts = None
     output = None
     if not args.no_tts:
@@ -661,8 +759,9 @@ async def _serve_runtime(
             ),
             state_db=Path(args.state_db) if args.state_db else None,
             tts_voice=args.tts_voice,
-            visual_settings=asdict(args._sam_settings.visual),
-            audio_settings=asdict(args._sam_settings.audio),
+            visual_settings=asdict(configured.visual),
+            audio_settings=asdict(configured.audio),
+            lifecycle_settings=asdict(configured.lifecycle),
         ),
         voice=voice,
         tts=tts,
@@ -757,7 +856,7 @@ async def _serve_runtime(
                 await asyncio.gather(bootstrap_task, return_exceptions=True)
             quit_task.cancel()
             await asyncio.gather(quit_task, return_exceptions=True)
-        return 0
+        return parent_intent, dict(runtime._lifecycle_settings)
     finally:
         await runtime.close()
         await asyncio.gather(*(client.close() for client in mcp_clients), return_exceptions=True)

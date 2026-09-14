@@ -137,6 +137,60 @@ class SQLiteSessionStore:
                 (json.dumps(value, sort_keys=True, allow_nan=False),),
             )
 
+    def lifecycle_preferences(self) -> dict[str, object] | None:
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT value FROM runtime_metadata WHERE key='lifecycle_preferences'"
+                ).fetchone()
+            value = json.loads(row[0]) if row else None
+            return dict(value) if isinstance(value, dict) else None
+        except (sqlite3.DatabaseError, ValueError, TypeError):
+            return None
+
+    def remember_lifecycle_preferences(self, value: dict[str, object]) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """INSERT OR REPLACE INTO runtime_metadata(key,value)
+                   VALUES ('lifecycle_preferences',?)""",
+                (json.dumps(value, sort_keys=True, allow_nan=False),),
+            )
+
+    def instance_resource_ownership(self, application_instance_id: str) -> dict[str, object]:
+        if not application_instance_id.strip() or len(application_instance_id) > 128:
+            return {}
+        key = "resource_ownership:" + application_instance_id
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT value FROM runtime_metadata WHERE key=?", (key,)
+                ).fetchone()
+            value = json.loads(row[0]) if row else None
+            return dict(value) if isinstance(value, dict) else {}
+        except (sqlite3.DatabaseError, ValueError, TypeError):
+            return {}
+
+    def remember_instance_resource_ownership(
+        self, application_instance_id: str, value: dict[str, object]
+    ) -> None:
+        if not application_instance_id.strip() or len(application_instance_id) > 128:
+            raise ValueError("application instance identity is invalid")
+        key = "resource_ownership:" + application_instance_id
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT OR REPLACE INTO runtime_metadata(key,value) VALUES (?,?)",
+                (key, json.dumps(value, sort_keys=True, allow_nan=False)),
+            )
+
+    def forget_instance_resource_ownership(self, application_instance_id: str) -> None:
+        if not application_instance_id.strip() or len(application_instance_id) > 128:
+            return
+        with self._connect() as connection:
+            connection.execute(
+                "DELETE FROM runtime_metadata WHERE key=?",
+                ("resource_ownership:" + application_instance_id,),
+            )
+
     def session_id(self) -> str:
         try:
             with self._connect() as connection:

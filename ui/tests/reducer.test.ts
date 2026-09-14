@@ -88,6 +88,30 @@ describe("protocol state reduction", () => {
     expect(state.audioSettings).toEqual({ inputGain: 1, outputGain: 0 });
   });
 
+  it("accepts ownership-aware lifecycle settings from ready and acknowledgement", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("system.ready", 1, {
+        state: "IDLE",
+        lifecycle_settings: { model_on_exit: "keep", provider_on_exit: "keep" },
+      }),
+    );
+    expect(state.lifecycleSettings).toEqual({ modelOnExit: "keep", providerOnExit: "keep" });
+    state = reduceProtocolEvent(
+      state,
+      event("control.acknowledged", 2, {
+        lifecycle_settings: {
+          model_on_exit: "unload_if_sam_loaded",
+          provider_on_exit: "stop_if_sam_started",
+        },
+      }),
+    );
+    expect(state.lifecycleSettings).toEqual({
+      modelOnExit: "unload_if_sam_loaded",
+      providerOnExit: "stop_if_sam_started",
+    });
+  });
+
   it("distinguishes provisional and committed transcripts", () => {
     let state = reduceProtocolEvent(
       resetUiState(),

@@ -74,6 +74,7 @@ class Supervisor:
         self._shutdown = asyncio.Event()
         self._shutdown_lock = asyncio.Lock()
         self._planned_restarts: set[str] = set()
+        self.application_instance_id = str(uuid4())
         self._started = False
 
     @property
@@ -128,7 +129,7 @@ class Supervisor:
             raise RuntimeError("component is not currently running")
         spec = next(item for item in self.components if item.component_id == component_id)
         self._planned_restarts.add(component_id)
-        await process.stop(spec.restart.shutdown_timeout_s)
+        await process.stop(spec.restart.shutdown_timeout_s, intent="restart")
 
     async def shutdown(self) -> None:
         async with self._shutdown_lock:
@@ -161,6 +162,7 @@ class Supervisor:
             security = self.store.security_state()
             context = LaunchContext(
                 instance_id=str(uuid4()),
+                application_instance_id=self.application_instance_id,
                 capability_epoch=security.capability_epoch,
                 capabilities_revoked=security.capabilities_revoked,
                 safe_mode=security.safe_mode,
@@ -197,16 +199,16 @@ class Supervisor:
                         report = ready_task.result()
                     except TimeoutError:
                         reason = "startup_timeout"
-                        await process.stop(spec.restart.shutdown_timeout_s)
+                        await process.stop(spec.restart.shutdown_timeout_s, intent="restart")
                         exit_code = await exit_task
                     except Exception:
                         reason = "invalid_readiness"
-                        await process.stop(spec.restart.shutdown_timeout_s)
+                        await process.stop(spec.restart.shutdown_timeout_s, intent="restart")
                         exit_code = await exit_task
                     else:
                         if report.instance_id != context.instance_id:
                             reason = "stale_readiness"
-                            await process.stop(spec.restart.shutdown_timeout_s)
+                            await process.stop(spec.restart.shutdown_timeout_s, intent="restart")
                             exit_code = await exit_task
                         else:
                             ready_at = self.clock.monotonic_ms()

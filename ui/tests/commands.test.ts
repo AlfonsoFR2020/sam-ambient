@@ -130,6 +130,26 @@ describe("control command protocol", () => {
     });
   });
 
+  it("serializes ownership-aware exit preferences through one owner control", () => {
+    expect(
+      commandForAction(
+        {
+          type: "lifecycle_settings.set",
+          modelOnExit: "unload_if_sam_loaded",
+          providerOnExit: "stop_if_sam_started",
+        },
+        INITIAL_UI_STATE,
+        runtime,
+      ),
+    ).toMatchObject({
+      type: "control.lifecycle_settings.set",
+      payload: {
+        model_on_exit: "unload_if_sam_loaded",
+        provider_on_exit: "stop_if_sam_started",
+      },
+    });
+  });
+
   it("serializes text requests and correlated tool approval decisions", () => {
     const request = commandForAction(
       { type: "user_message.submit", text: "List the project files" },

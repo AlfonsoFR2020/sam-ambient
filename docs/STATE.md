@@ -49,6 +49,13 @@ Updated: 2026-09-14
   gains from 0-200%. Captured PCM is saturated once before all voice consumers;
   synthesized PCM is saturated once before output metering/playback, so mute reports
   zero emitted energy. These are not operating-system device-volume controls.
+- Local bootstrap records service-start and model-load provenance independently.
+  Direct Ollama process handles stay in their creating core; verified LM Studio
+  service/model provenance is keyed to a random supervisor lifetime so it survives
+  managed core Restart but cannot authorize cleanup in a future Sam launch. Persisted graceful-Quit
+  policies default to Keep; opt-in cleanup unloads only a Sam-loaded LM Studio model
+  and stops only a service Sam started. Restart/failure/Emergency Stop never apply
+  exit cleanup, unsupported providers fail closed, and timeouts cannot block shutdown.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
@@ -79,8 +86,9 @@ Updated: 2026-09-14
   LM chat model (20 s/backend, 4096 context, 600 s idle TTL). No eviction/download/cloud.
 - Explicit choices win; otherwise last successful local provider/model → Ollama →
   LM → configured compatible. SQLite runtime metadata remembers successful local
-  responses only; stale preferences fall back. Embeddings are excluded. Owned
-  Ollama children stop on exit; shared LM daemon/server and existing services remain.
+  responses only; stale preferences fall back. Embeddings are excluded. External
+  resources remain untouched. Sam-owned resources are retained by default and may
+  receive bounded ownership-aware cleanup only on terminal Quit when opted in.
 - Provider reason, started/reused status, STT readiness and TTS backend reach the
   UI; unavailable discovery cannot be bypassed by runtime model auto-selection.
   Core startup budget is 90 s for bounded provider/model + existing STT readiness.

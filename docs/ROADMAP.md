@@ -29,9 +29,9 @@ planned or acceptance-pending work. Priorities may change after real use.
 - Add consent-driven prerequisite and model acquisition using existing doctor data.
 - Establish Windows Authenticode signing plus antivirus/reputation validation.
 - Assemble the final installer and validate Linux packages on Linux hardware.
-- Add one understandable Settings surface for provider/model and ownership policy,
-  provider exit ownership, visual theme, and adapter-based STT/TTS
-  choices. Keep Rescan, Reload, Restart, and Quit distinct owner controls.
+- Extend the current typed Settings surface only when real alternatives arrive,
+  including visual themes and adapter-based STT/TTS choices. Keep Rescan, Reload,
+  Restart, and Quit distinct owner controls.
 - Reconcile accepted ambient-shell and native-shell work, including native identity
   and taskbar icon; recheck the version-sensitive architecture infographic. Native
   plus ambient acceptance is the likely `0.2.0` boundary.

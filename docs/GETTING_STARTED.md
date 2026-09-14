@@ -131,9 +131,10 @@ without prompts, audio contents, or credentials.
 
 Choose **Quit Sam → Confirm quit**, or Ctrl+Q. Cancel/Escape keeps Sam running.
 The stopped screen means reconnection is off; close any remaining fallback tab.
-Ctrl+C also stops managed components. Existing model services remain running;
-Sam-owned Ollama/Whisper child processes are cleaned up. LM Studio's shared
-daemon/server is retained to avoid interrupting other users/apps.
+Ctrl+C also stops managed components. By default local models and provider services
+remain available. Application controls can opt into unloading a model Sam loaded or
+stopping a service Sam started during graceful Quit. Existing/shared resources are
+never claimed by discovery, and Restart keeps resources available.
 
 If the browser fails, open the URL manually. If no model is usable, check your
 runtime's installed chat models and the reported startup failure. If ports are

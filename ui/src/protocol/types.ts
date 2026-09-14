@@ -44,6 +44,7 @@ export const CONTROL_COMMAND_TYPES = [
   "control.model.select",
   "control.visual_settings.set",
   "control.audio_settings.set",
+  "control.lifecycle_settings.set",
   "control.application.restart",
   "control.application.quit",
 ] as const;
@@ -184,6 +185,10 @@ export interface UiState {
     reducedMotion: "system" | "on" | "off";
   };
   audioSettings?: { inputGain: number; outputGain: number };
+  lifecycleSettings?: {
+    modelOnExit: "keep" | "unload_if_sam_loaded";
+    providerOnExit: "keep" | "stop_if_sam_started";
+  };
 }
 
 export const INITIAL_UI_STATE: UiState = {

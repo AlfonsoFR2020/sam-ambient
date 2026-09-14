@@ -100,6 +100,29 @@ def test_audio_preferences_round_trip_as_separate_runtime_state(tmp_path: Path) 
     assert SQLiteSessionStore(path).audio_preferences() == settings
 
 
+def test_lifecycle_preferences_round_trip_as_non_authority_runtime_state(tmp_path: Path) -> None:
+    path = tmp_path / "state.db"
+    settings = {
+        "model_on_exit": "unload_if_sam_loaded",
+        "provider_on_exit": "stop_if_sam_started",
+    }
+    SQLiteSessionStore(path).remember_lifecycle_preferences(settings)
+    assert SQLiteSessionStore(path).lifecycle_preferences() == settings
+
+
+def test_resource_ownership_is_scoped_to_one_application_instance(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "state.db")
+    store.remember_instance_resource_ownership(
+        "application-a", {"lm_studio_models": ["google/gemma"]}
+    )
+    assert store.instance_resource_ownership("application-a") == {
+        "lm_studio_models": ["google/gemma"]
+    }
+    assert store.instance_resource_ownership("application-b") == {}
+    store.forget_instance_resource_ownership("application-a")
+    assert store.instance_resource_ownership("application-a") == {}
+
+
 def test_crash_journal_and_component_status_are_bounded_and_recoverable(tmp_path: Path) -> None:
     store = SupervisorStore(tmp_path / "sam.db", maximum_crash_records=2)
     status = ComponentStatus("sam-core", HealthState.DEGRADED, "instance", 123)

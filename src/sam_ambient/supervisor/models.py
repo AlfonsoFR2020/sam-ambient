@@ -79,6 +79,7 @@ class ComponentSpec:
 @dataclass(frozen=True, slots=True)
 class LaunchContext:
     instance_id: str
+    application_instance_id: str
     capability_epoch: int
     capabilities_revoked: bool
     safe_mode: bool

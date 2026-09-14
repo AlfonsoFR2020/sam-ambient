@@ -25,6 +25,7 @@ class RecordingBindings:
         self.restarts: list[str] = []
         self.visual_settings: list[dict[str, object]] = []
         self.audio_settings: list[dict[str, object]] = []
+        self.lifecycle_settings: list[dict[str, object]] = []
 
     async def set_microphone(self, enabled: bool) -> None:
         self.microphone.append(enabled)
@@ -72,6 +73,10 @@ class RecordingBindings:
         self.audio_settings.append(dict(value))
         return {"audio_settings": dict(value)}
 
+    async def set_lifecycle_settings(self, value: dict[str, object]) -> dict[str, object]:
+        self.lifecycle_settings.append(dict(value))
+        return {"lifecycle_settings": dict(value)}
+
 
 def test_audio_settings_use_a_trusted_deduplicated_owner_control() -> None:
     async def scenario() -> None:
@@ -91,6 +96,28 @@ def test_audio_settings_use_a_trusted_deduplicated_owner_control() -> None:
         )
         assert await dispatcher.dispatch(request) is await dispatcher.dispatch(request)
         assert recording.audio_settings == [{"input_gain": 0.7, "output_gain": 1.2}]
+
+    asyncio.run(scenario())
+
+
+def test_lifecycle_settings_use_a_trusted_deduplicated_owner_control() -> None:
+    async def scenario() -> None:
+        recording = RecordingBindings()
+        dispatcher = ControlDispatcher(
+            CoreControlBindings(
+                recording.set_microphone,
+                recording.set_tts_output,
+                recording.cancel,
+                set_lifecycle_settings=recording.set_lifecycle_settings,
+            )
+        )
+        payload = {
+            "model_on_exit": "unload_if_sam_loaded",
+            "provider_on_exit": "stop_if_sam_started",
+        }
+        request = command(ControlCommandType.LIFECYCLE_SETTINGS_SET, "lifecycle", payload)
+        assert await dispatcher.dispatch(request) is await dispatcher.dispatch(request)
+        assert recording.lifecycle_settings == [payload]
 
     asyncio.run(scenario())
 

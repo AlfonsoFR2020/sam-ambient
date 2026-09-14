@@ -95,6 +95,15 @@ application PCM signal, not the operating-system microphone or master-volume mix
 Changes are committed when a pointer drag or keyboard adjustment finishes and persist
 across interface reload and Sam restart.
 
+The **Application** controls also define what happens to local AI resources on a
+graceful Quit. Both defaults are **Keep**. **Unload if Sam loaded it** applies only
+to a model Sam successfully loaded during the current runtime scope and only where
+the provider exposes a safe unload operation (currently LM Studio). **Stop if Sam
+started it** applies only to a local service Sam successfully started. Existing,
+shared, rescanned, remote, and merely selected resources are left alone. These are
+best-effort bounded Quit actions: Restart and Emergency Stop never trigger them, and
+a hard process crash cannot guarantee cleanup.
+
 Keyboard: **Ctrl+M** toggles the microphone outside text fields;
 **Ctrl+Shift+X** performs Emergency stop even while a text field is focused;
 **Ctrl+Q** opens quit confirmation even while a text field is focused; **Ctrl+R**

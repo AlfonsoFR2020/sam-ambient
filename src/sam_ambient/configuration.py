@@ -41,6 +41,12 @@ class AudioSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class LifecycleSettings:
+    model_on_exit: str = "keep"
+    provider_on_exit: str = "keep"
+
+
+@dataclass(frozen=True, slots=True)
 class ApplicationSettings:
     root: Path = field(default_factory=Path.cwd)
     open_ui: bool = True
@@ -89,6 +95,7 @@ class SamSettings:
     provider: ProviderSettings = field(default_factory=ProviderSettings)
     voice: VoiceSettings = field(default_factory=VoiceSettings)
     audio: AudioSettings = field(default_factory=AudioSettings)
+    lifecycle: LifecycleSettings = field(default_factory=LifecycleSettings)
     application: ApplicationSettings = field(default_factory=ApplicationSettings)
     capabilities: CapabilitySettings = field(default_factory=CapabilitySettings)
     privacy: PrivacySettings = field(default_factory=PrivacySettings)
@@ -105,6 +112,7 @@ _SCHEMA: dict[str, frozenset[str]] = {
         {"stt_enabled", "stt_url", "preferred_languages", "tts_enabled", "tts_voice"}
     ),
     "audio": frozenset({"input_gain", "output_gain"}),
+    "lifecycle": frozenset({"model_on_exit", "provider_on_exit"}),
     "application": frozenset({"root", "open_ui"}),
     "capabilities": frozenset({"workspace_write"}),
     "privacy": frozenset({"allow_cloud"}),
@@ -326,6 +334,7 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
     provider = values.get("provider", {})
     voice = values.get("voice", {})
     audio = values.get("audio", {})
+    lifecycle = values.get("lifecycle", {})
     application = values.get("application", {})
     capabilities = values.get("capabilities", {})
     privacy = values.get("privacy", {})
@@ -363,6 +372,18 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
         audio=AudioSettings(
             input_gain=_gain(audio.get("input_gain", 1.0), "audio.input_gain"),
             output_gain=_gain(audio.get("output_gain", 1.0), "audio.output_gain"),
+        ),
+        lifecycle=LifecycleSettings(
+            model_on_exit=_choice(
+                lifecycle.get("model_on_exit", "keep"),
+                "lifecycle.model_on_exit",
+                {"keep", "unload_if_sam_loaded"},
+            ),
+            provider_on_exit=_choice(
+                lifecycle.get("provider_on_exit", "keep"),
+                "lifecycle.provider_on_exit",
+                {"keep", "stop_if_sam_started"},
+            ),
         ),
         application=ApplicationSettings(
             root=root.resolve(strict=False),

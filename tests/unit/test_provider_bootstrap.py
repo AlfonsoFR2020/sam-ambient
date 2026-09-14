@@ -50,7 +50,7 @@ def test_stopped_lms_starts_and_loads_existing_preferred_model(monkeypatch):
         assert "--ttl" in commands[1]
         assert service.started_by_sam and service.models == ["previous"]
         assert owned == []  # Shared LM daemon/server is not a privately owned child.
-        assert "retained" in service.detail
+        assert "eligible" in service.detail
 
     asyncio.run(scenario())
 
@@ -119,8 +119,12 @@ def test_bootstrap_timeout_is_bounded_and_ownership_cleanup_idempotent(monkeypat
         process = SimpleNamespace(returncode=None, terminate=lambda: None, wait=AsyncMock())
         stopped = []
         process.terminate = lambda: stopped.append(True)
-        result = discovery.Discovery([], None, None, "failed", [process])
-        await result.aclose()
+        service = discovery.LocalService("ollama", "http://127.0.0.1:11434", started_by_sam=True)
+        result = discovery.Discovery([service], None, None, "failed", [process])
+        await result.aclose(
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy(provider_on_exit="stop_if_sam_started"),
+        )
         await result.aclose()
         assert stopped == [True]
         process.wait.assert_awaited_once()
@@ -206,13 +210,183 @@ def test_owned_ollama_child_is_reaped_but_running_services_are_not(monkeypatch):
         await discovery.bootstrap_service(service, None, owned)
         assert launch.call_args.args == ("ollama", "serve")
         assert len(owned) == 1
-        await discovery.Discovery([service], service, "chat", "started", owned).aclose()
+        await discovery.Discovery([service], service, "chat", "started", owned).aclose(
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy(provider_on_exit="stop_if_sam_started"),
+        )
         process.terminate.assert_called_once()
         launch.reset_mock()
         await discovery.bootstrap_service(service, None, owned)
         launch.assert_not_called()
 
     asyncio.run(scenario())
+
+
+def test_quit_cleanup_uses_independent_service_and_model_ownership(monkeypatch):
+    commands = []
+
+    async def command(argv, **options):
+        commands.append((argv, options))
+
+    async def probe(service):
+        service.running = True
+
+    monkeypatch.setattr(discovery, "_local_command", command)
+    monkeypatch.setattr(discovery, "probe_service", probe)
+
+    async def scenario():
+        external = discovery.LocalService(
+            "lm-studio", discovery.LM_STUDIO_URL, "lms", True, ["external"]
+        )
+        await discovery.Discovery([external], external, "external", "reused").aclose(
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+        )
+        assert commands == []
+
+        mixed = discovery.LocalService(
+            "lm-studio",
+            discovery.LM_STUDIO_URL,
+            "lms",
+            True,
+            ["sam-model"],
+            models_loaded_by_sam=["sam-model"],
+        )
+        results = await discovery.Discovery([mixed], mixed, "sam-model", "loaded").aclose(
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy("unload_if_sam_loaded", "keep"),
+        )
+        assert commands == [(("lms", "unload", "sam-model", "--yes"), {"timeout_s": 8})]
+        assert results[0].status is discovery.CleanupStatus.SUCCEEDED
+
+        commands.clear()
+        owned = discovery.LocalService(
+            "lm-studio",
+            discovery.LM_STUDIO_URL,
+            "lms",
+            True,
+            ["sam-model"],
+            started_by_sam=True,
+            models_loaded_by_sam=["sam-model"],
+        )
+        await discovery.Discovery([owned], owned, "sam-model", "started").aclose(
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+        )
+        assert [item[0][1] for item in commands] == ["unload", "server"]
+
+    asyncio.run(scenario())
+
+
+def test_restart_rescan_and_unsupported_cleanup_never_widen_ownership(monkeypatch):
+    command = AsyncMock()
+    monkeypatch.setattr(discovery, "_local_command", command)
+
+    async def scenario():
+        model = discovery.LocalService(
+            "ollama",
+            "http://127.0.0.1:11434",
+            "ollama",
+            True,
+            ["chat"],
+            models_loaded_by_sam=["chat"],
+        )
+        result = discovery.Discovery([model], model, "chat", "fixture")
+        assert (
+            await result.aclose(
+                intent=discovery.LifecycleIntent.RESTART,
+                policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+            )
+            == ()
+        )
+        command.assert_not_awaited()
+
+        # A separately discovered service has no inherited cleanup authority.
+        rescanned = discovery.LocalService(
+            "lm-studio", discovery.LM_STUDIO_URL, "lms", True, ["chat"]
+        )
+        await discovery.Discovery([rescanned], rescanned, "chat", "rescanned").aclose(
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+        )
+        command.assert_not_awaited()
+
+        unsupported = discovery.LocalService(
+            "ollama",
+            "http://127.0.0.1:11434",
+            "ollama",
+            True,
+            ["chat"],
+            models_loaded_by_sam=["chat"],
+        )
+        results = await discovery.Discovery([unsupported], unsupported, "chat", "fixture").aclose(
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy("unload_if_sam_loaded", "keep"),
+        )
+        assert results[0].status is discovery.CleanupStatus.UNSUPPORTED
+
+    asyncio.run(scenario())
+
+
+def test_model_cleanup_already_absent_and_timeout_are_bounded(monkeypatch):
+    async def probe_absent(service):
+        service.running = True
+        service.models = []
+
+    monkeypatch.setattr(discovery, "probe_service", probe_absent)
+    command = AsyncMock()
+    monkeypatch.setattr(discovery, "_local_command", command)
+
+    async def scenario():
+        service = discovery.LocalService(
+            "lm-studio",
+            discovery.LM_STUDIO_URL,
+            "lms",
+            True,
+            ["gone"],
+            models_loaded_by_sam=["gone"],
+        )
+        result = await discovery.unload_owned_model(service, "gone")
+        assert result.status is discovery.CleanupStatus.SUCCEEDED
+        assert result.detail == "already absent"
+        command.assert_not_awaited()
+
+        async def probe_present(item):
+            item.running = True
+            item.models = ["slow"]
+
+        monkeypatch.setattr(discovery, "probe_service", probe_present)
+        command.side_effect = TimeoutError("fixture")
+        result = await discovery.unload_owned_model(service, "slow")
+        assert result.status is discovery.CleanupStatus.FAILED
+        assert command.call_args.kwargs["timeout_s"] == 8
+
+    asyncio.run(scenario())
+
+
+def test_supervisor_scoped_model_provenance_restores_only_current_loaded_models():
+    from sam_ambient.cli import (
+        _instance_resource_ownership,
+        _restore_instance_resource_ownership,
+    )
+
+    current = discovery.LocalService(
+        "lm-studio", discovery.LM_STUDIO_URL, "lms", True, ["still-loaded"]
+    )
+    result = discovery.Discovery([current], current, "still-loaded", "fixture")
+    _restore_instance_resource_ownership(
+        result,
+        {
+            "lm_studio_models": ["still-loaded", "externally-unloaded"],
+            "lm_studio_service_started": True,
+        },
+    )
+    assert current.models_loaded_by_sam == ["still-loaded"]
+    assert current.started_by_sam
+    assert _instance_resource_ownership(result) == {
+        "lm_studio_models": ["still-loaded"],
+        "lm_studio_service_started": True,
+    }
 
 
 def test_runtime_rescan_hot_adopts_ready_local_provider(tmp_path):

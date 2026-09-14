@@ -111,9 +111,22 @@ remembered, or sole installed chat model is auto-loaded. Multiple candidates
 require owner selection, and no downloads occur. The UI connects before this
 potentially long load, receives truthful lifecycle events, and can request a
 fresh bounded discovery through the trusted control boundary. Existing services
-are never stopped or restarted. Only direct Sam-owned Ollama children are reaped;
-the shared LM daemon/server is retained and Sam-loaded models have a 600-second
-idle TTL. No authority or settings are granted by model-generated content.
+are never claimed merely because discovery finds them. Successful Sam start/load
+actions establish independent service/model provenance; model selection alone
+establishes neither. Direct Ollama process handles remain process-local. LM Studio
+service/model provenance may cross a managed core Restart only under the supervisor's
+random application-lifetime identity; the same SQLite record is inert for a later Sam launch.
+Graceful Quit defaults to keeping both. An explicit owner preference may first unload
+a Sam-loaded LM Studio model through bounded structured `lms` argv, then stop a
+service only when Sam started it.
+Ollama has no model-unload claim in this layer; compatible/remote providers report
+unsupported. Restart, Emergency Stop, rescans, and future launches do not acquire or
+apply exit-cleanup authority. Cleanup failures are logged and cannot block shutdown.
+Because provider APIs do not expose a universal resource-incarnation token, Sam never
+reconstructs service ownership from a PID. If the external world replaces a same-ID
+LM Studio model within one supervisor lifetime, Sam can verify only its current ID,
+not an unavailable incarnation token; this is a documented adapter limitation. No
+authority or settings are granted by model-generated content.
 Ollama and OpenAI-compatible adapters retain the existing provider interface.
 Endpoint protocol support, not a conventional port, determines compatibility;
 discovery names describe probe routes rather than authenticated vendor identity.

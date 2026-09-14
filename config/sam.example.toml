@@ -24,6 +24,11 @@ tts_voice = "default"
 input_gain = 1.0 # Sam application gain; does not change the OS microphone level
 output_gain = 1.0 # Sam application gain; does not change the OS master volume
 
+[lifecycle]
+# Graceful Quit only. Restart keeps local model resources available.
+model_on_exit = "keep" # or "unload_if_sam_loaded"
+provider_on_exit = "keep" # or "stop_if_sam_started"
+
 [privacy]
 allow_cloud = false
 
