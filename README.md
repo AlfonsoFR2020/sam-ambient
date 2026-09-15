@@ -56,9 +56,10 @@ Sam is an experiment toward that kind of computer: one in which interaction is
 centered on **goals, conversation, context, and dynamically generated
 interfaces**, rather than on manually traversing fixed software structures.
 
-**Status:** 0.1.0 MVP complete; **0.1.2 alpha** improves conversational continuity,
-local voice/provider startup, diagnostics, and graceful exit. Primary deployment target: Linux.
-Windows development and system speech output are supported.
+**Status:** **Sam 0.2.0 alpha release candidate.** Windows is the currently
+validated local-provider development path; Linux remains the primary deployment
+target. Packaging, signing, antivirus review, and final human voice/visual/native
+acceptance are still release gates.
 The development line opens an isolated Sam app window with installed Edge/Chrome/
 Chromium. Use `uv run sam-ambient --ui-mode browser` for normal-browser/debug mode;
 if no supported app browser is found, the default browser remains the fallback.
@@ -88,27 +89,30 @@ speech service or additional voice installation is performed automatically.
 
 ```mermaid
 flowchart TD
-    Tauri[Tauri native executable] --> React[React ambient UI]
-    Browser[App-window / browser fallback] --> React
-    React <--> Bridge[localhost WebSocket protocol]
-    Bridge <--> Companion[Python companion]
-    Companion --> Supervisor[sam-supervisor: resilience, updates, rollback]
-    Supervisor --> Core[Sam core]
-    Core --> Voice[Voice and turn loop]
-    Core --> Models[Model router]
-    Core --> Policy[Capability policy and tools]
-    Core --> Data[SQLite committed state]
-    Supervisor --> Static[Static UI server]
-    Models <--> Backends[External Ollama / LM Studio / compatible API]
+    Shell[Tauri native shell or browser-dev shell] --> UI[React UI + Visual Engine]
+    UI <--> WS[localhost WebSocket]
+    WS <--> Python[Python companion in packaged Windows builds]
+    Python --> Supervisor[Supervisor + core]
+    Supervisor --> Runtime[Model router / voice / capability policy / MCP]
+    Runtime <--> Providers[Local providers: LM Studio, Ollama, compatible APIs]
 ```
 
 ## Quick start
 
-Requirements: Python 3.12+ and [uv](https://docs.astral.sh/uv/). For responses,
-install a local inference runtime and at least one conversational model first.
-Sam can start an installed Ollama or LM Studio/lms server and load an existing
-LM Studio model; it never downloads models. Node, Vite, Rust, and Tauri are not
-needed to run the compiled UI included in this repository.
+### Supported Windows source path
+
+Runtime requirements are Python 3.12+, [uv](https://docs.astral.sh/uv/), and a
+local conversational model provider. [LM Studio](https://lmstudio.ai/) is the
+currently recommended and validated provider. Install it, open it once so its
+bundled `lms` command is available, then use LM Studio's model search/download
+view to download a chat/instruct model that fits your machine. `lms ls` lists
+models installed on disk; `lms ps` lists models currently loaded in memory. Sam
+may load an existing explicit, last-good, or sole installed conversational model,
+but never downloads a model. With several viable models, choose one in the startup picker.
+
+Node/pnpm is needed only to rebuild the React UI. Rust, Cargo, Tauri, MSVC Build
+Tools, and the Windows SDK are native-shell developer prerequisites; they are not
+end-user requirements for a future packaged Sam installation.
 
 From the checkout:
 
@@ -117,7 +121,8 @@ uv sync --locked
 uv run sam-ambient
 ```
 
-Sam starts the supervisor, core, and static UI, then opens
+This is the normal source launch command. On first launch Sam starts the supervisor,
+core, and static UI, then opens
 **[http://127.0.0.1:8766](http://127.0.0.1:8766)** once the UI is ready. The window
 shows core/model/speech preparation rather than remaining blank. The core bridge
 uses localhost port 8765. Closing the dedicated window stops Sam; a normal browser
@@ -131,8 +136,16 @@ guarded NSIS path bundles the Python companion, while providers, models, and
 Whisper assets remain external. Browser mode remains supported. See
 [Getting started](docs/GETTING_STARTED.md) for native development details.
 
-Use **Controls → Text request** to talk to the selected model.
-The development UI uses a warm, responsive light field rather than a solid sphere.
+Use **Controls → Text request** to type, or enable **Microphone** when the separate
+speech prerequisites are ready. **Rescan providers/models** refreshes inventory;
+**Restart Sam** restarts managed Python components while keeping external model
+services available; **Reload interface** reconnects only the React UI; and
+**Quit Sam** performs confirmed shutdown. Input/output gain, visual quality,
+performance profile, reduced motion, intensity, and local-resource-on-exit
+preferences are in Controls. Exit preferences default to keeping providers and
+models available and only act on resources Sam itself started or loaded.
+
+The Visual Engine uses a warm, responsive light field rather than a solid sphere.
 Listening opens the ribbons, transcription gathers them, thinking folds inward,
 and speaking follows output amplitude. Controls remain keyboard-accessible at the
 lower edge; reduced-motion preference keeps state feedback without continuous motion.
@@ -163,7 +176,7 @@ last-successful local choice, then the sole installed conversational model. Mult
 viable models require owner selection rather than an arbitrary list-order choice.
 Stale saved preferences fall back; explicit unavailable choices stay degraded.
 Provider startup/readiness stays short; an explicit, remembered, or sole installed
-LM Studio chat model gets a separate cancellable 120-second load window. Multiple
+LM Studio chat model gets a separate cancellable 180-second load window. Multiple
 installed candidates require an explicit choice. Running services and loaded models
 are reused without transferring ownership. Graceful-Quit cleanup defaults to keeping
 resources; owner opt-in can unload only a model Sam loaded or stop only a service Sam
@@ -196,7 +209,7 @@ Frontend development requires Node 22.12+ and pnpm (the version is pinned in
 ```sh
 # Linux/macOS; use scripts/package.ps1 on Windows
 scripts/package.sh
-uv tool install ./dist/sam_ambient-0.1.2-py3-none-any.whl
+uv tool install ./dist/sam_ambient-0.2.0-py3-none-any.whl
 sam-ambient --root /path/to/workspace
 ```
 
@@ -210,9 +223,10 @@ deterministic Python/frontend gates on Windows and Linux; releases remain manual
 ## Limits and direction
 
 Physical echo cancellation and Linux end-to-end voice tuning remain pending;
-STT is final-only. Native package/release validation and supervisor self-update
-are deferred. Windows guarantees direct-child termination, not full descendant
-containment. Local staged updates require trusted preparation and validation.
+STT is final-only. Native package/release validation, signing/AV review, and
+supervisor self-update are deferred. Windows guarantees direct-child termination,
+not full descendant containment. Local staged updates require trusted preparation
+and validation.
 
 Next: combined native/ambient human acceptance, physical voice acceptance, and a
 seamless installer using the supported readiness layer. The integrated native

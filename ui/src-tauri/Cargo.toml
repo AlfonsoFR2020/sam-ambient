@@ -1,6 +1,6 @@
 [package]
 name = "sam-native-shell"
-version = "0.1.2"
+version = "0.2.0"
 description = "Thin native application shell for Sam"
 authors = ["Alfonso Ernesto de la Fuente Ruiz, PhD"]
 license = "Apache-2.0"

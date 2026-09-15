@@ -4,21 +4,26 @@ Release approval and publication remain human-controlled.
 
 - [ ] `dev` is clean, synchronized, and its GitHub CI is green.
 - [ ] Intended feature branches have passed acceptance and are merged.
-- [ ] Full Python/frontend regression, lint, type, build, and package gates pass.
-- [ ] Physical voice and visual/native-shell acceptance match the intended release.
+- [ ] Full release regression passes: Python/frontend tests, lint, formatting,
+  TypeScript, Vite, Cargo, version consistency, package metadata, and artifact-content gates.
+- [ ] Physical voice and combined visual/native-shell acceptance match the intended
+  alpha scope. This remains required for release approval, but does not block
+  metadata and documentation preparation.
 - [ ] Public documentation and `THIRD_PARTY.md` describe the merged tree.
 - [ ] Include the architecture infographic if accurate for this release; update or
   regenerate it after material architecture changes, or label a historical snapshot
   with its version/date and note material differences.
 - [ ] Package metadata, notices, version, and artifact contents are consistent.
-- [ ] Windows native artifacts meet the signing and AV/reputation gate.
-- [ ] Wheel, source distribution, and accepted native installer are built and smoked.
-- [ ] Version is bumped once after scope is final.
+- [ ] Public Windows native artifacts are Authenticode-signed and pass the planned
+  antivirus/reputation review; do not bypass or whitelist security findings.
+- [ ] Wheel, source distribution, Python companion, and native installer are built
+  through the guarded release path and pass final release-artifact smoke on a clean host.
+- [x] Source/package metadata is prepared consistently as `0.2.0`.
 - [ ] Merge `dev` into `main` without rewriting history.
 - [ ] Create the signed/annotated version tag and GitHub pre-release.
 - [ ] Upload verified artifacts and record their hashes.
 - [ ] Return active development work to `dev`.
 
-If only current merged hardening/productization ships, `0.1.3` is the natural
-patch alpha. If the accepted native shell and substantial ambient UI ship together,
-`0.2.0` is the likely milestone. Choose only after acceptance determines scope.
+The prepared milestone is `0.2.0`, following the existing plain-version alpha
+convention. Create the eventual GitHub release as a prerelease; do not add an
+invented package-version suffix. This preparation is not release approval.

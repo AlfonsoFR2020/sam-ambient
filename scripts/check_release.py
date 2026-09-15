@@ -20,7 +20,32 @@ def main() -> int:
     with (root / "pyproject.toml").open("rb") as stream:
         project_version = tomllib.load(stream)["project"]["version"]
     ui_version = json.loads((root / "ui/package.json").read_text(encoding="utf-8"))["version"]
-    versions = {"package": __version__, "pyproject": project_version, "frontend": ui_version}
+    tauri_version = json.loads((root / "ui/src-tauri/tauri.conf.json").read_text(encoding="utf-8"))[
+        "version"
+    ]
+    with (root / "ui/src-tauri/Cargo.toml").open("rb") as stream:
+        cargo_version = tomllib.load(stream)["package"]["version"]
+    with (root / "ui/src-tauri/Cargo.lock").open("rb") as stream:
+        cargo_lock = tomllib.load(stream)
+    cargo_lock_version = next(
+        package["version"]
+        for package in cargo_lock["package"]
+        if package["name"] == "sam-native-shell"
+    )
+    with (root / "uv.lock").open("rb") as stream:
+        uv_lock = tomllib.load(stream)
+    uv_lock_version = next(
+        package["version"] for package in uv_lock["package"] if package["name"] == "sam-ambient"
+    )
+    versions = {
+        "package": __version__,
+        "pyproject": project_version,
+        "uv-lock": uv_lock_version,
+        "frontend": ui_version,
+        "tauri": tauri_version,
+        "cargo": cargo_version,
+        "cargo-lock": cargo_lock_version,
+    }
     if len(set(versions.values())) != 1:
         raise SystemExit(f"version mismatch: {versions}")
     if args.dist:

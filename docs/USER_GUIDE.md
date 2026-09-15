@@ -5,11 +5,30 @@ Start with [Getting started](GETTING_STARTED.md). Launch from your workspace usi
 The integrated, unreleased Tauri source provides an owned native window with the
 same React UI and protocol. Closing that window invokes the same in-app Quit
 confirmation; it does not bypass supervisor shutdown or capability revocation.
-The planned packaged companion needs no checkout or user Python. Browser mode
-remains a supported fallback. Provider/model and speech prerequisites remain
-external and are reported through the existing readiness experience. Native
+Future packaged Windows builds use the bundled Python companion boundary and will
+not require user Python or a checkout. Browser mode remains a supported fallback.
+Provider/model and speech prerequisites remain external and are reported through
+the existing readiness experience. Native
 packaging, signing, security-software review, and combined human acceptance remain
 release gates; use the supported browser mode rather than bypassing a security alert.
+
+## Five-minute Windows path
+
+1. Install Python 3.12+, uv, and LM Studio. In LM Studio, download a conversational
+   chat/instruct model that fits your machine; embedding models cannot answer.
+2. From the Sam checkout run `uv sync --locked`, then `uv run sam-ambient`.
+3. Let Sam use a valid remembered model or the sole installed conversational model.
+   If the startup picker appears, choose a model. Use **Rescan** after changing LM
+   Studio. Sam may load an existing model but never downloads one.
+4. Open **Controls**. Type in **Text request** and press **Send**. Enable
+   **Microphone** and **Voice** only after the separate speech setup is ready.
+5. Adjust Sam input/output gain and basic visual/profile settings in Controls.
+   Use **Reload interface** for the UI only, **Restart Sam** for managed components,
+   and **Quit Sam → Confirm quit** to stop. The safe exit defaults keep local models
+   and services available.
+
+Rust, Cargo, Tauri, Node, MSVC Build Tools, and the Windows SDK are development/build
+requirements only. End users will not need them merely to run a packaged Sam build.
 
 ## Conversation and status
 

@@ -12,24 +12,43 @@ browser/platform refuses, close the stopped page manually. Closing the dedicated
 window also stops Sam; closing a fallback browser tab does not. A second launch
 for the same root reports the existing local UI instead of competing for ports.
 
-Sam 0.1.2 runs as a Python application with a local browser UI. There is no
-seamless installer yet. The integrated native shell is unreleased development
+Sam 0.2.0 alpha currently runs from source with a local app-window/browser UI.
+There is no accepted installer yet. The integrated native shell is release-candidate
 source, not an accepted package. Install prerequisites yourself; Sam downloads no
 models.
 
-## Prerequisites
+## End-user runtime prerequisites
 
 - Python 3.12+ and [uv](https://docs.astral.sh/uv/), then a checkout of this repository.
 - For answers: an installed local inference runtime with at least one **chat/instruct**
   model that fits your machine. An embedding model cannot answer conversations.
-- LM Studio (including headless llmster) needs its `lms` CLI for automatic startup
-  and loading. Ollama needs its `ollama` executable for automatic service startup.
-  Already-running loopback OpenAI-compatible endpoints can also be configured.
+- [LM Studio](https://lmstudio.ai/) is the recommended currently validated Windows
+  provider. Open it once after installation so its bundled `lms` CLI is available.
+- Ollama support is covered by automated discovery/startup tests, but the current
+  Windows release-candidate validation used LM Studio. Already-running loopback
+  OpenAI-compatible endpoints can also be configured explicitly.
 - Windows is the current development/validated text platform. Linux is the primary
   deployment target, but full Linux voice/hardware acceptance remains pending.
 
-Node/pnpm is needed only to rebuild the frontend; the checkout includes compiled
-assets. Rust, Tauri and Windows MSVC Build Tools are not required to run Sam.
+The source checkout includes compiled frontend assets. Node/pnpm is needed only to
+rebuild them. Rust, Cargo, Tauri, WebView2, MSVC Build Tools, and the Windows SDK are
+developer-native build prerequisites, not end-user runtime requirements. A future
+packaged Windows Sam will carry its Python companion and will not require a checkout,
+Python, uv, Node, Rust, or Build Tools from the user.
+
+## Install a conversational model in LM Studio
+
+1. Open LM Studio and use its model search/download view to choose a chat or instruct
+   model whose size fits your available memory. Do not choose an embedding-only model.
+2. Download the model in LM Studio. The equivalent CLI is `lms get MODEL_NAME`.
+3. Verify disk inventory with `lms ls`. This means **installed**, not loaded.
+4. `lms ps` lists models currently **loaded** in memory. An installed model may
+   legitimately be unloaded; Sam can still discover it.
+
+Sam never downloads a model. During normal startup it may start the installed LM
+Studio server and load a valid explicit model, the last model that answered
+successfully, or the sole installed conversational model. If several viable models
+are installed, Sam waits for you to choose one rather than guessing.
 
 ### Native Windows development (unreleased)
 
@@ -54,7 +73,7 @@ The repository also contains guarded companion and NSIS packaging scripts for
 later release work. They are intentionally outside this source-integration flow;
 do not treat their presence as package, signing, antivirus, or release acceptance.
 
-## Start and send a first request
+## First launch
 
 From the repository directory:
 
@@ -63,12 +82,20 @@ uv sync --locked
 uv run sam-ambient
 ```
 
-The supervisor starts the core and static UI. Startup may take several tens of
-seconds while an installed model loads. The browser opens once after readiness:
+`uv run sam-ambient` is the normal source launch command. The supervisor starts the
+core and static UI. Startup may take several tens of seconds while an installed
+model loads. The browser/app window opens once after UI readiness:
 [http://127.0.0.1:8766](http://127.0.0.1:8766). Closing a fallback browser tab
 does not stop Sam; closing the owned app window requests graceful shutdown.
-Use **Controls → Text request**, type a short question, and press **Send**.
-Ask a follow-up: committed recent conversation context is retained locally.
+The startup card reports provider discovery and model loading. If several models
+are available, choose a provider/model and optionally remember it. After changing
+LM Studio externally, use **Rescan**; **Continue in available mode** keeps diagnostics
+and settings usable but cannot produce an answer without a model.
+
+Open **Controls → Text request**, type a short question, and press **Send**. Ask a
+follow-up: committed recent conversation context is retained locally. When the
+separate voice prerequisites below are ready, enable **Microphone** to talk and
+leave **Voice** enabled for spoken replies.
 
 ## Configuration
 
@@ -120,6 +147,22 @@ uv run sam-ambient --provider lm-studio --model YOUR_INSTALLED_MODEL_ID
 uv run sam-ambient --provider ollama
 uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000/v1
 ```
+
+## Everyday controls
+
+- **Rescan providers/models** refreshes installed and loaded inventory without a
+  full restart when recovery is safe.
+- **Restart Sam** confirms, cancels active work, and restarts Sam's managed Python
+  components. It does not apply provider/model exit cleanup.
+- **Reload interface** reloads React and reconnects to the running core. It does
+  not restart Sam or the provider.
+- **Quit Sam** confirms and stops the application. Provider/model exit preferences
+  default to **Keep**. Opt-in cleanup can affect only a service Sam started or an
+  LM Studio model Sam loaded during the current application lifetime.
+- **Microphone sensitivity** and **Output volume** are Sam input/output gains from
+  0-200%; they do not change Windows mixer levels.
+- **Display** contains quality, performance profile, reduced motion, visual
+  intensity, motion, audio reactivity, particles, transcript, and fullscreen.
 
 ## Voice prerequisites
 

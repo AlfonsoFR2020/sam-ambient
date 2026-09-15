@@ -4,6 +4,11 @@ Updated: 2026-09-15
 
 ## MVP status
 
+- Release metadata and end-user documentation are prepared consistently for
+  `0.2.0` under the existing alpha convention. The eventual GitHub release remains
+  a prerelease. No package, installer, tag, publication, or release acceptance is
+  implied; full regression/package gates, final artifact smoke, Windows signing/AV
+  review, and final human voice/visual/native acceptance remain outstanding.
 - Native integration checkpoint (`feature/ambient-shell`): the thin Tauri 2 shell
   is reconciled with the frozen ambient React source. It owns the native window,
   single-instance focus, identity/icons, one trusted supervisor child, fixed
@@ -97,9 +102,11 @@ Updated: 2026-09-15
   production build pass.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
   `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
-- The release build produces `dist/sam_ambient-0.1.2-py3-none-any.whl` and
-  `dist/sam_ambient-0.1.2.tar.gz`. The wheel contains the production UI, launchers,
-  configuration example, license, and third-party notices.
+- The prepared 0.2.0 release build is expected to produce
+  `dist/sam_ambient-0.2.0-py3-none-any.whl` and
+  `dist/sam_ambient-0.2.0.tar.gz`. These artifacts have not been built in this
+  preparation task. The wheel includes the production UI, launchers, configuration
+  example, license, and third-party notices.
 - Original Sam material is Apache-2.0; NOTICE attributes Copyright 2026
   Alfonso Ernesto de la Fuente Ruiz, PhD. Bundled React/MIT notices are retained.
 

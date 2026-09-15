@@ -1,6 +1,35 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (alpha) — Unreleased
+
+### Highlights
+
+- Integrate the thin Tauri native application/window boundary while retaining the
+  browser development shell, React UI, localhost WebSocket, and Python companion.
+- Introduce Visual Engine v1: the reactive WebGL2 ambient field, direct interaction,
+  responsive fallbacks, reduced motion, quality profiles, and bounded adaptation.
+- Harden microphone endpointing, transcript correlation, interruption/barge-in,
+  cancellation, speech-language voice selection, and playback recovery. Physical
+  echo cancellation and final hardware acceptance remain incomplete.
+- Discover installed versus loaded local models correctly; support deterministic
+  explicit, last-good, and sole-model selection, bounded LM Studio loading, startup
+  choice, and Rescan without downloading models.
+- Add persistent Sam input/output gains, visual controls, and ownership-aware Quit
+  preferences that default to retaining local providers and models.
+- Clarify startup, reconnect, degradation, transcript, Controls, UI reload, managed
+  Restart, native close, and confirmed Quit behavior across normal and compact views.
+- Add validated layered configuration, structured readiness/doctor output, Windows
+  and Linux CI, release metadata checks, and guarded native companion/installer seams.
+- Harden trusted capability policy, immutable schemas/arguments, update rollback
+  verification, and approval-gated local MCP stdio integration.
+
+**Alpha limitations:** native artifacts are not yet packaged, signed, or publicly
+accepted; Windows installer AV/reputation review, final artifact smoke, combined
+native/visual acceptance, physical voice/barge-in acceptance, and Linux hardware
+tuning remain outstanding. No cloud speech, bundled model, remote MCP transport,
+AEC, or automatic model download is included.
+
+### Detailed development changes
 
 - Integrate a thin Tauri 2 native shell with the current ambient React UI and
   Python runtime. Tauri owns the window, single-instance behavior, native identity,
