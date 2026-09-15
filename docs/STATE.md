@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-14
+Updated: 2026-09-15
 
 ## MVP status
 
@@ -13,12 +13,17 @@ Updated: 2026-09-14
   app-window development fallbacks remain supported.
 - Native source includes frozen sibling-component handling, Tauri-origin protocol
   coverage, lifecycle tests, icons, resource layout, Windows CI definitions, and
-  guarded companion/NSIS scripts. This merge performs no packaging, unsigned
-  companion execution, signing, release, or human acceptance. Integration gate:
-  41 focused Python tests and 103 frontend tests pass; Ruff, changed-file Biome,
-  TypeScript, Vite production build, Rust formatting/locked metadata, and diff
-  checks pass. A cold full Tauri compile was intentionally left for the next native
-  validation step because no local Cargo build cache exists.
+  guarded companion/NSIS scripts. Native development validation now passes from a
+  cold Tauri build through clean managed shutdown: the current Visual Engine loads,
+  Restart Sam reconnects to the restarted core without quitting the window, a
+  second native launch focuses the sole existing instance, and the title-bar close
+  request routes through Sam's Quit confirmation. Vite ignores Cargo target output
+  so its watcher survives cold compilation, and the development supervisor uses the
+  bootstrapped locked environment without dependency synchronization. Browser and
+  Chromium app-window fallbacks remain intact. This validation performs no
+  packaging, unsigned companion execution, signing, release, or full human voice or
+  visual acceptance. Source gates pass: 103 frontend tests, changed-file Biome,
+  TypeScript, Vite production build, Rust formatting and `cargo check --locked`.
 - Productization backbone: schema-v1 TOML configures supervisor/runtime behavior
   with defaults -> user -> workspace -> environment -> explicit CLI precedence.
   Unsupported keys/types fail early; secrets and SQLite last-good state stay separate.

@@ -36,6 +36,7 @@ fn launch_supervisor(app: &tauri::AppHandle) -> Result<Child, String> {
         let mut command = Command::new("uv");
         command.args([
             "run",
+            "--no-sync",
             "sam-supervisor",
             "--root",
             root.to_str()

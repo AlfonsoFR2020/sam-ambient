@@ -1,7 +1,8 @@
 # Native host
 
 This Tauri 2 crate is a thin lifecycle and packaging shell. In development it
-starts `uv run sam-supervisor --no-ui`; the React application continues to use
+starts `uv run --no-sync sam-supervisor --no-ui` from the environment prepared by
+the repository bootstrap; the React application continues to use
 Sam's loopback WebSocket protocol. The single-instance plugin focuses an existing
 Sam window instead of starting another runtime.
 
