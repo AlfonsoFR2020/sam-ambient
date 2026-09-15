@@ -167,6 +167,8 @@ uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000
 ## Voice prerequisites
 
 Text can work without voice. Microphone and playback use system-default devices.
+For the most reliable 0.2.0 alpha experience, start in text mode; voice input is
+experimental and has known physical and sustained-noise limitations.
 Input needs a separately installed whisper.cpp server and multilingual model,
 normally at `http://127.0.0.1:8080`.
 On Windows Sam can automatically start the existing development layout:

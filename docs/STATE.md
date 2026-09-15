@@ -6,9 +6,10 @@ Updated: 2026-09-15
 
 - Release metadata and end-user documentation are prepared consistently for
   `0.2.0` under the existing alpha convention. The eventual GitHub release remains
-  a prerelease. No package, installer, tag, publication, or release acceptance is
-  implied; full regression/package gates, final artifact smoke, Windows signing/AV
-  review, and final human voice/visual/native acceptance remain outstanding.
+  a prerelease. The deterministic source gate and Python wheel/sdist install smoke
+  pass. Native companion/installer packaging and final artifact smoke were not run;
+  Windows signing/AV review, final human voice/visual/native acceptance, merge, tag,
+  publication, and release approval remain outstanding.
 - Native integration checkpoint (`feature/ambient-shell`): the thin Tauri 2 shell
   is reconciled with the frozen ambient React source. It owns the native window,
   single-instance focus, identity/icons, one trusted supervisor child, fixed
@@ -64,7 +65,7 @@ Updated: 2026-09-15
 - Read-only audit: system-default audio devices and Whisper assets available;
   Whisper/LM Studio stopped, Ollama absent. Bootstrap/preferences/filtering/owned
   cleanup pass controlled tests; no service manipulation or new live model claim.
-- Branch checkpoint (`feature/ambient-shell`, not merged into `dev`): an isolated
+- Accepted 0.2.0 source on `dev` includes an isolated
   Chromium-family app window with browser fallback, per-root single-instance lock,
   graceful owned-window shutdown, truthful startup/status controls, and bounded
   transcript polish are implemented. [Visual Engine v1](VISUAL_ENGINE_V1.md) Stages
@@ -90,9 +91,9 @@ Updated: 2026-09-15
   policies default to Keep; opt-in cleanup unloads only a Sam-loaded LM Studio model
   and stops only a service Sam started. Restart/failure/Emergency Stop never apply
   exit cleanup, unsupported providers fail closed, and timeouts cannot block shutdown.
-- Combined source candidate: `feature/ambient-shell` preserves the frozen ambient
-  behavior and now includes the native application boundary. No further feature work
-  should land here except fixes required by source validation or later acceptance.
+- The accepted combined source on `dev` preserves the frozen ambient behavior and
+  includes the native application boundary. No further 0.2.0 feature work should
+  land except fixes required by release validation or later acceptance.
   Combined human acceptance and native package/release gates remain outstanding;
   this is not a release-readiness claim.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
@@ -251,10 +252,9 @@ Updated: 2026-09-15
 ## Known limitations / post-MVP priorities
 
 - Physical voice/Linux hardware acceptance and a seamless installer remain open.
-- Native and ambient source are integrated on this feature branch, but combined
-  product/visual/native acceptance, native compile/package verification, signing,
-  and release work remain open. The branch is not in `dev`; the rejected ambient
-  experiment is not part of this branch or `dev`.
+- Native and ambient source are integrated on `dev`, but combined product/visual/native
+  acceptance, native packaging verification, signing, and publication remain open.
+  The rejected ambient experiment is not part of `dev`.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 

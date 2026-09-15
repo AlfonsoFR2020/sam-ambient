@@ -23,11 +23,15 @@
 - Harden trusted capability policy, immutable schemas/arguments, update rollback
   verification, and approval-gated local MCP stdio integration.
 
-**Alpha limitations:** native artifacts are not yet packaged, signed, or publicly
-accepted; Windows installer AV/reputation review, final artifact smoke, combined
-native/visual acceptance, physical voice/barge-in acceptance, and Linux hardware
-tuning remain outstanding. No cloud speech, bundled model, remote MCP transport,
-AEC, or automatic model download is included.
+**Alpha limitations:** text interaction is the recommended, most reliable 0.2.0
+experience. Voice input remains experimental: unexpected monitor state, sustained
+noise segmentation, language/TTS drift, physical barge-in, and robotic Windows
+System.Speech remain known limitations. The source/native architecture is alpha
+quality, and no signed Windows installer is distributed. Native installer
+signing/AV review, final artifact smoke, combined native/visual acceptance, and
+Linux hardware tuning remain outstanding. No cloud speech, bundled model, remote
+MCP transport, AEC, or automatic model download is included. See the detailed
+[post-0.2 backlog](docs/BACKLOG.md).
 
 ### Detailed development changes
 

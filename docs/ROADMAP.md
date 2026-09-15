@@ -1,7 +1,8 @@
 # Roadmap
 
 Implemented capabilities belong in [State](STATE.md); this file contains only
-planned or acceptance-pending work. Priorities may change after real use.
+planned or acceptance-pending milestones. Detailed post-0.2 findings and engineering
+items live in [Backlog](BACKLOG.md). Priorities may change after real use.
 
 ## Before the next major alpha
 

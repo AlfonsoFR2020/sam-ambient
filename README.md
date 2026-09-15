@@ -59,7 +59,8 @@ interfaces**, rather than on manually traversing fixed software structures.
 **Status:** **Sam 0.2.0 alpha release candidate.** Windows is the currently
 validated local-provider development path; Linux remains the primary deployment
 target. Packaging, signing, antivirus review, and final human voice/visual/native
-acceptance are still release gates.
+acceptance are still release gates. Text interaction is the recommended, most
+reliable 0.2.0 alpha mode; voice input remains experimental.
 The development line opens an isolated Sam app window with installed Edge/Chrome/
 Chromium. Use `uv run sam-ambient --ui-mode browser` for normal-browser/debug mode;
 if no supported app browser is found, the default browser remains the fallback.
