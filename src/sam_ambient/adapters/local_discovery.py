@@ -322,6 +322,8 @@ async def probe_service(service: LocalService) -> None:
                 service.models = _ids(body.get("data"), "id")
                 service.available_models = service.models.copy()
                 if service.id == "lm-studio":
+                    service.installed_models = sorted(set(installed + service.models))
+                    service.available_models = service.installed_models.copy()
                     try:
                         native = await transport.request_json(
                             "GET",
@@ -331,9 +333,12 @@ async def probe_service(service: LocalService) -> None:
                         )
                         rows = native.get("data")
                         if isinstance(rows, list):
-                            service.available_models = _ids(rows, "id")
-                            service.installed_models = service.available_models.copy()
-                            service.models = _ids(
+                            native_available = _ids(rows, "id")
+                            service.installed_models = sorted(
+                                set(service.installed_models + native_available)
+                            )
+                            service.available_models = service.installed_models.copy()
+                            native_loaded = _ids(
                                 [
                                     row
                                     for row in rows
@@ -341,6 +346,8 @@ async def probe_service(service: LocalService) -> None:
                                 ],
                                 "id",
                             )
+                            if rows:
+                                service.models = native_loaded
                     except Exception:
                         # Older compatible-only servers advertise callable models in /v1/models.
                         pass

@@ -184,6 +184,9 @@ export function StartupCard({
   );
   const [choice, setChoice] = useState("");
   const [remember, setRemember] = useState(true);
+  const showModelPicker =
+    (!state.model && allChoices.length > 0) ||
+    state.startupLifecycle === "waiting_for_model_choice";
   const visible = !dismissed && state.startupLifecycle !== "dismissed";
   if (!visible || state.applicationStopped) return null;
   const technicalReason = state.diagnosticReason ?? presentation.notice;
@@ -224,8 +227,10 @@ export function StartupCard({
       </div>
       <div>
         <h1>{state.samName ?? "Sam"}</h1>
-        {state.samVersion && <small>Version {state.samVersion}</small>}
-        {state.samAuthor && <small>{state.samAuthor}</small>}
+        {state.samVersion && (
+          <small className="startup-card__version">Version {state.samVersion}</small>
+        )}
+        {state.samAuthor && <small className="startup-card__author">{state.samAuthor}</small>}
       </div>
       <ol>
         {steps.map((step) => (
@@ -241,7 +246,7 @@ export function StartupCard({
           <small>{technicalReason}</small>
         </details>
       )}
-      {(allChoices.length > 1 || state.startupLifecycle === "waiting_for_model_choice") && (
+      {showModelPicker && (
         <div className="startup-card__choice">
           <label htmlFor={providerSelectId}>Provider</label>
           <select

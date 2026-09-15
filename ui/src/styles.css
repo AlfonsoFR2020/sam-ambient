@@ -17,7 +17,10 @@
   border: 1px solid #947258;
   border-radius: 12px;
   padding: 24px;
+  max-height: calc(100dvh - 140px);
   max-width: min(440px, 90vw);
+  margin: max(120px, 18vh) auto auto;
+  overflow-y: auto;
 }
 
 .quit-confirmation::backdrop {
@@ -226,6 +229,9 @@ input {
 
 .startup-card {
   position: absolute;
+  top: clamp(132px, 18vh, 170px);
+  right: clamp(24px, 5vw, 64px);
+  align-self: start;
   z-index: 3;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -238,7 +244,7 @@ input {
   background: #1d1612ed;
   box-shadow: 0 22px 70px #0009;
   backdrop-filter: blur(18px);
-  max-height: calc(100dvh - 40px);
+  max-height: calc(100dvh - 190px);
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -279,6 +285,23 @@ input {
 
 .startup-card small {
   color: #a88d76;
+}
+
+.startup-card__version,
+.startup-card__author {
+  display: block;
+  letter-spacing: 0;
+}
+
+.startup-card__version {
+  margin-top: 2px;
+}
+
+.startup-card .startup-card__author {
+  max-width: 31ch;
+  color: #806f61;
+  font-size: 0.62rem;
+  line-height: 1.2;
 }
 
 .startup-card ol,
@@ -454,7 +477,7 @@ input {
   background: #181411f5;
   box-shadow: 0 18px 60px #0007;
   backdrop-filter: blur(18px);
-  max-height: calc(100dvh - 130px);
+  max-height: calc(100dvh - 200px);
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -732,8 +755,11 @@ input {
   }
 
   .startup-card {
-    top: 50%;
-    transform: translateY(-50%);
+    top: 124px;
+    right: 20px;
+    left: 20px;
+    width: auto;
+    max-height: calc(100dvh - 144px);
   }
 
   .transcript {
@@ -748,9 +774,17 @@ input {
 
 @media (max-width: 430px) {
   .startup-card {
-    width: calc(100vw - 24px);
-    max-height: calc(100dvh - 24px);
+    top: 112px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: calc(100dvh - 124px);
     padding: 18px 16px;
+  }
+
+  .quit-confirmation {
+    max-height: calc(100dvh - 124px);
+    margin-top: 112px;
   }
 
   .controls,

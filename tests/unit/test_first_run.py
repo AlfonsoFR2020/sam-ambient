@@ -189,6 +189,24 @@ def test_lm_loaded_models_filtered_and_advertised_models_recorded(monkeypatch):
     assert service.installed_models == ["loaded", "unloaded"]
 
 
+def test_native_lm_probe_preserves_cli_inventory_when_serving_inventory_is_empty(monkeypatch):
+    async def request(self, method, url, **kwargs):
+        return {"data": []}
+
+    monkeypatch.setattr(discovery.HttpxJsonTransport, "request_json", request)
+    service = discovery.LocalService(
+        "lm-studio",
+        discovery.LM_STUDIO_URL,
+        installed_models=["google/gemma-chat"],
+    )
+    asyncio.run(discovery.probe_service(service))
+    assert service.running
+    assert service.models == []
+    assert service.available_models == ["google/gemma-chat"]
+    assert service.installed_models == ["google/gemma-chat"]
+    assert service.detail == "server running; installed chat model available but not loaded"
+
+
 def test_lm_installed_inventory_is_independent_from_served_models(monkeypatch):
     monkeypatch.delenv("OLLAMA_HOST", raising=False)
     monkeypatch.setattr(discovery, "find_lms", lambda: "lms")

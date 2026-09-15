@@ -44,6 +44,38 @@ describe("startup and shutdown presentation", () => {
     expect(startup).toContain("0.1.2");
   });
 
+  it("renders version and author as separate presentation metadata", () => {
+    const html = renderToStaticMarkup(
+      createElement(StartupCard, {
+        state: { ...resetUiState(), samVersion: "0.1.2", samAuthor: "Release Author" },
+      }),
+    );
+    expect(html).toContain('class="startup-card__version"');
+    expect(html).toContain('class="startup-card__author"');
+  });
+
+  it("offers one installed unloaded model when startup is blocked", () => {
+    const html = renderToStaticMarkup(
+      createElement(StartupCard, {
+        state: {
+          ...resetUiState(),
+          startupLifecycle: "blocked",
+          providerCatalog: [
+            {
+              id: "lm-studio",
+              running: true,
+              models: [],
+              installedModels: ["installed-only"],
+              detail: "installed chat model available but not loaded",
+            },
+          ],
+        },
+      }),
+    );
+    expect(html).toContain("installed-only · Installed");
+    expect(html).toContain("Choose a conversational model");
+  });
+
   it("shows actionable degradation instead of a vague model placeholder", () => {
     const state = {
       ...resetUiState(),

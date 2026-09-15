@@ -22,8 +22,17 @@ Updated: 2026-09-15
   bootstrapped locked environment without dependency synchronization. Browser and
   Chromium app-window fallbacks remain intact. This validation performs no
   packaging, unsigned companion execution, signing, release, or full human voice or
-  visual acceptance. Source gates pass: 103 frontend tests, changed-file Biome,
+  visual acceptance. Source gates pass: 105 frontend tests, changed-file Biome,
   TypeScript, Vite production build, Rust formatting and `cargo check --locked`.
+- Native LM Studio inventory now preserves installed conversational models reported
+  by the supported `lms` CLI when the server's serving inventories are empty because
+  those models are unloaded. Installed and loaded inventories remain distinct, and
+  existing explicit, last-good, and sole-model selection policy is unchanged. The
+  live native development path resolved the existing CLI without a user-specific
+  path and reported one installed model with zero loaded. Automated UI smoke covered
+  status visibility, Controls, compact 390x700 layout, and distinct Restart/Quit
+  confirmations without loading or downloading a model. Human visual/voice
+  acceptance and all packaging/release gates remain outstanding.
 - Productization backbone: schema-v1 TOML configures supervisor/runtime behavior
   with defaults -> user -> workspace -> environment -> explicit CLI precedence.
   Unsupported keys/types fail early; secrets and SQLite last-good state stay separate.
