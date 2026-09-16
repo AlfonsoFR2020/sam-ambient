@@ -42,9 +42,32 @@ class EndpointingPolicy:
 
     resume_frames: int = 5
     sparse_candidate_ms: int = 12_000
+    maximum_candidate_ms: int = 24_000
     recent_window_ms: int = 1_500
     minimum_overall_speech_ratio: float = 0.18
     minimum_recent_speech_ratio: float = 0.25
+
+    def __post_init__(self) -> None:
+        durations = (
+            self.sparse_candidate_ms,
+            self.maximum_candidate_ms,
+            self.recent_window_ms,
+        )
+        if not isinstance(self.resume_frames, int) or isinstance(self.resume_frames, bool):
+            raise TypeError("resume_frames must be an integer")
+        if self.resume_frames <= 0:
+            raise ValueError("resume_frames must be positive")
+        if any(not isinstance(value, int) or isinstance(value, bool) for value in durations):
+            raise TypeError("endpointing durations must be integers")
+        if any(value <= 0 for value in durations):
+            raise ValueError("endpointing durations must be positive")
+        if self.maximum_candidate_ms < self.sparse_candidate_ms:
+            raise ValueError("maximum_candidate_ms must cover sparse_candidate_ms")
+        ratios = (self.minimum_overall_speech_ratio, self.minimum_recent_speech_ratio)
+        if any(not isinstance(value, int | float) or isinstance(value, bool) for value in ratios):
+            raise TypeError("speech ratios must be numeric")
+        if any(not 0.0 <= value <= 1.0 for value in ratios):
+            raise ValueError("speech ratios must be between 0 and 1")
 
 
 class SpeechEvidence:
@@ -89,6 +112,12 @@ class SpeechEvidence:
         return (
             overall_ratio < self.policy.minimum_overall_speech_ratio
             and recent_ratio < self.policy.minimum_recent_speech_ratio
+        )
+
+    def maximum_duration_reached(self, at_ms: int) -> bool:
+        return (
+            self.opened_ms is not None
+            and at_ms - self.opened_ms >= self.policy.maximum_candidate_ms
         )
 
 
@@ -296,6 +325,24 @@ class VoiceInputPipeline:
                             ),
                         )
                         return VoiceInputResult(Transcript("", is_final=True), audio_frames)
+                    if evidence.maximum_duration_reached(frame.monotonic_ms):
+                        log.info(
+                            "Finalizing voice candidate at maximum duration after %d ms",
+                            frame.monotonic_ms
+                            - (
+                                evidence.opened_ms
+                                if evidence.opened_ms is not None
+                                else frame.monotonic_ms
+                            ),
+                        )
+                        final_transcript = await stt_stream.finalize(cancellation)
+                        if not final_transcript.text:
+                            return VoiceInputResult(final_transcript, audio_frames)
+                        if final_transcript != last_partial:
+                            await self._publish_transcript(frame.monotonic_ms, final_transcript)
+                        duration_events = self._turn_manager.on_maximum_duration(frame.monotonic_ms)
+                        await self._publish_all(duration_events)
+                        return VoiceInputResult(final_transcript, audio_frames)
                 if self._turn_manager.state is VoiceState.ENDPOINT_CANDIDATE:
                     if candidate_since_ms is None:
                         candidate_since_ms = frame.monotonic_ms

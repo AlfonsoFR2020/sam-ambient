@@ -357,6 +357,25 @@ class TurnManager:
                 return (recovered,) if cancelled is None else (cancelled, recovered)
         return ()
 
+    def on_maximum_duration(self, at_ms: int) -> tuple[ProtocolEvent, ...]:
+        """Commit finalized speech at the pipeline's bounded capture limit."""
+
+        self._check_time(at_ms)
+        endpoint: tuple[ProtocolEvent, ...] = ()
+        if self.state is VoiceState.USER_SPEAKING:
+            self._end_speech(at_ms)
+            self._silence_started_ms = at_ms
+            endpoint = (
+                self._transition(
+                    VoiceState.ENDPOINT_CANDIDATE,
+                    at_ms,
+                    "maximum_candidate_duration",
+                ),
+            )
+        elif self.state is not VoiceState.ENDPOINT_CANDIDATE:
+            raise RuntimeError(f"cannot bound speech duration from {self.state}")
+        return (*endpoint, *self._commit(at_ms, reason="maximum_candidate_duration"))
+
     @property
     def endpoint_threshold_ms(self) -> int:
         """Current silence threshold, exposed for STT finalization coordination."""
@@ -530,8 +549,13 @@ class TurnManager:
             raise RuntimeError(f"cannot restore audio from {self.state}")
         return (self._transition(VoiceState.IDLE, at_ms, "audio_restored"),)
 
-    def _commit(self, at_ms: int) -> tuple[ProtocolEvent, ...]:
-        state_event = self._transition(VoiceState.COMMITTING, at_ms, "endpoint_confirmed")
+    def _commit(
+        self,
+        at_ms: int,
+        *,
+        reason: str = "endpoint_confirmed",
+    ) -> tuple[ProtocolEvent, ...]:
+        state_event = self._transition(VoiceState.COMMITTING, at_ms, reason)
         committed_event = self._event(
             EventType.TURN_COMMITTED,
             at_ms,

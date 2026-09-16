@@ -153,6 +153,20 @@ def test_user_resumes_after_false_endpoint() -> None:
     assert manager.state is VoiceState.USER_SPEAKING
 
 
+def test_maximum_duration_commits_from_existing_endpoint_candidate() -> None:
+    manager = make_manager()
+    begin_turn(manager)
+    manager.on_vad(100, 0.9)
+    manager.on_transcript(300, "A bounded but meaningful utterance", is_final=True, confidence=0.9)
+    manager.on_vad(500, 0.0)
+
+    events = manager.on_maximum_duration(600)
+
+    assert manager.state is VoiceState.COMMITTING
+    assert any(event.type is EventType.TURN_COMMITTED for event in events)
+    assert any(event.payload.get("reason") == "maximum_candidate_duration" for event in events)
+
+
 def test_noise_shorter_than_minimum_speech_is_not_an_endpoint() -> None:
     manager = make_manager()
     begin_turn(manager)

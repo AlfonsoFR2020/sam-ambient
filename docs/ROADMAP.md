@@ -9,9 +9,8 @@ items live in [Backlog](BACKLOG.md). Priorities may change after real use.
 - Human-accept the combined ambient/native source candidate and fix only observed
   shell, visual, or native-boundary defects. The rejected `feature/ambient-ui`
   remains excluded.
-- Physically accept the new sparse-noise endpointing bounds, then investigate any
-  remaining continuously VAD-positive environmental noise and complete multi-turn
-  voice, multilingual playback, and barge-in acceptance.
+- Physically accept the bounded sparse/dense-noise endpointing lifecycle, then
+  complete multi-turn voice, multilingual playback, and barge-in acceptance.
 - Use existing stage timings to reduce observed latency, then accept the final
   transcript, startup, and compact-window behavior.
 - Run the full regression, package, documentation, and release-candidate gate.

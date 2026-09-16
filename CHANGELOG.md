@@ -24,10 +24,9 @@
   verification, and approval-gated local MCP stdio integration.
 
 **Alpha limitations:** text interaction is the recommended, most reliable 0.2.0
-experience. Voice input remains experimental: unexpected monitor state, sustained
-noise segmentation, language/TTS drift, physical barge-in, and robotic Windows
-System.Speech remain known limitations. The source/native architecture is alpha
-quality, and no signed Windows installer is distributed. Native installer
+experience. Voice input remains experimental: language/TTS drift, physical barge-in,
+and robotic Windows System.Speech remain known limitations. The source/native
+architecture is alpha quality, and no signed Windows installer is distributed. Native installer
 signing/AV review, final artifact smoke, combined native/visual acceptance, and
 Linux hardware tuning remain outstanding. No cloud speech, bundled model, remote
 MCP transport, AEC, or automatic model download is included. See the detailed
@@ -54,10 +53,11 @@ MCP transport, AEC, or automatic model download is included. See the detailed
 - Add persisted `0-200%` Sam application input/output gains. Input gain is applied
   before VAD/STT/barge-in; output gain is applied before emitted-level metering and
   physical playback. These controls do not change operating-system mixer levels.
-- Require sustained VAD evidence to reopen an endpoint candidate, and reject
-  long open STT candidates when both recent and overall speech density remain
-  low. Keep 200 ms pre-roll, normal silence thresholds, long sustained speech,
-  barge-in ownership, and language authority unchanged.
+- Require sustained VAD evidence to reopen an endpoint candidate, reject long open
+  STT candidates when both recent and overall speech density remain low, and finalize
+  every initial candidate once at a 24-second lifecycle boundary. Discard empty noise
+  results while committing meaningful sustained speech. Keep 200 ms pre-roll, normal
+  silence thresholds, barge-in ownership, and language authority unchanged.
 - Dispose finalized/rejected speech candidates before accepting more audio, apply
   confirmed interruption cancellation through the controller, and preserve an
   in-flight response's TTS eligibility during input failure. Discard short rejected

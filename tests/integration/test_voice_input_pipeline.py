@@ -32,6 +32,17 @@ class SequenceVad:
         return VadResult(is_speech, 1.0 if is_speech else 0.0)
 
 
+class AlwaysSpeechVad:
+    def analyze(self, _frame: AudioFrame) -> VadResult:
+        return VadResult(True, 1.0)
+
+
+class DenseNoiseVad:
+    def analyze(self, frame: AudioFrame) -> VadResult:
+        is_speech = frame.sequence % 15 < 10
+        return VadResult(is_speech, 1.0 if is_speech else 0.0)
+
+
 class FakeSttStream:
     def __init__(self, context, token: CancellationToken) -> None:
         self.context = context
@@ -63,6 +74,46 @@ class FakeStt:
 
     async def start_stream(self, context, cancellation: CancellationToken) -> FakeSttStream:
         self.stream = FakeSttStream(context, cancellation)
+        return self.stream
+
+    async def aclose(self) -> None:
+        return None
+
+
+class FinalOnlySttStream:
+    def __init__(self, context, token: CancellationToken, text: str) -> None:
+        self.context = context
+        self._token = token
+        self._text = text
+        self.pushed = 0
+        self.finalizations = 0
+        self.cancellations = 0
+
+    async def push_audio(self, _frame, cancellation: CancellationToken) -> None:
+        assert cancellation is self._token
+        self.pushed += 1
+
+    async def partial_transcript(self) -> None:
+        return None
+
+    async def finalize(self, cancellation: CancellationToken) -> Transcript:
+        assert cancellation is self._token
+        self.finalizations += 1
+        return Transcript(self._text, is_final=True, confidence=None)
+
+    async def cancel(self, cancellation_id: str, reason: str = "cancelled") -> bool:
+        assert cancellation_id == self.context.cancellation_id
+        self.cancellations += 1
+        return self._token.cancel(reason)
+
+
+class FinalOnlyStt:
+    def __init__(self, text: str) -> None:
+        self.text = text
+        self.stream: FinalOnlySttStream | None = None
+
+    async def start_stream(self, context, cancellation: CancellationToken) -> FinalOnlySttStream:
+        self.stream = FinalOnlySttStream(context, cancellation, self.text)
         return self.stream
 
     async def aclose(self) -> None:
@@ -186,3 +237,85 @@ def test_sparse_noise_candidate_is_bounded_but_long_speech_remains_open() -> Non
 
     assert sparse.sparse_too_long(1_380)
     assert not sustained.sparse_too_long(1_380)
+
+
+def test_dense_noise_reopening_endpoints_is_finalized_before_32_seconds() -> None:
+    async def scenario() -> None:
+        audio_format = AudioFormat(sample_rate_hz=1_000)
+        frames = [
+            AudioFrame(
+                audio_format,
+                b"\0" * 40,
+                monotonic_ms=sequence * 20,
+                sequence=sequence,
+            )
+            for sequence in range(1_601)
+        ]
+        manager = TurnManager("session")
+        stt = FinalOnlyStt("")
+        events: list[ProtocolEvent] = []
+
+        async def publish(event: ProtocolEvent) -> None:
+            events.append(event)
+
+        pipeline = VoiceInputPipeline(
+            capture=FakeCapture(frames),
+            vad=DenseNoiseVad(),
+            stt=stt,
+            turn_manager=manager,
+            publish=publish,
+        )
+        result = await pipeline.run(CancellationToken("noise-cancel"))
+
+        assert not result.transcript.text
+        assert result.audio_frames == 1_201
+        assert stt.stream is not None
+        assert stt.stream.pushed == 1_201
+        assert stt.stream.finalizations == 1
+        assert stt.stream.cancellations == 0
+        assert sum(event.payload.get("reason") == "speech_resumed" for event in events) > 1
+        assert all(event.type is not EventType.TURN_COMMITTED for event in events)
+
+    asyncio.run(scenario())
+
+
+def test_maximum_candidate_duration_commits_meaningful_ordinary_speech() -> None:
+    async def scenario() -> None:
+        audio_format = AudioFormat(sample_rate_hz=1_000)
+        frames = [
+            AudioFrame(
+                audio_format,
+                b"\0" * 40,
+                monotonic_ms=sequence * 20,
+                sequence=sequence,
+            )
+            for sequence in range(1_301)
+        ]
+        manager = TurnManager("session")
+        stt = FinalOnlyStt("Please summarize the project status and current blockers.")
+        events: list[ProtocolEvent] = []
+
+        async def publish(event: ProtocolEvent) -> None:
+            events.append(event)
+
+        pipeline = VoiceInputPipeline(
+            capture=FakeCapture(frames),
+            vad=AlwaysSpeechVad(),
+            stt=stt,
+            turn_manager=manager,
+            publish=publish,
+        )
+        result = await pipeline.run(CancellationToken("speech-cancel"))
+
+        assert result.transcript.text == stt.text
+        assert result.audio_frames == 1_201
+        assert manager.state is VoiceState.COMMITTING
+        assert stt.stream is not None
+        assert stt.stream.pushed == 1_201
+        assert stt.stream.finalizations == 1
+        assert stt.stream.cancellations == 0
+        committed = next(event for event in events if event.type is EventType.TURN_COMMITTED)
+        assert committed.payload["text"] == stt.text
+        assert any(event.payload.get("reason") == "maximum_candidate_duration" for event in events)
+
+    asyncio.run(scenario())

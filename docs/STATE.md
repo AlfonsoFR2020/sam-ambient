@@ -89,11 +89,12 @@ Updated: 2026-09-16
   damped inertia, persisted typed visual preferences, mobile-profile emulation and a
   bounded measured Auto-quality governor are implemented; final acceptance remains pending.
 - Voice endpointing now layers sustained-resume hysteresis and bounded speech-density
-  evidence over WebRTC VAD. Sparse clicks no longer repeatedly reset endpoint silence,
-  and a low-density candidate is discarded after 12 seconds instead of accumulating
-  pathological 30-60 second clips. The normal 0.65-1.1 second silence endpoint,
-  200 ms pre-roll, long sustained speech, and playback-aware barge-in remain intact.
-  Physical acoustic/AEC acceptance remains pending.
+  evidence over WebRTC VAD. Sparse candidates are discarded after 12 seconds; every
+  initial STT candidate is finalized once at 24 seconds, so dense VAD-positive noise
+  cannot accumulate a 30-second clip. Empty results are discarded while meaningful
+  sustained speech is committed. Normal silence endpointing, 200 ms pre-roll, short
+  utterances, and playback-aware barge-in remain intact. Physical acoustic/AEC
+  acceptance remains pending.
 - Schema-v1 and trusted owner controls now persist Sam application input and output
   gains from 0-200%. Captured PCM is saturated once before all voice consumers;
   synthesized PCM is saturated once before output metering/playback, so mute reports
