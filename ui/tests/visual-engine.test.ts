@@ -105,6 +105,36 @@ describe("visual engine lifecycle", () => {
     engine.dispose();
   });
 
+  it("rebuilds renderer resources when quality or profile changes the effective budget", () => {
+    const particleBudgets: number[] = [];
+    let disposed = 0;
+    const engine = new VisualEngine({
+      createCanvas: fakeCanvas,
+      backendFactory: (_canvas, _kind, budget) => {
+        particleBudgets.push(budget.particles);
+        return {
+          kind: "webgl2",
+          update() {},
+          configure() {},
+          resize() {},
+          setObjectOrientation() {},
+          render() {},
+          dispose: () => disposed++,
+        };
+      },
+      requestFrame: () => 1,
+      cancelFrame() {},
+    });
+
+    engine.mount(fakeHost());
+    engine.configure({ quality: "high", deviceProfile: "high_end" });
+    engine.configure({ deviceProfile: "mobile_2020" });
+
+    expect(particleBudgets).toEqual([12, 40, 12]);
+    expect(disposed).toBe(2);
+    engine.dispose();
+  });
+
   it("forwards direct drag orientation to the active renderer", () => {
     const orientations: number[][] = [];
     let renders = 0;

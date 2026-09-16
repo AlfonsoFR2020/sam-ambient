@@ -6,6 +6,7 @@ import {
   type IndexedGeometry,
 } from "./geometry";
 import { MotionEvaluator, type MotionFrame } from "./motion";
+import { PARTICLE_GOLD, PARTICLE_VISIBILITY_HASH } from "./particles";
 import type { RenderBudget } from "./quality";
 import { HALO_OPACITY_SCALE } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -166,16 +167,18 @@ uniform vec2 u_scale;
 uniform mat3 u_object_orientation;
 out float v_alpha;
 void main(){
-  float cadence=.72+fract(a_particle.x*.159)*.46;
+  float rank=fract(a_particle.x*${PARTICLE_VISIBILITY_HASH.toFixed(3)});
+  float cadence=.72+rank*.46;
   float angle=a_particle.x+u_phase*cadence;
   float shell=a_particle.y+.025*sin(angle*1.37+a_particle.x);
   float incline=a_particle.z;
   vec3 point=vec3(cos(angle)*shell,sin(angle*.83+a_particle.x)*shell*.72,sin(angle)*shell);
   point.yz=mat2(cos(incline),-sin(incline),sin(incline),cos(incline))*point.yz;
   point=u_object_orientation*point*u_radius;
-  v_alpha=smoothstep(-.08,.2,point.z)*(.24+u_excitation*.34)*u_density;
+  float visible=step(rank,u_density)*step(.0001,u_density);
+  v_alpha=smoothstep(-.08,.2,point.z)*(.64+u_excitation*.26)*visible;
   gl_Position=vec4(point.xy*u_scale,-point.z*.25,1.);
-  gl_PointSize=a_particle.w*u_point_scale*(1.18+u_excitation*.62);
+  gl_PointSize=a_particle.w*u_point_scale*(1.12+u_excitation*.48);
 }`;
 
 const PARTICLE_FRAGMENT = `#version 300 es
@@ -184,8 +187,8 @@ in float v_alpha;
 out vec4 color;
 void main(){
   float distanceFromCenter=length(gl_PointCoord-vec2(.5))*2.;
-  float alpha=v_alpha*(1.-smoothstep(.15,1.,distanceFromCenter));
-  color=vec4(vec3(.96,.39,.10)*alpha,alpha);
+  float alpha=v_alpha*(1.-smoothstep(.46,1.,distanceFromCenter));
+  color=vec4(vec3(${PARTICLE_GOLD.red.toFixed(3)},${PARTICLE_GOLD.green.toFixed(3)},${PARTICLE_GOLD.blue.toFixed(3)})*alpha,alpha);
 }`;
 
 const HALO_VERTEX = `#version 300 es

@@ -1,3 +1,4 @@
+import { PARTICLE_POINT_SIZE_RANGE, PARTICLE_SHELL_RANGE } from "./particles";
 import type { RenderBudget } from "./quality";
 
 export interface IndexedGeometry {
@@ -129,9 +130,11 @@ export function createParticleGeometry(count: number, seed = 0x5a17): ArrayGeome
     vertices.set(
       [
         random() * Math.PI * 2,
-        1.1 + random() * 0.3,
+        PARTICLE_SHELL_RANGE.minimum +
+          random() * (PARTICLE_SHELL_RANGE.maximum - PARTICLE_SHELL_RANGE.minimum),
         (random() * 2 - 1) * (Math.PI / 5.2),
-        1.65 + random() * 1.55,
+        PARTICLE_POINT_SIZE_RANGE.minimum +
+          random() * (PARTICLE_POINT_SIZE_RANGE.maximum - PARTICLE_POINT_SIZE_RANGE.minimum),
       ],
       index * 4,
     );

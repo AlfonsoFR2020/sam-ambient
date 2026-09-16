@@ -262,6 +262,10 @@ Updated: 2026-09-16
 - Native and ambient source are integrated on `dev`, but combined product/visual/native
   acceptance, native packaging verification, signing, and publication remain open.
   The rejected ambient experiment is not part of `dev`.
+- Visual polish Pass 3 makes WebGL particles materially visible as bounded, seeded
+  gold points and maps density to their deterministic visible share. Quality/profile
+  changes rebuild the resolved 12/24/40-particle budget; `mobile_2020` remains capped
+  at low. Canvas remains the intentionally particle-free fallback from the v1 spec.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 

@@ -8,6 +8,12 @@ import {
   PEEL_WIDTH_RANGE,
 } from "../src/visual-engine/geometry";
 import {
+  PARTICLE_GOLD,
+  PARTICLE_POINT_SIZE_RANGE,
+  PARTICLE_SHELL_RANGE,
+  particleIsVisible,
+} from "../src/visual-engine/particles";
+import {
   effectivePixelRatio,
   RENDER_BUDGETS,
   resolveRenderBudget,
@@ -87,10 +93,36 @@ describe("visual quality and geometry", () => {
       expect(particles.count).toBe(budget.particles);
       expect(particles.vertices).toEqual(createParticleGeometry(budget.particles).vertices);
       for (let index = 0; index < particles.count; index++) {
-        expect(particles.vertices[index * 4 + 1]).toBeGreaterThanOrEqual(1.1);
-        expect(particles.vertices[index * 4 + 1]).toBeLessThanOrEqual(1.4);
+        expect(particles.vertices[index * 4 + 1]).toBeGreaterThanOrEqual(
+          PARTICLE_SHELL_RANGE.minimum,
+        );
+        expect(particles.vertices[index * 4 + 1]).toBeLessThanOrEqual(PARTICLE_SHELL_RANGE.maximum);
+        expect(particles.vertices[index * 4 + 3]).toBeGreaterThanOrEqual(
+          PARTICLE_POINT_SIZE_RANGE.minimum,
+        );
+        expect(particles.vertices[index * 4 + 3]).toBeLessThanOrEqual(
+          PARTICLE_POINT_SIZE_RANGE.maximum,
+        );
       }
     }
+  });
+
+  it("maps density to a deterministic visible share of actual gold particles", () => {
+    const particles = createParticleGeometry(RENDER_BUDGETS.high.particles);
+    const visibleAt = (density: number) => {
+      let count = 0;
+      for (let index = 0; index < particles.count; index++) {
+        if (particleIsVisible(particles.vertices[index * 4], density)) count++;
+      }
+      return count;
+    };
+
+    expect(visibleAt(0)).toBe(0);
+    expect(visibleAt(0.25)).toBeGreaterThan(0);
+    expect(visibleAt(0.25)).toBeLessThan(visibleAt(0.75));
+    expect(visibleAt(0.75)).toBeLessThan(visibleAt(1));
+    expect(visibleAt(1)).toBe(particles.count);
+    expect(PARTICLE_GOLD).toEqual({ red: 0.831, green: 0.686, blue: 0.216 });
   });
 
   it("bounds sphere topology and validates session settings", () => {
