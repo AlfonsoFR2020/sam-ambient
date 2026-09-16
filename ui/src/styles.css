@@ -123,7 +123,7 @@ input {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(64vmin, 720px);
+  width: 74vmin;
   aspect-ratio: 1;
   border-radius: 50%;
   cursor: grab;

@@ -84,6 +84,7 @@ export class VisualEngine {
     }
     if (typeof document !== "undefined")
       document.addEventListener("visibilitychange", this.onVisibility);
+    this.reducedMotionMedia?.addEventListener("change", this.onReducedMotionChange);
     this.resizeFromHost();
     this.syncLoop();
   }
@@ -108,6 +109,7 @@ export class VisualEngine {
     const rebuild =
       nextBudget.quality !== this.budget.quality || next.renderer !== this.settings.renderer;
     this.settings = next;
+    if (this.reducedMotion() || next.motionIntensity === 0) this.interaction.stopInertia();
     this.budget = nextBudget;
     this.governor.reset(nextBudget.quality);
     if (rebuild && this.host) this.createBackend();
@@ -141,7 +143,7 @@ export class VisualEngine {
   }
 
   endInteraction(): void {
-    this.interaction.end(this.reducedMotion());
+    this.interaction.end(this.reducedMotion(), this.settings.motionIntensity);
   }
 
   cancelInteraction(): void {
@@ -161,6 +163,7 @@ export class VisualEngine {
     this.intersectionObserver = undefined;
     if (typeof document !== "undefined")
       document.removeEventListener("visibilitychange", this.onVisibility);
+    this.reducedMotionMedia?.removeEventListener("change", this.onReducedMotionChange);
     this.backend?.dispose();
     this.backend = undefined;
     this.canvas?.removeEventListener("webglcontextlost", this.onContextLost);
@@ -173,13 +176,23 @@ export class VisualEngine {
 
   private readonly onVisibility = () => this.syncLoop();
 
+  private readonly onReducedMotionChange = () => {
+    if (this.reducedMotion()) this.interaction.stopInertia();
+    this.backend?.render(this.clock());
+    this.syncLoop();
+  };
+
   private readonly tick: FrameRequestCallback = (now) => {
     this.frame = 0;
     if (!this.shouldAnimate()) return;
     const active = this.input?.interaction.foreground !== "idle";
     const fps = active ? this.budget.activeFps : this.budget.idleFps;
     if (!this.lastDraw || now - this.lastDraw >= 1000 / fps) {
-      this.interaction.step(this.lastDraw ? (now - this.lastDraw) / 1000 : 0, this.reducedMotion());
+      this.interaction.step(
+        this.lastDraw ? (now - this.lastDraw) / 1000 : 0,
+        this.reducedMotion(),
+        this.settings.motionIntensity,
+      );
       this.pushOrientation();
       const started = this.clock();
       this.backend?.render(now);
@@ -275,6 +288,6 @@ export class VisualEngine {
   };
 
   private pushOrientation(): void {
-    this.backend?.setObjectOrientation?.(this.interaction.orientationMatrix());
+    this.backend?.setObjectOrientation(this.interaction.orientationMatrix());
   }
 }

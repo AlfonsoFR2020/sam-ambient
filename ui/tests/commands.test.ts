@@ -101,6 +101,7 @@ describe("control command protocol", () => {
           ...DEFAULT_VISUAL_ENGINE_SETTINGS,
           quality: "high",
           deviceProfile: "mobile_2020",
+          motionIntensity: 0.2,
           particleDensity: 0.25,
         },
       },
@@ -112,6 +113,7 @@ describe("control command protocol", () => {
       payload: {
         quality: "high",
         device_profile: "mobile_2020",
+        motion_intensity: 0.2,
         particle_density: 0.25,
       },
     });

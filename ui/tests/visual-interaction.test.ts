@@ -14,20 +14,40 @@ describe("orb interaction", () => {
     for (const value of moved.matrix) expect(Number.isFinite(value)).toBe(true);
   });
 
-  it("decays inertia consistently and suppresses it for reduced motion", () => {
+  it("integrates inertia consistently across frame cadences", () => {
     const first = new OrbInteraction();
     const second = new OrbInteraction();
     for (const interaction of [first, second]) {
       interaction.begin(0, 0, 0);
-      interaction.move(40, 10, 20);
+      interaction.move(40, 0, 20);
       interaction.end();
     }
     first.step(0.04);
     second.step(0.02);
     second.step(0.02);
     expect(first.snapshot().velocityY).toBeCloseTo(second.snapshot().velocityY, 5);
-    first.end(true);
-    expect(first.snapshot().velocityY).toBe(0);
+    const firstMatrix = first.snapshot().matrix;
+    const secondMatrix = second.snapshot().matrix;
+    for (let index = 0; index < firstMatrix.length; index++) {
+      expect(firstMatrix[index]).toBeCloseTo(secondMatrix[index] ?? Number.NaN, 5);
+    }
+  });
+
+  it("scales flick travel and suppresses inertia for reduced motion", () => {
+    const full = new OrbInteraction();
+    const slow = new OrbInteraction();
+    for (const interaction of [full, slow]) {
+      interaction.begin(0, 0, 0);
+      interaction.move(40, 0, 20);
+      interaction.end();
+    }
+    full.step(0.04, false, 1);
+    slow.step(0.04, false, 0.25);
+    expect(Math.abs(full.snapshot().matrix[2] ?? 0)).toBeGreaterThan(
+      Math.abs(slow.snapshot().matrix[2] ?? 0),
+    );
+    full.end(true);
+    expect(full.snapshot().velocityY).toBe(0);
   });
 
   it("cancellation ends capture and removes residual velocity", () => {

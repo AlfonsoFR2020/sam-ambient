@@ -10,6 +10,7 @@ export class CanvasBackend implements RendererBackend {
   private height = 1;
   private gradient?: CanvasGradient;
   private input?: VisualInputV1;
+  private readonly orientation = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
   private readonly motion: MotionEvaluator;
   private readonly reducedMotionMedia: MediaQueryList | undefined;
 
@@ -38,6 +39,10 @@ export class CanvasBackend implements RendererBackend {
 
   configure(settings: VisualEngineSettings): void {
     this.settings = settings;
+  }
+
+  setObjectOrientation(matrix: Float32Array): void {
+    this.orientation.set(matrix);
   }
 
   resize(width: number, height: number, dpr: number): void {
@@ -95,8 +100,22 @@ export class CanvasBackend implements RendererBackend {
         const angle = phase + peel * 2.05 + q * (1.4 + peel * 0.15);
         const opening = 1 + frame.opening * 0.05;
         const lift = 1.05 + frame.peelLift;
-        const x = cx + Math.cos(angle) * radius * Math.cos(q * 1.3) * opening * lift;
-        const y = cy + Math.sin(angle) * radius * 0.45 * opening * lift + q * radius * 1.1;
+        const latitude = Math.cos(q * 1.3);
+        const localX = Math.cos(angle) * latitude * opening * lift;
+        const localY = Math.sin(angle) * 0.45 * opening * lift + q * 1.1;
+        const localZ = Math.sin(angle) * latitude * opening * lift;
+        const x =
+          cx +
+          (this.orientation[0] * localX +
+            this.orientation[3] * localY +
+            this.orientation[6] * localZ) *
+            radius;
+        const y =
+          cy +
+          (this.orientation[1] * localX +
+            this.orientation[4] * localY +
+            this.orientation[7] * localZ) *
+            radius;
         if (sample === 0) context.moveTo(x, y);
         else context.lineTo(x, y);
       }

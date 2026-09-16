@@ -83,6 +83,20 @@ describe("continuous Visual Engine motion", () => {
     expect(a.surfaceDeformation).toBeGreaterThan(0);
   });
 
+  it("wires motion intensity to autonomous rotation speed", () => {
+    const stopped = new MotionEvaluator(42);
+    const moving = new MotionEvaluator(42);
+    const input = visualInput("idle");
+    const stoppedSettings = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, motionIntensity: 0 };
+    const movingSettings = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, motionIntensity: 1 };
+    const initialSpin = stopped.evaluate(input, 0, stoppedSettings, RENDER_BUDGETS.low).spin;
+    moving.evaluate(input, 0, movingSettings, RENDER_BUDGETS.low);
+    const stoppedFrame = stopped.evaluate(input, 80, stoppedSettings, RENDER_BUDGETS.low);
+    const movingFrame = moving.evaluate(input, 80, movingSettings, RENDER_BUDGETS.low);
+    expect(stoppedFrame.spin).toBe(initialSpin);
+    expect(movingFrame.spin).toBeGreaterThan(initialSpin);
+  });
+
   it("bounds maximum audio response and uses output as the strongest channel", () => {
     const frame = evaluateTwice({
       ...visualInput("speaking"),

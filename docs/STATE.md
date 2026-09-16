@@ -7,6 +7,9 @@ Updated: 2026-09-16
 - Visual polish pass 1 on `feature/visual-polish` substantially restrains the
   analytic halo and makes the existing deterministic peels wider and farther
   from the body without increasing geometry, draw calls, or mobile frame budgets.
+- Visual polish pass 2 restores direct rotation across WebGL and Canvas, makes
+  flick inertia frame-independent and motion-scaled, and aligns the pointer hit
+  region with the bounded maximum orb extent while preserving mobile budgets.
 
 - Release metadata and end-user documentation are prepared consistently for
   `0.2.0` under the existing alpha convention. The eventual GitHub release remains

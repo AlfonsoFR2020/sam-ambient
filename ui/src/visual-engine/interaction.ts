@@ -51,9 +51,9 @@ export class OrbInteraction {
     return dx !== 0 || dy !== 0;
   }
 
-  end(reducedMotion = false): void {
+  end(reducedMotion = false, motionScale = 1): void {
     this.dragging = false;
-    if (reducedMotion) this.stop();
+    if (reducedMotion || motionScale <= 0) this.stop();
   }
 
   cancel(): void {
@@ -61,9 +61,10 @@ export class OrbInteraction {
     this.stop();
   }
 
-  step(deltaSeconds: number, reducedMotion = false): boolean {
+  step(deltaSeconds: number, reducedMotion = false, motionScale = 1): boolean {
     if (this.dragging) return false;
-    if (reducedMotion) {
+    const scale = clamp(motionScale, 0, 1);
+    if (reducedMotion || scale === 0) {
       this.stop();
       return false;
     }
@@ -72,8 +73,9 @@ export class OrbInteraction {
       this.stop();
       return false;
     }
-    this.rotate(this.velocityX * dt, this.velocityY * dt);
     const decay = Math.exp(-this.damping * dt);
+    const travel = this.damping > 0 ? (1 - decay) / this.damping : dt;
+    this.rotateVelocity(this.velocityX * travel * scale, this.velocityY * travel * scale);
     this.velocityX *= decay;
     this.velocityY *= decay;
     return true;
@@ -92,6 +94,10 @@ export class OrbInteraction {
     return this.matrixValue;
   }
 
+  stopInertia(): void {
+    this.stop();
+  }
+
   private stop(): void {
     this.velocityX = 0;
     this.velocityY = 0;
@@ -100,6 +106,13 @@ export class OrbInteraction {
   private rotate(pitch: number, yaw: number): void {
     this.multiplyAxisAngle(1, 0, 0, pitch);
     this.multiplyAxisAngle(0, 1, 0, yaw);
+    this.writeMatrix();
+  }
+
+  private rotateVelocity(pitch: number, yaw: number): void {
+    const angle = Math.hypot(pitch, yaw);
+    if (angle === 0) return;
+    this.multiplyAxisAngle(pitch / angle, yaw / angle, 0, angle);
     this.writeMatrix();
   }
 

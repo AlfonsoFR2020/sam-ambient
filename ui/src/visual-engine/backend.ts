@@ -8,7 +8,7 @@ export interface RendererBackend {
   update(input: VisualInputV1): void;
   configure(settings: VisualEngineSettings): void;
   resize(width: number, height: number, dpr: number): void;
-  setObjectOrientation?(matrix: Float32Array): void;
+  setObjectOrientation(matrix: Float32Array): void;
   render(now: number): void;
   dispose(): void;
 }
