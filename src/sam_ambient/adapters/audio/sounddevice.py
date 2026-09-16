@@ -7,9 +7,8 @@ import logging
 import time
 from array import array
 from collections.abc import AsyncIterable, AsyncIterator, Callable
+from importlib import import_module
 from typing import Any, Protocol
-
-import sounddevice
 
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
 from sam_ambient.core.voice import AudioFormat, AudioFrame, SampleFormat
@@ -27,6 +26,20 @@ class AudioInputOverflow(AudioDeviceError):
 
 class AudioOutputUnderflow(AudioDeviceError):
     pass
+
+
+def _load_sounddevice() -> Any:
+    try:
+        return import_module("sounddevice")
+    except (ImportError, OSError) as error:
+        raise AudioDeviceError(f"PortAudio audio backend is unavailable: {error}") from error
+
+
+def query_audio_devices() -> tuple[Any, list[Any]]:
+    """Return device metadata without making PortAudio an import-time requirement."""
+
+    backend = _load_sounddevice()
+    return backend.query_devices(), list(backend.default.device)
 
 
 class _InputStream(Protocol):
@@ -70,7 +83,7 @@ class SoundDeviceCapture:
         self.samples_per_frame = self.audio_format.samples_for_ms(frame_duration_ms)
         self._device = device
         self._latency = latency
-        self._stream_factory = stream_factory or sounddevice.RawInputStream
+        self._stream_factory = stream_factory or _load_sounddevice().RawInputStream
         self._clock_ms = clock_ms or (lambda: int(time.monotonic() * 1000))
         self.gain = _validated_gain(gain)
 
@@ -176,7 +189,7 @@ class SoundDeviceOutput:
         self.audio_format = audio_format
         self._device = device
         self._latency = latency
-        self._stream_factory = stream_factory or sounddevice.RawOutputStream
+        self._stream_factory = stream_factory or _load_sounddevice().RawOutputStream
 
     async def play(
         self,

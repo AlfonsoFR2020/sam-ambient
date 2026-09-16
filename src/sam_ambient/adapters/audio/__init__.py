@@ -6,6 +6,7 @@ from sam_ambient.adapters.audio.sounddevice import (
     AudioOutputUnderflow,
     SoundDeviceCapture,
     SoundDeviceOutput,
+    query_audio_devices,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "AudioOutputUnderflow",
     "SoundDeviceCapture",
     "SoundDeviceOutput",
+    "query_audio_devices",
 ]

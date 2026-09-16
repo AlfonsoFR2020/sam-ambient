@@ -1,4 +1,6 @@
 import asyncio
+import subprocess
+import sys
 import threading
 from array import array
 from collections.abc import AsyncIterator
@@ -11,9 +13,48 @@ from sam_ambient.adapters.audio import (
     SoundDeviceCapture,
     SoundDeviceOutput,
 )
+from sam_ambient.adapters.audio import sounddevice as sounddevice_adapter
 from sam_ambient.adapters.audio.sounddevice import scale_audio_frame
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
 from sam_ambient.core.voice import AudioFormat, AudioFrame
+
+
+def test_text_capable_modules_import_without_portaudio() -> None:
+    script = """
+import builtins
+
+original_import = builtins.__import__
+
+def import_without_portaudio(name, globals=None, locals=None, fromlist=(), level=0):
+    if name == "sounddevice":
+        raise OSError("PortAudio library not found")
+    return original_import(name, globals, locals, fromlist, level)
+
+builtins.__import__ = import_without_portaudio
+import sam_ambient.cli
+import sam_ambient.runtime
+"""
+    completed = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        check=False,
+        text=True,
+        timeout=10,
+    )
+    assert completed.returncode == 0, completed.stderr
+
+
+@pytest.mark.parametrize(
+    "constructor",
+    [SoundDeviceCapture, lambda: SoundDeviceOutput(AudioFormat())],
+)
+def test_default_audio_adapters_report_missing_portaudio(monkeypatch, constructor) -> None:
+    def unavailable(_name: str):
+        raise OSError("PortAudio library not found")
+
+    monkeypatch.setattr(sounddevice_adapter, "import_module", unavailable)
+    with pytest.raises(AudioDeviceError, match="PortAudio audio backend is unavailable"):
+        constructor()
 
 
 class FakeInputStream:

@@ -17,10 +17,13 @@ from importlib.resources import files
 from pathlib import Path
 from urllib.parse import urlsplit
 
-import sounddevice
-
 from sam_ambient import __version__
-from sam_ambient.adapters.audio import SoundDeviceCapture, SoundDeviceOutput
+from sam_ambient.adapters.audio import (
+    AudioDeviceError,
+    SoundDeviceCapture,
+    SoundDeviceOutput,
+    query_audio_devices,
+)
 from sam_ambient.adapters.local_discovery import (
     CleanupPolicy,
     Discovery,
@@ -409,9 +412,8 @@ async def run_doctor(args: argparse.Namespace) -> int:
             "models": models,
         }
         try:
-            devices = await asyncio.to_thread(sounddevice.query_devices)
+            devices, default_devices = await asyncio.to_thread(query_audio_devices)
             device_names = [str(device["name"])[:200] for device in devices]
-            default_devices = list(sounddevice.default.device)
             report["audio"] = {
                 "available": bool(device_names),
                 "devices": device_names[:32],
@@ -708,8 +710,12 @@ async def _serve_runtime(
         try:
             tts = SystemTextToSpeech()
             output = SoundDeviceOutput(tts.audio_format)
-        except TextToSpeechUnavailable:
-            log.warning("TTS unavailable; text output remains available")
+        except (TextToSpeechUnavailable, AudioDeviceError) as error:
+            if tts is not None:
+                await tts.aclose()
+            tts = None
+            output = None
+            log.warning("Spoken output unavailable: %s; text output remains available", error)
     log.info("TTS: %s", tts.backend_id if tts else "disabled/unavailable")
     voice = None
     stt_status = "disabled by --no-voice"
@@ -721,10 +727,10 @@ async def _serve_runtime(
             await stt.ensure_ready(Path(args.root))
             stt_status = f"ready at {stt.base_url}"
             voice = RuntimeVoiceAdapters(SoundDeviceCapture(), WebRtcVoiceActivityDetector(), stt)
-        except SpeechRecognitionError as error:
+        except (SpeechRecognitionError, AudioDeviceError) as error:
             stt_status = str(error)[:500]
             await stt.aclose()
-            log.warning("STT unavailable: %s; text input remains available", error)
+            log.warning("Voice input unavailable: %s; text input remains available", error)
         except BaseException:
             await stt.aclose()
             raise
