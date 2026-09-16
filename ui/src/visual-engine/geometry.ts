@@ -23,6 +23,9 @@ export interface PeelDescriptor {
   readonly tiltZ: number;
 }
 
+export const PEEL_WIDTH_RANGE = Object.freeze({ minimum: 0.064, maximum: 0.1 });
+export const PEEL_LIFT_RANGE = Object.freeze({ minimum: 0.034, maximum: 0.05 });
+
 const seeded = (seed: number): (() => number) => {
   let value = seed >>> 0;
   return () => {
@@ -64,8 +67,9 @@ export function createPeelDescriptors(count: number, seed = 0x5a17): readonly Pe
     family: (index / Math.max(1, count) + random() * 0.18) % 1,
     center: -1.25 + random() * 2.5,
     halfLength: 0.22 + random() * 0.36,
-    width: 0.042 + random() * 0.058,
-    lift: 0.02 + random() * 0.03,
+    width:
+      PEEL_WIDTH_RANGE.minimum + random() * (PEEL_WIDTH_RANGE.maximum - PEEL_WIDTH_RANGE.minimum),
+    lift: PEEL_LIFT_RANGE.minimum + random() * (PEEL_LIFT_RANGE.maximum - PEEL_LIFT_RANGE.minimum),
     opacity: 0.38 + random() * 0.42,
     phase: random() * Math.PI * 2,
     speed: (random() < 0.5 ? -1 : 1) * (0.006 + random() * 0.012),

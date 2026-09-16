@@ -4,6 +4,8 @@ import {
   createPeelDescriptors,
   createPeelGeometry,
   createSphereGeometry,
+  PEEL_LIFT_RANGE,
+  PEEL_WIDTH_RANGE,
 } from "../src/visual-engine/geometry";
 import {
   effectivePixelRatio,
@@ -11,6 +13,7 @@ import {
   resolveRenderBudget,
 } from "../src/visual-engine/quality";
 import { resolveVisualEngineSettings } from "../src/visual-engine/settings";
+import { HALO_OPACITY_SCALE, haloOpacity } from "../src/visual-engine/tuning";
 
 describe("visual quality and geometry", () => {
   it("starts auto conservatively and honors device profile caps", () => {
@@ -54,15 +57,28 @@ describe("visual quality and geometry", () => {
       for (const peel of descriptors) {
         expect(peel.halfLength).toBeGreaterThanOrEqual(0.22);
         expect(peel.halfLength).toBeLessThanOrEqual(0.58);
-        expect(peel.width).toBeGreaterThanOrEqual(0.042);
-        expect(peel.width).toBeLessThanOrEqual(0.1);
-        expect(peel.lift).toBeGreaterThanOrEqual(0.02);
-        expect(peel.lift).toBeLessThanOrEqual(0.05);
+        expect(peel.width).toBeGreaterThanOrEqual(PEEL_WIDTH_RANGE.minimum);
+        expect(peel.width).toBeLessThanOrEqual(PEEL_WIDTH_RANGE.maximum);
+        expect(peel.lift).toBeGreaterThanOrEqual(PEEL_LIFT_RANGE.minimum);
+        expect(peel.lift).toBeLessThanOrEqual(PEEL_LIFT_RANGE.maximum);
         expect(Math.abs(peel.tiltX)).toBeLessThanOrEqual(Math.PI / 4.5);
         expect(Math.abs(peel.tiltZ)).toBeLessThanOrEqual(Math.PI / 4.5);
       }
       expect(createPeelGeometry(budget).vertices).toEqual(geometry.vertices);
     }
+  });
+
+  it("keeps the restrained halo opacity bounded", () => {
+    expect(HALO_OPACITY_SCALE).toBeLessThanOrEqual(0.08);
+    expect(haloOpacity(0, 1)).toBeCloseTo(0.04);
+    expect(haloOpacity(1, 1)).toBeCloseTo(HALO_OPACITY_SCALE);
+  });
+
+  it("keeps maximum peel displacement inside the Visual Engine radius bound", () => {
+    const maximumDeformation = 0.006 + 0.026 * 0.55 + 0.022 * 0.35;
+    const maximumLift = PEEL_LIFT_RANGE.maximum + 0.018;
+    const maximumSpheroidDistance = (1.1 + maximumDeformation + maximumLift) * 1.06;
+    expect(maximumSpheroidDistance).toBeLessThanOrEqual(1.31);
   });
 
   it("creates bounded deterministic sparse particle parameters", () => {

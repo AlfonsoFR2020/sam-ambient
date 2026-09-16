@@ -7,6 +7,7 @@ import {
 } from "./geometry";
 import { MotionEvaluator, type MotionFrame } from "./motion";
 import type { RenderBudget } from "./quality";
+import { HALO_OPACITY_SCALE } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
 
 const ORB_VERTEX = `#version 300 es
@@ -202,7 +203,7 @@ uniform float u_glow;
 out vec4 color;
 void main(){
   vec2 p=vec2(v_uv.x*u_aspect,v_uv.y);
-  float alpha=(1.-smoothstep(.08,.72,length(p)))*.22*u_glow*(.5+.5*u_intensity);
+  float alpha=(1.-smoothstep(.08,.72,length(p)))*${HALO_OPACITY_SCALE.toFixed(2)}*u_glow*(.5+.5*u_intensity);
   color=vec4(vec3(.88,.18,.035)*alpha,alpha);
 }`;
 

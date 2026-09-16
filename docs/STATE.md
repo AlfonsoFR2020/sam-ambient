@@ -1,8 +1,12 @@
 # Sam implementation state
 
-Updated: 2026-09-15
+Updated: 2026-09-16
 
 ## MVP status
+
+- Visual polish pass 1 on `feature/visual-polish` substantially restrains the
+  analytic halo and makes the existing deterministic peels wider and farther
+  from the body without increasing geometry, draw calls, or mobile frame budgets.
 
 - Release metadata and end-user documentation are prepared consistently for
   `0.2.0` under the existing alpha convention. The eventual GitHub release remains
