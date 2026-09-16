@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AdaptiveQualityGovernor } from "../src/visual-engine/governor";
-import type { ResolvedQuality } from "../src/visual-engine/quality";
+import { AdaptiveQualityGovernor, type QualityDecision } from "../src/visual-engine/governor";
 import { RENDER_BUDGETS, resolveRenderBudget } from "../src/visual-engine/quality";
 import { resolveVisualEngineSettings } from "../src/visual-engine/settings";
 
@@ -12,7 +11,7 @@ const fill = (
   windows: number,
   nowStart = 10_000,
 ) => {
-  let result: ResolvedQuality | undefined;
+  let result: QualityDecision | undefined;
   for (let index = 0; index < windows * 5; index++)
     result =
       governor.observe(renderMs, nowStart + index * 20, automatic, RENDER_BUDGETS.low) ?? result;
@@ -39,7 +38,7 @@ describe("adaptive visual quality", () => {
     });
     const manual = resolveVisualEngineSettings({ quality: "medium" });
     expect(governor.observe(40, 10_000, manual, RENDER_BUDGETS.medium)).toBeUndefined();
-    let result: ResolvedQuality | undefined;
+    let result: QualityDecision | undefined;
     for (let index = 0; index < 10; index++)
       result =
         governor.observe(40, 11_000 + index * 20, automatic, RENDER_BUDGETS.medium) ?? result;
@@ -68,5 +67,25 @@ describe("adaptive visual quality", () => {
       if (index < 7) expect(result).toBeUndefined();
       else expect(result).toBe("medium");
     }
+  });
+
+  it("uses five-second active windows and falls back after two bad windows at low", () => {
+    const governor = new AdaptiveQualityGovernor("low", { cooldownMs: 0 });
+    let decision: QualityDecision | undefined;
+    for (let index = 0; index <= 101; index++) {
+      decision =
+        governor.observe(index % 5 === 0 ? 60 : 4, index * 100, automatic, RENDER_BUDGETS.low) ??
+        decision;
+      if (index < 101) expect(decision).toBeUndefined();
+    }
+    expect(decision).toBe("canvas2d");
+  });
+
+  it("promotes one level after thirty seconds of stable headroom", () => {
+    const governor = new AdaptiveQualityGovernor("medium", { cooldownMs: 0 });
+    let decision: QualityDecision | undefined;
+    for (let index = 0; index <= 305; index++)
+      decision = governor.observe(4, index * 100, automatic, RENDER_BUDGETS.medium) ?? decision;
+    expect(decision).toBe("high");
   });
 });

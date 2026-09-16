@@ -15,9 +15,10 @@ export function AmbientScene({ model, state, settings }: AmbientSceneProps) {
   const host = useRef<HTMLDivElement>(null);
   const engine = useRef<VisualEngine | null>(null);
   const adapter = useRef(new VisualInputAdapter());
+  const initialSettings = useRef(settings);
   useEffect(() => {
     if (!host.current) return;
-    const visualEngine = new VisualEngine();
+    const visualEngine = new VisualEngine({ settings: initialSettings.current });
     engine.current = visualEngine;
     visualEngine.mount(host.current);
     return () => {
@@ -40,25 +41,27 @@ export function AmbientScene({ model, state, settings }: AmbientSceneProps) {
       data-reduced-motion={settings.reducedMotion === "on" || undefined}
       aria-hidden="true"
     >
-      <div
-        className="ambient-scene__interaction"
-        onPointerDown={(event) => {
-          if (!event.isPrimary || event.button !== 0) return;
-          event.currentTarget.setPointerCapture(event.pointerId);
-          engine.current?.beginInteraction(event.clientX, event.clientY);
-        }}
-        onPointerMove={(event) => {
-          if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-          engine.current?.moveInteraction(event.clientX, event.clientY);
-        }}
-        onPointerUp={(event) => {
-          if (event.currentTarget.hasPointerCapture(event.pointerId))
-            event.currentTarget.releasePointerCapture(event.pointerId);
-          engine.current?.endInteraction();
-        }}
-        onPointerCancel={() => engine.current?.cancelInteraction()}
-        onLostPointerCapture={() => engine.current?.endInteraction()}
-      />
+      {settings.enabled && !state.applicationStopped && (
+        <div
+          className="ambient-scene__interaction"
+          onPointerDown={(event) => {
+            if (!event.isPrimary || event.button !== 0) return;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            engine.current?.beginInteraction(event.clientX, event.clientY);
+          }}
+          onPointerMove={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            engine.current?.moveInteraction(event.clientX, event.clientY);
+          }}
+          onPointerUp={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId))
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            engine.current?.endInteraction();
+          }}
+          onPointerCancel={() => engine.current?.cancelInteraction()}
+          onLostPointerCapture={() => engine.current?.endInteraction()}
+        />
+      )}
     </div>
   );
 }

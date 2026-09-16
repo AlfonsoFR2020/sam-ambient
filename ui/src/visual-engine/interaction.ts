@@ -123,30 +123,36 @@ export class OrbInteraction {
     const by = ay * sine;
     const bz = az * sine;
     const bw = Math.cos(half);
-    const [x, y, z, w] = this.quaternion;
+    const x = this.quaternion[0];
+    const y = this.quaternion[1];
+    const z = this.quaternion[2];
+    const w = this.quaternion[3];
     this.quaternion[0] = bw * x + bx * w + by * z - bz * y;
     this.quaternion[1] = bw * y - bx * z + by * w + bz * x;
     this.quaternion[2] = bw * z + bx * y - by * x + bz * w;
     this.quaternion[3] = bw * w - bx * x - by * y - bz * z;
-    const inverse = 1 / Math.hypot(...this.quaternion);
+    const inverse =
+      1 /
+      Math.hypot(this.quaternion[0], this.quaternion[1], this.quaternion[2], this.quaternion[3]);
     for (let index = 0; index < 4; index++) this.quaternion[index] *= inverse;
   }
 
   private writeMatrix(): void {
-    const [x, y, z, w] = this.quaternion;
+    const x = this.quaternion[0];
+    const y = this.quaternion[1];
+    const z = this.quaternion[2];
+    const w = this.quaternion[3];
     const x2 = x + x;
     const y2 = y + y;
     const z2 = z + z;
-    this.matrixValue.set([
-      1 - y * y2 - z * z2,
-      x * y2 + w * z2,
-      x * z2 - w * y2,
-      x * y2 - w * z2,
-      1 - x * x2 - z * z2,
-      y * z2 + w * x2,
-      x * z2 + w * y2,
-      y * z2 - w * x2,
-      1 - x * x2 - y * y2,
-    ]);
+    this.matrixValue[0] = 1 - y * y2 - z * z2;
+    this.matrixValue[1] = x * y2 + w * z2;
+    this.matrixValue[2] = x * z2 - w * y2;
+    this.matrixValue[3] = x * y2 - w * z2;
+    this.matrixValue[4] = 1 - x * x2 - z * z2;
+    this.matrixValue[5] = y * z2 + w * x2;
+    this.matrixValue[6] = x * z2 + w * y2;
+    this.matrixValue[7] = y * z2 - w * x2;
+    this.matrixValue[8] = 1 - x * x2 - y * y2;
   }
 }

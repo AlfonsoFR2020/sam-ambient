@@ -31,12 +31,18 @@ export class VisualEngine {
   private settings: VisualEngineSettings;
   private budget: RenderBudget;
   private input?: VisualInputV1;
-  private width = 1;
-  private height = 1;
+  private width = 0;
+  private height = 0;
   private visible = true;
   private intersecting = true;
   private frame = 0;
+  private restorationFrame = 0;
   private lastDraw = 0;
+  private lastStaticDraw = -Infinity;
+  private staticRenderPending = false;
+  private staticTransitionUntil = 0;
+  private contextLosses = 0;
+  private forceCanvas = false;
   private readonly interaction = new OrbInteraction();
   private readonly governor: AdaptiveQualityGovernor;
   private resizeObserver?: ResizeObserver;
@@ -70,7 +76,6 @@ export class VisualEngine {
     this.dispose();
     this.host = host;
     this.host.classList.remove("visual-engine--static");
-    this.createBackend();
     if (typeof ResizeObserver !== "undefined") {
       this.resizeObserver = new ResizeObserver(() => this.resizeFromHost());
       this.resizeObserver.observe(host);
@@ -86,6 +91,7 @@ export class VisualEngine {
       document.addEventListener("visibilitychange", this.onVisibility);
     this.reducedMotionMedia?.addEventListener("change", this.onReducedMotionChange);
     this.resizeFromHost();
+    this.createBackend();
     this.syncLoop();
   }
 
@@ -96,35 +102,61 @@ export class VisualEngine {
       input.sequence <= this.input.sequence
     )
       return;
+    const stateChanged = Boolean(
+      this.input &&
+        (input.interaction.foreground !== this.input.interaction.foreground ||
+          input.interaction.availability !== this.input.interaction.availability),
+    );
     this.input = input;
     this.backend?.update(input);
-    if (this.reducedMotion() || input.interaction.availability === "stopped")
-      this.backend?.render(this.clock());
-    this.syncLoop();
+    if (this.reducedMotion() && stateChanged) this.staticTransitionUntil = this.clock() + 200;
+    if (this.reducedMotion() || !this.hasLiveAvailability(input)) this.requestStaticRender();
+    else this.syncLoop();
   }
 
   configure(value: Partial<VisualEngineSettings>): void {
+    const wasReduced = this.reducedMotion();
     const next = resolveVisualEngineSettings({ ...this.settings, ...value });
     const nextBudget = resolveRenderBudget(next);
-    const rebuild =
-      nextBudget.quality !== this.budget.quality || next.renderer !== this.settings.renderer;
+    const wasEnabled = this.settings.enabled;
+    const rendererChanged = next.renderer !== this.settings.renderer;
+    const rebuild = nextBudget.quality !== this.budget.quality || rendererChanged;
     this.settings = next;
+    if (!wasReduced && this.reducedMotion()) this.staticTransitionUntil = this.clock() + 200;
     if (this.reducedMotion() || next.motionIntensity === 0) this.interaction.stopInertia();
     this.budget = nextBudget;
     this.governor.reset(nextBudget.quality);
-    if (rebuild && this.host) this.createBackend();
+    if (rendererChanged) {
+      this.forceCanvas = false;
+      this.contextLosses = 0;
+    }
+    if (!next.enabled) {
+      if (this.restorationFrame) this.cancelFrame(this.restorationFrame);
+      this.restorationFrame = 0;
+      this.releaseBackend();
+      this.host?.classList.remove("visual-engine--static");
+      this.syncLoop();
+      return;
+    }
+    if ((!wasEnabled || rebuild || !this.backend) && this.host) this.createBackend();
     else this.backend?.configure(next);
     this.resize(this.width, this.height, globalThis.devicePixelRatio || 1);
-    this.backend?.render(this.clock());
     this.syncLoop();
   }
 
   resize(width: number, height: number, devicePixelRatio = 1): void {
-    this.width = Math.max(1, width);
-    this.height = Math.max(1, height);
+    this.width = Math.max(0, width);
+    this.height = Math.max(0, height);
+    if (this.width === 0 || this.height === 0) {
+      this.syncLoop();
+      return;
+    }
     const ratio = effectivePixelRatio(this.width, this.height, devicePixelRatio, this.budget);
-    this.backend?.resize(this.width, this.height, ratio);
-    this.backend?.render(this.clock());
+    if (this.backend) {
+      this.backend.resize(this.width, this.height, ratio);
+      this.requestStaticRender();
+    }
+    this.syncLoop();
   }
 
   setVisible(visible: boolean): void {
@@ -133,16 +165,22 @@ export class VisualEngine {
   }
 
   beginInteraction(x: number, y: number, now = this.clock()): void {
+    if (this.reducedMotion() || !this.hasLiveAvailability(this.input)) return;
     this.interaction.begin(x, y, now);
   }
 
   moveInteraction(x: number, y: number, now = this.clock()): void {
+    if (this.reducedMotion() || !this.hasLiveAvailability(this.input)) return;
     if (!this.interaction.move(x, y, now)) return;
     this.pushOrientation();
     this.backend?.render(now);
   }
 
   endInteraction(): void {
+    if (this.reducedMotion() || !this.hasLiveAvailability(this.input)) {
+      this.interaction.cancel();
+      return;
+    }
     this.interaction.end(this.reducedMotion(), this.settings.motionIntensity);
   }
 
@@ -156,7 +194,9 @@ export class VisualEngine {
 
   dispose(): void {
     if (this.frame) this.cancelFrame(this.frame);
+    if (this.restorationFrame) this.cancelFrame(this.restorationFrame);
     this.frame = 0;
+    this.restorationFrame = 0;
     this.resizeObserver?.disconnect();
     this.resizeObserver = undefined;
     this.intersectionObserver?.disconnect();
@@ -164,29 +204,48 @@ export class VisualEngine {
     if (typeof document !== "undefined")
       document.removeEventListener("visibilitychange", this.onVisibility);
     this.reducedMotionMedia?.removeEventListener("change", this.onReducedMotionChange);
-    this.backend?.dispose();
-    this.backend = undefined;
-    this.canvas?.removeEventListener("webglcontextlost", this.onContextLost);
-    this.canvas?.remove();
-    this.canvas = undefined;
+    this.releaseBackend();
     this.host?.classList.remove("visual-engine--static");
     this.host = undefined;
     this.lastDraw = 0;
+    this.lastStaticDraw = -Infinity;
+    this.staticRenderPending = false;
+    this.staticTransitionUntil = 0;
+    this.contextLosses = 0;
+    this.forceCanvas = false;
   }
 
   private readonly onVisibility = () => this.syncLoop();
 
   private readonly onReducedMotionChange = () => {
-    if (this.reducedMotion()) this.interaction.stopInertia();
-    this.backend?.render(this.clock());
-    this.syncLoop();
+    if (this.reducedMotion()) {
+      this.interaction.stopInertia();
+      this.staticTransitionUntil = this.clock() + 200;
+    }
+    this.requestStaticRender();
   };
 
   private readonly tick: FrameRequestCallback = (now) => {
     this.frame = 0;
     if (!this.shouldAnimate()) return;
+    if (this.reducedMotion() || !this.hasLiveAvailability(this.input)) {
+      if (now - this.lastStaticDraw >= 1000 / 15) {
+        this.backend?.render(now);
+        this.lastStaticDraw = now;
+        this.staticRenderPending = this.reducedMotion() && now < this.staticTransitionUntil;
+      }
+      this.syncLoop();
+      return;
+    }
     const active = this.input?.interaction.foreground !== "idle";
-    const fps = active ? this.budget.activeFps : this.budget.idleFps;
+    const fps =
+      this.backend?.kind === "canvas2d"
+        ? active
+          ? 30
+          : 24
+        : active
+          ? this.budget.activeFps
+          : this.budget.idleFps;
     if (!this.lastDraw || now - this.lastDraw >= 1000 / fps) {
       this.interaction.step(
         this.lastDraw ? (now - this.lastDraw) / 1000 : 0,
@@ -194,11 +253,22 @@ export class VisualEngine {
         this.settings.motionIntensity,
       );
       this.pushOrientation();
-      const started = this.clock();
+      const frameInterval = this.lastDraw ? now - this.lastDraw : 1000 / fps;
       this.backend?.render(now);
-      const measured = Math.max(0, this.clock() - started);
-      const adapted = this.governor.observe(measured, now, this.settings, this.budget, true);
-      if (adapted) {
+      const adapted = this.governor.observe(
+        frameInterval,
+        now,
+        this.settings,
+        this.budget,
+        this.backend?.kind === "webgl2" &&
+          !this.forceCanvas &&
+          active &&
+          this.hasLiveAvailability(this.input),
+      );
+      if (adapted === "canvas2d") {
+        this.forceCanvas = true;
+        this.createBackend();
+      } else if (adapted) {
         const adaptedBudget = resolveRenderBudget(this.settings, { measuredQuality: adapted });
         if (adaptedBudget.quality !== this.budget.quality) {
           this.budget = adaptedBudget;
@@ -211,16 +281,10 @@ export class VisualEngine {
   };
 
   private shouldAnimate(): boolean {
-    return Boolean(
-      this.host &&
-        this.backend &&
-        this.settings.enabled &&
-        this.visible &&
-        this.intersecting &&
-        !this.reducedMotion() &&
-        this.input?.interaction.availability !== "stopped" &&
-        (typeof document === "undefined" || !document.hidden),
-    );
+    if (!this.canDraw()) return false;
+    if (this.reducedMotion() || !this.hasLiveAvailability(this.input))
+      return this.staticRenderPending;
+    return true;
   }
 
   private reducedMotion(): boolean {
@@ -246,15 +310,14 @@ export class VisualEngine {
 
   private createBackend(): void {
     if (!this.host) return;
-    this.backend?.dispose();
-    this.backend = undefined;
-    this.canvas?.removeEventListener("webglcontextlost", this.onContextLost);
-    this.canvas?.remove();
-    this.canvas = undefined;
+    this.releaseBackend();
     this.host.classList.remove("visual-engine--static");
+    if (!this.settings.enabled) return;
 
     const order: readonly ("webgl2" | "canvas2d")[] =
-      this.settings.renderer === "canvas2d" ? ["canvas2d"] : ["webgl2", "canvas2d"];
+      this.forceCanvas || this.settings.renderer === "canvas2d"
+        ? ["canvas2d"]
+        : ["webgl2", "canvas2d"];
     for (const kind of order) {
       const canvas = this.createCanvas();
       canvas.className = "ambient-scene__field";
@@ -268,11 +331,17 @@ export class VisualEngine {
       canvas.addEventListener("webglcontextlost", this.onContextLost);
       this.host.appendChild(canvas);
       if (this.input) backend.update(this.input);
-      backend.resize(
-        this.width,
-        this.height,
-        effectivePixelRatio(this.width, this.height, globalThis.devicePixelRatio || 1, this.budget),
-      );
+      if (this.width > 0 && this.height > 0)
+        backend.resize(
+          this.width,
+          this.height,
+          effectivePixelRatio(
+            this.width,
+            this.height,
+            globalThis.devicePixelRatio || 1,
+            this.budget,
+          ),
+        );
       return;
     }
     this.host.classList.add("visual-engine--static");
@@ -280,12 +349,67 @@ export class VisualEngine {
 
   private readonly onContextLost = (event: Event) => {
     event.preventDefault();
-    if (this.settings.renderer !== "canvas2d") {
-      this.settings = resolveVisualEngineSettings({ ...this.settings, renderer: "canvas2d" });
-      this.createBackend();
-      this.syncLoop();
+    if (this.backend?.kind !== "webgl2") return;
+    this.contextLosses += 1;
+    this.forceCanvas = true;
+    this.createBackend();
+    this.requestStaticRender();
+    if (this.contextLosses <= 2) {
+      if (this.restorationFrame) this.cancelFrame(this.restorationFrame);
+      this.restorationFrame = this.requestFrame(() => {
+        this.restorationFrame = 0;
+        if (!this.host || !this.settings.enabled) return;
+        this.forceCanvas = false;
+        this.createBackend();
+        if (this.backend?.kind !== "webgl2") this.forceCanvas = true;
+        this.requestStaticRender();
+      });
     }
+    this.syncLoop();
   };
+
+  private releaseBackend(): void {
+    this.canvas?.removeEventListener("webglcontextlost", this.onContextLost);
+    this.backend?.dispose();
+    this.backend = undefined;
+    this.canvas?.remove();
+    this.canvas = undefined;
+  }
+
+  private hasLiveAvailability(input = this.input): boolean {
+    const availability = input?.interaction.availability;
+    return availability === "ready" || availability === "degraded";
+  }
+
+  private canDraw(): boolean {
+    return Boolean(
+      this.host &&
+        this.backend &&
+        this.settings.enabled &&
+        this.visible &&
+        this.intersecting &&
+        this.width > 0 &&
+        this.height > 0 &&
+        (typeof document === "undefined" || !document.hidden),
+    );
+  }
+
+  private requestStaticRender(): void {
+    this.staticRenderPending = true;
+    if (!this.canDraw()) {
+      this.syncLoop();
+      return;
+    }
+    const now = this.clock();
+    if (this.reducedMotion() && now - this.lastStaticDraw < 1000 / 15) {
+      this.syncLoop();
+      return;
+    }
+    this.backend?.render(now);
+    this.lastStaticDraw = now;
+    this.staticRenderPending = this.reducedMotion() && now < this.staticTransitionUntil;
+    this.syncLoop();
+  }
 
   private pushOrientation(): void {
     this.backend?.setObjectOrientation(this.interaction.orientationMatrix());

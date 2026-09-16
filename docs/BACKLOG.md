@@ -18,15 +18,12 @@ in [Roadmap](ROADMAP.md).
 
 ## UI and Visual Engine
 
-- Thin the atmospheric halo.
-- Make peels thicker and place them farther from the orb.
-- Verify and repair direct drag interaction; it appeared ineffective in human testing.
-- Verify particle rendering and density controls; density changes produced no visible
-  particles in human testing.
-- Verify quality and motion settings whose effects were not consistently perceptible.
-- Verify rotation-speed behavior.
-- Keep tooltips within the Sam window.
-- Normalize minor Controls typography inconsistencies.
+- Complete human visual acceptance of the Visual Engine polish passes across WebGL2,
+  Canvas, reduced motion, supported window sizes, and the `mobile_2020` profile.
+- Allocate a formally unobstructed ambient rectangle around Controls and transcript
+  surfaces in a later layout pass; the current full-window scene remains behind them.
+- Surface the ephemeral resolved renderer/automatic Canvas fallback in a future
+  settings or diagnostics surface; it is currently observable only inside the engine.
 - Preserve transcript history during interruption.
 - Tune transcript buffering and scrolling.
 - Clarify microphone mute/toggle semantics, which appeared confusing or reversed.

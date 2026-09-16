@@ -67,7 +67,7 @@ const fromRank = (value: number): ResolvedQuality => (["low", "medium", "high"] 
 
 const profileCap = (profile: DeviceProfile): ResolvedQuality => {
   if (profile === "mobile_2020" || profile === "low_power") return "low";
-  return profile === "desktop" ? "medium" : "high";
+  return "high";
 };
 
 export interface QualityResolutionHint {

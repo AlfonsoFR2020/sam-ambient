@@ -490,9 +490,13 @@ export class WebGLBackend implements RendererBackend {
   }
 
   resize(width: number, height: number, dpr: number): void {
-    this.canvas.width = Math.max(1, Math.round(width * dpr));
-    this.canvas.height = Math.max(1, Math.round(height * dpr));
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    const backingWidth = Math.max(1, Math.round(width * dpr));
+    const backingHeight = Math.max(1, Math.round(height * dpr));
+    if (this.canvas.width !== backingWidth || this.canvas.height !== backingHeight) {
+      this.canvas.width = backingWidth;
+      this.canvas.height = backingHeight;
+      this.gl.viewport(0, 0, backingWidth, backingHeight);
+    }
     this.aspect = width / Math.max(1, height);
     this.pointScale = Math.max(0.75, Math.min(2, dpr));
     this.scaleX = 0.56 / Math.max(1, this.aspect);
@@ -640,6 +644,7 @@ export function createWebGLBackend(
   try {
     return new WebGLBackend(canvas, gl, budget, settings, seed);
   } catch {
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
     return null;
   }
 }

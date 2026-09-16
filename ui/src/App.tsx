@@ -627,9 +627,7 @@ export default function App() {
       className="sam-shell"
       data-reduced-motion={visualSettings.reducedMotion === "on" || undefined}
     >
-      {!quitRequested && !state.applicationStopped && (
-        <AmbientScene model={visual} state={state} settings={visualSettings} />
-      )}
+      {!quitRequested && <AmbientScene model={visual} state={state} settings={visualSettings} />}
       <StartupCard
         state={state}
         dismissed={startupDismissed}

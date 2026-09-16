@@ -6,8 +6,9 @@ import type { VisualEngineSettings, VisualInputV1 } from "./types";
 
 export class CanvasBackend implements RendererBackend {
   readonly kind = "canvas2d" as const;
-  private width = 1;
-  private height = 1;
+  private width = 0;
+  private height = 0;
+  private dpr = 0;
   private gradient?: CanvasGradient;
   private input?: VisualInputV1;
   private readonly orientation = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
@@ -46,11 +47,16 @@ export class CanvasBackend implements RendererBackend {
   }
 
   resize(width: number, height: number, dpr: number): void {
-    this.width = Math.max(1, width);
-    this.height = Math.max(1, height);
-    this.canvas.width = Math.max(1, Math.round(this.width * dpr));
-    this.canvas.height = Math.max(1, Math.round(this.height * dpr));
-    this.context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const nextWidth = Math.max(1, width);
+    const nextHeight = Math.max(1, height);
+    const nextDpr = Math.max(0.5, Math.min(1, dpr));
+    if (nextWidth === this.width && nextHeight === this.height && nextDpr === this.dpr) return;
+    this.width = nextWidth;
+    this.height = nextHeight;
+    this.dpr = nextDpr;
+    this.canvas.width = Math.max(1, Math.round(this.width * this.dpr));
+    this.canvas.height = Math.max(1, Math.round(this.height * this.dpr));
+    this.context.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     const radius = Math.min(this.width, this.height) * 0.31;
     this.gradient = this.context.createRadialGradient(
       this.width / 2 - radius * 0.2,
@@ -95,8 +101,9 @@ export class CanvasBackend implements RendererBackend {
       context.strokeStyle = peel === 1 ? "#ffd29e" : "#f08a42";
       context.lineWidth = radius * (0.04 + peel * 0.009) * frame.peelWidth;
       context.beginPath();
-      for (let sample = 0; sample < 32; sample++) {
-        const q = sample / 31 - 0.5;
+      let drawing = false;
+      for (let sample = 0; sample < 48; sample++) {
+        const q = sample / 47 - 0.5;
         const angle = phase + peel * 2.05 + q * (1.4 + peel * 0.15);
         const opening = 1 + frame.opening * 0.05;
         const lift = 1.05 + frame.peelLift;
@@ -116,8 +123,17 @@ export class CanvasBackend implements RendererBackend {
             this.orientation[4] * localY +
             this.orientation[7] * localZ) *
             radius;
-        if (sample === 0) context.moveTo(x, y);
+        const z =
+          this.orientation[2] * localX +
+          this.orientation[5] * localY +
+          this.orientation[8] * localZ;
+        if (z <= 0) {
+          drawing = false;
+          continue;
+        }
+        if (!drawing) context.moveTo(x, y);
         else context.lineTo(x, y);
+        drawing = true;
       }
       context.stroke();
     }

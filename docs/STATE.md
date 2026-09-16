@@ -10,6 +10,13 @@ Updated: 2026-09-16
 - Visual polish pass 2 restores direct rotation across WebGL and Canvas, makes
   flick inertia frame-independent and motion-scaled, and aligns the pointer hit
   region with the bounded maximum orb extent while preserving mobile budgets.
+- Visual polish pass 5 audits the implemented engine against the v1 contract. It
+  restores the 50 ms integration cap, stationary availability states, 15 Hz and
+  200 ms reduced-motion behavior, exact Canvas sampling/clipping/DPR/cadence,
+  five-second Auto-quality semantics, bounded context-loss recovery, zero-size and
+  disabled suspension, resize/resource cleanup, and allocation-free inertial matrix
+  updates. Deterministic validation covers these paths; final human visual/native
+  acceptance and a future unobstructed ambient-layout pass remain open.
 
 - Release metadata and end-user documentation are prepared consistently for
   `0.2.0` under the existing alpha convention. The eventual GitHub release remains
@@ -269,6 +276,10 @@ Updated: 2026-09-16
 - Visual polish Pass 4 replaces Controls' native and locally anchored help tooltips
   with measured, viewport-contained popovers and normalizes Controls form typography.
   Visual acceptance remains pending; no live GUI was launched for this pass.
+- Visual polish Pass 5 closes renderer-contract and lifecycle defects found by a
+  code/spec audit without adding effects or raising geometry, draw-call, pixel, or
+  cadence budgets. No browser or native GUI was launched; final appearance remains
+  a human acceptance gate.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 

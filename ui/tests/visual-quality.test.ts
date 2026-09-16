@@ -37,6 +37,12 @@ describe("visual quality and geometry", () => {
         { measuredQuality: "high" },
       ).quality,
     ).toBe("high");
+    expect(
+      resolveRenderBudget(
+        { quality: "auto", deviceProfile: "desktop" },
+        { measuredQuality: "high" },
+      ).quality,
+    ).toBe("high");
   });
 
   it("enforces the formal mobile budget and DPR cap", () => {

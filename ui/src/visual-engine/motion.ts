@@ -2,7 +2,7 @@ import type { RenderBudget } from "./quality";
 import type { AudioFeatures, VisualEngineSettings, VisualForeground, VisualInputV1 } from "./types";
 
 const TWO_PI = Math.PI * 2;
-const MAX_DELTA_SECONDS = 0.08;
+export const MAX_FRAME_DELTA_SECONDS = 0.05;
 
 export interface StateTarget {
   readonly radius: number;
@@ -174,6 +174,17 @@ export class MotionEvaluator {
   private coherence = 0.82;
   private rim = 0.2;
   private drift = 1;
+  private reducedTarget?: VisualForeground;
+  private reducedTransitionMs = 0;
+  private startRadius = 1;
+  private startGlow = 0.24;
+  private startOpening = 0.1;
+  private startSpinSpeed = 0.045;
+  private startLift = 0.002;
+  private startWidth = 1;
+  private startCoherence = 0.82;
+  private startRim = 0.2;
+  private startDrift = 1;
   private interruption = 0;
   private spinPhase: number;
   private precessionPhase: number;
@@ -235,10 +246,16 @@ export class MotionEvaluator {
   ): MotionFrame {
     const safeNow = Number.isFinite(now) ? now : (this.lastMs ?? 0);
     const rawDt = this.lastMs === undefined ? 0 : Math.max(0, (safeNow - this.lastMs) / 1000);
-    const dt = Math.min(MAX_DELTA_SECONDS, rawDt);
+    const dt = Math.min(MAX_FRAME_DELTA_SECONDS, rawDt);
     this.lastMs = safeNow;
     const reduced = reducedMotion;
-    const target = STATE_TARGETS[input.interaction.foreground];
+    const stationary =
+      input.interaction.availability === "starting" ||
+      input.interaction.availability === "reconnecting" ||
+      input.interaction.availability === "stopped";
+    const spatiallyFrozen = reduced || stationary;
+    const targetForeground = stationary ? "idle" : input.interaction.foreground;
+    const target = STATE_TARGETS[targetForeground];
     const stateTau =
       input.interaction.foreground === "interrupted"
         ? 0.07
@@ -246,7 +263,7 @@ export class MotionEvaluator {
           ? 0.16
           : 0.25;
 
-    if (!this.initialized || reduced) {
+    if (!this.initialized || (stationary && !reduced)) {
       this.radius = target.radius;
       this.glow = target.glow;
       this.opening = target.opening;
@@ -257,7 +274,33 @@ export class MotionEvaluator {
       this.rim = target.rim;
       this.drift = target.drift;
       this.initialized = true;
+      this.reducedTarget = reduced ? targetForeground : undefined;
+    } else if (reduced) {
+      if (this.reducedTarget !== targetForeground) {
+        this.reducedTarget = targetForeground;
+        this.reducedTransitionMs = safeNow;
+        this.startRadius = this.radius;
+        this.startGlow = this.glow;
+        this.startOpening = this.opening;
+        this.startSpinSpeed = this.spinSpeed;
+        this.startLift = this.lift;
+        this.startWidth = this.width;
+        this.startCoherence = this.coherence;
+        this.startRim = this.rim;
+        this.startDrift = this.drift;
+      }
+      const progress = ease((safeNow - this.reducedTransitionMs) / 200);
+      this.radius = this.startRadius + (target.radius - this.startRadius) * progress;
+      this.glow = this.startGlow + (target.glow - this.startGlow) * progress;
+      this.opening = this.startOpening + (target.opening - this.startOpening) * progress;
+      this.spinSpeed = this.startSpinSpeed + (target.spin - this.startSpinSpeed) * progress;
+      this.lift = this.startLift + (target.lift - this.startLift) * progress;
+      this.width = this.startWidth + (target.width - this.startWidth) * progress;
+      this.coherence = this.startCoherence + (target.coherence - this.startCoherence) * progress;
+      this.rim = this.startRim + (target.rim - this.startRim) * progress;
+      this.drift = this.startDrift + (target.drift - this.startDrift) * progress;
     } else {
+      this.reducedTarget = undefined;
       this.radius = blend(this.radius, target.radius, dt, stateTau);
       this.glow = blend(this.glow, target.glow, dt, stateTau);
       this.opening = blend(this.opening, target.opening, dt, stateTau);
@@ -282,14 +325,17 @@ export class MotionEvaluator {
       this.interruption = 1;
       this.lastInterruptSerial = input.interaction.interruptSerial;
     } else if (dt > 0) this.interruption *= Math.exp(-dt / 0.12);
+    if (stationary) this.interruption = 0;
 
-    const inputEnvelope = input.interaction.listening
-      ? live(input.audio.input, safeNow, input.audio.input?.envelope) *
-        (input.interaction.userPause ? 0.35 : 1)
-      : 0;
-    const outputEnvelope = input.interaction.speaking
-      ? live(input.audio.output, safeNow, input.audio.output?.envelope)
-      : 0;
+    const inputEnvelope =
+      !stationary && input.interaction.listening
+        ? live(input.audio.input, safeNow, input.audio.input?.envelope) *
+          (input.interaction.userPause ? 0.35 : 1)
+        : 0;
+    const outputEnvelope =
+      !stationary && input.interaction.speaking
+        ? live(input.audio.output, safeNow, input.audio.output?.envelope)
+        : 0;
     const activity = live(input.audio.input, safeNow, input.audio.input?.activity);
     const actualPeak = input.interaction.listening
       ? Math.max(
@@ -302,12 +348,12 @@ export class MotionEvaluator {
     const inputResponse = ease(inputEnvelope * settings.audioReactivity);
     const peakResponse = ease(actualPeak * settings.audioReactivity);
     const audioTau = this.interruption > 0 ? 0.12 : combined > this.envelope ? 0.06 : 0.18;
-    this.envelope = reduced ? 0 : blend(this.envelope, response, dt, audioTau);
-    this.peak = reduced
+    this.envelope = spatiallyFrozen ? 0 : blend(this.envelope, response, dt, audioTau);
+    this.peak = spatiallyFrozen
       ? 0
       : blend(this.peak, peakResponse, dt, peakResponse > this.peak ? 0.025 : 0.18);
 
-    const motion = reduced ? 0 : settings.motionIntensity;
+    const motion = spatiallyFrozen ? 0 : settings.motionIntensity;
     if (dt > 0 && motion > 0) {
       const speedInfluence = 1 + Math.min(0.35, this.envelope * 0.3);
       this.spinPhase = wrap(this.spinPhase + this.spinSpeed * motion * dt);
@@ -325,12 +371,13 @@ export class MotionEvaluator {
       : 0;
     const speakingLift = input.interaction.speaking ? this.envelope * 0.01 : 0;
     const inputLift = input.interaction.listening ? inputResponse * 0.005 : 0;
-    const acknowledgement = input.interaction.acknowledgement ? 0.025 : 0;
-    const yielding = input.interaction.floor === "yielding" ? 0.08 : 0;
-    const reasoningCue = input.interaction.reasoning ? 0.025 : 0;
-    const delegatedCue = input.interaction.delegatedWork ? 0.04 : 0;
+    const acknowledgement = !stationary && input.interaction.acknowledgement ? 0.025 : 0;
+    const yielding = !stationary && input.interaction.floor === "yielding" ? 0.08 : 0;
+    const reasoningCue = !stationary && input.interaction.reasoning ? 0.025 : 0;
+    const delegatedCue = !stationary && input.interaction.delegatedWork ? 0.04 : 0;
     const expressionAge = input.expression ? safeNow - input.expression.receivedMs : Infinity;
     const expressionWeight =
+      !stationary &&
       input.expression &&
       Number.isFinite(expressionAge) &&
       expressionAge >= 0 &&
@@ -340,7 +387,7 @@ export class MotionEvaluator {
     const expressionEnergy = expressionWeight * signed(input.expression?.energy);
     const expressionCoherence = expressionWeight * signed(input.expression?.coherence);
     const expressionWarmth = expressionWeight * signed(input.expression?.warmth);
-    const breath = reduced ? 0 : 0.014 * Math.sin(this.breathPhase);
+    const breath = spatiallyFrozen ? 0 : 0.014 * Math.sin(this.breathPhase);
     const contraction = this.interruption * 0.018;
 
     this.frame.foreground = input.interaction.foreground;
@@ -349,6 +396,8 @@ export class MotionEvaluator {
       0.92,
       1.1,
     );
+    const availabilityScale =
+      input.interaction.availability === "stopped" ? 0.45 : stationary ? 0.65 : 1;
     const desiredGlow = clamp(
       (this.glow +
         this.envelope * 0.28 +
@@ -356,11 +405,12 @@ export class MotionEvaluator {
         reasoningCue +
         delegatedCue +
         expressionEnergy * 0.025) *
-        settings.intensity,
+        settings.intensity *
+        availabilityScale,
       0.12,
       0.85,
     );
-    if (rawDt === 0 || reduced) this.renderedGlow = desiredGlow;
+    if (rawDt === 0 || spatiallyFrozen) this.renderedGlow = desiredGlow;
     else {
       const maximumChange = 0.8 * dt;
       this.renderedGlow += clamp(desiredGlow - this.renderedGlow, -maximumChange, maximumChange);
@@ -387,20 +437,22 @@ export class MotionEvaluator {
     );
     this.frame.peelCoherence = unit(
       this.coherence +
-        (input.interaction.responseReady ? 0.08 : 0) +
+        (!stationary && input.interaction.responseReady ? 0.08 : 0) +
         this.interruption * 0.08 +
         expressionCoherence * 0.08,
     );
     this.frame.peelRephase = clamp(this.interruption * 0.12, 0, 0.12);
-    this.frame.surfaceDeformation = reduced
+    this.frame.surfaceDeformation = spatiallyFrozen
       ? 0
       : clamp(0.008 + this.envelope * 0.014 + this.peak * 0.004, 0, 0.026);
-    this.frame.surfaceRipple = reduced
+    this.frame.surfaceRipple = spatiallyFrozen
       ? 0
       : clamp(this.envelope * 0.018 + this.peak * 0.004, 0, 0.022);
-    this.frame.highlight = reduced ? 0 : clamp(this.peak * 0.12 + this.envelope * 0.035, 0, 0.12);
+    this.frame.highlight = spatiallyFrozen
+      ? 0
+      : clamp(this.peak * 0.12 + this.envelope * 0.035, 0, 0.12);
     this.frame.rim = clamp(this.rim + inputResponse * 0.12, 0.12, 0.48);
-    this.frame.particleExcitation = reduced
+    this.frame.particleExcitation = spatiallyFrozen
       ? 0
       : unit(0.15 + this.envelope * 0.6 + inputResponse * 0.12);
     this.frame.inputEnvelope = inputEnvelope;

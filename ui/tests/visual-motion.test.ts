@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { MotionEvaluator, STATE_TARGETS } from "../src/visual-engine/motion";
+import {
+  MAX_FRAME_DELTA_SECONDS,
+  MotionEvaluator,
+  STATE_TARGETS,
+} from "../src/visual-engine/motion";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
 import {
   DEFAULT_VISUAL_ENGINE_SETTINGS,
@@ -95,6 +99,67 @@ describe("continuous Visual Engine motion", () => {
     const movingFrame = moving.evaluate(input, 80, movingSettings, RENDER_BUDGETS.low);
     expect(stoppedFrame.spin).toBe(initialSpin);
     expect(movingFrame.spin).toBeGreaterThan(initialSpin);
+  });
+
+  it("caps integration at 50 ms after a stall", () => {
+    const input = visualInput("idle");
+    const capped = new MotionEvaluator(42);
+    const stalled = new MotionEvaluator(42);
+    capped.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    stalled.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const expected = capped.evaluate(
+      input,
+      MAX_FRAME_DELTA_SECONDS * 1000,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    const actual = stalled.evaluate(
+      input,
+      5_000,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect(actual.spin).toBeCloseTo(expected.spin, 8);
+    expect(actual.peelTravel).toBeCloseTo(expected.peelTravel, 8);
+  });
+
+  it("holds startup, reconnecting, and stopped inputs as dim stationary idle forms", () => {
+    const evaluator = new MotionEvaluator(42);
+    const unavailable = (availability: "starting" | "reconnecting" | "stopped") => {
+      const speaking = visualInput("speaking");
+      return {
+        ...speaking,
+        audio: { output: { receivedMs: 0, envelope: 1 } },
+        interaction: { ...speaking.interaction, availability },
+      };
+    };
+    const starting = evaluator.evaluate(
+      unavailable("starting"),
+      0,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    const spin = starting.spin;
+    expect(starting.opening).toBe(STATE_TARGETS.idle.opening);
+    expect(starting.outputEnvelope).toBe(0);
+    expect(starting.glow).toBeLessThan(STATE_TARGETS.idle.glow);
+    const reconnecting = evaluator.evaluate(
+      unavailable("reconnecting"),
+      1_000,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    const reconnectingGlow = reconnecting.glow;
+    expect(reconnecting.spin).toBe(spin);
+    const stopped = evaluator.evaluate(
+      unavailable("stopped"),
+      2_000,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect(stopped.spin).toBe(spin);
+    expect(stopped.glow).toBeLessThan(reconnectingGlow);
+    expect(stopped.particleExcitation).toBe(0);
   });
 
   it("bounds maximum audio response and uses output as the strongest channel", () => {
@@ -211,9 +276,25 @@ describe("continuous Visual Engine motion", () => {
     const evaluator = new MotionEvaluator(17);
     const idle = evaluator.evaluate(visualInput("idle"), 0, settings, RENDER_BUDGETS.low);
     const phase = idle.spin;
-    const listening = evaluator.evaluate(
+    const transitionStart = evaluator.evaluate(
       visualInput("listening"),
       1000,
+      settings,
+      RENDER_BUDGETS.low,
+    );
+    expect(transitionStart.spin).toBe(phase);
+    expect(transitionStart.opening).toBe(STATE_TARGETS.idle.opening);
+    const midpointOpening = evaluator.evaluate(
+      visualInput("listening"),
+      1100,
+      settings,
+      RENDER_BUDGETS.low,
+    ).opening;
+    expect(midpointOpening).toBeGreaterThan(STATE_TARGETS.idle.opening);
+    expect(midpointOpening).toBeLessThan(STATE_TARGETS.listening.opening);
+    const listening = evaluator.evaluate(
+      visualInput("listening"),
+      1200,
       settings,
       RENDER_BUDGETS.low,
     );
