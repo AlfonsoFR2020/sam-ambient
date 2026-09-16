@@ -4,6 +4,20 @@ Implemented capabilities belong in [State](STATE.md); this file contains only
 planned or acceptance-pending milestones. Detailed post-0.2 findings and engineering
 items live in [Backlog](BACKLOG.md). Priorities may change after real use.
 
+## Post-0.2 patch-alpha progression
+
+- `0.2.0` is published. Favor frequent coherent patch alphas over a large unrelated
+  unreleased delta: a small green slice that materially improves the public alpha is
+  sufficient, while a knowingly broken intermediate commit is not a release.
+- The current seven-commit stabilization slice on `feature/visual-polish` is a
+  potential `0.2.1` candidate only after integration into `dev`, deterministic release
+  gates, documentation/version review and the minimum acceptance genuinely required
+  for those changes. It is not release approval.
+- Let later voice-reliability slices become `0.2.2`, `0.2.3` and later patch alphas
+  when individually coherent; do not batch unrelated completed work for appearance.
+- Before substantial audio-reactive implementation, complete the bounded strong-model
+  checkpoints in [Visual Engine v1](VISUAL_ENGINE_V1.md#14-future-direction-audio-reactive-embodiment-and-diagnostics).
+
 ## Before the next major alpha
 
 - Human-accept the combined ambient/native source candidate and fix only observed
@@ -21,8 +35,9 @@ items live in [Backlog](BACKLOG.md). Priorities may change after real use.
   and vary peel carriers/fragments, state breathing, lights, and sparse particles.
 - Human-accept the implemented damped pointer rotation, persisted profile controls,
   low-power emulation, adaptive quality, and strengthened state readability.
-- Consider waveform/spectral and prosody/theme mappings only after the
-  envelope-driven baseline is accepted.
+- Treat audio-reactive embodiment/diagnostics as a moderately high-priority future
+  design direction. Preserve the envelope-driven baseline; implement nothing until
+  its strong-model signal, mapping, performance and fixture checkpoints are accepted.
 
 ## Productization
 
@@ -33,8 +48,8 @@ items live in [Backlog](BACKLOG.md). Priorities may change after real use.
   including visual themes and adapter-based STT/TTS choices. Keep Rescan, Reload,
   Restart, and Quit distinct owner controls.
 - Validate the integrated native identity and taskbar icon, then recheck the
-  version-sensitive architecture infographic. Native plus ambient acceptance is
-  the likely `0.2.0` boundary.
+  version-sensitive architecture infographic. Native plus ambient acceptance remains
+  a human-controlled alpha-release concern after published `0.2.0`.
 
 ## Computer agency
 

@@ -1,6 +1,24 @@
 # Release checklist
 
-Release approval and publication remain human-controlled.
+`0.2.0` is published. Release approval and publication remain human-controlled for
+future patch alphas and do not follow automatically from a green branch.
+
+## Patch-alpha cadence
+
+Favor frequent, coherent patch-alpha releases such as `0.2.1`, `0.2.2` through
+`0.2.12` rather than accumulating a large unreleased development delta. A release may
+contain a small related set of fixes when it passes its gates and materially improves
+the public alpha. Do not batch unrelated completed work merely to make a release look
+larger, and do not publish a knowingly broken intermediate commit for calendar
+cadence. The unit is a green coherent checkpoint.
+
+The current seven-commit stabilization slice on `feature/visual-polish` is a possible
+`0.2.1` candidate after integration into `dev`, deterministic gates, documentation/
+version review and the minimum acceptance genuinely required for those changes. Future
+voice-reliability fixes can form later coherent patch alphas. This is planning, not an
+approval or a version-bump instruction.
+
+## Future release checklist
 
 - [ ] `dev` is clean, synchronized, and its GitHub CI is green.
 - [ ] Intended feature branches have passed acceptance and are merged.
@@ -18,12 +36,12 @@ Release approval and publication remain human-controlled.
   antivirus/reputation review; do not bypass or whitelist security findings.
 - [ ] Wheel, source distribution, Python companion, and native installer are built
   through the guarded release path and pass final release-artifact smoke on a clean host.
-- [x] Source/package metadata is prepared consistently as `0.2.0`.
+- [ ] Source/package metadata is prepared consistently for the intended patch version.
 - [ ] Merge `dev` into `main` without rewriting history.
 - [ ] Create the signed/annotated version tag and GitHub pre-release.
 - [ ] Upload verified artifacts and record their hashes.
 - [ ] Return active development work to `dev`.
 
-The prepared milestone is `0.2.0`, following the existing plain-version alpha
-convention. Create the eventual GitHub release as a prerelease; do not add an
-invented package-version suffix. This preparation is not release approval.
+Use the existing plain-version alpha convention. Create a GitHub release as a
+prerelease when the release scope requires it; do not add an invented package-version
+suffix. Checklist completion is not release approval.

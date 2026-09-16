@@ -1,11 +1,11 @@
 # Sam Visual Engine v1
 
-Status: implementation specification, not implemented on `dev`. The foundation,
-state choreography, direct manipulation, persistent visual preferences and bounded
-measured adaptation are acceptance-pending work on `feature/ambient-shell`.
-Spectral/prosodic mapping and human acceptance remain pending. Design revision 1.
-This document owns the renderer, input, motion, quality and settings decisions. It
-does not authorize a shell merge or change voice policy.
+Status: implementation contract. The core renderer, state choreography, direct
+manipulation, persistent visual preferences and bounded measured adaptation have
+landed on `feature/visual-polish`; human visual/native acceptance remains pending.
+Spectral/prosodic mapping and the audio-reactive embodiment direction in section 14
+remain future design work. This document owns renderer, input, motion, quality and
+settings decisions. It does not authorize a shell merge or change voice policy.
 
 ## 1. Visual identity and renderer decision
 
@@ -579,3 +579,216 @@ Commit green checkpoints during those later passes. Do not merge unaccepted shel
 branches as a prerequisite for the renderer: use the existing React boundary.
 No unresolved renderer/geometry/contract decision is deferred to implementation;
 only visual acceptance and measured hardware tuning may adjust bounded defaults.
+
+## 14. Future direction: audio-reactive embodiment and diagnostics
+
+Status: moderately high-priority **future design direction**, not an implementation
+commitment. This section extends rather than replaces sections 3-5: existing
+independent input/output envelopes, low/mid/high bands, normalized autocorrelation
+shape coefficients, expiry rules, visual bounds and fallbacks remain authoritative.
+Exact mappings, constants, settings, transport fields and feature extraction choices
+below require the separate design checkpoints in section 14.7 before implementation.
+
+### 14.1 Purpose and authority boundary
+
+The aim is one coherent procedural body that appears causally connected to what Sam
+hears and actually plays. It should make speech expressive without becoming a generic
+equalizer, and make abnormal behavior more visible during beta testing: persistent
+energy after silence, noisy input, feedback-like duplex energy, stale output levels,
+or a channel frozen above zero.
+
+The visual layer remains an observer. It may render authoritative audio and runtime
+features but must never classify speech, infer a turn/cancellation, decide microphone
+state, alter VAD/STT/TTS behavior, or grant semantic authority to a visual pattern.
+Diagnostics are evidence for a human observer, not a hidden reliability policy.
+
+### 14.2 Compact feature direction
+
+The existing `AudioFeatures` contract is the baseline. A later design pass may assess
+the following additions only when their diagnostic or aesthetic value justifies their
+cost. They are candidates, not a protocol change.
+
+| Candidate feature | Candidate visual use | Constraint |
+| --- | --- | --- |
+| Independent RMS/envelope and peak | global breathing, glow and fast local articulation | input and output remain separately observable |
+| Low/mid/high or small log-spaced bands | broad body structure, speech articulation and fine detail | do not map every FFT bin to a property |
+| Spectral centroid/balance | subtle warm-tint, highlight and fine-vs-broad emphasis | never create a rainbow equalizer |
+| Spectral flux/onset | a bounded travelling ridge, pulse or light excursion | impulse with decay, never a hard flash |
+| Spectral flatness/noisiness | diagnostic contrast between voiced and keyboard/environmental activity | visual-only; never a speech classifier |
+| Existing autocorrelation shape vector | phase/coherence of analytic travelling deformation | retain its phase-insensitive, noise-gated basis |
+| Small Fourier/DCT, moments, or low-order directional modes | possible future alternative waveform bases | compare stability, aliasing and cost before selecting one |
+
+The preferred path is a small feature vector, not raw PCM, a large learned embedding,
+MFCC pipeline, pitch tracker, emotion model or per-bin geometry. Features should be
+finite, normalized, smoothed and independently aged per channel. Missing remains
+missing; it is never fabricated from RMS or interpreted as measured silence.
+
+### 14.3 Coherent mapping families
+
+Future work should propose two or three complete mapping families, not a grab-bag of
+independent effects. Each family should start with two independently filtered channel
+energies, `E_in` and `E_out`, then combine contributions by a deterministic bounded
+rule. The existing `max(E_out, 0.55 * E_in)` global rule is a useful baseline, while
+input still retains a visible receptive contribution in duplex operation.
+
+Candidate input/output asymmetry is intentional: input can use inward, converging or
+receptive motion; output can use outward, radiating or emissive motion. Related but
+opposed peel phase drift, ripple propagation and light emphasis can make `input`,
+`output` and `duplex` legible without a waveform HUD. Combining channels must not be
+a naive unbounded sum.
+
+**Envelope, RMS and peak.** Candidate uses include bounded global radius/breathing,
+surface-displacement magnitude, peel lift, glow, luminance, specular intensity,
+analytic light orbit/intensity and particle visibility. Attack should be quick enough
+to follow articulation; release should be slower, graceful and phase-continuous. The
+existing 35/220 ms envelope and 15/120 ms peak reference constants are starting
+points for review, not a reason to reset an oscillator at a word boundary.
+
+**Low band.** Bass should read as substantial mass: low-spatial-frequency radial
+deformation, slow spheroid compression, broad peel separation, deeper curvature,
+large light-orbit breathing or a low-order travelling mode. Moderate whole-object
+vibration is a possible future candidate only if it cannot clip, collide with the UI,
+or create hard-to-debug projection artifacts. It must remain bounded by section 5's
+existing final body and peel extents.
+
+**Mid band.** Speech-dominant energy is the primary articulation carrier. Candidate
+uses are coordinated peel width/thickness/length, loxodromic pitch/twist, local lift,
+relative orientation, ribbon phase velocity, broad ridges and structured surface
+ripples. Warm hue, luminance and material variation may support this structure, but
+must remain secondary to the existing copper/amber/gold identity.
+
+**High band and spectral balance.** Treble may add small ripples, tighter highlights,
+specular sparkle, compact particle visibility or fine peel modulation. Spectral
+centroid/balance may shift the emphasis between broad and fine structure, highlight
+position or specular tightness, with narrow warm palette variation only. High energy
+must never turn the object into visual static.
+
+**Flux and onsets.** Rapid change should create a decaying impulse: one travelling
+ridge, small radial pulse, short peel phase displacement, brief light acceleration or
+particle excitation. Use bounded attack/decay functions and existing anti-strobe and
+luminance limits; no full-screen flash or hard discontinuity is permitted.
+
+### 14.4 Waveform shape, surface and peels
+
+The current normalized autocorrelation coefficients remain a valid waveform-shape
+basis and must not be discarded. A later comparison may evaluate that basis against a
+small Fourier/DCT vector, waveform moments, or a few directional/spherical-harmonic-
+like modes. The decision criteria are perceptual usefulness, numerical stability,
+noise behavior, shader operation count and spatial aliasing.
+
+The preferred mathematical form is a very small, fixed, seeded mode set evaluated
+analytically in the existing vertex shader or motion evaluator, for example:
+
+```text
+D(n,t) = sum_i a_i * sin(k_i * dot(d_i,n) + phase_i(t))
+D(lambda,phi,t) = sum_m a_m * sin(m*lambda + omega_m*t + phase_m)
+                  * g_m(phi)
+```
+
+Here `a_i` comes from bounded, smoothed feature coefficients; `d_i`, `k_i`,
+`omega_i` and seeds are fixed; and phases remain continuous. This produces
+spherically mapped travelling structure without PCM textures, dynamic meshes,
+simulation state or per-frame geometry allocation.
+
+Surface scales should remain coordinated: broad envelope/bass structure, medium
+speech/mid ridges, small treble detail, and waveform coefficients shaping the pattern
+rather than independently moving every vertex. Section 5's existing `[-0.04,0.04]`
+radial displacement and final extent bounds remain controlling. Candidate ripples
+therefore stay far below one radius, normally below a fifth and often below a tenth
+of a radius even if a later bounded design changes their internal allocation.
+
+Treat peels as the primary audio instrument rather than static decoration. Candidate
+variables are width/thickness, radial lift, separation, loxodromic pitch, seeded tilt,
+relative phase, drift direction/speed, local ridge strength, overlap emphasis and
+modest warm luminance variation. Strong mid-band speech might slightly widen and lift
+coordinated peels while a transient sends one ridge along them. Do not independently
+randomize every property or make peels fly free; section 2's lift, tilt and horizon
+constraints remain mandatory.
+
+### 14.5 Silence, particles and lighting
+
+Silence must retain Sam's contemplative idle identity: slow seeded light orbits,
+tenuous warm color, quiet breathing and phase-continuous peels remain, but measured
+audio energy decays strongly toward zero after confirmed under-threshold silence.
+Audio-driven particles should fade to nearly imperceptible or absent; ripples settle;
+audio peel deformation relaxes; and light parameters return toward their autonomous
+idle level. Silence is not a black or frozen screen.
+
+Particles remain deterministic seeded satellites, not a fountain. Candidate speech
+response is bounded orbital-radius modulation, phase coherence, brightness, radial
+drift and short transient excitation. Population/visibility may reflect high-band or
+onset energy only within the existing fixed 12/24/40 quality budgets; confirmed
+silence should reduce both visible and computational particle activity.
+
+Audio affects the existing analytic light field rather than adding lights, passes or
+bloom. Candidate controls are intensity, rim/specular response, orbit speed/radius,
+travelling highlight position and a slight warm-tint shift. Envelope may influence
+luminance, balance may influence material character, and transients may create a
+short bounded highlight excursion. Existing light-count, speed-modulation and tone-
+mapping bounds remain authoritative.
+
+### 14.6 Efficiency, settings and diagnostic acceptance
+
+Preserve the pipeline boundary:
+
+```text
+PCM boundary -> bounded extractor -> newest compact snapshot -> VisualInput
+-> visual-rate interpolation -> existing shader uniforms
+```
+
+There is no second microphone, raw-audio persistence, raw PCM transport to React for
+visuals, renderer-side FFT, unbounded queue, per-frame React state or per-frame
+allocation. Prefer a 20-40 Hz extractor cadence with queue size one/newest-value
+replacement and visual-rate interpolation. Reuse existing geometry, deterministic
+seeds, analytic shader mathematics and draw calls.
+
+The following v1 constraints remain non-negotiable: at most four draws; existing
+`mobile_2020` geometry/profile caps; bounded DPR and FPS; no postprocess bloom,
+feedback framebuffer, raymarching, compute/fluid/physics simulation, texture-driven
+displacement or unbounded particles; and Canvas/static/reduced-motion fallbacks.
+Techniques such as raymarching, feedback and multipass demoscene rendering may be
+inspirational but are not automatically compatible with Sam's contract.
+
+A later implementation may add a high-level `Audio embodiment` settings subpanel,
+not raw shader controls. Candidate owner controls are enablement, overall reactivity,
+input/output emphasis, structural/detail intensity and diagnostics visibility. It
+should show resolved automatic capability/profile behavior honestly and choose a
+conservative hardware-appropriate default before rendering a rich control surface.
+Any setting remains optional, validated and subordinate to profile/reduced-motion
+caps; it is not authorized by this document.
+
+Future deterministic acceptance fixtures should let a human infer, with labels hidden
+where practical: true silence, low ambient noise, continuous keyboard-like noise,
+normal user speech, Sam output speech, duplex speech, a strong transient, stale
+output energy after cancellation and a channel frozen nonzero. The renderer need not
+diagnose cause; it should expose coherent evidence. Fixtures should include silence,
+tones, speech-like spectra, impulses, noise and duplex combinations.
+
+### 14.7 Required strong-model design checkpoints
+
+Do not begin implementation automatically after this design record. A separate,
+high-reasoning pass must leave written conclusions at each bounded checkpoint:
+
+| Checkpoint | Required conclusion before continuing |
+| --- | --- |
+| A. Requirements and signals | Audit available PCM/telemetry; choose the smallest useful feature vector and reject features without clear value. |
+| B. Mathematical mappings | Compare 2-3 coherent mapping families with equations, ranges, time constants, cross-channel composition and diagnostic legibility. |
+| C. Demoscene/performance review | Estimate CPU extraction cost, shader operations, transport cadence, allocations, draw calls and `mobile_2020` impact; eliminate incompatible options. |
+| D. Fixture prototype plan | Define deterministic synthetic audio and renderer tests before implementation, including silence, tones, speech-like spectra, impulses, noise and duplex. |
+| E. Implementation slices | Sequence independently shippable commits: extractor/contract first, then one mapping family at a time. |
+| F. Human acceptance | Request scarce native/acoustic/visual acceptance only after deterministic integration is stable. |
+
+### 14.8 Research and licensing notes
+
+The intended inspiration is constrained procedural practice: phase-coherent
+oscillators, compact parameter spaces, analytic deformation, seeded deterministic
+variation, reusable shader math and complex appearance from a few equations. NuSan/
+Lev4k, *Drifting Shore*, *Hydrokinetics*, *Prismbeings*, compact single/few-draw-call
+WebGL FFT visualizers, feature-to-visual mapping research such as Graf/Opara/Barthet,
+and current real-time MIR visualization work are research prompts, not dependencies
+or normative designs. Later research should prefer primary source code, original
+productions and academic sources, then record accurate citations.
+
+No code, assets, shader text, framework or production design may be copied from any
+reference without a compatible license and explicit attribution in the relevant Sam
+documentation. This direction adds no demoscene framework dependency.

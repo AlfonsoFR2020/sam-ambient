@@ -10,6 +10,10 @@ Updated: 2026-09-16
 - Visual polish pass 2 restores direct rotation across WebGL and Canvas, makes
   flick inertia frame-independent and motion-scaled, and aligns the pointer hit
   region with the bounded maximum orb extent while preserving mobile budgets.
+- Visual polish passes 3 and 4 land their scoped repairs: particles are visibly gold,
+  slightly thick and orbiting Sam's atmospheric space; density and resolved
+  quality/profile influence bounded renderer budgets; and tooltip/popover placement
+  is contained within the Sam window alongside the Controls typography/layout cleanup.
 - Visual polish pass 5 audits the implemented engine against the v1 contract. It
   restores the 50 ms integration cap, stationary availability states, 15 Hz and
   200 ms reduced-motion behavior, exact Canvas sampling/clipping/DPR/cadence,
@@ -18,12 +22,12 @@ Updated: 2026-09-16
   updates. Deterministic validation covers these paths; final human visual/native
   acceptance and a future unobstructed ambient-layout pass remain open.
 
-- Release metadata and end-user documentation are prepared consistently for
-  `0.2.0` under the existing alpha convention. The eventual GitHub release remains
-  a prerelease. The deterministic source gate and Python wheel/sdist install smoke
-  pass. Native companion/installer packaging and final artifact smoke were not run;
-  Windows signing/AV review, final human voice/visual/native acceptance, merge, tag,
-  publication, and release approval remain outstanding.
+- `0.2.0` is published under the existing alpha convention. The current seven-commit
+  stabilization slice on `feature/visual-polish` is a potential `0.2.1` candidate
+  after integration, deterministic gates, documentation/version review and the
+  minimum required acceptance; it is not release approval. Human visual/native/
+  acoustic acceptance, signed Windows artifacts and installer/AV acceptance remain
+  intentionally deferred.
 - Native integration checkpoint (`feature/ambient-shell`): the thin Tauri 2 shell
   is reconciled with the frozen ambient React source. It owns the native window,
   single-instance focus, identity/icons, one trusted supervisor child, fixed
@@ -285,6 +289,15 @@ Updated: 2026-09-16
   monitor's teardown boundary even while its response task is still unwinding. This
   closes the playback-completion `IDLE` race without changing interruption confirmation,
   stale-event rejection, cancellation identity, endpointing, or text mode.
+- Voice reliability Pass 2 bounds dense noise-held initial STT candidates: sparse
+  candidates still discard at 12 seconds, while every initial candidate finalizes at
+  24 seconds. Empty results discard; meaningful sustained speech commits. Physical
+  acceptance remains needed for language drift, noise hallucination risk, mute
+  semantics, transcript/history behavior, session-resume policy and broader voice
+  reliability.
+- Audio-reactive visual embodiment and diagnostics are documented future design work;
+  no extractor, protocol, renderer, DSP, setting or diagnostic UI implementation is
+  claimed by this checkpoint.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 

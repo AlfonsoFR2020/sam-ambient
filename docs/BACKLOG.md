@@ -16,6 +16,12 @@ in [Roadmap](ROADMAP.md).
 
 ## UI and Visual Engine
 
+- **Moderately high priority - audio-reactive embodiment and diagnostics:** complete
+  the strong-model checkpoints in [Visual Engine v1](VISUAL_ENGINE_V1.md#14-future-direction-audio-reactive-embodiment-and-diagnostics)
+  before implementation. Evaluate a bounded feature extractor, independent
+  input/output observability, coherent procedural mappings, diagnostic fixtures and
+  an owner-facing high-level settings concept without weakening v1 geometry, draw,
+  cadence, privacy or fallback constraints.
 - Complete human visual acceptance of the Visual Engine polish passes across WebGL2,
   Canvas, reduced motion, supported window sizes, and the `mobile_2020` profile.
 - Allocate a formally unobstructed ambient rectangle around Controls and transcript

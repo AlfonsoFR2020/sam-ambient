@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (alpha) — Unreleased
+## 0.2.0 (alpha) — Published
 
 ### Highlights
 
