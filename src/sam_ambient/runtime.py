@@ -1323,7 +1323,10 @@ class SamRuntime:
                 if frame.monotonic_ms <= self._last_event_ms:
                     frame = _frame_after_protocol_clock(frame, self._last_event_ms)
                 self._last_event_ms = frame.monotonic_ms
-                if response.done() and self.voice_turns.state in {
+                # TTS completion advances the authoritative turn state before the
+                # response task unwinds. Do not require task completion to stop
+                # capture once that state has reached a terminal boundary.
+                if self.voice_turns.state in {
                     VoiceState.IDLE,
                     VoiceState.ERROR,
                     VoiceState.OFFLINE,

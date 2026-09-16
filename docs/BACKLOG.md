@@ -9,7 +9,6 @@ in [Roadmap](ROADMAP.md).
 
 - Recommend text interaction for the most reliable 0.2.0 alpha experience; voice
   input remains experimental.
-- Investigate `voice monitor entered unexpected state IDLE` during voice input.
 - Bound very long STT segments caused by sustained environmental or keyboard noise.
 - Stabilize language detection where drift can select the wrong TTS language.
 - Replace or supplement robotic Windows System.Speech while retaining a safe fallback.

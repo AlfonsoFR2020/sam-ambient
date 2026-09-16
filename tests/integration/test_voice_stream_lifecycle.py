@@ -125,6 +125,83 @@ class ScriptCapture:
                 self.provider.release.set()
 
 
+class CompletionRaceCapture:
+    def __init__(self, generation_id):
+        self.runtime = None
+        self.generation_id = generation_id
+        self.monitor_token = None
+        self.closed = False
+
+    async def frames(self, cancellation):
+        self.monitor_token = cancellation
+        try:
+            assert self.runtime is not None
+            events = self.runtime.voice_turns.on_tts_completed(
+                1_490, generation_id=self.generation_id
+            )
+            for event in events:
+                await self.runtime.events.publish(event)
+            yield AudioFrame(AudioFormat(sample_rate_hz=1_000), b"\0\0" * 20, 1_500, 75)
+        finally:
+            self.closed = True
+
+
+def test_monitor_tears_down_when_tts_completion_reaches_idle_before_response_task(tmp_path):
+    async def scenario():
+        generation_id = "generation-completion-race"
+        capture = CompletionRaceCapture(generation_id)
+        runtime = SamRuntime(
+            ConversationProvider(),
+            RuntimeConfig(tmp_path, port=0),
+            voice=RuntimeVoiceAdapters(capture, SignalVad(), StrictStt()),
+        )
+        capture.runtime = runtime
+        cancellation_id = "cancel-completion-race"
+        turn_id = "turn-completion-race"
+        manager = runtime.voice_turns
+        manager.start_listening(0, turn_id=turn_id, cancellation_id=cancellation_id)
+        manager.on_vad(10, 1.0)
+        manager.on_vad(210, 1.0)
+        manager.on_transcript(220, "Tell me something.", is_final=True, confidence=0.99)
+        manager.on_vad(230, 0.0)
+        manager.on_time(1_330)
+        manager.on_model_started(
+            1_340,
+            generation_id=generation_id,
+            cancellation_id=cancellation_id,
+        )
+        manager.on_tts_started(1_350, generation_id=generation_id)
+        response_token = runtime.cancellations.create(cancellation_id)
+        runtime.delivery.start_generation(
+            turn_id=turn_id,
+            generation_id=generation_id,
+            cancellation_id=cancellation_id,
+        )
+        runtime._active_generation_id = generation_id
+        runtime._active_token = response_token
+        release_response = asyncio.Event()
+
+        async def finish_response():
+            await release_response.wait()
+
+        response = asyncio.create_task(finish_response())
+        try:
+            assert await runtime._monitor_barge_in(response) is None
+            assert manager.state is VoiceState.IDLE
+            assert not response.done()
+            assert not response_token.is_cancelled
+            assert capture.closed
+            assert capture.monitor_token is not None
+            assert capture.monitor_token.is_cancelled
+            assert capture.monitor_token.reason == "barge_in_monitor_stopped"
+        finally:
+            release_response.set()
+            await response
+            await runtime.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 2))
+
+
 @pytest.mark.parametrize("candidate", ["uh", "[BLANK_AUDIO]", "Your color is green."])
 def test_three_turns_rejected_final_candidates_do_not_poison_tts(tmp_path, candidate):
     async def scenario():

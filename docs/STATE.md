@@ -280,6 +280,10 @@ Updated: 2026-09-16
   code/spec audit without adding effects or raising geometry, draw-call, pixel, or
   cadence budgets. No browser or native GUI was launched; final appearance remains
   a human acceptance gate.
+- Voice reliability Pass 1 treats authoritative terminal turn states as the response
+  monitor's teardown boundary even while its response task is still unwinding. This
+  closes the playback-completion `IDLE` race without changing interruption confirmation,
+  stale-event rejection, cancellation identity, endpointing, or text mode.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 
