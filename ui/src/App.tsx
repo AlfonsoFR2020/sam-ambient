@@ -23,6 +23,7 @@ import { QuitDialog, ShutdownStatus } from "./QuitDialog";
 import { RuntimeStatus } from "./RuntimeStatus";
 import { ProtocolClient } from "./state/client";
 import { statusPresentation } from "./status";
+import { placeTooltip, type TooltipPlacement } from "./tooltip";
 import { BrowserEventTransport } from "./transport/browser";
 import { type NativeEventSource, TauriLocalTransport } from "./transport/tauri";
 import { browserScheduler, type ProtocolTransport } from "./transport/transport";
@@ -124,16 +125,78 @@ function ControlButton({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { help: string }) {
   const helpId = useId();
+  const button = useRef<HTMLButtonElement>(null);
+  const tooltip = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [placement, setPlacement] = useState<TooltipPlacement>();
+  const updatePlacement = useCallback(() => {
+    const anchor = button.current?.getBoundingClientRect();
+    const popup = tooltip.current?.getBoundingClientRect();
+    if (!anchor || !popup) return;
+    setPlacement(
+      placeTooltip(anchor, popup, { height: window.innerHeight, width: window.innerWidth }),
+    );
+  }, []);
+  const showTooltip = useCallback(() => {
+    updatePlacement();
+    setOpen(true);
+  }, [updatePlacement]);
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(updatePlacement);
+    window.addEventListener("resize", updatePlacement);
+    window.addEventListener("scroll", updatePlacement, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updatePlacement);
+      window.removeEventListener("scroll", updatePlacement, true);
+    };
+  }, [open, updatePlacement]);
+
   return (
     <div className="control-with-help">
       <button
         {...props}
+        ref={button}
         className={className}
         type={props.type ?? "button"}
-        title={help}
         aria-describedby={helpId}
+        onBlur={(event) => {
+          props.onBlur?.(event);
+          setOpen(false);
+        }}
+        onFocus={(event) => {
+          props.onFocus?.(event);
+          showTooltip();
+        }}
+        onMouseEnter={(event) => {
+          props.onMouseEnter?.(event);
+          showTooltip();
+        }}
+        onMouseLeave={(event) => {
+          props.onMouseLeave?.(event);
+          setOpen(false);
+        }}
       />
-      <span className="control-tooltip" id={helpId} role="tooltip">
+      <span
+        className="control-tooltip"
+        data-open={open || undefined}
+        data-positioned={placement ? true : undefined}
+        id={helpId}
+        role="tooltip"
+        ref={tooltip}
+        style={
+          placement
+            ? {
+                left: placement.left,
+                maxHeight: placement.maxHeight,
+                maxWidth: placement.maxWidth,
+                top: placement.top,
+              }
+            : undefined
+        }
+      >
         {help}
       </span>
     </div>

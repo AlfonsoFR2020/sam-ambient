@@ -266,6 +266,9 @@ Updated: 2026-09-16
   gold points and maps density to their deterministic visible share. Quality/profile
   changes rebuild the resolved 12/24/40-particle budget; `mobile_2020` remains capped
   at low. Canvas remains the intentionally particle-free fallback from the v1 spec.
+- Visual polish Pass 4 replaces Controls' native and locally anchored help tooltips
+  with measured, viewport-contained popovers and normalizes Controls form typography.
+  Visual acceptance remains pending; no live GUI was launched for this pass.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 
