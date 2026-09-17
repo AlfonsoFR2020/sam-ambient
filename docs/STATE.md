@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-16
+Updated: 2026-09-17
 
 ## MVP status
 
@@ -22,12 +22,15 @@ Updated: 2026-09-16
   updates. Deterministic validation covers these paths; final human visual/native
   acceptance and a future unobstructed ambient-layout pass remain open.
 
-- `0.2.0` is published under the existing alpha convention. The current seven-commit
-  stabilization slice on `feature/visual-polish` is a potential `0.2.1` candidate
-  after integration, deterministic gates, documentation/version review and the
-  minimum required acceptance; it is not release approval. Human visual/native/
-  acoustic acceptance, signed Windows artifacts and installer/AV acceptance remain
-  intentionally deferred.
+- `0.2.0` is published under the existing alpha convention. The nine-commit
+  stabilization slice is integrated into `dev` and versioned as the `0.2.1` release
+  candidate. Hosted Windows Quality and Native Package are green for the integrated
+  stabilization baseline (`c477800`); the exact versioned preparation commit awaits
+  hosted validation after push. Hosted Ubuntu reaches Python tests but retains an
+  unresolved Linux-only failure that is explicitly deferred to the dedicated 0.3.0
+  Linux review under the Windows-first alpha policy. Human visual/native/acoustic
+  acceptance and signed installer/AV acceptance remain intentionally deferred;
+  preparation is not publication approval.
 - Native integration checkpoint (`feature/ambient-shell`): the thin Tauri 2 shell
   is reconciled with the frozen ambient React source. It owns the native window,
   single-instance focus, identity/icons, one trusted supervisor child, fixed
@@ -65,11 +68,13 @@ Updated: 2026-09-16
   and supervisor/security state. It is read-only and supplies shared structured
   readiness data for a future installer. Current host: LM Studio installed/stopped;
   Whisper assets available; Windows TTS, audio, UI, Python and root ready.
-- Cross-platform GitHub CI repeats Python/Ruff and frontend/Biome/type/build gates
-  on Windows/Linux, then builds wheel/sdist and smoke-installs the wheel. Version
-  consistency is checked locally; publishing remains explicitly manual. Current
-  local gate: 348 Python passed / 2 skipped and 45 frontend passed; Ruff, Biome,
-  typecheck, Vite build, distributions, metadata and installed CLI smoke pass.
+- GitHub CI repeats Python/Ruff and frontend/Biome/type/build gates on Windows/Linux,
+  then builds wheel/sdist and smoke-installs the wheel. Windows Quality and Native
+  Package are green through the integrated stabilization baseline; the version-only
+  preparation commit still requires hosted validation. Ubuntu fails during Python
+  tests, so its dependent package smoke is skipped; this known Linux issue is deferred
+  to 0.3.0 rather than hidden by weakened tests or broad runner packages. Publishing
+  remains explicitly manual.
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
   Existing cancellable PCM contract retained; cloud speech remains disabled.
@@ -83,7 +88,7 @@ Updated: 2026-09-16
 - Read-only audit: system-default audio devices and Whisper assets available;
   Whisper/LM Studio stopped, Ollama absent. Bootstrap/preferences/filtering/owned
   cleanup pass controlled tests; no service manipulation or new live model claim.
-- Accepted 0.2.0 source on `dev` includes an isolated
+- Accepted 0.2.x source on `dev` includes an isolated
   Chromium-family app window with browser fallback, per-root single-instance lock,
   graceful owned-window shutdown, truthful startup/status controls, and bounded
   transcript polish are implemented. [Visual Engine v1](VISUAL_ENGINE_V1.md) Stages
@@ -111,10 +116,9 @@ Updated: 2026-09-16
   and stops only a service Sam started. Restart/failure/Emergency Stop never apply
   exit cleanup, unsupported providers fail closed, and timeouts cannot block shutdown.
 - The accepted combined source on `dev` preserves the frozen ambient behavior and
-  includes the native application boundary. No further 0.2.0 feature work should
-  land except fixes required by release validation or later acceptance.
-  Combined human acceptance and native package/release gates remain outstanding;
-  this is not a release-readiness claim.
+  includes the native application boundary. The 0.2.1 scope is closed; no new feature
+  work belongs in this release candidate. Combined human acceptance and final
+  publication approval remain outstanding.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
@@ -122,11 +126,12 @@ Updated: 2026-09-16
   production build pass.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
   `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
-- The prepared 0.2.0 release build is expected to produce
-  `dist/sam_ambient-0.2.0-py3-none-any.whl` and
-  `dist/sam_ambient-0.2.0.tar.gz`. These artifacts have not been built in this
-  preparation task. The wheel includes the production UI, launchers, configuration
-  example, license, and third-party notices.
+- The 0.2.1 release build is expected to produce
+  `dist/sam_ambient-0.2.1-py3-none-any.whl` and
+  `dist/sam_ambient-0.2.1.tar.gz`. These artifacts were not built during the local
+  lightweight preparation pass. The wheel must include the production UI, launchers,
+  configuration example, license, and third-party notices; deterministic artifact
+  validation and isolated-install smoke remain release-preparation gates.
 - Original Sam material is Apache-2.0; NOTICE attributes Copyright 2026
   Alfonso Ernesto de la Fuente Ruiz, PhD. Bundled React/MIT notices are retained.
 

@@ -1,7 +1,7 @@
 # Release checklist
 
-`0.2.0` is published. Release approval and publication remain human-controlled for
-future patch alphas and do not follow automatically from a green branch.
+`0.2.0` is published and `0.2.1` is being prepared. Release approval and publication
+remain human-controlled and do not follow automatically from a green branch.
 
 ## Patch-alpha cadence
 
@@ -12,15 +12,22 @@ the public alpha. Do not batch unrelated completed work merely to make a release
 larger, and do not publish a knowingly broken intermediate commit for calendar
 cadence. The unit is a green coherent checkpoint.
 
-The current seven-commit stabilization slice on `feature/visual-polish` is a possible
-`0.2.1` candidate after integration into `dev`, deterministic gates, documentation/
-version review and the minimum acceptance genuinely required for those changes. Future
-voice-reliability fixes can form later coherent patch alphas. This is planning, not an
-approval or a version-bump instruction.
+The current nine-commit stabilization slice is integrated into `dev` as the `0.2.1`
+candidate. Future voice-reliability fixes can form later coherent patch alphas rather
+than expanding this release. Preparation is not publication approval.
+
+The 0.2.1 alpha is Windows-first. Hosted Windows Quality and Native Package jobs are
+green for the integrated stabilization baseline (`c477800`); the exact versioned
+release-preparation commit must still pass its hosted Windows gates after push.
+Hosted Ubuntu reaches Python tests but retains a known unresolved failure. That Linux
+issue is explicitly deferred to the dedicated 0.3.0 compatibility review and does
+not block this patch alpha; do not mark the Ubuntu job successful artificially or
+weaken its tests.
 
 ## Future release checklist
 
-- [ ] `dev` is clean, synchronized, and its GitHub CI is green.
+- [ ] `dev` is clean and synchronized; required Windows jobs are green and the
+  explicitly deferred Ubuntu failure is recorded accurately.
 - [ ] Intended feature branches have passed acceptance and are merged.
 - [ ] Full release regression passes: Python/frontend tests, lint, formatting,
   TypeScript, Vite, Cargo, version consistency, package metadata, and artifact-content gates.

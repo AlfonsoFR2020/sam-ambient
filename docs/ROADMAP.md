@@ -9,10 +9,11 @@ items live in [Backlog](BACKLOG.md). Priorities may change after real use.
 - `0.2.0` is published. Favor frequent coherent patch alphas over a large unrelated
   unreleased delta: a small green slice that materially improves the public alpha is
   sufficient, while a knowingly broken intermediate commit is not a release.
-- The current seven-commit stabilization slice on `feature/visual-polish` is a
-  potential `0.2.1` candidate only after integration into `dev`, deterministic release
-  gates, documentation/version review and the minimum acceptance genuinely required
-  for those changes. It is not release approval.
+- The nine-commit stabilization slice is integrated into `dev` and prepared as the
+  `0.2.1` release candidate. Deterministic Windows/package gates and release metadata
+  may establish a shippable checkpoint, but publication remains human-controlled.
+- Treat the remaining hosted Ubuntu Python-test failure as known deferred Linux work.
+  Do not weaken CI to hide it; perform the dedicated compatibility review around 0.3.0.
 - Let later voice-reliability slices become `0.2.2`, `0.2.3` and later patch alphas
   when individually coherent; do not batch unrelated completed work for appearance.
 - Before substantial audio-reactive implementation, complete the bounded strong-model
@@ -49,7 +50,8 @@ items live in [Backlog](BACKLOG.md). Priorities may change after real use.
   Restart, and Quit distinct owner controls.
 - Validate the integrated native identity and taskbar icon, then recheck the
   version-sensitive architecture infographic. Native plus ambient acceptance remains
-  a human-controlled alpha-release concern after published `0.2.0`.
+  a human-controlled alpha-release concern after published `0.2.0` and prepared
+  `0.2.1`.
 
 ## Computer agency
 

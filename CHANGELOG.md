@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.2.1 (alpha) - Release candidate
+
+### Highlights
+
+- Refine Visual Engine v1 without increasing its fixed draw, geometry, DPR, cadence,
+  reduced-motion, or `mobile_2020` budgets: restrain the halo; widen and lift peels;
+  restore direct drag/flick and rotation-speed behavior; make particles, density and
+  quality/profile changes visible; contain Controls help; and close renderer,
+  fallback, adaptation and lifecycle contract gaps found by audit.
+- Fix the response voice monitor teardown race that could observe authoritative
+  `IDLE` after playback completion, while retaining interruption confirmation,
+  cancellation identity and stale-event rejection.
+- Bound every initial STT candidate to one finalization at 24 seconds so dense
+  VAD-positive noise cannot hold a 30-32 second candidate open; retain the earlier
+  sparse-noise guard and normal speech endpointing.
+- Keep Sam importable and text-capable without PortAudio, degrade unavailable audio
+  at adapter composition, and make shared test helpers portable on hosted Windows.
+- Record the future audio-reactive embodiment/diagnostics direction and its required
+  staged design checkpoints without claiming an implementation.
+
+**Alpha limitations:** Windows is the validated 0.2.1 alpha path. Human visual,
+native and physical acoustic acceptance remain deferred, as do language drift/noise
+hallucination risk, mute semantics, transcript/history behavior and session-resume
+policy. Hosted Ubuntu still has an unresolved Python-test failure after collection;
+full Linux compatibility is explicitly deferred to the dedicated 0.3.0 Linux review.
+Text interaction remains the recommended path. No signed Windows installer is
+published by this preparation commit.
+
 ## 0.2.0 (alpha) — Published
 
 ### Highlights

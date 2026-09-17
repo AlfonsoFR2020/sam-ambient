@@ -12,7 +12,7 @@ browser/platform refuses, close the stopped page manually. Closing the dedicated
 window also stops Sam; closing a fallback browser tab does not. A second launch
 for the same root reports the existing local UI instead of competing for ports.
 
-Sam 0.2.0 alpha currently runs from source with a local app-window/browser UI.
+Sam 0.2.1 alpha currently runs from source with a local app-window/browser UI.
 There is no accepted installer yet. The integrated native shell is release-candidate
 source, not an accepted package. Install prerequisites yourself; Sam downloads no
 models.
@@ -167,7 +167,7 @@ uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000
 ## Voice prerequisites
 
 Text can work without voice. Microphone and playback use system-default devices.
-For the most reliable 0.2.0 alpha experience, start in text mode; voice input is
+For the most reliable 0.2.1 alpha experience, start in text mode; voice input is
 experimental and has known physical and sustained-noise limitations.
 Input needs a separately installed whisper.cpp server and multilingual model,
 normally at `http://127.0.0.1:8080`.

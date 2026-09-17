@@ -1,14 +1,17 @@
 # Post-0.2 engineering backlog
 
-This is the detailed backlog for work after the Sam 0.2.0 alpha. It records
+This is the detailed backlog for work after the Sam 0.2.x alpha. It records
 observed limitations and planned directions without implying acceptance, priority,
 or a commitment to a specific implementation. Milestone-level sequencing remains
 in [Roadmap](ROADMAP.md).
 
 ## Release-known issues
 
-- Recommend text interaction for the most reliable 0.2.0 alpha experience; voice
+- Recommend text interaction for the most reliable 0.2.1 alpha experience; voice
   input remains experimental.
+- Complete the dedicated Linux compatibility review around 0.3.0. Hosted Ubuntu CI
+  currently reaches Python tests but retains an unresolved Linux-only failure; it is
+  explicit deferred work, not a silently weakened or artificially green 0.2.1 gate.
 - Stabilize language detection where drift can select the wrong TTS language.
 - Replace or supplement robotic Windows System.Speech while retaining a safe fallback.
 - Ship no public Windows installer until native packaging, signing, AV/reputation,
