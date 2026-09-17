@@ -108,10 +108,27 @@ Runtime requirements are Python 3.12+, [uv](https://docs.astral.sh/uv/), and a
 local conversational model provider. [LM Studio](https://lmstudio.ai/) is the
 currently recommended and validated provider. Install it, open it once so its
 bundled `lms` command is available, then use LM Studio's model search/download
-view to download a chat/instruct model that fits your machine. `lms ls` lists
-models installed on disk; `lms ps` lists models currently loaded in memory. Sam
-may load an existing explicit, last-good, or sole installed conversational model,
-but never downloads a model. With several viable models, choose one in the startup picker.
+view to download a chat/instruct model that fits your machine. An embedding model
+cannot answer conversations.
+
+If the model or local server is not already running, use LM Studio's **Developer**
+tab to load the downloaded model and start the server on localhost, normally port
+1234. The equivalent terminal sequence is:
+
+```sh
+lms ls
+lms load MODEL_KEY
+lms server start --port 1234
+lms server status
+lms ps
+```
+
+Use a model key shown by `lms ls`; `lms ps` confirms the loaded model and shows the
+identifier Sam can use. Keep the default localhost binding. Sam may also start an
+installed LM Studio server and load an explicit, last-good, or sole installed
+conversational model, but it never downloads one. With several viable models, choose
+one in the startup picker. See [Getting started](docs/GETTING_STARTED.md) for the full
+LM Studio UI and CLI procedure.
 
 Node/pnpm is needed only to rebuild the React UI. Rust, Cargo, Tauri, MSVC Build
 Tools, and the Windows SDK are native-shell developer prerequisites; they are not

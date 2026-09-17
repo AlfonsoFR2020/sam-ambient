@@ -13,6 +13,8 @@ Sam 0.2.1 is a focused stabilization patch for the Windows-first public alpha.
   24-second finalization lifecycle even under dense VAD-positive noise.
 - Portability: Sam remains importable and text-capable without PortAudio, and shared
   test helpers resolve consistently on hosted Windows.
+- Setup guidance: the LM Studio documentation now covers both app and CLI paths for
+  loading an installed model, starting the localhost server and verifying readiness.
 - Design record: future audio-reactive visual embodiment and diagnostics now have a
   constrained feature/mapping direction and required staged design checkpoints.
 

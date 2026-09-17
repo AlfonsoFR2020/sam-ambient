@@ -15,7 +15,9 @@ release gates; use the supported browser mode rather than bypassing a security a
 ## Five-minute Windows path
 
 1. Install Python 3.12+, uv, and LM Studio. In LM Studio, download a conversational
-   chat/instruct model that fits your machine; embedding models cannot answer.
+   chat/instruct model that fits your machine; embedding models cannot answer. If it
+   is not already ready, load it and start the localhost server from **Developer**, or
+   follow the UI/CLI procedure in [Getting started](GETTING_STARTED.md).
 2. From the Sam checkout run `uv sync --locked`, then `uv run sam-ambient`.
 3. Let Sam use a valid remembered model or the sole installed conversational model.
    If the startup picker appears, choose a model. Use **Rescan** after changing LM

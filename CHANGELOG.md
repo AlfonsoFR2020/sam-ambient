@@ -17,6 +17,8 @@
   sparse-noise guard and normal speech endpointing.
 - Keep Sam importable and text-capable without PortAudio, degrade unavailable audio
   at adapter composition, and make shared test helpers portable on hosted Windows.
+- Document the complete LM Studio first-run and recovery path for downloading or
+  selecting a model, loading it, starting the localhost server and verifying both.
 - Record the future audio-reactive embodiment/diagnostics direction and its required
   staged design checkpoints without claiming an implementation.
 

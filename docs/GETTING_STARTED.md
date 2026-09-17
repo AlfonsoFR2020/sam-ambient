@@ -36,7 +36,7 @@ developer-native build prerequisites, not end-user runtime requirements. A futur
 packaged Windows Sam will carry its Python companion and will not require a checkout,
 Python, uv, Node, Rust, or Build Tools from the user.
 
-## Install a conversational model in LM Studio
+## Install, load, and serve a model with LM Studio
 
 1. Open LM Studio and use its model search/download view to choose a chat or instruct
    model whose size fits your available memory. Do not choose an embedding-only model.
@@ -45,10 +45,54 @@ Python, uv, Node, Rust, or Build Tools from the user.
 4. `lms ps` lists models currently **loaded** in memory. An installed model may
    legitimately be unloaded; Sam can still discover it.
 
+### LM Studio app path
+
+1. Open LM Studio. If the advanced serving controls are hidden, enable
+   **Settings → Developer**.
+2. In **Chat** or **Developer**, select the downloaded chat/instruct model and load it.
+   Loading allocates system and possibly GPU memory, so choose a model and settings
+   appropriate for the machine.
+3. In **Developer**, start the local server. Keep it bound to localhost; LM Studio's
+   usual OpenAI-compatible endpoint is `http://127.0.0.1:1234/v1`.
+4. Leave LM Studio running, then start Sam. If Sam asks which model to use, select the
+   model you loaded and optionally remember the choice.
+
+### LM Studio CLI path
+
+Open LM Studio once after installation so `lms` is available. Then run:
+
+```sh
+lms ls
+lms load MODEL_KEY
+lms server start --port 1234
+lms server status
+lms ps
+```
+
+`MODEL_KEY` is a downloaded chat/instruct model shown by `lms ls`. If no model key is
+provided, `lms load` can prompt for one. `lms server status` should report a running
+localhost server, and `lms ps` should show the loaded model and its API identifier.
+Use that identifier when making the choice explicit:
+
+```sh
+uv run sam-ambient --provider lm-studio --model MODEL_IDENTIFIER
+```
+
+Do not add `--bind 0.0.0.0` or enable CORS for normal Sam use; neither is needed for
+the local connection and both broaden exposure. If port 1234 is unavailable, start
+LM Studio on another loopback port and pass it explicitly:
+
+```sh
+lms server start --port 1235
+uv run sam-ambient --provider lm-studio --base-url http://127.0.0.1:1235/v1 --model MODEL_IDENTIFIER
+```
+
 Sam never downloads a model. During normal startup it may start the installed LM
 Studio server and load a valid explicit model, the last model that answered
 successfully, or the sole installed conversational model. If several viable models
-are installed, Sam waits for you to choose one rather than guessing.
+are installed, Sam waits for you to choose one rather than guessing. Manual loading
+is therefore optional, but it is the clearest recovery path when automatic startup
+reports that the server or model is unavailable.
 
 ### Native Windows development (unreleased)
 

@@ -80,7 +80,9 @@ remembered, or sole installed conversational model if none is loaded. Service
 readiness stays short; model loading has a separate 180-second bound. Multiple
 installed chat models require explicit selection. A missing
 `lms` CLI, no installed chat model, or startup/load failure is reported. If it
-fails, check the same installation using its UI/CLI and restart Sam. The default API endpoint is
+fails, follow the manual LM Studio app or CLI startup procedure in
+[Getting started](GETTING_STARTED.md), verify `lms ps`, then use **Rescan
+providers/models** or restart Sam. The default API endpoint is
 `http://127.0.0.1:1234/v1`; a running port reported by `lms` is also recognized.
 Use `--provider lm-studio --base-url http://127.0.0.1:PORT/v1` for an explicit port.
 Installed inventory comes from bounded structured `lms ls`; loaded/served state
