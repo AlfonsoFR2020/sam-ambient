@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import Any
@@ -39,11 +40,16 @@ class OpenAICompatibleProvider(LLMProvider):
         data_boundary: DataBoundary = DataBoundary.CLOUD,
         transport: JsonHttpTransport | None = None,
         timeout_s: float = 120.0,
+        first_content_timeout_s: float | None = None,
         discovery_timeout_s: float = 10.0,
     ) -> None:
         if not provider_id.strip():
             raise ValueError("provider_id must be non-blank")
-        if timeout_s <= 0 or discovery_timeout_s <= 0:
+        if (
+            timeout_s <= 0
+            or discovery_timeout_s <= 0
+            or (first_content_timeout_s is not None and first_content_timeout_s <= 0)
+        ):
             raise ValueError("provider timeouts must be positive")
         self.id = provider_id
         self.base_url = base_url.rstrip("/")
@@ -51,6 +57,7 @@ class OpenAICompatibleProvider(LLMProvider):
         self.data_boundary = data_boundary
         self._transport = transport or HttpxJsonTransport()
         self._timeout_s = timeout_s
+        self._first_content_timeout_s = first_content_timeout_s or timeout_s
         self._discovery_timeout_s = discovery_timeout_s
 
     async def health(self, cancellation: CancellationToken) -> ProviderHealth:
@@ -102,6 +109,8 @@ class OpenAICompatibleProvider(LLMProvider):
             body["tools"] = [tool.to_openai_wire() for tool in tools]
 
         saw_completion = False
+        saw_usable_output = False
+        pending_text = ""
         usage: Mapping[str, Any] = {}
         try:
             lines = self._transport.stream_lines(
@@ -112,36 +121,64 @@ class OpenAICompatibleProvider(LLMProvider):
                 timeout_s=self._timeout_s,
                 cancellation=cancellation,
             )
-            async for line in lines:
-                cancellation.raise_if_cancelled()
-                if line.startswith(":") or not line.startswith("data:"):
-                    continue
-                data = line[5:].strip()
-                if data == "[DONE]":
-                    saw_completion = True
-                    break
-                chunk = self._decode_chunk(data)
-                raw_usage = chunk.get("usage")
-                if isinstance(raw_usage, dict):
-                    usage = raw_usage
-                choices = chunk.get("choices", [])
-                if not isinstance(choices, list):
-                    raise ProviderResponseError("stream choices field must be a list")
-                for choice in choices:
-                    if not isinstance(choice, dict):
-                        continue
-                    delta = choice.get("delta")
-                    if isinstance(delta, dict):
-                        content = delta.get("content")
-                        if isinstance(content, str) and content:
-                            yield ModelEvent(ModelEventKind.TEXT_DELTA, text=content)
-                        tool_calls = delta.get("tool_calls")
-                        if isinstance(tool_calls, list):
-                            for tool_call in tool_calls:
-                                if isinstance(tool_call, dict):
-                                    yield ModelEvent(ModelEventKind.TOOL_CALL, payload=tool_call)
-                    if choice.get("finish_reason") is not None:
-                        saw_completion = True
+            async with asyncio.timeout(self._timeout_s):
+                try:
+                    async with asyncio.timeout(self._first_content_timeout_s) as content_deadline:
+                        async for line in lines:
+                            cancellation.raise_if_cancelled()
+                            if line.startswith(":") or not line.startswith("data:"):
+                                continue
+                            data = line[5:].strip()
+                            if data == "[DONE]":
+                                saw_completion = True
+                                break
+                            chunk = self._decode_chunk(data)
+                            raw_usage = chunk.get("usage")
+                            if isinstance(raw_usage, dict):
+                                usage = raw_usage
+                            choices = chunk.get("choices", [])
+                            if not isinstance(choices, list):
+                                raise ProviderResponseError("stream choices field must be a list")
+                            for choice in choices:
+                                if not isinstance(choice, dict):
+                                    continue
+                                delta = choice.get("delta")
+                                if isinstance(delta, dict):
+                                    content = delta.get("content")
+                                    if isinstance(content, str) and content:
+                                        if saw_usable_output:
+                                            yield ModelEvent(
+                                                ModelEventKind.TEXT_DELTA, text=content
+                                            )
+                                        else:
+                                            pending_text += content
+                                            if pending_text.strip():
+                                                saw_usable_output = True
+                                                content_deadline.reschedule(None)
+                                                yield ModelEvent(
+                                                    ModelEventKind.TEXT_DELTA,
+                                                    text=pending_text,
+                                                )
+                                                pending_text = ""
+                                    tool_calls = delta.get("tool_calls")
+                                    if isinstance(tool_calls, list):
+                                        for tool_call in tool_calls:
+                                            if isinstance(tool_call, dict):
+                                                if not saw_usable_output:
+                                                    saw_usable_output = True
+                                                    content_deadline.reschedule(None)
+                                                yield ModelEvent(
+                                                    ModelEventKind.TOOL_CALL,
+                                                    payload=tool_call,
+                                                )
+                                if choice.get("finish_reason") is not None:
+                                    saw_completion = True
+                except TimeoutError as error:
+                    raise ProviderTimeout(
+                        f"{self.id} stream timed out waiting for first usable content"
+                    ) from error
+        except TimeoutError as error:
+            raise ProviderTimeout(f"{self.id} stream exceeded its generation deadline") from error
         except HttpStatusError as error:
             self._raise_http_status(error)
         except HttpTimeoutError as error:
@@ -151,6 +188,11 @@ class OpenAICompatibleProvider(LLMProvider):
 
         if not saw_completion:
             raise ProviderResponseError(f"{self.id} stream ended before completion")
+        if not saw_usable_output:
+            raise ProviderResponseError(
+                f"{self.id} stream completed without usable text or tool calls; "
+                "retry the request or select a compatible chat model"
+            )
         yield ModelEvent(ModelEventKind.COMPLETED, payload=dict(usage))
 
     async def _models_response(self, cancellation: CancellationToken) -> dict[str, Any]:

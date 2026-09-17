@@ -338,6 +338,70 @@ describe("protocol state reduction", () => {
     expect(state.transcript).toHaveLength(0);
   });
 
+  it("finalizes model completion without leaving provisional text hanging", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("model.delta", 10, { text: "Complete answer" }, { generation_id: "g1" }),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "model.completed",
+        11,
+        { text: "Complete answer", outcome: "completed" },
+        { turn_id: "t1", generation_id: "g1" },
+      ),
+    );
+
+    expect(state.provisionalTranscript).toBeNull();
+    expect(state.transcript).toHaveLength(1);
+    expect(state.transcript[0]).toMatchObject({
+      role: "assistant",
+      text: "Complete answer",
+      generationId: "g1",
+    });
+  });
+
+  it("clears provisional text and explains a superseded generation", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("model.delta", 10, { text: "Old partial" }, { generation_id: "g1" }),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "model.cancelled",
+        11,
+        { reason: "superseded_by_new_user_turn", outcome: "superseded" },
+        { generation_id: "g1" },
+      ),
+    );
+
+    expect(state.provisionalTranscript).toBeNull();
+    expect(state.conversationalState).toBe("IDLE");
+    expect(state.diagnosticReason).toContain("superseded");
+  });
+
+  it("clears provisional text on an actionable generation error", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event("model.delta", 10, { text: "Partial" }, { generation_id: "g1" }),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "component.error",
+        11,
+        { error: "compatible stream completed without usable text or tool calls" },
+        { generation_id: "g1" },
+      ),
+    );
+
+    expect(state.provisionalTranscript).toBeNull();
+    expect(state.conversationalState).toBe("ERROR");
+    expect(state.diagnosticReason).toContain("without usable text");
+  });
+
   it("moves offline without losing the prior conversational state", () => {
     const speaking = reduceProtocolEvent(
       resetUiState(),

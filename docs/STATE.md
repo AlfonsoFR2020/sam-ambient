@@ -4,6 +4,16 @@ Updated: 2026-09-17
 
 ## MVP status
 
+- The focused 0.2.2 model-response lifecycle slice now gives accepted generations one
+  correlated completed, cancelled/superseded, timeout, empty-response or error terminal
+  outcome. Replacement turns wait for predecessor terminal publication; stale chunks
+  remain rejected. The existing OpenAI-compatible stream timeout now bounds total
+  wall-clock generation and first useful content unless the latter is explicitly
+  narrowed; metadata/keepalive-only streams cannot report silent success. The reducer
+  commits completed current-turn text and clears
+  provisional text on cancellation/error. Transcript hydration and broader history work
+  remain reserved for 0.2.3. Focused deterministic tests pass; broad and live-model
+  validation have not been run.
 - Visual polish pass 1 on `feature/visual-polish` substantially restrains the
   analytic halo and makes the existing deterministic peels wider and farther
   from the body without increasing geometry, draw calls, or mobile frame budgets.

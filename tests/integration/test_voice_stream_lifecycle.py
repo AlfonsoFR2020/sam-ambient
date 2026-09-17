@@ -252,6 +252,15 @@ def test_three_turns_rejected_final_candidates_do_not_poison_tts(tmp_path, candi
             observed = []
             while subscription.pending:
                 observed.append(await subscription.get())
+            model_completions = [
+                event for event in observed if event.type == EventType.MODEL_COMPLETED
+            ]
+            assert len(model_completions) == 3
+            assert all(
+                event.payload.get("text") == "Your color is green."
+                and event.payload.get("outcome") == "completed"
+                for event in model_completions
+            )
             assert sum(event.type == EventType.TTS_COMPLETED for event in observed) == 3
             assert not any(event.type == EventType.COMPONENT_ERROR for event in observed)
             assert not any(event.payload.get("to") == "OFFLINE" for event in observed)

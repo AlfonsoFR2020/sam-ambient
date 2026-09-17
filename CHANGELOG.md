@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.2 (alpha) - Unreleased
+
+### Highlights
+
+- Give every accepted model generation one correlated terminal outcome. A replacement
+  user turn waits until the superseded generation's cancellation is published, while
+  stale content remains rejected and confirmed voice interruption still cancels once.
+- Reject completed model rounds that contain no usable text or tool call, including
+  OpenAI-compatible role/finish/DONE-only streams, with an actionable error.
+- Use the existing OpenAI-compatible stream timeout as a total wall-clock generation
+  bound and, by default, the first-usable-content bound; adapters may configure a
+  shorter first-content deadline. Keepalives, role-only chunks and leading whitespace
+  extend neither deadline.
+- Reconcile terminal events in the current UI: completion commits the correlated
+  rendered answer, while cancellation and error clear provisional text and expose a
+  reason. No transcript hydration or history redesign is included.
+
+**Validation boundary:** deterministic focused provider, runtime, voice-lifecycle and
+reducer tests pass. Broader Python/frontend gates and live slow/cancelled Gemma
+acceptance remain recommended before release approval.
+
 ## 0.2.1 (alpha) - Release candidate
 
 ### Highlights

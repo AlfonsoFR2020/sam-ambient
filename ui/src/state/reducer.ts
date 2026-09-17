@@ -24,12 +24,40 @@ const transcriptText = (event: ProtocolEvent): string | null => {
   return typeof text === "string" && text.trim() ? text.trim() : null;
 };
 
+const withCommittedTranscript = (
+  state: UiState,
+  event: ProtocolEvent,
+  role: TranscriptEntry["role"],
+  text: string,
+  interrupted = false,
+): UiState => {
+  const entry: TranscriptEntry = {
+    id: `${event.session_id ?? "session"}:${event.monotonic_ms}:${role}`,
+    role,
+    text,
+    interrupted,
+    monotonicMs: event.monotonic_ms,
+    turnId: event.turn_id,
+    generationId: event.generation_id,
+  };
+  const duplicateIndex = state.transcript.findIndex(
+    (item) =>
+      item.role === role &&
+      ((entry.generationId && item.generationId === entry.generationId) ||
+        (!entry.generationId && entry.turnId && item.turnId === entry.turnId)),
+  );
+  const transcript = [...state.transcript];
+  if (duplicateIndex >= 0) transcript[duplicateIndex] = entry;
+  else transcript.push(entry);
+  return { ...state, provisionalTranscript: null, transcript: transcript.slice(-100) };
+};
+
 const isStaleGeneration = (state: UiState, event: ProtocolEvent): boolean =>
   Boolean(
     state.generationId &&
       event.generation_id &&
       event.generation_id !== state.generationId &&
-      (event.type.startsWith("model.") ||
+      ((event.type.startsWith("model.") && event.type !== "model.cancelled") ||
         event.type.startsWith("tts.") ||
         event.type.startsWith("tool.") ||
         (event.type === "transcript.final" && event.payload.role === "assistant")),
@@ -503,29 +531,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     const text = transcriptText(event);
     if (text) {
       const role = transcriptRole(event.payload.role);
-      const entry: TranscriptEntry = {
-        id: `${event.session_id ?? "session"}:${event.monotonic_ms}:${role}`,
-        role,
-        text,
-        interrupted: Boolean(event.payload.interrupted),
-        monotonicMs: event.monotonic_ms,
-        turnId: event.turn_id,
-        generationId: event.generation_id,
-      };
-      const duplicateIndex = next.transcript.findIndex(
-        (item) =>
-          item.role === role &&
-          ((entry.generationId && item.generationId === entry.generationId) ||
-            (!entry.generationId && entry.turnId && item.turnId === entry.turnId)),
-      );
-      const transcript = [...next.transcript];
-      if (duplicateIndex >= 0) transcript[duplicateIndex] = entry;
-      else transcript.push(entry);
-      next = {
-        ...next,
-        provisionalTranscript: null,
-        transcript: transcript.slice(-100),
-      };
+      next = withCommittedTranscript(next, event, role, text, Boolean(event.payload.interrupted));
     }
   } else if (event.type === "tts.cancelled") {
     const transcript = [...next.transcript];
@@ -551,6 +557,22 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         text: `${current?.role === "assistant" ? current.text : ""}${event.payload.text}`,
         monotonicMs: event.monotonic_ms,
       },
+    };
+  } else if (event.type === "model.completed") {
+    const text = transcriptText(event);
+    next = text
+      ? withCommittedTranscript(next, event, "assistant", text)
+      : { ...next, provisionalTranscript: null };
+  } else if (event.type === "model.cancelled") {
+    const superseded = event.payload.outcome === "superseded";
+    next = {
+      ...next,
+      priorConversationalState: next.conversationalState,
+      conversationalState: "IDLE",
+      provisionalTranscript: null,
+      diagnosticReason: superseded
+        ? "The previous response was superseded by a newer request."
+        : (boundedText(event.payload.reason, 500) ?? "The model response was cancelled."),
     };
   } else if (event.type === "control.acknowledged" || event.type === "control.rejected") {
     const commandId = event.payload.command_id;
@@ -605,6 +627,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ...next,
       priorConversationalState: next.conversationalState,
       conversationalState: "ERROR",
+      provisionalTranscript: null,
       diagnosticReason:
         boundedText(event.payload.reason, 500) ??
         boundedText(event.payload.error, 500) ??
