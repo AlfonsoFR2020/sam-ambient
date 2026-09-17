@@ -27,7 +27,7 @@ native acceptance also remain deferred.
 
 Windows is the validated 0.2.1 alpha path. Hosted Ubuntu currently reaches Python
 tests but has an unresolved Linux-only failure, so its dependent package-smoke job is
-skipped. This is recorded deferred work for the dedicated 0.3.0 Linux compatibility
+skipped. This is recorded deferred work for a potential 0.3.0+ Linux compatibility
 review; CI has not been weakened or marked green artificially.
 
 The exact versioned release-preparation commit must pass the hosted Windows quality,
