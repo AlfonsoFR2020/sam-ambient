@@ -486,6 +486,8 @@ class SamRuntime:
         self._active_generation_id: str | None = None
         self._active_token: CancellationToken | None = None
         self._active_terminal: asyncio.Event | None = None
+        self._active_response_done: asyncio.Event | None = None
+        self._generation_handoff_lock = asyncio.Lock()
         self._terminal_publish_lock = asyncio.Lock()
         self._voice_listen_token: CancellationToken | None = None
         self._voice_task: asyncio.Task[None] | None = None
@@ -733,7 +735,7 @@ class SamRuntime:
             raise ValueError("user message must be non-blank")
         if len(normalized) > 4_000:
             raise ValueError("user message exceeds 4000 characters")
-        predecessor_terminal = self._active_terminal
+        predecessor_done = self._active_response_done
         if self._active_token is not None:
             if self._active_generation_id is not None:
                 self.speech_queue.cancel_generation(
@@ -744,26 +746,29 @@ class SamRuntime:
         generation_id = str(uuid4())
         token = self.cancellations.create()
         terminal = asyncio.Event()
+        response_done = asyncio.Event()
         self._active_generation_id = generation_id
         self._active_token = token
         self._active_terminal = terminal
+        self._active_response_done = response_done
         self._active_done.clear()
         task = asyncio.create_task(
-            self._run_turn_after_terminal(
+            self._run_turn_after_predecessor(
                 normalized,
                 session_id=session_id or self.session_id,
                 turn_id=turn_id,
                 generation_id=generation_id,
                 cancellation=token,
                 terminal=terminal,
-                predecessor_terminal=predecessor_terminal,
+                response_done=response_done,
+                predecessor_done=predecessor_done,
             )
         )
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
         return generation_id
 
-    async def _run_turn_after_terminal(
+    async def _run_turn_after_predecessor(
         self,
         text: str,
         *,
@@ -772,11 +777,12 @@ class SamRuntime:
         generation_id: str,
         cancellation: CancellationToken,
         terminal: asyncio.Event,
-        predecessor_terminal: asyncio.Event | None,
+        response_done: asyncio.Event,
+        predecessor_done: asyncio.Event | None,
     ) -> None:
         try:
-            if predecessor_terminal is not None:
-                await predecessor_terminal.wait()
+            if predecessor_done is not None:
+                await predecessor_done.wait()
             await self._run_turn(
                 text,
                 session_id=session_id,
@@ -784,6 +790,7 @@ class SamRuntime:
                 generation_id=generation_id,
                 cancellation=cancellation,
                 terminal=terminal,
+                response_done=response_done,
             )
         except asyncio.CancelledError:
             await self._publish_generation_terminal(
@@ -802,8 +809,10 @@ class SamRuntime:
                 self._active_generation_id = None
                 self._active_token = None
                 self._active_terminal = None
+                self._active_response_done = None
                 self._active_done.set()
             self.cancellations.discard(cancellation.cancellation_id)
+            response_done.set()
 
     async def _run_turn(
         self,
@@ -814,6 +823,7 @@ class SamRuntime:
         generation_id: str,
         cancellation: CancellationToken,
         terminal: asyncio.Event,
+        response_done: asyncio.Event,
         voice_managed: bool = False,
         started: asyncio.Event | None = None,
     ) -> None:
@@ -1073,8 +1083,10 @@ class SamRuntime:
                 self._active_generation_id = None
                 self._active_token = None
                 self._active_terminal = None
+                self._active_response_done = None
                 self._active_done.set()
             self.cancellations.discard(cancellation.cancellation_id)
+            response_done.set()
 
     async def _conversation_context(self, session_id: str, turn_id: str) -> list[Message]:
         """Reuse bounded committed state, never generated-but-undelivered content."""
@@ -1366,35 +1378,76 @@ class SamRuntime:
         transcript: Transcript,
         token: CancellationToken,
     ) -> asyncio.Task[None]:
-        turn_id = self.voice_turns.turn_id
-        if turn_id is None or self.voice_turns.state is not VoiceState.COMMITTING:
-            raise RuntimeError("voice turn must be committed before model execution")
-        generation_id = str(uuid4())
-        terminal = asyncio.Event()
-        self._active_generation_id = generation_id
-        self._active_token = token
-        self._active_terminal = terminal
-        self._active_done.clear()
-        started = asyncio.Event()
-        task = asyncio.create_task(
-            self._run_turn(
-                transcript.text,
-                session_id=self.session_id,
-                turn_id=turn_id,
-                generation_id=generation_id,
-                cancellation=token,
-                terminal=terminal,
-                voice_managed=True,
-                started=started,
+        async with self._generation_handoff_lock:
+            turn_id = self.voice_turns.turn_id
+            if turn_id is None or self.voice_turns.state is not VoiceState.COMMITTING:
+                raise RuntimeError("voice turn must be committed before model execution")
+
+            predecessor_id = self._active_generation_id
+            predecessor_token = self._active_token
+            predecessor_terminal = self._active_terminal
+            predecessor_done = self._active_response_done
+            if predecessor_id is not None and predecessor_token is not None:
+                delivery = None
+                if self.delivery.active_generation_id == predecessor_id:
+                    delivery = self.speech_queue.cancel_generation(
+                        predecessor_id, self._next_event_ms()
+                    )
+                predecessor_token.cancel("superseded_by_new_user_turn")
+                if (
+                    delivery is not None
+                    and not delivery.completed
+                    and predecessor_terminal is not None
+                    and predecessor_terminal.is_set()
+                ):
+                    await self.events.publish(
+                        ProtocolEvent(
+                            type=EventType.TTS_CANCELLED,
+                            monotonic_ms=self._next_event_ms(),
+                            session_id=self.session_id,
+                            turn_id=delivery.turn_id,
+                            generation_id=delivery.generation_id,
+                            cancellation_id=delivery.cancellation_id,
+                            payload={
+                                "reason": predecessor_token.reason or "superseded_by_new_user_turn",
+                                "status": "cancelled",
+                                "spoken_text": delivery.spoken_text,
+                                "unspoken_text": delivery.unspoken_text,
+                            },
+                        )
+                    )
+                if predecessor_done is not None:
+                    await predecessor_done.wait()
+
+            generation_id = str(uuid4())
+            terminal = asyncio.Event()
+            response_done = asyncio.Event()
+            self._active_generation_id = generation_id
+            self._active_token = token
+            self._active_terminal = terminal
+            self._active_response_done = response_done
+            self._active_done.clear()
+            started = asyncio.Event()
+            task = asyncio.create_task(
+                self._run_turn(
+                    transcript.text,
+                    session_id=self.session_id,
+                    turn_id=turn_id,
+                    generation_id=generation_id,
+                    cancellation=token,
+                    terminal=terminal,
+                    response_done=response_done,
+                    voice_managed=True,
+                    started=started,
+                )
             )
-        )
-        self._tasks.add(task)
-        task.add_done_callback(self._tasks.discard)
-        task.add_done_callback(lambda _: started.set())
-        # SQLite commit may yield before model-start transition. Do not start the
-        # microphone monitor against COMMITTING or an uninitialized delivery ledger.
-        await started.wait()
-        return task
+            self._tasks.add(task)
+            task.add_done_callback(self._tasks.discard)
+            task.add_done_callback(lambda _: started.set())
+            # SQLite commit may yield before model-start transition. Do not start the
+            # microphone monitor against COMMITTING or an uninitialized delivery ledger.
+            await started.wait()
+            return task
 
     async def _monitor_barge_in(
         self,

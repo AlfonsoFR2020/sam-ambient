@@ -89,6 +89,83 @@ class GatedProvider(ConversationProvider):
         yield ModelEvent(ModelEventKind.COMPLETED)
 
 
+class HandoffProvider(ConversationProvider):
+    def __init__(self, *, gate_first: bool = False):
+        super().__init__()
+        self.gate_first = gate_first
+        self.first_started = asyncio.Event()
+        self.release_first = asyncio.Event()
+        self.requests = 0
+
+    async def stream_chat(self, messages, tools, *, model, cancellation):
+        del messages, tools, model
+        self.requests += 1
+        if self.requests == 1:
+            self.first_started.set()
+            while self.gate_first and not self.release_first.is_set():
+                cancellation.raise_if_cancelled()
+                await asyncio.sleep(0)
+            cancellation.raise_if_cancelled()
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, "answer A")
+        else:
+            cancellation.raise_if_cancelled()
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, "answer B")
+        yield ModelEvent(ModelEventKind.COMPLETED)
+
+
+class TrackingTts(_FakeTts):
+    def __init__(self):
+        self.texts = []
+
+    async def synthesize(self, text, *, voice, language, cancellation):
+        self.texts.append(text)
+        async for frame in super().synthesize(
+            text,
+            voice=voice,
+            language=language,
+            cancellation=cancellation,
+        ):
+            yield frame
+
+
+class BlockingFirstOutput(_FakeOutput):
+    def __init__(self):
+        super().__init__()
+        self.first_started = asyncio.Event()
+        self.release_first = asyncio.Event()
+        self.play_calls = 0
+        self.frames_by_call = []
+
+    async def play(self, frames, cancellation):
+        self.token = cancellation
+        self.play_calls += 1
+        call_frames = 0
+        async for _frame in frames:
+            cancellation.raise_if_cancelled()
+            call_frames += 1
+            if self.play_calls == 1 and call_frames == 1:
+                self.first_started.set()
+                while not self.release_first.is_set():
+                    cancellation.raise_if_cancelled()
+                    await asyncio.sleep(0)
+        self.frames += call_frames
+        self.frames_by_call.append(call_frames)
+
+
+def committed_voice_turn(runtime, text):
+    manager = TurnManager(runtime.session_id)
+    manager.start_listening(0)
+    manager.on_vad(10, 1.0)
+    manager.on_vad(210, 1.0)
+    manager.on_transcript(220, text, is_final=True, confidence=0.99)
+    manager.on_vad(230, 0.0)
+    manager.on_time(1_330)
+    assert manager.state is VoiceState.COMMITTING
+    runtime.voice_turns = manager
+    assert manager.cancellation_id is not None
+    return Transcript(text, True, 0.99), runtime.cancellations.create(manager.cancellation_id)
+
+
 class ScriptCapture:
     def __init__(self, clock, provider):
         self.clock = clock
@@ -457,6 +534,145 @@ def test_final_candidate_cancels_old_response_once_and_starts_fresh_turn(tmp_pat
             assert sum(event.type == EventType.MODEL_CANCELLED for event in observed) == 1
             assert sum(event.type == EventType.TTS_CANCELLED for event in observed) == 1
         finally:
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+def test_committed_voice_turn_replaces_generation_during_active_playback(tmp_path):
+    async def scenario():
+        provider = HandoffProvider()
+        tts = TrackingTts()
+        output = BlockingFirstOutput()
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=128)
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(tmp_path, port=0),
+            events=events,
+            tts=tts,
+            audio_output=output,
+        )
+        try:
+            first = await runtime._start_voice_turn(
+                *committed_voice_turn(runtime, "first voice turn")
+            )
+            first_generation = runtime.active_generation_id
+            assert first_generation is not None
+            await output.first_started.wait()
+            assert runtime.delivery.active_generation_id == first_generation
+
+            second = await runtime._start_voice_turn(
+                *committed_voice_turn(runtime, "replacement voice turn")
+            )
+            second_generation = runtime.active_generation_id
+            assert second_generation not in {None, first_generation}
+            await asyncio.gather(first, second)
+
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            first_delivery_terminals = [
+                event
+                for event in observed
+                if event.generation_id == first_generation
+                and event.type in {EventType.TTS_COMPLETED, EventType.TTS_CANCELLED}
+            ]
+            second_authority = next(
+                index
+                for index, event in enumerate(observed)
+                if event.generation_id == second_generation
+            )
+            assert len(first_delivery_terminals) == 1
+            assert first_delivery_terminals[0].type == EventType.TTS_CANCELLED
+            assert observed.index(first_delivery_terminals[0]) < second_authority
+            assert not any(
+                event.type == EventType.COMPONENT_ERROR
+                and "active generation must finish" in str(event.payload.get("error", ""))
+                for event in observed
+            )
+            assert not any(
+                index > second_authority
+                and event.generation_id == first_generation
+                and event.type
+                in {EventType.MODEL_DELTA, EventType.TTS_LEVEL, EventType.TRANSCRIPT_FINAL}
+                for index, event in enumerate(observed)
+            )
+            first_snapshot = runtime.delivery.snapshot(first_generation)
+            second_snapshot = runtime.delivery.snapshot(second_generation)
+            assert first_snapshot is not None and first_snapshot.interrupted_at_ms is not None
+            assert second_snapshot is not None and second_snapshot.completed
+            assert tts.texts == ["answer A", "answer B"]
+            assert output.frames_by_call == [
+                _FakeTts.frame_count,
+            ]  # only B reaches completed playback
+        finally:
+            output.release_first.set()
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+def test_committed_voice_turn_replaces_generation_waiting_for_first_output(tmp_path):
+    async def scenario():
+        provider = HandoffProvider(gate_first=True)
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=128)
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(tmp_path, port=0),
+            events=events,
+            tts=_FakeTts(),
+            audio_output=_FakeOutput(),
+        )
+        try:
+            first = await runtime._start_voice_turn(
+                *committed_voice_turn(runtime, "first voice turn")
+            )
+            first_generation = runtime.active_generation_id
+            assert first_generation is not None
+            await provider.first_started.wait()
+
+            second = await runtime._start_voice_turn(
+                *committed_voice_turn(runtime, "replacement voice turn")
+            )
+            second_generation = runtime.active_generation_id
+            assert second_generation not in {None, first_generation}
+            provider.release_first.set()
+            await asyncio.gather(first, second)
+
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            first_terminals = [
+                event
+                for event in observed
+                if event.generation_id == first_generation
+                and event.type
+                in {EventType.MODEL_COMPLETED, EventType.MODEL_CANCELLED, EventType.COMPONENT_ERROR}
+            ]
+            second_authority = next(
+                index
+                for index, event in enumerate(observed)
+                if event.generation_id == second_generation
+            )
+            assert len(first_terminals) == 1
+            assert first_terminals[0].type == EventType.MODEL_CANCELLED
+            assert first_terminals[0].payload["reason"] == "superseded_by_new_user_turn"
+            assert observed.index(first_terminals[0]) < second_authority
+            assert not any(
+                event.type == EventType.MODEL_DELTA and event.generation_id == first_generation
+                for event in observed
+            )
+            assert not any(
+                event.type == EventType.COMPONENT_ERROR
+                and "active generation must finish" in str(event.payload.get("error", ""))
+                for event in observed
+            )
+        finally:
+            provider.release_first.set()
             await runtime.close()
             await subscription.close()
 

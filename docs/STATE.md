@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-17
+Updated: 2026-09-18
 
 ## MVP status
 
@@ -14,6 +14,12 @@ Updated: 2026-09-17
   provisional text on cancellation/error. Transcript hydration and broader history work
   remain reserved for 0.2.3. Focused deterministic tests pass; broad and live-model
   validation have not been run.
+- The 0.2.2 voice follow-up now serializes committed-turn handoff across runtime and
+  delivery ownership. A replacement cancels the predecessor with its existing identity,
+  publishes a delivery cancellation when model completion preceded active playback,
+  waits for the predecessor response task to unwind, and only then opens the successor
+  ledger. Focused deterministic coverage includes replacement during playback and while
+  waiting for first model output; no acoustic policy was changed.
 - Visual polish pass 1 on `feature/visual-polish` substantially restrains the
   analytic halo and makes the existing deterministic peels wider and farther
   from the body without increasing geometry, draw calls, or mobile frame budgets.

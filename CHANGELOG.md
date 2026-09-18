@@ -7,6 +7,9 @@
 - Give every accepted model generation one correlated terminal outcome. A replacement
   user turn waits until the superseded generation's cancellation is published, while
   stale content remains rejected and confirmed voice interruption still cancels once.
+- Serialize committed voice-turn handoff through response-task and delivery completion:
+  replacement during active playback cancels and terminalizes the predecessor before
+  the successor opens delivery ownership.
 - Reject completed model rounds that contain no usable text or tool call, including
   OpenAI-compatible role/finish/DONE-only streams, with an actionable error.
 - Use the existing OpenAI-compatible stream timeout as a total wall-clock generation

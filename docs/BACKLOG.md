@@ -13,6 +13,8 @@ in [Roadmap](ROADMAP.md).
   currently reaches Python tests but retains an unresolved Linux-only failure; it is
   explicit deferred work, not a silently weakened or artificially green 0.2.1 gate.
 - Stabilize language detection where drift can select the wrong TTS language.
+- Continue physical voice/noise/language reliability work without treating acoustic
+  tuning as generation-lifecycle repair.
 - Replace or supplement robotic Windows System.Speech while retaining a safe fallback.
 - Ship no public Windows installer until native packaging, signing, AV/reputation,
   artifact smoke, and acceptance gates pass.
@@ -25,19 +27,23 @@ in [Roadmap](ROADMAP.md).
   input/output observability, coherent procedural mappings, diagnostic fixtures and
   an owner-facing high-level settings concept without weakening v1 geometry, draw,
   cadence, privacy or fallback constraints.
-- Complete human visual acceptance of the Visual Engine polish passes across WebGL2,
-  Canvas, reduced motion, supported window sizes, and the `mobile_2020` profile.
-- Allocate a formally unobstructed ambient rectangle around Controls and transcript
-  surfaces in a later layout pass; the current full-window scene remains behind them.
+- Complete human visual acceptance across WebGL2, Canvas, reduced motion, supported
+  window sizes, and `mobile_2020`; particle visibility and the overall Visual Engine
+  appearance remain materially below the alpha target.
+- Redesign the Controls layout and scrollbar and allocate a formally unobstructed
+  ambient rectangle; the current full-window scene remains behind controls/transcript.
 - Surface the ephemeral resolved renderer/automatic Canvas fallback in a future
   settings or diagnostics surface; it is currently observable only inside the engine.
 - Preserve transcript history during interruption.
 - Tune transcript buffering and scrolling.
+- Fix assistant transcript entries that can be labeled as `You`.
 - Clarify microphone mute/toggle semantics, which appeared confusing or reversed.
+- Make the voice mute control stop current TTS playback, not only future replies.
 
 ## Behavior and settings
 
 - Add an owner setting for new-session versus resume-previous-conversation behavior.
+- Recover safely when provider/model Rescan leaves the UI black or unusable.
 - Add an owner setting for transcript retention during interruption.
 - Physically accept LM Studio automatic model load and ownership-aware eject behavior.
 - Define model/context/VRAM policy.
