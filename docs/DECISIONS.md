@@ -244,3 +244,15 @@ master specification are recorded here.
   fallback. Sam reaps direct owned Ollama children, but retains the shared LM
   daemon/server (Sam-loaded models use a 600 s idle TTL); stopping shared services
   could disrupt unrelated clients. Whisper retains its existing ownership rules.
+
+## D-019 — Known-output transcript screening before physical AEC
+
+- **Accepted:** 2026-09-18. During active playback, compare finalized local STT text
+  with the assistant text Sam is currently delivering. Reject an output-only match
+  with an explicit `playback_echo` outcome; retain clearly novel interruption words
+  and require a finalized non-backchannel transcript before an unscored whisper.cpp
+  result can cancel playback and become a user turn.
+- This is an inexpensive ownership guard, not acoustic echo cancellation. It cannot
+  recover user words omitted by recognition, distinguish identical simultaneous
+  speech, or prove physical-device robustness. A true reference-audio/AEC path remains
+  future work if hardware acceptance shows that text evidence is insufficient.

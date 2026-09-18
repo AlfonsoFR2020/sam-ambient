@@ -175,7 +175,7 @@ describe("protocol state reduction", () => {
     });
   });
 
-  it("deduplicates a correlated committed transcript and preserves its role", () => {
+  it("deduplicates a correlated committed transcript without rewriting its content", () => {
     let state = reduceProtocolEvent(
       resetUiState(),
       event("transcript.final", 20, { role: "user", text: "draft" }, { turn_id: "turn-1" }),
@@ -194,8 +194,99 @@ describe("protocol state reduction", () => {
       ),
     );
     expect(state.transcript).toHaveLength(2);
-    expect(state.transcript[0]).toMatchObject({ role: "user", text: "final" });
+    expect(state.transcript[0]).toMatchObject({ role: "user", text: "draft" });
     expect(state.transcript[1]).toMatchObject({ role: "assistant", text: "answer" });
+  });
+
+  it("never relabels a transcript with an omitted role as user text", () => {
+    const state = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "transcript.final",
+        20,
+        { text: "assistant text without an authoritative role" },
+        { turn_id: "turn-1", generation_id: "generation-1" },
+      ),
+    );
+    expect(state.transcript).toHaveLength(0);
+    expect(state.protocolError).toContain("role");
+  });
+
+  it("keeps interruption STT provisional until the candidate turn is committed", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "transcript.final",
+        20,
+        { role: "user", text: "Stop and listen", candidate: true },
+        { turn_id: "candidate-turn" },
+      ),
+    );
+    expect(state.transcript).toHaveLength(0);
+    expect(state.provisionalTranscript?.text).toBe("Stop and listen");
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "turn.committed",
+        21,
+        { role: "user", text: "Stop and listen" },
+        { turn_id: "candidate-turn" },
+      ),
+    );
+    expect(state.transcript).toHaveLength(1);
+    expect(state.transcript[0]).toMatchObject({ role: "user", text: "Stop and listen" });
+    expect(state.provisionalTranscript).toBeNull();
+  });
+
+  it("discards a rejected interruption candidate without committing it", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "transcript.final",
+        20,
+        { role: "user", text: "echo words", candidate: true },
+        { turn_id: "candidate-turn" },
+      ),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "stt.cancelled",
+        21,
+        { reason: "playback_echo", status: "cancelled" },
+        { turn_id: "candidate-turn" },
+      ),
+    );
+    expect(state.transcript).toHaveLength(0);
+    expect(state.provisionalTranscript).toBeNull();
+    expect(state.diagnosticReason).toContain("matched Sam's current playback");
+  });
+
+  it("keeps the first committed text immutable for a correlated role", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "transcript.final",
+        20,
+        { role: "assistant", text: "Original committed answer" },
+        { turn_id: "turn-1", generation_id: "generation-1" },
+      ),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "transcript.final",
+        21,
+        { role: "assistant", text: "Conflicting replacement" },
+        { turn_id: "turn-1", generation_id: "generation-1" },
+      ),
+    );
+    expect(state.transcript).toHaveLength(1);
+    expect(state.transcript[0]).toMatchObject({
+      role: "assistant",
+      text: "Original committed answer",
+      monotonicMs: 20,
+    });
   });
 
   it("preserves two turns and rejects a stale assistant transcript", () => {
@@ -322,7 +413,55 @@ describe("protocol state reduction", () => {
     );
     expect(state.conversationalState).toBe("INTERRUPTED");
     expect(state.transcript[0]?.interrupted).toBe(true);
-    expect(state.transcript[0]?.text).toBe("I was");
+    expect(state.transcript[0]?.text).toBe("I was saying");
+  });
+
+  it("does not delete a committed assistant answer when playback stops before a full chunk", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "model.completed",
+        10,
+        { text: "The complete visible answer", outcome: "completed" },
+        { turn_id: "turn-1", generation_id: "generation-1" },
+      ),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "tts.cancelled",
+        20,
+        {
+          reason: "ui_stop_speaking",
+          spoken_text: "",
+          unspoken_text: "The complete visible answer",
+        },
+        { turn_id: "turn-1", generation_id: "generation-1" },
+      ),
+    );
+    expect(state.transcript).toHaveLength(1);
+    expect(state.transcript[0]).toMatchObject({
+      role: "assistant",
+      text: "The complete visible answer",
+      interrupted: true,
+    });
+  });
+
+  it("does not evict earlier committed messages during the current session", () => {
+    let state = resetUiState();
+    for (let index = 0; index < 101; index += 1) {
+      state = reduceProtocolEvent(
+        state,
+        event(
+          "transcript.final",
+          index + 1,
+          { role: index % 2 ? "assistant" : "user", text: `message ${index}` },
+          { turn_id: `turn-${index}` },
+        ),
+      );
+    }
+    expect(state.transcript).toHaveLength(101);
+    expect(state.transcript[0]?.text).toBe("message 0");
   });
 
   it("accumulates assistant streaming deltas without committing generated text", () => {

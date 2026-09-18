@@ -19,10 +19,19 @@
 - Reconcile terminal events in the current UI: completion commits the correlated
   rendered answer, while cancellation and error clear provisional text and expose a
   reason. No transcript hydration or history redesign is included.
+- Route typed-response microphone capture through the same interruption lifecycle as
+  voice responses. Final whisper.cpp text without a calibrated confidence can confirm
+  a turn only after known-playback text screening; echo-only candidates are explicitly
+  rejected, while clearly novel overlap becomes one replacement turn.
+- Commit generated assistant text before delivery, preserve committed user/assistant
+  roles and content across interruption, and keep candidate STT provisional until its
+  turn is authoritative. Stop Talking now stops only current playback; muting speech
+  also stops current playback and suppresses future TTS without hiding text answers.
 
 **Validation boundary:** deterministic focused provider, runtime, voice-lifecycle and
 reducer tests pass. Broader Python/frontend gates and live slow/cancelled Gemma
-acceptance remain recommended before release approval.
+acceptance, especially physical echo/overlap behavior without AEC, remain recommended
+before release approval.
 
 ## 0.2.1 (alpha) - Release candidate
 

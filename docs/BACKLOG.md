@@ -34,11 +34,10 @@ in [Roadmap](ROADMAP.md).
   ambient rectangle; the current full-window scene remains behind controls/transcript.
 - Surface the ephemeral resolved renderer/automatic Canvas fallback in a future
   settings or diagnostics surface; it is currently observable only inside the engine.
-- Preserve transcript history during interruption.
 - Tune transcript buffering and scrolling.
-- Fix assistant transcript entries that can be labeled as `You`.
 - Clarify microphone mute/toggle semantics, which appeared confusing or reversed.
-- Make the voice mute control stop current TTS playback, not only future replies.
+- Complete the broader settings-control semantics audit after the 0.2.2 direct
+  Stop Talking and speech-mute repair.
 
 ## Behavior and settings
 

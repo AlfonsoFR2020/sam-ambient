@@ -5,7 +5,7 @@ import asyncio
 import pytest
 
 from sam_ambient.adapters.stt.whisper_cpp import SpeechRecognitionProtocolError
-from sam_ambient.core.protocol import EventBus, EventType
+from sam_ambient.core.protocol import ControlCommand, ControlCommandType, EventBus, EventType
 from sam_ambient.core.providers import ModelEvent, ModelEventKind
 from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
 from sam_ambient.core.voice import (
@@ -90,10 +90,19 @@ class GatedProvider(ConversationProvider):
 
 
 class HandoffProvider(ConversationProvider):
-    def __init__(self, *, gate_first: bool = False):
+    def __init__(
+        self,
+        *,
+        gate_first: bool = False,
+        first_answer: str = "answer A",
+        second_answer: str = "answer B",
+    ):
         super().__init__()
         self.gate_first = gate_first
+        self.first_answer = first_answer
+        self.second_answer = second_answer
         self.first_started = asyncio.Event()
+        self.second_started = asyncio.Event()
         self.release_first = asyncio.Event()
         self.requests = 0
 
@@ -106,10 +115,11 @@ class HandoffProvider(ConversationProvider):
                 cancellation.raise_if_cancelled()
                 await asyncio.sleep(0)
             cancellation.raise_if_cancelled()
-            yield ModelEvent(ModelEventKind.TEXT_DELTA, "answer A")
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, self.first_answer)
         else:
+            self.second_started.set()
             cancellation.raise_if_cancelled()
-            yield ModelEvent(ModelEventKind.TEXT_DELTA, "answer B")
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, self.second_answer)
         yield ModelEvent(ModelEventKind.COMPLETED)
 
 
@@ -150,6 +160,67 @@ class BlockingFirstOutput(_FakeOutput):
                     await asyncio.sleep(0)
         self.frames += call_frames
         self.frames_by_call.append(call_frames)
+
+
+class PlaybackCandidateCapture:
+    def __init__(self, runtime, *, attempts=1):
+        self.runtime = runtime
+        self.attempts = attempts
+
+    async def frames(self, cancellation):
+        at_ms = self.runtime._last_event_ms
+        for _ in range(self.attempts):
+            for delta, speech in ((20, 1), (200, 1), (20, 0), (400, 0), (1_200, 0)):
+                cancellation.raise_if_cancelled()
+                at_ms += delta
+                yield AudioFrame(
+                    AudioFormat(sample_rate_hz=1_000),
+                    bytes([speech, 0]) * 20,
+                    at_ms,
+                    at_ms // 20,
+                )
+                await asyncio.sleep(0)
+
+
+class TextResponseBargeInCapture(PlaybackCandidateCapture):
+    def __init__(self, runtime, *, playback_started=None):
+        super().__init__(runtime)
+        self.calls = 0
+        self.initial_listening = asyncio.Event()
+        self.playback_started = playback_started
+
+    async def frames(self, cancellation):
+        self.calls += 1
+        if self.calls == 1:
+            self.initial_listening.set()
+            at_ms = self.runtime._last_event_ms
+            while True:
+                cancellation.raise_if_cancelled()
+                at_ms += 20
+                yield AudioFrame(
+                    AudioFormat(sample_rate_hz=1_000),
+                    b"\0\0" * 20,
+                    at_ms,
+                    at_ms // 20,
+                )
+                await asyncio.sleep(0)
+        else:
+            if self.playback_started is not None:
+                await self.playback_started.wait()
+            async for frame in super().frames(cancellation):
+                yield frame
+
+
+class SequencedStt(StrictStt):
+    def __init__(self, candidates):
+        super().__init__()
+        self.candidates = iter(candidates)
+
+    async def start_stream(self, context, cancellation):
+        text, confidence = next(self.candidates)
+        stream = StrictStream(cancellation, text, confidence)
+        self.streams.append(stream)
+        return stream
 
 
 def committed_voice_turn(runtime, text):
@@ -673,6 +744,354 @@ def test_committed_voice_turn_replaces_generation_waiting_for_first_output(tmp_p
             )
         finally:
             provider.release_first.set()
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+def test_playback_echo_is_explicitly_rejected_without_false_user_turn(tmp_path):
+    async def scenario():
+        spoken = "The answer is forty two and here is why."
+        provider = HandoffProvider(first_answer=spoken)
+        output = BlockingFirstOutput()
+        stt = SequencedStt([(spoken, None)])
+        capture = PlaybackCandidateCapture(None)
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=128)
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(tmp_path, port=0),
+            events=events,
+            voice=RuntimeVoiceAdapters(capture, SignalVad(), stt),
+            tts=_FakeTts(),
+            audio_output=output,
+        )
+        capture.runtime = runtime
+        first_transcript, first_token = committed_voice_turn(runtime, "first voice turn")
+        try:
+            response = await runtime._start_voice_turn(first_transcript, first_token)
+            await output.first_started.wait()
+            assert await runtime._monitor_response_capture(response) is None
+            assert not first_token.is_cancelled
+            assert runtime.delivery.active_generation_id == runtime.active_generation_id
+
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            rejections = [
+                event
+                for event in observed
+                if event.type == EventType.STT_CANCELLED
+                and event.payload.get("reason") == "playback_echo"
+            ]
+            assert len(rejections) == 1
+            assert not any(event.type == EventType.TURN_COMMITTED for event in observed[1:])
+        finally:
+            output.release_first.set()
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+def test_typed_answer_routes_active_microphone_into_real_voice_interruption(tmp_path):
+    """Reproduce the physical text -> TTS -> live microphone failure end to end."""
+
+    async def scenario():
+        provider = HandoffProvider(
+            first_answer="The first typed answer is still playing.",
+            second_answer="The replacement voice answer.",
+        )
+        output = BlockingFirstOutput()
+        stt = SequencedStt([("Stop and answer my voice question.", None)])
+        capture = TextResponseBargeInCapture(None, playback_started=output.first_started)
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=256)
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(tmp_path, port=0),
+            events=events,
+            voice=RuntimeVoiceAdapters(capture, SignalVad(), stt),
+            tts=_FakeTts(),
+            audio_output=output,
+        )
+        capture.runtime = runtime
+        runtime._voice_task = asyncio.create_task(runtime._voice_loop())
+        try:
+            await capture.initial_listening.wait()
+            first_generation = runtime.submit_user_message("typed request")
+            await output.first_started.wait()
+            await asyncio.wait_for(provider.second_started.wait(), 0.5)
+            await runtime._active_done.wait()
+
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            assert (
+                sum(
+                    event.type == EventType.TTS_CANCELLED
+                    and event.generation_id == first_generation
+                    for event in observed
+                )
+                == 1
+            )
+            assert (
+                sum(
+                    event.type == EventType.TURN_COMMITTED
+                    and event.payload.get("text") == "Stop and answer my voice question."
+                    for event in observed
+                )
+                == 1
+            )
+            assert provider.requests == 2
+        finally:
+            output.release_first.set()
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+@pytest.mark.parametrize(
+    "candidate,expected_user_text",
+    [
+        ("Please stop and tell me the weather.", "Please stop and tell me the weather."),
+        ("The answer is forty two stop", "stop"),
+    ],
+)
+def test_unscored_final_voice_during_playback_becomes_replacement_turn(
+    tmp_path, candidate, expected_user_text
+):
+    async def scenario():
+        spoken = "The answer is forty two and here is why."
+        provider = HandoffProvider(
+            first_answer=spoken,
+            second_answer="The replacement answer.",
+        )
+        output = BlockingFirstOutput()
+        stt = SequencedStt([(candidate, None)])
+        capture = PlaybackCandidateCapture(None)
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=256)
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(tmp_path, port=0),
+            events=events,
+            voice=RuntimeVoiceAdapters(capture, SignalVad(), stt),
+            tts=_FakeTts(),
+            audio_output=output,
+        )
+        capture.runtime = runtime
+        first_transcript, first_token = committed_voice_turn(runtime, "first voice turn")
+        try:
+            first = await runtime._start_voice_turn(first_transcript, first_token)
+            first_generation = runtime.active_generation_id
+            await output.first_started.wait()
+            committed = await runtime._monitor_response_capture(first)
+            assert committed is not None
+            assert committed[0].text == expected_user_text
+            await first
+            second = await runtime._start_voice_turn(*committed)
+            second_generation = runtime.active_generation_id
+            await second
+
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            assert (
+                sum(
+                    event.type == EventType.TTS_CANCELLED
+                    and event.generation_id == first_generation
+                    for event in observed
+                )
+                == 1
+            )
+            assert (
+                sum(
+                    event.type == EventType.TURN_COMMITTED
+                    and event.payload.get("text") == expected_user_text
+                    for event in observed
+                )
+                == 1
+            )
+            assert any(
+                event.type == EventType.MODEL_COMPLETED and event.generation_id == second_generation
+                for event in observed
+            )
+            assert provider.requests == 2
+        finally:
+            output.release_first.set()
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+def test_rejected_echo_then_real_interruption_commits_only_one_replacement(tmp_path):
+    async def scenario():
+        spoken = "The answer is forty two and here is why."
+        provider = HandoffProvider(first_answer=spoken, second_answer="Replacement complete.")
+        output = BlockingFirstOutput()
+        stt = SequencedStt([(spoken, None), ("Stop and listen to me.", None)])
+        capture = PlaybackCandidateCapture(None, attempts=2)
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=256)
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(tmp_path, port=0),
+            events=events,
+            voice=RuntimeVoiceAdapters(capture, SignalVad(), stt),
+            tts=_FakeTts(),
+            audio_output=output,
+        )
+        capture.runtime = runtime
+        first_transcript, first_token = committed_voice_turn(runtime, "first voice turn")
+        try:
+            first = await runtime._start_voice_turn(first_transcript, first_token)
+            await output.first_started.wait()
+            committed = await runtime._monitor_response_capture(first)
+            assert committed is not None and committed[0].text == "Stop and listen to me."
+            await first
+            replacement = await runtime._start_voice_turn(*committed)
+            await replacement
+
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            assert sum(event.type == EventType.TURN_COMMITTED for event in observed) == 1
+            assert sum(event.type == EventType.TTS_CANCELLED for event in observed) == 1
+            assert (
+                sum(
+                    event.type == EventType.STT_CANCELLED
+                    and event.payload.get("reason") == "playback_echo"
+                    for event in observed
+                )
+                == 1
+            )
+            assert provider.requests == 2
+        finally:
+            output.release_first.set()
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+def test_stop_speaking_preserves_answer_and_allows_future_playback(tmp_path):
+    async def scenario():
+        output = BlockingFirstOutput()
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=128)
+        runtime = SamRuntime(
+            HandoffProvider(first_answer="First complete answer.", second_answer="Second answer."),
+            RuntimeConfig(tmp_path, port=0, state_db=tmp_path / "state.db"),
+            events=events,
+            tts=_FakeTts(),
+            audio_output=output,
+        )
+        try:
+            first_generation = runtime.submit_user_message("first request")
+            await output.first_started.wait()
+            await runtime.controls.dispatch(
+                ControlCommand(
+                    type=ControlCommandType.STOP_SPEAKING,
+                    command_id="stop",
+                    monotonic_ms=runtime._next_event_ms(),
+                    session_id=runtime.session_id,
+                )
+            )
+            await runtime._active_done.wait()
+            second_generation = runtime.submit_user_message("second request")
+            await runtime._active_done.wait()
+
+            assert runtime.state is not None
+            messages = runtime.state.recent(limit=10)
+            assert [(item.role, item.content) for item in messages] == [
+                ("user", "first request"),
+                ("assistant", "First complete answer."),
+                ("user", "second request"),
+                ("assistant", "Second answer."),
+            ]
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            assert (
+                sum(
+                    event.type == EventType.TTS_CANCELLED
+                    and event.generation_id == first_generation
+                    for event in observed
+                )
+                == 1
+            )
+            assert any(
+                event.type == EventType.MODEL_COMPLETED and event.generation_id == second_generation
+                for event in observed
+            )
+            assert output.play_calls == 2
+        finally:
+            output.release_first.set()
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+def test_mute_stops_current_playback_and_keeps_future_text_answers(tmp_path):
+    async def scenario():
+        output = BlockingFirstOutput()
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=128)
+        runtime = SamRuntime(
+            HandoffProvider(first_answer="First complete answer.", second_answer="Muted answer."),
+            RuntimeConfig(tmp_path, port=0, state_db=tmp_path / "state.db"),
+            events=events,
+            tts=_FakeTts(),
+            audio_output=output,
+        )
+        try:
+            first_generation = runtime.submit_user_message("first request")
+            await output.first_started.wait()
+            acknowledgement = await runtime.controls.dispatch(
+                ControlCommand(
+                    type=ControlCommandType.TTS_OUTPUT_SET,
+                    command_id="mute",
+                    monotonic_ms=runtime._next_event_ms(),
+                    session_id=runtime.session_id,
+                    payload={"enabled": False},
+                )
+            )
+            assert acknowledgement.payload["tts_output_enabled"] is False
+            await runtime._active_done.wait()
+            second_generation = runtime.submit_user_message("muted request")
+            await runtime._active_done.wait()
+
+            assert runtime.state is not None
+            messages = runtime.state.recent(limit=10)
+            assert [(item.role, item.content) for item in messages] == [
+                ("user", "first request"),
+                ("assistant", "First complete answer."),
+                ("user", "muted request"),
+                ("assistant", "Muted answer."),
+            ]
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            assert (
+                sum(
+                    event.type == EventType.TTS_CANCELLED
+                    and event.generation_id == first_generation
+                    for event in observed
+                )
+                == 1
+            )
+            assert any(
+                event.type == EventType.MODEL_COMPLETED and event.generation_id == second_generation
+                for event in observed
+            )
+            assert output.play_calls == 1
+        finally:
+            output.release_first.set()
             await runtime.close()
             await subscription.close()
 

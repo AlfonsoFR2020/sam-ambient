@@ -16,8 +16,8 @@ import {
 const clamp = (value: unknown): number =>
   typeof value === "number" && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
 
-const transcriptRole = (value: unknown): TranscriptEntry["role"] =>
-  value === "assistant" ? "assistant" : "user";
+const transcriptRole = (value: unknown): TranscriptEntry["role"] | null =>
+  value === "assistant" || value === "user" ? value : null;
 
 const transcriptText = (event: ProtocolEvent): string | null => {
   const text = event.payload.text;
@@ -47,9 +47,11 @@ const withCommittedTranscript = (
         (!entry.generationId && entry.turnId && item.turnId === entry.turnId)),
   );
   const transcript = [...state.transcript];
-  if (duplicateIndex >= 0) transcript[duplicateIndex] = entry;
-  else transcript.push(entry);
-  return { ...state, provisionalTranscript: null, transcript: transcript.slice(-100) };
+  if (duplicateIndex >= 0) {
+    const committed = transcript[duplicateIndex];
+    transcript[duplicateIndex] = interrupted ? { ...committed, interrupted: true } : committed;
+  } else transcript.push(entry);
+  return { ...state, provisionalTranscript: null, transcript };
 };
 
 const isStaleGeneration = (state: UiState, event: ProtocolEvent): boolean =>
@@ -517,37 +519,66 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     };
   } else if (event.type === "transcript.partial") {
     const text = transcriptText(event);
-    if (text) {
+    const role = transcriptRole(event.payload.role);
+    if (text && role) {
       next = {
         ...next,
         provisionalTranscript: {
-          role: transcriptRole(event.payload.role),
+          role,
           text,
           monotonicMs: event.monotonic_ms,
         },
       };
+    } else if (text) {
+      next = { ...next, protocolError: "Transcript event is missing a valid user/assistant role." };
     }
   } else if (event.type === "transcript.final") {
     const text = transcriptText(event);
-    if (text) {
-      const role = transcriptRole(event.payload.role);
+    const role = transcriptRole(event.payload.role);
+    if (text && role && event.payload.candidate === true) {
+      next = {
+        ...next,
+        provisionalTranscript: { role, text, monotonicMs: event.monotonic_ms },
+      };
+    } else if (text && role) {
       next = withCommittedTranscript(next, event, role, text, Boolean(event.payload.interrupted));
+    } else if (text) {
+      next = { ...next, protocolError: "Transcript event is missing a valid user/assistant role." };
     }
+  } else if (event.type === "turn.committed") {
+    const text = transcriptText(event);
+    if (text) next = withCommittedTranscript(next, event, "user", text);
   } else if (event.type === "tts.cancelled") {
     const transcript = [...next.transcript];
-    const last = transcript.at(-1);
-    if (last?.role === "assistant") {
-      const spokenText = event.payload.spoken_text;
-      if (typeof spokenText === "string" && !spokenText.trim()) transcript.pop();
-      else {
-        transcript[transcript.length - 1] = {
-          ...last,
-          text: typeof spokenText === "string" ? spokenText.trim() : last.text,
-          interrupted: true,
-        };
+    let index = -1;
+    for (let candidate = transcript.length - 1; candidate >= 0; candidate -= 1) {
+      const entry = transcript[candidate];
+      if (
+        entry.role === "assistant" &&
+        ((event.generation_id && entry.generationId === event.generation_id) ||
+          (!event.generation_id && event.turn_id && entry.turnId === event.turn_id))
+      ) {
+        index = candidate;
+        break;
       }
     }
+    if (index >= 0) {
+      transcript[index] = { ...transcript[index], interrupted: true };
+    }
     next = { ...next, transcript };
+  } else if (event.type === "stt.cancelled") {
+    const reason = boundedText(event.payload.reason, 120);
+    next = {
+      ...next,
+      provisionalTranscript:
+        next.provisionalTranscript?.role === "user" ? null : next.provisionalTranscript,
+      diagnosticReason:
+        reason === "playback_echo"
+          ? "Ignored speech that matched Sam's current playback."
+          : reason === "candidate_not_credible"
+            ? "The interruption was heard but could not be confirmed as a user turn."
+            : next.diagnosticReason,
+    };
   } else if (event.type === "model.delta" && typeof event.payload.text === "string") {
     const current = next.provisionalTranscript;
     next = {

@@ -4,22 +4,27 @@ Updated: 2026-09-18
 
 ## MVP status
 
-- The focused 0.2.2 model-response lifecycle slice now gives accepted generations one
+- The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal
   outcome. Replacement turns wait for predecessor terminal publication; stale chunks
   remain rejected. The existing OpenAI-compatible stream timeout now bounds total
   wall-clock generation and first useful content unless the latter is explicitly
   narrowed; metadata/keepalive-only streams cannot report silent success. The reducer
-  commits completed current-turn text and clears
-  provisional text on cancellation/error. Transcript hydration and broader history work
-  remain reserved for 0.2.3. Focused deterministic tests pass; broad and live-model
-  validation have not been run.
-- The 0.2.2 voice follow-up now serializes committed-turn handoff across runtime and
+  commits completed current-turn text and clears provisional text on cancellation/error.
+  It also serializes committed-turn handoff across runtime and
   delivery ownership. A replacement cancels the predecessor with its existing identity,
   publishes a delivery cancellation when model completion preceded active playback,
   waits for the predecessor response task to unwind, and only then opens the successor
-  ledger. Focused deterministic coverage includes replacement during playback and while
-  waiting for first model output; no acoustic policy was changed.
+  ledger. Typed responses now take ownership of live capture while active so credible
+  voice overlap reaches the same interruption/turn-commit/replacement path. Final
+  whisper.cpp text with no calibrated confidence is accepted only after known-output
+  transcript screening; exact output echo is explicitly rejected and clearly novel
+  overlap is retained. Generated assistant text is committed before TTS, current-session
+  committed UI entries are append-only, and Stop/Mute cannot erase them. Stop affects
+  current playback only; Mute also suppresses future TTS while text remains available.
+  This text-reference guard is not acoustic echo cancellation and physical overlap
+  remains unproven. Transcript hydration and resume policy remain later work. Focused
+  deterministic tests pass; broad and live-model validation have not been run.
 - Visual polish pass 1 on `feature/visual-polish` substantially restrains the
   analytic halo and makes the existing deterministic peels wider and farther
   from the body without increasing geometry, draw calls, or mobile frame budgets.

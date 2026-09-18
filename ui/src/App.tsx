@@ -747,7 +747,7 @@ export default function App() {
               </ControlButton>
             )}
             <ControlButton
-              help="Enable or mute future spoken replies. Text responses remain visible."
+              help="Mute stops current speech and future spoken replies. Text responses remain visible."
               disabled={pending || state.connection !== "connected"}
               onClick={() =>
                 applyAction({ type: "tts_output.set", enabled: !state.ttsOutputEnabled })

@@ -106,16 +106,41 @@ log = logging.getLogger(__name__)
 _WORD = re.compile(r"[^\W_]+", re.UNICODE)
 
 
-def _looks_like_playback_echo(candidate: str, assistant_text: str) -> bool:
-    """Conservatively identify a multi-word STT fragment copied from current playback."""
+_INTERRUPTION_CUES = frozenset({"cancel", "listen", "pause", "sam", "stop", "wait"})
 
-    heard = _WORD.findall(candidate.casefold())
+
+def _screen_playback_transcript(
+    candidate: str, assistant_text: str
+) -> tuple[str | None, str | None]:
+    """Separate probable playback echo from novel interruption words.
+
+    This is deliberately a text-reference guard, not an acoustic echo canceller.
+    It can reject a transcript copied from known output and retain clearly novel
+    words, but it cannot recover user speech that the recognizer omitted.
+    """
+
+    normalized = " ".join(candidate.split())
+    heard_original = _WORD.findall(normalized)
+    heard = [word.casefold() for word in heard_original]
     spoken = _WORD.findall(assistant_text.casefold())
     if len(heard) < 3 or not spoken:
-        return False
+        return normalized, None
+    joined_heard = " ".join(heard)
+    joined_spoken = " ".join(spoken)
+    if joined_heard in joined_spoken:
+        return None, "playback_echo"
     spoken_set = set(spoken)
     overlap = sum(1 for word in heard if word in spoken_set) / len(heard)
-    return overlap >= 0.8 or " ".join(heard) in " ".join(spoken)
+    if overlap < 0.8:
+        return normalized, None
+    novel = [
+        original
+        for original, folded in zip(heard_original, heard, strict=True)
+        if folded not in spoken_set
+    ]
+    if len(novel) >= 2 or any(word.casefold() in _INTERRUPTION_CUES for word in novel):
+        return " ".join(novel), None
+    return None, "playback_echo"
 
 
 def _frame_after_protocol_clock(frame: AudioFrame, protocol_ms: int) -> AudioFrame:
@@ -487,10 +512,14 @@ class SamRuntime:
         self._active_token: CancellationToken | None = None
         self._active_terminal: asyncio.Event | None = None
         self._active_response_done: asyncio.Event | None = None
+        self._active_playback_generation_id: str | None = None
         self._generation_handoff_lock = asyncio.Lock()
         self._terminal_publish_lock = asyncio.Lock()
         self._voice_listen_token: CancellationToken | None = None
         self._voice_task: asyncio.Task[None] | None = None
+        self._voice_ordinary_capture_enabled = asyncio.Event()
+        self._voice_ordinary_capture_enabled.set()
+        self._voice_monitor_owner: TurnManager | None = None
         self._voice_restart_failures = 0
         self._active_done = asyncio.Event()
         self._active_done.set()
@@ -737,11 +766,10 @@ class SamRuntime:
             raise ValueError("user message exceeds 4000 characters")
         predecessor_done = self._active_response_done
         if self._active_token is not None:
-            if self._active_generation_id is not None:
-                self.speech_queue.cancel_generation(
-                    self._active_generation_id, self._next_event_ms()
-                )
             self._active_token.cancel("superseded_by_new_user_turn")
+        voice_managed = self.voice is not None and self.controls.microphone_enabled
+        if voice_managed and self._voice_listen_token is not None:
+            self._voice_listen_token.cancel("text_response_started")
         turn_id = str(uuid4())
         generation_id = str(uuid4())
         token = self.cancellations.create()
@@ -752,6 +780,11 @@ class SamRuntime:
         self._active_terminal = terminal
         self._active_response_done = response_done
         self._active_done.clear()
+        turn_manager = TurnManager(self.session_id) if voice_managed else None
+        started = asyncio.Event() if voice_managed else None
+        if turn_manager is not None:
+            self._voice_monitor_owner = turn_manager
+            self._voice_ordinary_capture_enabled.clear()
         task = asyncio.create_task(
             self._run_turn_after_predecessor(
                 normalized,
@@ -762,10 +795,17 @@ class SamRuntime:
                 terminal=terminal,
                 response_done=response_done,
                 predecessor_done=predecessor_done,
+                turn_manager=turn_manager,
+                started=started,
             )
         )
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
+        if turn_manager is not None and started is not None:
+            task.add_done_callback(lambda _: started.set())
+            monitor = asyncio.create_task(self._monitor_text_response(task, started, turn_manager))
+            self._tasks.add(monitor)
+            monitor.add_done_callback(self._tasks.discard)
         return generation_id
 
     async def _run_turn_after_predecessor(
@@ -779,10 +819,14 @@ class SamRuntime:
         terminal: asyncio.Event,
         response_done: asyncio.Event,
         predecessor_done: asyncio.Event | None,
+        turn_manager: TurnManager | None,
+        started: asyncio.Event | None,
     ) -> None:
         try:
             if predecessor_done is not None:
                 await predecessor_done.wait()
+            if turn_manager is not None:
+                self.voice_turns = turn_manager
             await self._run_turn(
                 text,
                 session_id=session_id,
@@ -791,6 +835,8 @@ class SamRuntime:
                 cancellation=cancellation,
                 terminal=terminal,
                 response_done=response_done,
+                turn_manager=turn_manager,
+                started=started,
             )
         except asyncio.CancelledError:
             await self._publish_generation_terminal(
@@ -814,6 +860,36 @@ class SamRuntime:
             self.cancellations.discard(cancellation.cancellation_id)
             response_done.set()
 
+    async def _monitor_text_response(
+        self,
+        response: asyncio.Task[None],
+        started: asyncio.Event,
+        turn_manager: TurnManager,
+    ) -> None:
+        """Give a typed response the same live-microphone barge-in path as voice."""
+
+        try:
+            await started.wait()
+            if (
+                response.done()
+                or self._closed
+                or self.voice_turns is not turn_manager
+                or self._voice_monitor_owner is not turn_manager
+            ):
+                return
+            while committed := await self._monitor_response_capture(response):
+                await asyncio.gather(response, return_exceptions=True)
+                if not committed[0].text:
+                    committed[1].cancel("no_speech")
+                    self.cancellations.discard(committed[1].cancellation_id)
+                    return
+                response = await self._start_voice_turn(*committed)
+            await asyncio.gather(response, return_exceptions=True)
+        finally:
+            if self._voice_monitor_owner is turn_manager:
+                self._voice_monitor_owner = None
+                self._voice_ordinary_capture_enabled.set()
+
     async def _run_turn(
         self,
         text: str,
@@ -825,10 +901,12 @@ class SamRuntime:
         terminal: asyncio.Event,
         response_done: asyncio.Event,
         voice_managed: bool = False,
+        turn_manager: TurnManager | None = None,
         started: asyncio.Event | None = None,
     ) -> None:
         timing_started = time.monotonic()
         first_model_output = False
+        manager = turn_manager or (self.voice_turns if voice_managed else None)
         try:
             cancellation.raise_if_cancelled()
             if self.state is not None:
@@ -840,9 +918,18 @@ class SamRuntime:
                     content=text,
                     committed_at_ms=time.time_ns() // 1_000_000,
                 )
-            if voice_managed:
+            if manager is not None:
+                if manager.state is VoiceState.IDLE:
+                    await self._publish_all(
+                        manager.accept_text_turn(
+                            self._next_event_ms(),
+                            turn_id=turn_id,
+                            cancellation_id=cancellation.cancellation_id,
+                            text=text,
+                        )
+                    )
                 await self._publish_all(
-                    self.voice_turns.on_model_started(
+                    manager.on_model_started(
                         self._next_event_ms(),
                         generation_id=generation_id,
                         cancellation_id=cancellation.cancellation_id,
@@ -965,7 +1052,7 @@ class SamRuntime:
                     except Exception:
                         log.warning("Could not save optional last-good local model preference")
                 self.delivery.record_generated(generation_id, assistant_text)
-                if voice_managed:
+                if manager is not None:
                     completion_events = tuple(
                         replace(
                             event,
@@ -975,7 +1062,7 @@ class SamRuntime:
                                 "outcome": "completed",
                             },
                         )
-                        for event in self.voice_turns.on_model_completed(
+                        for event in manager.on_model_completed(
                             self._next_event_ms(), generation_id=generation_id
                         )
                     )
@@ -993,14 +1080,6 @@ class SamRuntime:
                         cancellation_id=cancellation.cancellation_id,
                         payload={"text": assistant_text, "outcome": "completed"},
                     )
-                spoken_text = await self._deliver_assistant(
-                    assistant_text,
-                    session_id=session_id,
-                    turn_id=turn_id,
-                    generation_id=generation_id,
-                    cancellation=cancellation,
-                    voice_managed=voice_managed,
-                )
                 if self.state is not None:
                     await asyncio.to_thread(
                         self.state.append,
@@ -1016,16 +1095,22 @@ class SamRuntime:
                     session_id=session_id,
                     turn_id=turn_id,
                     cancellation_id=cancellation.cancellation_id,
-                    payload={
-                        "role": "assistant",
-                        "text": assistant_text,
-                        "spoken_text": spoken_text,
-                    },
+                    payload={"role": "assistant", "text": assistant_text},
+                )
+                await self._deliver_assistant(
+                    assistant_text,
+                    session_id=session_id,
+                    turn_id=turn_id,
+                    generation_id=generation_id,
+                    cancellation=cancellation,
+                    turn_manager=manager,
                 )
                 return
             raise RuntimeError("model exceeded the bounded tool round limit")
         except (OperationCancelled, asyncio.CancelledError):
-            snapshot = self.speech_queue.cancel_generation(generation_id, self._next_event_ms())
+            prior_delivery = self.delivery.snapshot(generation_id)
+            model_was_terminal = terminal.is_set()
+            delivery = self.speech_queue.cancel_generation(generation_id, self._next_event_ms())
             await self._publish_generation_terminal(
                 EventType.MODEL_CANCELLED,
                 generation_id,
@@ -1038,23 +1123,38 @@ class SamRuntime:
                     "outcome": self._cancellation_outcome(cancellation.reason),
                 },
             )
-            if snapshot is not None and snapshot.spoken_text and self.state is not None:
-                await asyncio.to_thread(
-                    self.state.append,
-                    session_id=session_id,
-                    turn_id=turn_id,
-                    role="assistant",
-                    content=snapshot.spoken_text,
-                    committed_at_ms=time.time_ns() // 1_000_000,
+            if (
+                model_was_terminal
+                and prior_delivery is not None
+                and prior_delivery.chunks
+                and prior_delivery.interrupted_at_ms is None
+                and delivery is not None
+                and not delivery.completed
+            ):
+                await self.events.publish(
+                    ProtocolEvent(
+                        type=EventType.TTS_CANCELLED,
+                        monotonic_ms=self._next_event_ms(),
+                        session_id=session_id,
+                        turn_id=turn_id,
+                        generation_id=generation_id,
+                        cancellation_id=cancellation.cancellation_id,
+                        payload={
+                            "reason": cancellation.reason or "cancelled",
+                            "status": "cancelled",
+                            "spoken_text": delivery.spoken_text,
+                            "unspoken_text": delivery.unspoken_text,
+                        },
+                    )
                 )
         except Exception as error:
             log.exception("Turn failed (%s): %s", type(error).__name__, str(error) or "no detail")
-            if voice_managed and self.voice_turns.state not in {
+            if manager is not None and manager.state not in {
                 VoiceState.ERROR,
                 VoiceState.OFFLINE,
             }:
                 await self._publish_all(
-                    self.voice_turns.on_component_error(
+                    manager.on_component_error(
                         self._next_event_ms(),
                         component="runtime",
                         reason=str(error)[:500] or type(error).__name__,
@@ -1113,11 +1213,11 @@ class SamRuntime:
         turn_id: str,
         generation_id: str,
         cancellation: CancellationToken,
-        voice_managed: bool,
+        turn_manager: TurnManager | None,
     ) -> str:
-        if voice_managed:
+        if turn_manager is not None:
             await self._publish_all(
-                self.voice_turns.on_tts_started(self._next_event_ms(), generation_id=generation_id)
+                turn_manager.on_tts_started(self._next_event_ms(), generation_id=generation_id)
             )
         else:
             await self._publish_generation(
@@ -1145,45 +1245,48 @@ class SamRuntime:
                     "conversation_timing stage=tts_requested elapsed_ms=0 generation=%s",
                     generation_id,
                 )
-                chunk = await self.speech_queue.enqueue(
-                    generation_id,
-                    text,
-                    at_ms=self._next_event_ms(),
-                    cancellation=cancellation,
-                )
-                queued = await self.speech_queue.next_chunk(cancellation)
-                if queued != chunk:
-                    raise RuntimeError("speech queue returned an unexpected chunk")
-                self.speech_queue.mark_playing(chunk, self._next_event_ms())
-                log.info(
-                    "conversation_timing stage=playback_start elapsed_ms=%d generation=%s",
-                    round((time.monotonic() - tts_started) * 1000),
-                    generation_id,
-                )
-                await self.audio_output.play(
-                    self._metered_tts_frames(
+                self._active_playback_generation_id = generation_id
+                try:
+                    chunk = await self.speech_queue.enqueue(
+                        generation_id,
                         text,
-                        generation_id=generation_id,
-                        session_id=session_id,
-                        turn_id=turn_id,
+                        at_ms=self._next_event_ms(),
                         cancellation=cancellation,
-                    ),
-                    cancellation,
-                )
-                self.speech_queue.mark_spoken(chunk, self._next_event_ms())
-                log.info(
-                    "conversation_timing stage=playback_complete elapsed_ms=%d generation=%s",
-                    round((time.monotonic() - tts_started) * 1000),
-                    generation_id,
-                )
-                spoken_text = text
+                    )
+                    queued = await self.speech_queue.next_chunk(cancellation)
+                    if queued != chunk:
+                        raise RuntimeError("speech queue returned an unexpected chunk")
+                    self.speech_queue.mark_playing(chunk, self._next_event_ms())
+                    log.info(
+                        "conversation_timing stage=playback_start elapsed_ms=%d generation=%s",
+                        round((time.monotonic() - tts_started) * 1000),
+                        generation_id,
+                    )
+                    await self.audio_output.play(
+                        self._metered_tts_frames(
+                            text,
+                            generation_id=generation_id,
+                            session_id=session_id,
+                            turn_id=turn_id,
+                            cancellation=cancellation,
+                        ),
+                        cancellation,
+                    )
+                    self.speech_queue.mark_spoken(chunk, self._next_event_ms())
+                    log.info(
+                        "conversation_timing stage=playback_complete elapsed_ms=%d generation=%s",
+                        round((time.monotonic() - tts_started) * 1000),
+                        generation_id,
+                    )
+                    spoken_text = text
+                finally:
+                    if self._active_playback_generation_id == generation_id:
+                        self._active_playback_generation_id = None
         self.delivery.finish_generation(generation_id)
 
-        if voice_managed:
+        if turn_manager is not None:
             await self._publish_all(
-                self.voice_turns.on_tts_completed(
-                    self._next_event_ms(), generation_id=generation_id
-                )
+                turn_manager.on_tts_completed(self._next_event_ms(), generation_id=generation_id)
             )
         else:
             await self._publish_generation(
@@ -1275,9 +1378,12 @@ class SamRuntime:
         assert self.voice is not None
         while not self._closed:
             await self._microphone_enabled.wait()
+            await self._voice_ordinary_capture_enabled.wait()
             await self._active_done.wait()
             if self._closed:
                 return
+            if not self._voice_ordinary_capture_enabled.is_set() or not self._active_done.is_set():
+                continue
             self.voice_turns = TurnManager(self.session_id)
             token = self.cancellations.create()
             self._voice_listen_token = token
@@ -1385,37 +1491,9 @@ class SamRuntime:
 
             predecessor_id = self._active_generation_id
             predecessor_token = self._active_token
-            predecessor_terminal = self._active_terminal
             predecessor_done = self._active_response_done
             if predecessor_id is not None and predecessor_token is not None:
-                delivery = None
-                if self.delivery.active_generation_id == predecessor_id:
-                    delivery = self.speech_queue.cancel_generation(
-                        predecessor_id, self._next_event_ms()
-                    )
                 predecessor_token.cancel("superseded_by_new_user_turn")
-                if (
-                    delivery is not None
-                    and not delivery.completed
-                    and predecessor_terminal is not None
-                    and predecessor_terminal.is_set()
-                ):
-                    await self.events.publish(
-                        ProtocolEvent(
-                            type=EventType.TTS_CANCELLED,
-                            monotonic_ms=self._next_event_ms(),
-                            session_id=self.session_id,
-                            turn_id=delivery.turn_id,
-                            generation_id=delivery.generation_id,
-                            cancellation_id=delivery.cancellation_id,
-                            payload={
-                                "reason": predecessor_token.reason or "superseded_by_new_user_turn",
-                                "status": "cancelled",
-                                "spoken_text": delivery.spoken_text,
-                                "unspoken_text": delivery.unspoken_text,
-                            },
-                        )
-                    )
                 if predecessor_done is not None:
                     await predecessor_done.wait()
 
@@ -1428,6 +1506,7 @@ class SamRuntime:
             self._active_response_done = response_done
             self._active_done.clear()
             started = asyncio.Event()
+            turn_manager = self.voice_turns
             task = asyncio.create_task(
                 self._run_turn(
                     transcript.text,
@@ -1438,6 +1517,7 @@ class SamRuntime:
                     terminal=terminal,
                     response_done=response_done,
                     voice_managed=True,
+                    turn_manager=turn_manager,
                     started=started,
                 )
             )
@@ -1539,11 +1619,25 @@ class SamRuntime:
                         if self._active_generation_id
                         else None
                     )
-                    probable_echo = snapshot is not None and _looks_like_playback_echo(
-                        final_transcript.text, snapshot.generated_text
+                    screened_text, rejection_reason = (
+                        _screen_playback_transcript(final_transcript.text, snapshot.generated_text)
+                        if snapshot is not None
+                        else (" ".join(final_transcript.text.split()), None)
                     )
-                    if probable_echo:
-                        final_transcript = Transcript("", True, final_transcript.confidence)
+                    if rejection_reason is not None:
+                        events = self.voice_turns.reject_interruption(
+                            self._next_event_ms(), rejection_reason
+                        )
+                        self.interruptions.apply(events)
+                        await self._publish_all(events)
+                        await finalizing.cancel(candidate_token.cancellation_id, rejection_reason)
+                        self.cancellations.discard(candidate_token.cancellation_id)
+                        candidate_token = None
+                        final_transcript = None
+                        continue
+                    final_transcript = Transcript(
+                        screened_text or "", True, final_transcript.confidence
+                    )
                     tentative = self.voice_turns.state in {
                         VoiceState.INTERRUPTION_CANDIDATE,
                         VoiceState.RECOVERING,
@@ -1561,9 +1655,7 @@ class SamRuntime:
                                     self._next_event_ms(),
                                     final_transcript.text,
                                     is_final=True,
-                                    confidence=final_transcript.confidence
-                                    if final_transcript.confidence is not None
-                                    else 0.5,
+                                    confidence=final_transcript.confidence,
                                 )
                             )
                     if self.voice_turns.state in {
@@ -1571,7 +1663,7 @@ class SamRuntime:
                         VoiceState.RECOVERING,
                     }:
                         events = self.voice_turns.reject_interruption(
-                            self._next_event_ms(), "candidate_final_rejected"
+                            self._next_event_ms(), "candidate_not_credible"
                         )
                         self.interruptions.apply(events)
                         await self._publish_all(events)
@@ -1684,13 +1776,19 @@ class SamRuntime:
                             if self._active_generation_id
                             else None
                         )
-                        if snapshot is not None and _looks_like_playback_echo(
-                            partial.text, snapshot.generated_text
-                        ):
+                        screened_text, rejection_reason = (
+                            _screen_playback_transcript(partial.text, snapshot.generated_text)
+                            if snapshot is not None
+                            else (" ".join(partial.text.split()), None)
+                        )
+                        if rejection_reason is not None:
                             log.info(
                                 "Suppressed playback-coincident STT candidate as probable self-echo"
                             )
                             continue
+                        partial = Transcript(
+                            screened_text or "", partial.is_final, partial.confidence
+                        )
                         if self.voice_turns.state in {
                             VoiceState.INTERRUPTION_CANDIDATE,
                             VoiceState.RECOVERING,
@@ -1706,7 +1804,7 @@ class SamRuntime:
                                     frame.monotonic_ms,
                                     partial.text,
                                     is_final=partial.is_final,
-                                    confidence=partial.confidence or 0.5,
+                                    confidence=partial.confidence,
                                 )
                             )
 
@@ -1830,13 +1928,63 @@ class SamRuntime:
 
     async def _set_tts_output(self, enabled: bool) -> None:
         self.controls.tts_output_enabled = enabled
+        if not enabled:
+            await self._cancel_active_playback("tts_output_muted")
+
+    async def _cancel_active_playback(self, reason: str) -> None:
+        generation_id = self._active_playback_generation_id
+        if generation_id is None:
+            return
+        # Claim the stop before publishing so repeated controls cannot emit a
+        # second terminal delivery event while audio unwinds asynchronously.
+        self._active_playback_generation_id = None
+        snapshot = self.delivery.snapshot(generation_id)
+        if snapshot is None or snapshot.completed:
+            return
+        at_ms = self._next_event_ms()
+        events: tuple[ProtocolEvent, ...] = ()
+        if self.voice_turns.generation_id == generation_id:
+            events = self.voice_turns.on_tts_cancelled(
+                at_ms, generation_id=generation_id, reason=reason
+            )
+        if not events:
+            events = (
+                ProtocolEvent(
+                    type=EventType.TTS_CANCELLED,
+                    monotonic_ms=at_ms,
+                    session_id=self.session_id,
+                    turn_id=snapshot.turn_id,
+                    generation_id=snapshot.generation_id,
+                    cancellation_id=snapshot.cancellation_id,
+                    payload={"reason": reason, "status": "cancelled"},
+                ),
+            )
+        effects = self.interruptions.apply(events)
+        delivery = effects.delivery
+        if delivery is not None:
+            events = tuple(
+                replace(
+                    event,
+                    payload={
+                        **event.payload,
+                        "spoken_text": delivery.spoken_text,
+                        "unspoken_text": delivery.unspoken_text,
+                    },
+                )
+                if event.type == EventType.TTS_CANCELLED and event.generation_id == generation_id
+                else event
+                for event in events
+            )
+        await self._publish_all(events)
 
     async def _cancel_active(
         self,
         targets: frozenset[CancellationTarget],
         reason: str,
     ) -> None:
-        if targets and self._active_token is not None:
+        if targets.intersection({CancellationTarget.TTS_QUEUE, CancellationTarget.PLAYBACK}):
+            await self._cancel_active_playback(reason)
+        if CancellationTarget.MODEL_GENERATION in targets and self._active_token is not None:
             self._active_token.cancel(reason)
 
     async def _resolve_tool_approval(self, command: ControlCommand, approved: bool) -> bool:

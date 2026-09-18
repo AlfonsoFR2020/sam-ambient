@@ -75,7 +75,9 @@ class TurnConfig:
 
 
 _ALLOWED_TRANSITIONS: dict[VoiceState, frozenset[VoiceState]] = {
-    VoiceState.IDLE: frozenset({VoiceState.LISTENING, VoiceState.ERROR, VoiceState.OFFLINE}),
+    VoiceState.IDLE: frozenset(
+        {VoiceState.LISTENING, VoiceState.COMMITTING, VoiceState.ERROR, VoiceState.OFFLINE}
+    ),
     VoiceState.LISTENING: frozenset(
         {VoiceState.IDLE, VoiceState.USER_SPEAKING, VoiceState.ERROR, VoiceState.OFFLINE}
     ),
@@ -112,6 +114,7 @@ _ALLOWED_TRANSITIONS: dict[VoiceState, frozenset[VoiceState]] = {
         {
             VoiceState.THINKING,
             VoiceState.SPEAKING,
+            VoiceState.IDLE,
             VoiceState.USER_SPEAKING,
             VoiceState.INTERRUPTED,
             VoiceState.RECOVERING,
@@ -214,6 +217,40 @@ class TurnManager:
         self._reset_observation()
         return (self._transition(VoiceState.LISTENING, at_ms, "listening_started"),)
 
+    def accept_text_turn(
+        self,
+        at_ms: int,
+        *,
+        turn_id: str,
+        cancellation_id: str,
+        text: str,
+    ) -> tuple[ProtocolEvent, ...]:
+        """Bind a committed typed turn to the voice lifecycle used by its response."""
+
+        self._check_time(at_ms)
+        if self.state is not VoiceState.IDLE:
+            raise RuntimeError(f"cannot accept text turn from {self.state}")
+        normalized = " ".join(text.split())
+        if not all(value.strip() for value in (turn_id, cancellation_id, normalized)):
+            raise ValueError("text turn identity and content must be non-blank")
+        self.turn_id = turn_id
+        self.cancellation_id = cancellation_id
+        self.generation_id = None
+        self._model_active = False
+        self._tts_active = False
+        self._reset_observation()
+        self.transcript = normalized
+        self.transcript_final = True
+        self.transcript_confidence = 1.0
+        return (
+            self._transition(VoiceState.COMMITTING, at_ms, "text_turn_committed"),
+            self._event(
+                EventType.TRANSCRIPT_FINAL,
+                at_ms,
+                {"role": "user", "text": normalized, "confidence": 1.0},
+            ),
+        )
+
     def on_vad(self, at_ms: int, speech_probability: float) -> tuple[ProtocolEvent, ...]:
         self._check_time(at_ms)
         if not 0.0 <= speech_probability <= 1.0:
@@ -288,11 +325,12 @@ class TurnManager:
         text: str,
         *,
         is_final: bool,
-        confidence: float,
+        confidence: float | None,
     ) -> tuple[ProtocolEvent, ...]:
         self._check_time(at_ms)
-        if not 0.0 <= confidence <= 1.0:
+        if confidence is not None and not 0.0 <= confidence <= 1.0:
             raise ValueError("confidence must be between 0 and 1")
+        recorded_confidence = 0.5 if confidence is None else confidence
         normalized = " ".join(text.split())
         candidate = self.state in {
             VoiceState.INTERRUPTION_CANDIDATE,
@@ -301,16 +339,21 @@ class TurnManager:
         if candidate:
             self._candidate_transcript = normalized
             self._candidate_transcript_final = is_final
-            self._candidate_transcript_confidence = confidence
+            self._candidate_transcript_confidence = recorded_confidence
         else:
             self.transcript = normalized
             self.transcript_final = is_final
-            self.transcript_confidence = confidence
+            self.transcript_confidence = recorded_confidence
 
         event = self._event(
             EventType.TRANSCRIPT_FINAL if is_final else EventType.TRANSCRIPT_PARTIAL,
             at_ms,
-            {"text": normalized, "confidence": confidence},
+            {
+                "role": "user",
+                "text": normalized,
+                "confidence": confidence,
+                "candidate": candidate,
+            },
             candidate=candidate,
         )
         events = [event]
@@ -323,6 +366,42 @@ class TurnManager:
                         speech_ended=self.state is VoiceState.RECOVERING,
                     )
                 )
+        return tuple(events)
+
+    def on_tts_cancelled(
+        self,
+        at_ms: int,
+        *,
+        generation_id: str,
+        reason: str,
+    ) -> tuple[ProtocolEvent, ...]:
+        """Terminalize active delivery without deleting its committed response."""
+
+        self._check_time(at_ms)
+        if generation_id != self.generation_id or not self._tts_active:
+            return ()
+        if self.state not in {
+            VoiceState.SPEAKING,
+            VoiceState.INTERRUPTION_CANDIDATE,
+            VoiceState.RECOVERING,
+        }:
+            raise RuntimeError(f"cannot cancel TTS from {self.state}")
+        cancelled = self._event(
+            EventType.TTS_CANCELLED,
+            at_ms,
+            {"reason": reason, "status": "cancelled"},
+        )
+        candidate_cancelled = self._candidate_stt_cancelled_event(
+            at_ms, "assistant_playback_stopped"
+        )
+        self._tts_active = False
+        self._model_active = False
+        self._clear_interruption_candidate()
+        idle = self._transition(VoiceState.IDLE, at_ms, "tts_cancelled")
+        events = [cancelled]
+        if candidate_cancelled is not None:
+            events.append(candidate_cancelled)
+        events.append(idle)
         return tuple(events)
 
     def on_time(self, at_ms: int) -> tuple[ProtocolEvent, ...]:
@@ -560,6 +639,7 @@ class TurnManager:
             EventType.TURN_COMMITTED,
             at_ms,
             {
+                "role": "user",
                 "text": self.transcript,
                 "confidence": self.transcript_confidence,
                 "speech_ms": self._speech_accumulated_ms,
@@ -755,7 +835,7 @@ class TurnManager:
             return self.config.normal_endpoint_silence_ms
         return self.config.uncertain_endpoint_silence_ms
 
-    def _credible_interrupt(self, text: str, confidence: float, *, is_final: bool) -> bool:
+    def _credible_interrupt(self, text: str, confidence: float | None, *, is_final: bool) -> bool:
         normalized = text.lower().strip(" .,!?")
         if not normalized or self._is_backchannel(normalized):
             return False
@@ -766,6 +846,12 @@ class TurnManager:
         }
         if self.config.interruption_mode is InterruptionMode.CONSERVATIVE and not is_final:
             return False
+        # whisper.cpp currently provides final text without a calibrated utterance
+        # confidence. A finalized, non-backchannel transcript is still categorical
+        # speech evidence after runtime playback-echo screening; partial unscored
+        # text remains too weak to interrupt.
+        if confidence is None:
+            return is_final and len(normalized) >= 2
         return confidence >= thresholds[self.config.interruption_mode] and len(normalized) >= 2
 
     @staticmethod

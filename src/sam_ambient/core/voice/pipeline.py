@@ -171,12 +171,11 @@ class BargeInController:
             VoiceState.RECOVERING,
         }:
             raise RuntimeError("candidate transcript received without an interruption candidate")
-        confidence = transcript.confidence if transcript.confidence is not None else 0.5
         events = self._turn_manager.on_transcript(
             at_ms,
             transcript.text,
             is_final=transcript.is_final,
-            confidence=confidence,
+            confidence=transcript.confidence,
         )
         return await self._apply_and_publish(events)
 
