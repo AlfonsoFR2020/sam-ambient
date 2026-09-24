@@ -2,6 +2,25 @@ import { describe, expect, it } from "vitest";
 import { OrbInteraction } from "../src/visual-engine/interaction";
 
 describe("orb interaction", () => {
+  it("moves the front-facing material downward when the pointer is dragged downward", () => {
+    const interaction = new OrbInteraction();
+    interaction.begin(100, 100, 0);
+    interaction.move(100, 140, 20);
+    expect(interaction.orientationMatrix()[7]).toBeGreaterThan(0);
+  });
+
+  it("retains a moderate amount of post-drag inertia", () => {
+    const interaction = new OrbInteraction();
+    interaction.begin(0, 0, 0);
+    interaction.move(40, 0, 20);
+    interaction.end();
+    interaction.step(0.05);
+    interaction.step(0.05);
+    interaction.step(0.05);
+    interaction.step(0.05);
+    interaction.step(0.05);
+    expect(interaction.snapshot().velocityY).toBeGreaterThan(1);
+  });
   it("maps two-axis drag into a stable bounded orientation", () => {
     const interaction = new OrbInteraction();
     const identity = [...interaction.snapshot().matrix];

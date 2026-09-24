@@ -31,6 +31,9 @@ describe("visual quality and geometry", () => {
     expect(resolveRenderBudget({ quality: "auto", deviceProfile: "desktop" }).quality).toBe(
       "medium",
     );
+    expect(resolveRenderBudget({ quality: "auto", deviceProfile: "high_end" }).quality).toBe(
+      "high",
+    );
     expect(
       resolveRenderBudget(
         { quality: "auto", deviceProfile: "high_end" },
@@ -79,6 +82,10 @@ describe("visual quality and geometry", () => {
         expect(Math.abs(peel.tiltX)).toBeLessThanOrEqual(Math.PI / 4.5);
         expect(Math.abs(peel.tiltZ)).toBeLessThanOrEqual(Math.PI / 4.5);
       }
+      expect(
+        Math.max(...descriptors.map((peel) => peel.lift)) -
+          Math.min(...descriptors.map((peel) => peel.lift)),
+      ).toBeGreaterThan(0.004);
       expect(createPeelGeometry(budget).vertices).toEqual(geometry.vertices);
     }
   });
@@ -113,6 +120,11 @@ describe("visual quality and geometry", () => {
           PARTICLE_POINT_SIZE_RANGE.maximum,
         );
       }
+      const inclinations = Array.from(
+        { length: particles.count },
+        (_, index) => particles.vertices[index * 4 + 2],
+      );
+      expect(Math.max(...inclinations) - Math.min(...inclinations)).toBeGreaterThan(1);
     }
   });
 

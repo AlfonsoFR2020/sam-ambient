@@ -132,7 +132,7 @@ export function createParticleGeometry(count: number, seed = 0x5a17): ArrayGeome
         random() * Math.PI * 2,
         PARTICLE_SHELL_RANGE.minimum +
           random() * (PARTICLE_SHELL_RANGE.maximum - PARTICLE_SHELL_RANGE.minimum),
-        (random() * 2 - 1) * (Math.PI / 5.2),
+        (random() * 2 - 1) * (Math.PI / 2.4),
         PARTICLE_POINT_SIZE_RANGE.minimum +
           random() * (PARTICLE_POINT_SIZE_RANGE.maximum - PARTICLE_POINT_SIZE_RANGE.minimum),
       ],

@@ -489,6 +489,7 @@ export default function App() {
     providerOnExit: "keep" as "keep" | "stop_if_sam_started",
   });
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [visualDiagnosticsOpen, setVisualDiagnosticsOpen] = useState(false);
   const [quitConfirmation, setQuitConfirmation] = useState(false);
   const [restartConfirmation, setRestartConfirmation] = useState(false);
   const [startupDismissed, setStartupDismissed] = useState(false);
@@ -597,6 +598,11 @@ export default function App() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const editing = editableTarget(event.target);
+      if (event.ctrlKey && event.altKey && event.key.toLowerCase() === "v" && !editing) {
+        event.preventDefault();
+        setVisualDiagnosticsOpen((open) => !open);
+        return;
+      }
       const intent = shortcutIntent(event, editing);
       if (intent === "close_surface") {
         if (quitConfirmation) setQuitConfirmation(false);
@@ -627,7 +633,14 @@ export default function App() {
       className="sam-shell"
       data-reduced-motion={visualSettings.reducedMotion === "on" || undefined}
     >
-      {!quitRequested && <AmbientScene model={visual} state={state} settings={visualSettings} />}
+      {!quitRequested && (
+        <AmbientScene
+          model={visual}
+          state={state}
+          settings={visualSettings}
+          diagnosticsOpen={visualDiagnosticsOpen}
+        />
+      )}
       <StartupCard
         state={state}
         dismissed={startupDismissed}
@@ -852,6 +865,13 @@ export default function App() {
           <section className="controls__group" aria-labelledby={`${controlsId}-display`}>
             <h2 id={`${controlsId}-display`}>Display</h2>
             <ControlButton
+              help="Developer-only live visual state and recent renderer events. Ctrl+Alt+V."
+              onClick={() => setVisualDiagnosticsOpen((open) => !open)}
+              aria-keyshortcuts="Control+Alt+V"
+            >
+              Visual diagnostics {visualDiagnosticsOpen ? "on" : "off"}
+            </ControlButton>
+            <ControlButton
               help="Show or hide the conversation transcript on this device."
               onClick={() =>
                 applyAction({ type: "transcript.set", visible: !preferences.transcriptVisible })
@@ -892,11 +912,11 @@ export default function App() {
                       .value as VisualEngineSettings["deviceProfile"],
                   })
                 }
-                title="Limits rendering for a target device or power level."
+                title="Sets the initial Auto detail and its cap; the governor may later lower or raise detail within that cap."
               >
                 <option value="auto">Auto</option>
                 <option value="mobile_2020">2020 smartphone</option>
-                <option value="low_power">Low power</option>
+                <option value="low_power">Low power (phone cap)</option>
                 <option value="desktop">Desktop</option>
                 <option value="high_end">High-end desktop</option>
               </select>
@@ -915,9 +935,10 @@ export default function App() {
               />
             </label>
             <label className="visual-setting">
-              <span>Motion</span>
+              <span>Motion speed</span>
               <input
                 aria-label="Motion intensity"
+                title="Scales rotation, surface flow, peels, particles and breathing; 0 pauses autonomous motion."
                 type="range"
                 min="0"
                 max="100"
@@ -931,6 +952,7 @@ export default function App() {
               <span>Audio reactivity</span>
               <input
                 aria-label="Audio reactivity"
+                title="Only changes the Orb when live microphone or playback activity is present."
                 type="range"
                 min="0"
                 max="100"
@@ -944,6 +966,7 @@ export default function App() {
               <span>Particles</span>
               <input
                 aria-label="Particle amount"
+                title="Changes the visible share of sparse orbiting particles in discrete steps."
                 type="range"
                 min="0"
                 max="100"

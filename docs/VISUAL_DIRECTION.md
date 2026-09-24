@@ -86,16 +86,19 @@ q_i = rotate_about_axis(q_previous, a_i, -theta_i)
 q_0 = n; q = normalize(q_2)
 ```
 
-`phi_i` are slowly advancing phases (initial rates `+.035` and `-.023` rad/s);
-`twist_i = A_i*sin(psi_i)` with initial `A_i = +.32, -.24` rad and `psi_i`
-rates `+.067, -.053` rad/s. Compute `sin(psi_i)` once per frame, not per
+`phi_i` are slowly advancing phases (initial rates `+.035` and `-.023` rad/s,
+raised after human observation to `+.14` and `-.09` before the Motion control's
+default 0.6 scale); `twist_i = A_i*sin(psi_i)` with initial `A_i = +.32, -.24`
+rad and `psi_i` rates `+.067, -.053` rad/s (now `+.11, -.08` before Motion
+scaling). Compute `sin(psi_i)` once per frame, not per
 fragment. Wrap each phase modulo `2*pi`; rotations stay continuous at the wrap.
 Each twist is an invertible longitude shear around its own axis because `mu_i`
 does not change during that rotation. Their composition transports and folds
 material without a grid simulation, UV seam, pole singularity or growing history.
 Use one shared deterministic seed for fixed noise offsets, not per-frame random
-values. The rates and amplitudes are bounded starting parameters for visual
-acceptance, not user controls.
+values. These are bounded starting parameters for visual acceptance. The
+existing Motion control scales the phase rates; a separate automatic surface
+speed would require a real signal and is not claimed here.
 
 Sample one specified, self-contained **3D simplex gradient noise** function at
 two scales from this same `q`:

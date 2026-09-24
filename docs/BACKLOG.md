@@ -41,8 +41,14 @@ in [Roadmap](ROADMAP.md).
   appearance remain materially below the alpha target.
 - Redesign the Controls layout and scrollbar and allocate a formally unobstructed
   ambient rectangle; the current full-window scene remains behind controls/transcript.
-- Surface the ephemeral resolved renderer/automatic Canvas fallback in a future
-  settings or diagnostics surface; it is currently observable only inside the engine.
+- Extend the developer-only Visual Diagnostics overlay into a richer status/debug
+  surface if beta evidence warrants it. The first overlay now shows renderer,
+  fallback reason, quality, phase, orientation and recent lifecycle events.
+- Revisit intrinsic alpha-order/intersection lines in the current batched ribbons
+  during the planned outer-membrane stage; no CPU per-frame sorting was added.
+- Consider bounded centre XYZ wandering and later waveform-driven peel/particle
+  perturbations only after the relevant input evidence is available. The current
+  centre remains fixed and diagnostics label it as such.
 - Tune transcript buffering and scrolling.
 - Clarify microphone mute/toggle semantics, which appeared confusing or reversed.
 - Complete the broader settings-control semantics audit after the 0.2.2 direct

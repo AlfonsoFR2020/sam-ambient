@@ -8,6 +8,12 @@ import { resolveVisualEngineSettings } from "./settings";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
 import { createWebGLBackend } from "./webgl";
 
+const MIN_CONTINUOUS_QUATERNION_DOT = Math.cos(0.25);
+const circularDistance = (a: number, b: number): number => {
+  const difference = Math.abs(a - b);
+  return Math.min(difference, Math.PI * 2 - difference);
+};
+
 export interface VisualEngineOptions {
   readonly settings?: Partial<VisualEngineSettings>;
   readonly seed?: number;
@@ -17,6 +23,35 @@ export interface VisualEngineOptions {
   readonly createCanvas?: () => HTMLCanvasElement;
   /** Test seam. Production uses the built-in WebGL2/Canvas implementations. */
   readonly backendFactory?: BackendFactory;
+}
+
+export interface VisualDiagnosticEvent {
+  readonly at: string;
+  readonly message: string;
+}
+
+export interface VisualDiagnosticSnapshot {
+  readonly renderer: RendererKind;
+  readonly fallbackReason?: string;
+  readonly quality: RenderBudget["quality"];
+  readonly qualityPolicy: VisualEngineSettings["quality"];
+  readonly profile: VisualEngineSettings["deviceProfile"];
+  readonly approximateFps: number;
+  readonly foreground: string;
+  readonly centre: readonly [number, number, number];
+  readonly quaternion: readonly number[];
+  readonly dragging: boolean;
+  readonly inertia: number;
+  readonly spin: number;
+  readonly precession: number;
+  readonly fieldPhases: readonly [number, number];
+  readonly fieldTwists: readonly [number, number];
+  readonly peelTravel: number;
+  readonly flowRate: number;
+  readonly seed: number;
+  readonly inputEnvelope: number;
+  readonly outputEnvelope: number;
+  readonly events: readonly VisualDiagnosticEvent[];
 }
 
 const defaultFactory: BackendFactory = (canvas, kind, budget, settings, seed, motion) => {
@@ -44,6 +79,14 @@ export class VisualEngine {
   private staticTransitionUntil = 0;
   private contextLosses = 0;
   private forceCanvas = false;
+  private approximateFps = 0;
+  private lastPeelTravel?: number;
+  private lastFieldPhase1?: number;
+  private lastFieldPhase2?: number;
+  private readonly lastQuaternion = new Float32Array(4);
+  private hasLastQuaternion = false;
+  private diagnosticsEnabled = false;
+  private readonly diagnosticEvents: VisualDiagnosticEvent[] = [];
   private readonly interaction = new OrbInteraction();
   private readonly motion: MotionEvaluator;
   private readonly governor: AdaptiveQualityGovernor;
@@ -72,6 +115,7 @@ export class VisualEngine {
       typeof matchMedia === "undefined"
         ? undefined
         : matchMedia("(prefers-reduced-motion: reduce)");
+    this.recordEvent(`engine created; seed ${this.seed}; orientation and phase initialized`);
   }
 
   mount(host: HTMLElement): void {
@@ -94,7 +138,7 @@ export class VisualEngine {
       document.addEventListener("visibilitychange", this.onVisibility);
     this.reducedMotionMedia?.addEventListener("change", this.onReducedMotionChange);
     this.resizeFromHost();
-    this.createBackend();
+    this.createBackend("mount");
     this.syncLoop();
   }
 
@@ -110,6 +154,10 @@ export class VisualEngine {
         (input.interaction.foreground !== this.input.interaction.foreground ||
           input.interaction.availability !== this.input.interaction.availability),
     );
+    if (stateChanged)
+      this.recordEvent(
+        `visual state ${this.input?.interaction.foreground ?? "initial"} → ${input.interaction.foreground}; availability ${input.interaction.availability}`,
+      );
     this.input = input;
     this.backend?.update(input);
     if (this.reducedMotion() && stateChanged) this.staticTransitionUntil = this.clock() + 200;
@@ -120,6 +168,11 @@ export class VisualEngine {
   configure(value: Partial<VisualEngineSettings>): void {
     const wasReduced = this.reducedMotion();
     const next = resolveVisualEngineSettings({ ...this.settings, ...value });
+    const changed = (Object.keys(next) as (keyof VisualEngineSettings)[]).filter(
+      (key) => next[key] !== this.settings[key],
+    );
+    if (changed.length)
+      this.recordEvent(`controls ${changed.map((key) => `${key}=${next[key]}`).join(", ")}`);
     const qualityPolicyChanged =
       next.quality !== this.settings.quality || next.deviceProfile !== this.settings.deviceProfile;
     const nextBudget = resolveRenderBudget(
@@ -148,7 +201,8 @@ export class VisualEngine {
       this.syncLoop();
       return;
     }
-    if ((!wasEnabled || rebuild || !this.backend) && this.host) this.createBackend();
+    if ((!wasEnabled || rebuild || !this.backend) && this.host)
+      this.createBackend(rendererChanged ? "renderer setting" : "quality/profile setting");
     else this.backend?.configure(next);
     this.resize(this.width, this.height, globalThis.devicePixelRatio || 1);
     this.syncLoop();
@@ -170,6 +224,7 @@ export class VisualEngine {
   }
 
   setVisible(visible: boolean): void {
+    if (this.visible !== visible) this.recordEvent(visible ? "visible/resume" : "hidden/pause");
     this.visible = visible;
     this.syncLoop();
   }
@@ -183,6 +238,8 @@ export class VisualEngine {
     if (this.reducedMotion() || !this.hasLiveAvailability(this.input)) return;
     if (!this.interaction.move(x, y, now)) return;
     this.pushOrientation();
+    this.lastQuaternion.set(this.interaction.orientationQuaternion());
+    this.hasLastQuaternion = true;
     this.backend?.render(now);
   }
 
@@ -200,6 +257,41 @@ export class VisualEngine {
 
   get rendererKind(): RendererKind {
     return this.backend?.kind ?? "static";
+  }
+
+  setDiagnosticsEnabled(enabled: boolean): void {
+    this.diagnosticsEnabled = enabled;
+  }
+
+  diagnosticSnapshot(): VisualDiagnosticSnapshot {
+    const frame = this.motion.currentFrame;
+    const orientation = this.interaction.snapshot();
+    return {
+      renderer: this.rendererKind,
+      fallbackReason: this.host?.dataset.samFallbackReason,
+      quality: this.budget.quality,
+      qualityPolicy: this.settings.quality,
+      profile: this.settings.deviceProfile,
+      approximateFps: this.canDraw() ? this.approximateFps : 0,
+      foreground: frame.foreground,
+      centre: [0, 0, 0], // Translation is not implemented; do not imply measured wandering.
+      quaternion: [...orientation.quaternion],
+      dragging: orientation.dragging,
+      inertia: Math.hypot(orientation.velocityX, orientation.velocityY),
+      spin: frame.spin,
+      precession: frame.precession,
+      fieldPhases: [frame.fieldPhase1, frame.fieldPhase2],
+      fieldTwists: [frame.fieldTwist1, frame.fieldTwist2],
+      peelTravel: frame.peelTravel,
+      flowRate:
+        this.reducedMotion() || !this.hasLiveAvailability(this.input)
+          ? 0
+          : this.settings.motionIntensity * 0.14,
+      seed: this.seed,
+      inputEnvelope: frame.inputEnvelope,
+      outputEnvelope: frame.outputEnvelope,
+      events: [...this.diagnosticEvents],
+    };
   }
 
   dispose(): void {
@@ -230,7 +322,10 @@ export class VisualEngine {
     this.forceCanvas = false;
   }
 
-  private readonly onVisibility = () => this.syncLoop();
+  private readonly onVisibility = () => {
+    this.recordEvent(document.hidden ? "document hidden/pause" : "document visible/resume");
+    this.syncLoop();
+  };
 
   private readonly onReducedMotionChange = () => {
     if (this.reducedMotion()) {
@@ -262,15 +357,37 @@ export class VisualEngine {
           ? this.budget.activeFps
           : this.budget.idleFps;
     if (!this.lastDraw || now - this.lastDraw >= 1000 / fps) {
+      if (this.lastDraw) {
+        const measured = Math.min(120, 1000 / Math.max(1, now - this.lastDraw));
+        this.approximateFps = this.approximateFps
+          ? this.approximateFps * 0.85 + measured * 0.15
+          : measured;
+      }
       this.interaction.step(
         this.lastDraw ? (now - this.lastDraw) / 1000 : 0,
         this.reducedMotion(),
         this.settings.motionIntensity,
       );
       this.pushOrientation();
+      this.checkOrientationContinuity();
       const frameInterval = this.lastDraw ? now - this.lastDraw : 1000 / fps;
       const renderStarted = this.clock();
       this.backend?.render(now);
+      const peelTravel = this.motion.currentFrame.peelTravel;
+      const fieldPhase1 = this.motion.currentFrame.fieldPhase1;
+      const fieldPhase2 = this.motion.currentFrame.fieldPhase2;
+      if (
+        (this.lastFieldPhase1 !== undefined &&
+          circularDistance(fieldPhase1, this.lastFieldPhase1) > 0.25) ||
+        (this.lastFieldPhase2 !== undefined &&
+          circularDistance(fieldPhase2, this.lastFieldPhase2) > 0.25)
+      )
+        this.recordEvent("unexpected field-phase discontinuity");
+      this.lastFieldPhase1 = fieldPhase1;
+      this.lastFieldPhase2 = fieldPhase2;
+      if (this.lastPeelTravel !== undefined && peelTravel < this.lastPeelTravel - 3)
+        this.recordEvent("peel phase wrapped continuously");
+      this.lastPeelTravel = peelTravel;
       const renderDuration = Math.max(0, this.clock() - renderStarted);
       const adapted = this.governor.observe(
         frameInterval,
@@ -285,12 +402,14 @@ export class VisualEngine {
       );
       if (adapted === "canvas2d") {
         this.forceCanvas = true;
-        this.createBackend();
+        this.recordEvent("AUTO fallback after measured frame overload");
+        this.createBackend("AUTO overload");
       } else if (adapted) {
         const adaptedBudget = resolveRenderBudget(this.settings, { measuredQuality: adapted });
         if (adaptedBudget.quality !== this.budget.quality) {
           this.budget = adaptedBudget;
-          this.createBackend();
+          this.recordEvent(`AUTO quality ${adaptedBudget.quality}`);
+          this.createBackend("AUTO quality transition");
         }
       }
       this.lastDraw = now;
@@ -315,7 +434,11 @@ export class VisualEngine {
     if (!this.shouldAnimate()) {
       if (this.frame) this.cancelFrame(this.frame);
       this.frame = 0;
-      if (!this.canDraw()) this.motion.pauseClock();
+      if (!this.canDraw()) {
+        this.motion.pauseClock();
+        this.lastDraw = 0;
+        this.approximateFps = 0;
+      }
       return;
     }
     if (!this.frame) this.frame = this.requestFrame(this.tick);
@@ -327,7 +450,7 @@ export class VisualEngine {
     this.resize(rect.width, rect.height, globalThis.devicePixelRatio || 1);
   }
 
-  private createBackend(): void {
+  private createBackend(reason = "recreation"): void {
     if (!this.host) return;
     this.releaseBackend();
     this.host.classList.remove("visual-engine--static");
@@ -368,6 +491,9 @@ export class VisualEngine {
         backend.kind,
         backend.kind === "webgl2" ? undefined : fallbackReason,
       );
+      this.recordEvent(
+        `backend ${backend.kind} (${reason})${backend.kind !== "webgl2" ? `; fallback ${fallbackReason ?? "unknown"}` : ""}`,
+      );
       this.pushOrientation();
       canvas.addEventListener("webglcontextlost", this.onContextLost);
       this.host.appendChild(canvas);
@@ -387,6 +513,7 @@ export class VisualEngine {
     }
     this.host.classList.add("visual-engine--static");
     this.setBackendDiagnostic("static", fallbackReason ?? "no-renderer");
+    this.recordEvent(`backend static (${reason}); fallback ${fallbackReason ?? "no-renderer"}`);
   }
 
   private setBackendDiagnostic(kind: RendererKind, reason?: string): void {
@@ -402,7 +529,8 @@ export class VisualEngine {
     if (this.backend?.kind !== "webgl2") return;
     this.contextLosses += 1;
     this.forceCanvas = true;
-    this.createBackend();
+    this.recordEvent("WebGL context lost");
+    this.createBackend("context lost");
     this.requestStaticRender();
     if (this.contextLosses <= 2) {
       if (this.restorationFrame) this.cancelFrame(this.restorationFrame);
@@ -410,7 +538,7 @@ export class VisualEngine {
         this.restorationFrame = 0;
         if (!this.host || !this.settings.enabled) return;
         this.forceCanvas = false;
-        this.createBackend();
+        this.createBackend("context restore attempt");
         if (this.backend?.kind !== "webgl2") this.forceCanvas = true;
         this.requestStaticRender();
       });
@@ -464,5 +592,28 @@ export class VisualEngine {
 
   private pushOrientation(): void {
     this.backend?.setObjectOrientation(this.interaction.orientationMatrix());
+  }
+
+  private checkOrientationContinuity(): void {
+    const quaternion = this.interaction.orientationQuaternion();
+    if (this.hasLastQuaternion && !this.interaction.isDragging) {
+      const dot = Math.abs(
+        quaternion[0] * this.lastQuaternion[0] +
+          quaternion[1] * this.lastQuaternion[1] +
+          quaternion[2] * this.lastQuaternion[2] +
+          quaternion[3] * this.lastQuaternion[3],
+      );
+      if (dot < MIN_CONTINUOUS_QUATERNION_DOT)
+        this.recordEvent("unexpected orientation discontinuity");
+    }
+    this.lastQuaternion.set(quaternion);
+    this.hasLastQuaternion = true;
+  }
+
+  private recordEvent(message: string): void {
+    const event = { at: new Date().toISOString(), message };
+    this.diagnosticEvents.push(event);
+    if (this.diagnosticEvents.length > 12) this.diagnosticEvents.shift();
+    if (this.diagnosticsEnabled) console.info(`[Sam visual ${event.at}] ${message}`);
   }
 }

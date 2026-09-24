@@ -86,9 +86,11 @@ export function resolveRenderBudget(
 ): RenderBudget {
   const cap = profileCap(settings.deviceProfile);
   const automaticStart =
-    settings.deviceProfile === "desktop" || settings.deviceProfile === "high_end"
-      ? "medium"
-      : "low";
+    settings.deviceProfile === "high_end"
+      ? "high"
+      : settings.deviceProfile === "desktop"
+        ? "medium"
+        : "low";
   const desired =
     settings.quality === "auto" ? (hint.measuredQuality ?? automaticStart) : settings.quality;
   return RENDER_BUDGETS[fromRank(Math.min(rank[desired], rank[cap]))];

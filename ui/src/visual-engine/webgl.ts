@@ -35,7 +35,7 @@ mat3 rotateZ(float a){float c=cos(a),s=sin(a);return mat3(c,s,0.,-s,c,0.,0.,0.,1
 ${LIVING_FIELD_GLSL}
 ${LIVING_SURFACE_VERTEX_GLSL}
 void main(){
-  mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin)*u_object_orientation;
+  mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase))*rotateZ(.08*sin(u_breath_phase+1.4))*rotateY(u_spin)*u_object_orientation;
   vec3 position=livingBodyPoint(a_position,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
   vec3 localNormal=livingBodyNormal(a_normal,position,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
   v_position=rotation*position;
@@ -60,13 +60,14 @@ void main(){
   LivingPigment pigment=livingPigment(field);
   LivingLight light=livingLight(v_normal,v_position);
   float fine=livingSurfaceDetail(field);
-  float illumination=0.31+light.diffuse*0.70+u_intensity*0.32;
+  float illumination=0.25+light.diffuse*0.70+u_intensity*0.18;
   vec3 innerWarmth=vec3(0.085,0.026,0.012)*(1.0-field.broad)*0.35;
   vec3 glintColor=mix(vec3(1.0,0.68,0.38),vec3(0.55,0.77,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.88,0.31,0.13),vec3(0.29,0.48,0.83),pigment.cool);
   vec3 linear=pigment.albedo*illumination*(1.0+fine)+innerWarmth
     +glintColor*(light.glint*(0.58+max(fine,0.0)*0.30)+u_highlight*0.20)
     +rimColor*light.rim*(0.18+u_rim*0.55);
+  linear*=mix(0.22,1.15,u_intensity);
   linear=linear/(1.+linear);
   color=vec4(pow(linear,vec3(1./2.2)),1.);
 }`;
@@ -105,13 +106,13 @@ ${LIVING_FIELD_GLSL}
 ${LIVING_SURFACE_VERTEX_GLSL}
 vec3 carrier(float u,float family){
   float phi=atan(sinh(u));
-  float lambda=(1.65+.06*sin(u_peel_travel*.17+a_surface.w))*u+family*6.2831853+(family-.33)*u_opening*.06;
+  float lambda=(1.65+.06*sin(u_peel_travel+a_surface.w))*u+family*6.2831853+(family-.33)*u_opening*.06;
   return vec3(cos(phi)*cos(lambda),sin(phi),cos(phi)*sin(lambda));
 }
 void main(){
   float q=a_base.x, side=a_base.y;
   float directionSign=a_motion.x<0.?-1.:1.;
-  float cadence=.38+abs(a_motion.x)*7.;
+  float cadence=abs(a_motion.x)<.012?1.:2.;
   float center=a_base.z+.18*sin(directionSign*u_peel_travel*cadence+a_surface.w)+u_rephase*sin(a_surface.w);
   center=clamp(center,-1.25,1.25);
   float u=clamp(center+q*a_base.w,-1.8,1.8);
@@ -119,14 +120,14 @@ void main(){
   vec3 tangent=normalize(carrier(min(1.8,u+.003),a_motion.w)-carrier(max(-1.8,u-.003),a_motion.w));
   vec3 across=normalize(cross(c,tangent));
   float fade=smoothstep(0.,.18,1.-abs(q));
-  float alignment=pow(.5+.5*cos(u_peel_travel*.37+a_motion.w*6.2831853),10.)*u_coherence;
+  float alignment=pow(.5+.5*cos(u_peel_travel+a_motion.w*6.2831853),10.)*u_coherence;
   float peelWidth=a_surface.x*u_peel_width*(1.+alignment*.08);
   vec3 direction=normalize(c*cos(side*peelWidth*fade)+across*sin(side*peelWidth*fade));
   mat3 local=rotateX(a_motion.y)*rotateZ(a_motion.z);
   direction=local*direction;
   v_object_direction=direction;
-  mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin)*u_object_orientation;
-  float lift=a_surface.y+u_peel_lift*(.68+.32*sin(a_surface.w+u_peel_travel*.43));
+  mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase))*rotateZ(.08*sin(u_breath_phase+1.4))*rotateY(u_spin)*u_object_orientation;
+  float lift=a_surface.y+u_peel_lift*(.68+.32*sin(a_surface.w+u_peel_travel));
   vec3 position=livingBodyPoint(direction,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
   position+=direction*lift*vec3(1.0,1.06,1.0);
   vec3 world=rotation*position;
@@ -134,7 +135,7 @@ void main(){
   v_normal=normal;
   v_position=world;
   v_alpha=a_surface.z*fade*fade*(1.+alignment*.16);
-  v_facing=smoothstep(-.02,.15,normal.z);
+  v_facing=1.; // Depth, not a front-normal fade, decides when the ribbon disappears.
   v_highlight=alignment*.35+u_highlight*(.25+.75*pow(1.-abs(q),3.));
   gl_Position=vec4(world.xy*u_scale,-world.z*.25,1.);
 }`;
@@ -160,14 +161,15 @@ void main(){
   float alpha=clamp(v_alpha*v_facing*(.5+.5*u_emission),0.,.82);
   vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
-  vec3 linear=pigment.albedo*(0.38+light.diffuse*0.78+u_intensity*0.34)*(1.0+fine)
+  vec3 linear=pigment.albedo*(0.32+light.diffuse*0.78+u_intensity*0.20)*(1.0+fine)
     +glintColor*(light.glint*(0.65+max(fine,0.0)*0.30)+v_highlight*0.20)
     +rimColor*light.rim*0.28;
+  linear*=mix(0.22,1.15,u_intensity);
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
 }`;
 
-const PARTICLE_VERTEX = `#version 300 es
+export const PARTICLE_VERTEX = `#version 300 es
 precision highp float;
 layout(location=0) in vec4 a_particle;
 uniform float u_phase;
@@ -180,12 +182,14 @@ uniform mat3 u_object_orientation;
 out float v_alpha;
 void main(){
   float rank=fract(a_particle.x*${PARTICLE_VISIBILITY_HASH.toFixed(3)});
-  float cadence=.72+rank*.46;
-  float angle=a_particle.x+u_phase*cadence;
-  float shell=a_particle.y+.025*sin(angle*1.37+a_particle.x);
+  float cadence=rank<.5?1.:2.;
+  float direction=rank<.25?-1.:1.;
+  float angle=a_particle.x+u_phase*cadence*direction;
+  float shell=a_particle.y+.015*sin(angle+a_particle.x);
   float incline=a_particle.z;
-  vec3 point=vec3(cos(angle)*shell,sin(angle*.83+a_particle.x)*shell*.72,sin(angle)*shell);
+  vec3 point=vec3(cos(angle)*shell,sin(angle)*shell,0.);
   point.yz=mat2(cos(incline),-sin(incline),sin(incline),cos(incline))*point.yz;
+  point.xz=mat2(cos(a_particle.x),-sin(a_particle.x),sin(a_particle.x),cos(a_particle.x))*point.xz;
   point=u_object_orientation*point*u_radius;
   float visible=step(rank,u_density)*step(.0001,u_density);
   v_alpha=smoothstep(-.08,.2,point.z)*(.64+u_excitation*.26)*visible;
@@ -629,7 +633,7 @@ export class WebGLBackend implements RendererBackend {
   private setCommonUniforms(uniforms: CommonUniforms, frame: MotionFrame): void {
     const gl = this.gl;
     gl.uniform1f(uniforms.radius, frame.radius);
-    gl.uniform1f(uniforms.intensity, frame.glow);
+    gl.uniform1f(uniforms.intensity, this.settings.intensity);
     gl.uniform2f(uniforms.scale, this.scaleX, this.scaleY);
   }
 

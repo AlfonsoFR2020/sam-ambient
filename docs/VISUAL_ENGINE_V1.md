@@ -98,6 +98,10 @@ one batch afterward with depth test on and depth writes off, using bounded
 premultiplied emissive blending. Back-side fragments disappear behind the orb
 naturally. Do not CPU crop or sort them merely for horizon visibility; a small
 `smoothstep(0.0,0.15,dot(normal,view))` horizon fade may soften entry and exit.
+Human review found that the horizon fade hid the existing ribbons prematurely;
+the current WebGL pass relies on geometric depth occlusion instead. Intersections
+between unsorted translucent ribbons can still show ordering lines; the future
+outer membrane is the preferred structural solution, not per-frame CPU sorting.
 
 ### Orientation, lights, particles
 
@@ -109,6 +113,9 @@ spin       += stateAngularSpeed * motionScale * dt
 
 Phases remain continuous through state changes. Do not reset Euler angles when
 speaking starts. Rebase periodic phases modulo `2*pi`; no unbounded time uniforms.
+Any periodic consumer of a wrapped phase must use an integer harmonic (or its
+own independently wrapped phase). Fractional multipliers on a wrapped phase
+caused visible ribbon/shape resets in human review and are not safe at the wrap.
 An independent light coordinate frame is centered on the orb, not fixed to its
 spinning surface. Each of 1–3 analytic point lights travels an inclined elliptical
 orbit with radii `(1.6,1.3,1.5)`, inclinations up to 35 degrees and angular speeds
@@ -480,6 +487,10 @@ intensity, motion, audio reactivity, particle density and reduced-motion keys be
 The trusted owner control persists those values in Sam's runtime state so Controls
 changes survive interface reload and Sam restart. Renderer selection, glow and theme
 remain specification-level extensions rather than advertised persisted settings:
+Auto quality initially uses low for Auto/mobile/low-power profiles, medium for
+Desktop and high for an explicitly chosen High-end desktop; the measured governor
+can still demote or promote within the profile cap. Low power and `mobile_2020`
+currently share the same low cap, which Controls labels explicitly.
 
 ```toml
 [visual]

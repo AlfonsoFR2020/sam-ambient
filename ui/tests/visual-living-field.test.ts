@@ -167,9 +167,7 @@ const displacement = (
       deformation *
         0.55 *
         Math.sin(3 * dot(normalize([-0.25, 0.91, 0.32]), direction) + ripplePhase) +
-      ripple *
-        0.35 *
-        Math.sin(7 * dot(normalize([0.41, -0.36, 0.84]), direction) - ripplePhase * 0.71),
+      ripple * 0.35 * Math.sin(7 * dot(normalize([0.41, -0.36, 0.84]), direction) - ripplePhase),
     -0.04,
     0.04,
   );
@@ -202,6 +200,31 @@ const expectNear = (
 };
 
 describe("living field substrate", () => {
+  it("moves pigment at fixed object directions over human time without boiling frame to frame", () => {
+    const tenSeconds: FieldState = [
+      state[0] + 0.14 * 0.6 * 10,
+      state[1] - 0.09 * 0.6 * 10,
+      state[2],
+      state[3],
+    ];
+    const oneFrame: FieldState = [
+      state[0] + (0.14 * 0.6) / 30,
+      state[1] - (0.09 * 0.6) / 30,
+      state[2],
+      state[3],
+    ];
+    let longChange = 0;
+    let frameChange = 0;
+    for (let index = 0; index < 128; index++) {
+      const direction = fibonacciDirection(index, 128);
+      const first = sample(direction, state, 42).palette;
+      longChange += Math.abs(sample(direction, tenSeconds, 42).palette - first);
+      frameChange += Math.abs(sample(direction, oneFrame, 42).palette - first);
+    }
+    expect(longChange / 128).toBeGreaterThan(0.06);
+    expect(frameChange / 128).toBeLessThan(0.005);
+  });
+
   it("has no longitude seam and remains continuous at both poles", () => {
     const nearSeam = (angle: number): Vec3 => normalize([Math.cos(angle), 0.3, Math.sin(angle)]);
     expectNear(
@@ -327,6 +350,7 @@ describe("living field substrate", () => {
       const states: { program: object; values: number[] }[] = [];
       const offsets: { program: object; name: string; values: number[] }[] = [];
       const draws: string[] = [];
+      const materialIntensity: number[] = [];
       const deleted = { programs: 0, vaos: 0, buffers: 0 };
       let currentProgram: object = {};
       const gl = new Proxy(
@@ -357,6 +381,9 @@ describe("living field substrate", () => {
           uniform3f: (location: { name: string }, ...values: number[]) => {
             offsets.push({ program: currentProgram, name: location.name, values });
           },
+          uniform1f: (location: { name: string }, value: number) => {
+            if (location.name === "u_intensity") materialIntensity.push(value);
+          },
           drawElements: () => draws.push("indexed"),
           drawArrays: () => draws.push("array"),
         },
@@ -372,6 +399,10 @@ describe("living field substrate", () => {
       );
       backend.update(new VisualInputAdapter().ingest(INITIAL_UI_STATE, 0));
       backend.render(0);
+      expect(materialIntensity.slice(-2)).toEqual([0.82, 0.82]);
+      backend.configure({ ...DEFAULT_VISUAL_ENGINE_SETTINGS, intensity: 0.1 });
+      backend.render(50);
+      expect(materialIntensity.slice(-2)).toEqual([0.1, 0.1]);
       const fragments = shaderSources.filter((source) => source.includes(LIVING_MATERIAL_GLSL));
       expect(shaderSources.filter((source) => source.includes(LIVING_FIELD_GLSL))).toHaveLength(4);
       expect(fragments).toHaveLength(2);
@@ -388,7 +419,7 @@ describe("living field substrate", () => {
       );
       if (baseFragments) expect(normalized).toEqual(baseFragments);
       else baseFragments = normalized;
-      expect(states).toHaveLength(2);
+      expect(states).toHaveLength(4);
       expect(states[0].values).toEqual(states[1].values);
       expect(states[0].program).not.toBe(states[1].program);
       expect(offsets).toHaveLength(4);
@@ -397,7 +428,16 @@ describe("living field substrate", () => {
       const seeded = offsets.map((entry) => entry.values);
       if (baseOffsets) expect(seeded).toEqual(baseOffsets);
       else baseOffsets = seeded;
-      expect(draws).toEqual(["indexed", "indexed", "indexed", "array"]);
+      expect(draws).toEqual([
+        "indexed",
+        "indexed",
+        "indexed",
+        "array",
+        "indexed",
+        "indexed",
+        "indexed",
+        "array",
+      ]);
       backend.dispose();
       expect(deleted).toEqual({ programs: 4, vaos: 4, buffers: 7 });
     }

@@ -101,6 +101,40 @@ describe("continuous Visual Engine motion", () => {
     expect(movingFrame.spin).toBeGreaterThan(initialSpin);
   });
 
+  it("audio reactivity changes live response but not silent idle motion", () => {
+    const quiet = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, audioReactivity: 0 };
+    const reactive = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, audioReactivity: 1 };
+    const input = {
+      ...visualInput("speaking"),
+      audio: { output: { receivedMs: 0, envelope: 0.9 } },
+    };
+    const a = new MotionEvaluator(42);
+    const b = new MotionEvaluator(42);
+    a.evaluate(input, 0, quiet, RENDER_BUDGETS.low);
+    b.evaluate(input, 0, reactive, RENDER_BUDGETS.low);
+    expect(a.evaluate(input, 50, quiet, RENDER_BUDGETS.low).envelope).toBe(0);
+    expect(b.evaluate(input, 50, reactive, RENDER_BUDGETS.low).envelope).toBeGreaterThan(0);
+  });
+
+  it("advects broad field phases visibly over ten seconds without requiring audio", () => {
+    const evaluator = new MotionEvaluator(42);
+    const input = visualInput("idle");
+    const initial = evaluator.evaluate(
+      input,
+      0,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    const start = initial.fieldPhase1;
+    const start2 = initial.fieldPhase2;
+    let frame = initial;
+    for (let time = 50; time <= 10_000; time += 50)
+      frame = evaluator.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    expect(frame.fieldPhase1 - start).toBeGreaterThan(0.7);
+    expect(frame.fieldPhase1 - start).toBeLessThan(1);
+    expect(frame.fieldPhase2).not.toBe(start2);
+  });
+
   it("caps integration at 50 ms after a stall", () => {
     const input = visualInput("idle");
     const capped = new MotionEvaluator(42);

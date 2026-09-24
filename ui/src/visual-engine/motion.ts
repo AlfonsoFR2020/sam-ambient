@@ -258,6 +258,11 @@ export class MotionEvaluator {
     this.lastMs = undefined;
   }
 
+  /** Read-only diagnostic view; the renderer still owns the single reused frame. */
+  get currentFrame(): Readonly<MotionFrame> {
+    return this.frame;
+  }
+
   evaluate(
     input: VisualInputV1,
     now: number,
@@ -382,13 +387,15 @@ export class MotionEvaluator {
       this.breathPhase = wrap(this.breathPhase + (TWO_PI / 8.17) * motion * dt);
       this.ripplePhase = wrap(this.ripplePhase + (0.31 + this.envelope * 0.21) * motion * dt);
       this.lightPhase = wrap(this.lightPhase + 0.086 * speedInfluence * motion * dt);
-      this.particlePhase = wrap(this.particlePhase + 0.041 * speedInfluence * motion * dt);
-      this.fieldPhase1 = wrap(this.fieldPhase1 + 0.035 * motion * dt);
-      this.fieldPhase2 = wrap(this.fieldPhase2 - 0.023 * motion * dt);
-      this.fieldTwistPhase1 = wrap(this.fieldTwistPhase1 + 0.067 * motion * dt);
-      this.fieldTwistPhase2 = wrap(this.fieldTwistPhase2 - 0.053 * motion * dt);
+      this.particlePhase = wrap(this.particlePhase + 0.18 * speedInfluence * motion * dt);
+      this.fieldPhase1 = wrap(this.fieldPhase1 + 0.14 * motion * dt);
+      this.fieldPhase2 = wrap(this.fieldPhase2 - 0.09 * motion * dt);
+      this.fieldTwistPhase1 = wrap(this.fieldTwistPhase1 + 0.11 * motion * dt);
+      this.fieldTwistPhase2 = wrap(this.fieldTwistPhase2 - 0.08 * motion * dt);
       const holding = input.interaction.floor === "holding" ? 0.86 : 1;
-      this.peelTravel = wrap(this.peelTravel + this.drift * holding * speedInfluence * motion * dt);
+      this.peelTravel = wrap(
+        this.peelTravel + 0.25 * this.drift * holding * speedInfluence * motion * dt,
+      );
     }
 
     const listeningOpening = input.interaction.listening

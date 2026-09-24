@@ -19,6 +19,20 @@ Updated: 2026-09-24
   active at all three tiers and captured a preview; human visual acceptance,
   representative GPU/mobile performance, sustained drag/motion and native review
   remain open. Canvas fallback still uses its older amber approximation.
+- Human-acceptance repair on `dev` keeps that WebGL material, corrects fractional
+  consumers of wrapped peel/breath/light/ripple/particle phases that could snap
+  at wrap boundaries, increases broad-field circulation to a perceivable idle
+  rate, and restores intuitive vertical drag with moderately longer inertia.
+  Existing peels now rely on depth rather than premature facing fade; seeded
+  particle orbits span more inclinations and move more visibly. WebGL visual
+  intensity now directly scales body/peel material, while Motion speed scales
+  rotation, field, peel and particle phases; audio reactivity still requires live
+  input/output activity. Centre translation is not implemented. A hidden-by-default
+  developer overlay reports renderer/fallback, quality, approximate FPS, state,
+  fixed centre, quaternion, phases, seed, envelopes and bounded timestamped events.
+  The High-end desktop profile now starts Auto at high detail instead of duplicating
+  Desktop's medium start; Low power and `mobile_2020` share the documented low cap.
+  Deterministic tests do not replace final human visual or representative GPU checks.
 - The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal
   outcome. Replacement turns wait for predecessor terminal publication; stale chunks
@@ -331,9 +345,9 @@ Updated: 2026-09-24
   session-resume policy and broader physical voice reliability. The 0.2.2 deterministic
   slice now defines Stop/Mute and current-session transcript behavior without claiming
   physical acoustic acceptance.
-- Audio-reactive visual embodiment and diagnostics, like the wider Orb direction,
-  are documented future design work. No new field, shell, extractor, protocol, DSP,
-  setting or diagnostic UI is claimed by this checkpoint.
+- Full audio-reactive embodiment, a richer diagnostics/status console and the
+  outer membrane remain future work; the first developer visual overlay is only
+  engine-local and introduces no new audio extractor, protocol or DSP.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 

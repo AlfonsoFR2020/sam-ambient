@@ -137,6 +137,45 @@ describe("visual engine lifecycle", () => {
     engine.dispose();
   });
 
+  it("separately reports fixed centre, orientation, field phase, quality and backend events", () => {
+    const host = fakeHost();
+    const engine = new VisualEngine({
+      createCanvas: fakeCanvas,
+      backendFactory: (_canvas, kind) => ({
+        kind,
+        update() {},
+        configure() {},
+        resize() {},
+        setObjectOrientation() {},
+        render() {},
+        dispose() {},
+      }),
+      requestFrame: () => 1,
+      cancelFrame() {},
+    });
+    engine.mount(host);
+    engine.update(readyInput());
+    engine.beginInteraction(100, 100, 0);
+    engine.moveInteraction(120, 130, 20);
+    engine.configure({ quality: "high" });
+    const snapshot = engine.diagnosticSnapshot();
+    expect(snapshot.centre).toEqual([0, 0, 0]);
+    expect(snapshot.quaternion).not.toEqual([0, 0, 0, 1]);
+    expect(snapshot.fieldPhases).toHaveLength(2);
+    expect(snapshot.quality).toBe("high");
+    expect(snapshot.qualityPolicy).toBe("high");
+    expect(snapshot.renderer).toBe("webgl2");
+    expect(snapshot.fallbackReason).toBeUndefined();
+    expect(snapshot.flowRate).toBeCloseTo(0.084);
+    expect(snapshot.events.some((event) => event.message.includes("controls quality=high"))).toBe(
+      true,
+    );
+    expect(snapshot.events.some((event) => event.message.includes("backend webgl2"))).toBe(true);
+    engine.configure({ reducedMotion: "on" });
+    expect(engine.diagnosticSnapshot().flowRate).toBe(0);
+    engine.dispose();
+  });
+
   it("rebuilds renderer resources when quality or profile changes the effective budget", () => {
     const particleBudgets: number[] = [];
     let disposed = 0;
@@ -229,6 +268,9 @@ describe("visual engine lifecycle", () => {
     engine.setVisible(true);
     tick(50_000);
     expect(renders.at(-1)?.phase).toBe(phaseBeforeReplacement);
+    expect(
+      engine.diagnosticSnapshot().events.some((event) => event.message.startsWith("unexpected")),
+    ).toBe(false);
     engine.dispose();
   });
 

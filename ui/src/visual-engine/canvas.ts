@@ -95,7 +95,7 @@ export class CanvasBackend implements RendererBackend {
     context.globalCompositeOperation = "lighter";
     context.lineCap = "round";
     for (let peel = 0; peel < Math.min(3, this.budget.peels); peel++) {
-      const phase = frame.peelTravel * 0.12 * (peel % 2 ? -1 : 1) + this.seed * 1e-5;
+      const phase = frame.peelTravel * (peel % 2 ? -1 : 1) + this.seed * 1e-5;
       context.globalAlpha = (0.28 + peel * 0.1) * frame.peelEmission;
       context.strokeStyle = peel === 1 ? "#ffd29e" : "#f08a42";
       context.lineWidth = radius * (0.04 + peel * 0.009) * frame.peelWidth;

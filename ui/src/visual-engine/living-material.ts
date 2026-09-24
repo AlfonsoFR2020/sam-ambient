@@ -101,9 +101,9 @@ LivingLight livingLight(vec3 normal, vec3 position) {
   for (int i = 0; i < 3; i++) {
     if (i >= u_light_count) break;
     float fi = float(i);
-    float phase = u_light_phase * (1.0 + fi * 0.37) + fi * 2.094;
+    float phase = u_light_phase + fi * 2.094;
     float incline = 0.18 + fi * 0.17;
-    vec3 orbit = vec3(cos(phase) * 1.6, sin(phase * 0.83 + fi) * 1.3, 1.35 + sin(phase) * 0.18);
+    vec3 orbit = vec3(cos(phase) * 1.6, sin(phase + fi) * 1.3, 1.35 + sin(phase) * 0.18);
     orbit.yz = mat2(cos(incline), -sin(incline), sin(incline), cos(incline)) * orbit.yz;
     vec3 light = normalize(orbit - position);
     diffuse += max(dot(n, light), 0.0) * (0.82 - fi * 0.10);
@@ -125,7 +125,7 @@ float livingDisplacement(vec3 objectDirection, float breathPhase, float ripplePh
   float broad = sampleBroadDensity(n);
   float breathing = 0.006 * sin(breathPhase) * (1.0 + 0.2 * (broad - 0.5));
   float oldResponse = deformation * 0.55 * sin(3.0 * dot(normalize(AXIS_B), n) + ripplePhase)
-    + ripple * 0.35 * sin(7.0 * dot(normalize(AXIS_C), n) - ripplePhase * 0.71);
+    + ripple * 0.35 * sin(7.0 * dot(normalize(AXIS_C), n) - ripplePhase);
   return clamp(0.012 * (broad - 0.5) + breathing + oldResponse, -0.04, 0.04);
 }
 
