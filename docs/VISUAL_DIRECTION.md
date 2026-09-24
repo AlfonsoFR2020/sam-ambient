@@ -70,6 +70,125 @@ support it. It does not silently replace v1's bounded warm themes. A broad palet
 shift, true translucency or extra rendering pass needs a later contract decision;
 the current Canvas/static fallbacks still need a recognizable Sam.
 
+### Stage 1 substrate decision for a v0.2.3 plan
+
+Use a **procedural 3D object-space field carried by two analytic spherical
+twists**. The present UV mesh remains geometry only; never use longitude/latitude
+to address the material. For each normalized, unrotated object direction `n`,
+let two fixed seeded, nonparallel unit axes be approximately
+`a1 = normalize(.4,.8,.3)` and `a2 = normalize(-.7,.2,.6)`. For each axis in order:
+
+```text
+mu_i = dot(a_i, q_previous)
+f(mu) = (1-mu*mu)*(1+0.35*mu)
+theta_i = phi_i + twist_i*f(mu_i)
+q_i = rotate_about_axis(q_previous, a_i, -theta_i)
+q_0 = n; q = normalize(q_2)
+```
+
+`phi_i` are slowly advancing phases (initial rates `+.035` and `-.023` rad/s);
+`twist_i = A_i*sin(psi_i)` with initial `A_i = +.32, -.24` rad and `psi_i`
+rates `+.067, -.053` rad/s. Compute `sin(psi_i)` once per frame, not per
+fragment. Wrap each phase modulo `2*pi`; rotations stay continuous at the wrap.
+Each twist is an invertible longitude shear around its own axis because `mu_i`
+does not change during that rotation. Their composition transports and folds
+material without a grid simulation, UV seam, pole singularity or growing history.
+Use one shared deterministic seed for fixed noise offsets, not per-frame random
+values. The rates and amplitudes are bounded starting parameters for visual
+acceptance, not user controls.
+
+Sample one specified, self-contained **3D simplex gradient noise** function at
+two scales from this same `q`:
+
+```text
+B = sat(.5 + .5*N3(1.8*q + seedOffset1))   // broad density
+M = sat(.5 + .5*N3(3.6*q + seedOffset2))   // medium folds
+palette = .70*B + .30*M
+cool = smoothstep(.64,.78,M)*smoothstep(.40,.60,1-B)
+activity = smoothstep(.20,.50,abs(B-M))
+```
+
+The offsets are fixed, independent vectors derived once from the existing test
+seed. A warm linear-light palette maps `palette` through red/copper, orange and
+gold. `cool` gates a localized pink-to-violet/blue/teal accent instead of a
+global rainbow gradient; the default should remain predominantly warm. Those
+palette stops and the cool-region fraction need human review, but hue placement
+must depend on `B`, `M` and `q` at every quality tier. Optional samples at
+`7.2*q` and `14.4*q` may modulate luminance/roughness only, with amplitudes at
+most `.06` and `.025`; dropping them must not move the main colour boundaries.
+Expose the reusable field vocabulary as object direction `n`, transported `q`,
+`B`, `M`, palette coordinate, local activity and future excitation. Materials
+derive final RGB, alpha and specular response from that vocabulary.
+
+The body uses the same `B` for small geometry variation:
+
+```text
+d_field = .012*(B-.5) + .006*sin(breathPhase)*(1+.2*(B-.5))
+d_total = clamp(d_field + existing_v1_audio_displacement, -.04, .04)
+position_object = diag(1,1.06,1) * n * (stateRadius + d_total)
+```
+
+The spatial breath is therefore a deformation of the body, not canvas scaling.
+At vertices, evaluate the displaced position at `n` and two small, oriented
+tangent offsets; their cross product gives an outward normal after spheroid
+scaling. This costs three broad-field evaluations per vertex and avoids noisy
+per-fragment normal resampling. Interpolate unrotated `n` to fragments, normalize
+it and resample `B/M` there for colour. Broad illumination, inner warmth,
+specular/glints and the existing bounded Fresnel rim use that material plus
+normals. Apply the existing object orientation (including user quaternion drag)
+*after* field sampling; keep analytic light positions in world/view space. Drag
+therefore changes which moving currents catch the slowly orbiting lights, and
+the day/night impression arises from light/material geometry rather than a
+four-state palette animation. Preserve v1 tone, extent and no-flash bounds.
+
+Build this as one shared GLSL field chunk used by body and existing peels; the
+future shell will sample `n` and the identical `q/B/M` before applying its own
+mask, lift and more translucent material. Existing peels can inherit the field
+while their current geometry remains. Sparse particles may sample `B/activity`
+at their object directions in the vertex shader. Keep four draws, depth order,
+WebGL2 and Canvas/static fallback. The field and four phases must be owned above
+the replaceable backend: current backend recreation also recreates its motion
+evaluator, which would reset currents during an AUTO quality change. A single
+engine-owned evaluator/phase clock should supply both renderers and survive
+quality changes and context recreation. Hidden/stopped/reduced-motion rules
+freeze spatial phase according to v1; no catch-up work is queued on return.
+
+Low/`mobile_2020` evaluates the two mandatory noise scales and one light at the
+existing low mesh, DPR and cadence caps. Balanced may add one fine sample and
+the existing medium light/mesh/pixel caps; high may add the second fine sample
+and the existing high caps. Two rotations (four per-fragment sine/cosine results)
+and the two mandatory noise calls dominate base fragment ALU; extra noise calls
+and pixel count dominate rich tiers. Vertex normal sampling is secondary to
+fragment work. Keep these counts compile-time bounded, with no textures, CPU
+simulation or per-frame allocations. On overload, shed optional detail and DPR
+before the shared `B/M` structure; recover only with existing hysteresis. A
+future trusted workload hint may cap optional detail during local model work,
+but frame pacing alone cannot identify prefill or prove spare VRAM. Canvas should
+reuse the palette/phase grammar with a cheaper broad approximation, not CPU
+per-pixel noise. Exact cost and fallback appearance require representative
+desktop and `mobile_2020` measurements before acceptance.
+
+Reserve an engine-local, zero-default `FieldForcing` with six finite `[0,1]`
+components: `inputEnergy`, `outputEnergy`, `lowWave`, `midDrive`, `highDetail`
+and `onset`. The motion evaluator may later supply two compact uniform vectors
+to the shared field and materials; Stage 1 does not extract new audio, send new
+protocol fields or change `VisualInputV1`. Stage 3 maps newest correlated
+features into *rates* of the existing phases, twist strength, radial wave and
+light/activity, never assigns a new phase. It must drop stale observations and
+clear cancelled output by generation identity. A future shell reads the same
+forcing through the shared field rather than receiving separate animation
+commands.
+
+Rejected baselines: scrolling longitude/latitude imagery has seam/pole and
+rotation artifacts; noise animated only by changing a time coordinate boils
+instead of carrying persistent currents; iterative fluid grids, feedback passes
+and 3D raymarching compete with conversation and exceed the v1 resource model.
+The existing analytic bands remain a low-cost fallback and comparison fixture.
+If a standard simplex implementation is copied, verify its compatible license
+and update `THIRD_PARTY.md`; the MIT-licensed
+[webgl-noise source](https://github.com/stegu/webgl-noise) is a candidate, not a
+dependency or code incorporated by this decision.
+
 ### Outer membrane and peels
 
 The preferred future peel image is a thin spherical outer membrane, slightly
