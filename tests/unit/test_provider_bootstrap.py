@@ -14,7 +14,7 @@ from sam_ambient.runtime import (
     ProviderRefresh,
     RuntimeConfig,
     SamRuntime,
-    _looks_like_playback_echo,
+    _screen_playback_transcript,
 )
 from tests.unit.test_conversation_context import ConversationProvider
 
@@ -132,11 +132,17 @@ def test_bootstrap_timeout_is_bounded_and_ownership_cleanup_idempotent(monkeypat
     asyncio.run(scenario())
 
 
-def test_playback_echo_match_requires_strong_multiword_overlap():
+def test_playback_echo_screen_requires_strong_multiword_overlap():
     spoken = "The answer is forty two and here is why."
-    assert _looks_like_playback_echo("the answer is forty two", spoken)
-    assert not _looks_like_playback_echo("please stop now", spoken)
-    assert not _looks_like_playback_echo("stop", spoken)
+    assert _screen_playback_transcript("the answer is forty two", spoken) == (
+        None,
+        "playback_echo",
+    )
+    assert _screen_playback_transcript("please stop now", spoken) == (
+        "please stop now",
+        None,
+    )
+    assert _screen_playback_transcript("stop", spoken) == ("stop", None)
 
 
 def test_lm_studio_auto_loads_only_one_unambiguous_installed_model(monkeypatch):
