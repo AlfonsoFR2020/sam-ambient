@@ -256,3 +256,15 @@ master specification are recorded here.
   recover user words omitted by recognition, distinguish identical simultaneous
   speech, or prove physical-device robustness. A true reference-audio/AEC path remains
   future work if hardware acceptance shows that text evidence is insufficient.
+
+## D-020 — Living Surface quality and fallback diagnostics
+
+- **Accepted:** 2026-09-24. Keep the two core field scales and pigment grammar on
+  every WebGL quality tier; compile out only optional fine luminance/glint detail.
+  AUTO retains its existing five-second-window hysteresis, using paced intervals
+  for overload and CPU render-submission time for promotion headroom. Neither
+  signal identifies local-model workload or measures GPU time.
+- Expose the active backend and fallback reason as non-visual ambient-host data
+  attributes, with shader-build errors in the console. This provides a dependable
+  debugging/preview check without adding a permanent Controls element. Canvas
+  remains a safe amber fallback, not visual acceptance of the WebGL surface.

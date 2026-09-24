@@ -120,7 +120,14 @@ export class VisualEngine {
   configure(value: Partial<VisualEngineSettings>): void {
     const wasReduced = this.reducedMotion();
     const next = resolveVisualEngineSettings({ ...this.settings, ...value });
-    const nextBudget = resolveRenderBudget(next);
+    const qualityPolicyChanged =
+      next.quality !== this.settings.quality || next.deviceProfile !== this.settings.deviceProfile;
+    const nextBudget = resolveRenderBudget(
+      next,
+      next.quality === "auto" && this.settings.quality === "auto"
+        ? { measuredQuality: this.budget.quality }
+        : {},
+    );
     const wasEnabled = this.settings.enabled;
     const rendererChanged = next.renderer !== this.settings.renderer;
     const rebuild = nextBudget.quality !== this.budget.quality || rendererChanged;
@@ -128,7 +135,7 @@ export class VisualEngine {
     if (!wasReduced && this.reducedMotion()) this.staticTransitionUntil = this.clock() + 200;
     if (this.reducedMotion() || next.motionIntensity === 0) this.interaction.stopInertia();
     this.budget = nextBudget;
-    this.governor.reset(nextBudget.quality);
+    if (qualityPolicyChanged || rendererChanged) this.governor.reset(nextBudget.quality);
     if (rendererChanged) {
       this.forceCanvas = false;
       this.contextLosses = 0;
@@ -208,6 +215,11 @@ export class VisualEngine {
       document.removeEventListener("visibilitychange", this.onVisibility);
     this.reducedMotionMedia?.removeEventListener("change", this.onReducedMotionChange);
     this.releaseBackend();
+    const dataset = this.host?.dataset;
+    if (dataset) {
+      delete dataset.samRenderer;
+      delete dataset.samFallbackReason;
+    }
     this.host?.classList.remove("visual-engine--static");
     this.host = undefined;
     this.lastDraw = 0;
@@ -257,7 +269,9 @@ export class VisualEngine {
       );
       this.pushOrientation();
       const frameInterval = this.lastDraw ? now - this.lastDraw : 1000 / fps;
+      const renderStarted = this.clock();
       this.backend?.render(now);
+      const renderDuration = Math.max(0, this.clock() - renderStarted);
       const adapted = this.governor.observe(
         frameInterval,
         now,
@@ -267,6 +281,7 @@ export class VisualEngine {
           !this.forceCanvas &&
           active &&
           this.hasLiveAvailability(this.input),
+        renderDuration,
       );
       if (adapted === "canvas2d") {
         this.forceCanvas = true;
@@ -322,6 +337,13 @@ export class VisualEngine {
       this.forceCanvas || this.settings.renderer === "canvas2d"
         ? ["canvas2d"]
         : ["webgl2", "canvas2d"];
+    let fallbackReason = this.forceCanvas
+      ? this.contextLosses > 0
+        ? "context-lost"
+        : "governor-overload"
+      : this.settings.renderer === "canvas2d"
+        ? "requested-canvas2d"
+        : undefined;
     for (const kind of order) {
       const canvas = this.createCanvas();
       canvas.className = "ambient-scene__field";
@@ -335,9 +357,17 @@ export class VisualEngine {
         this.seed,
         this.motion,
       );
-      if (!backend) continue;
+      if (!backend) {
+        if (kind === "webgl2")
+          fallbackReason = canvas.dataset?.samWebglFailure ?? "webgl2-unavailable";
+        continue;
+      }
       this.canvas = canvas;
       this.backend = backend;
+      this.setBackendDiagnostic(
+        backend.kind,
+        backend.kind === "webgl2" ? undefined : fallbackReason,
+      );
       this.pushOrientation();
       canvas.addEventListener("webglcontextlost", this.onContextLost);
       this.host.appendChild(canvas);
@@ -356,6 +386,15 @@ export class VisualEngine {
       return;
     }
     this.host.classList.add("visual-engine--static");
+    this.setBackendDiagnostic("static", fallbackReason ?? "no-renderer");
+  }
+
+  private setBackendDiagnostic(kind: RendererKind, reason?: string): void {
+    const dataset = this.host?.dataset;
+    if (!dataset) return;
+    dataset.samRenderer = kind;
+    if (reason) dataset.samFallbackReason = reason;
+    else delete dataset.samFallbackReason;
   }
 
   private readonly onContextLost = (event: Event) => {
@@ -385,6 +424,7 @@ export class VisualEngine {
     this.backend = undefined;
     this.canvas?.remove();
     this.canvas = undefined;
+    this.setBackendDiagnostic("static");
   }
 
   private hasLiveAvailability(input = this.input): boolean {

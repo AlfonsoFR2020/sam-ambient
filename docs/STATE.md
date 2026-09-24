@@ -4,20 +4,21 @@ Updated: 2026-09-24
 
 ## MVP status
 
-- v0.2.3 Living Surface Slices 1–2 establish a deterministic, seamless
-  object-space two-twist/two-scale 3D simplex field and make it the primary
-  WebGL body/peel pigment source. Broad density now drives bounded shared
-  displacement and tangent-sampled body normals; warm-dominant red/copper/gold
-  regions meet localized pink/violet/blue/teal folds under shared world-space
-  light, glint and rim response. The engine owns phase across backend changes;
-  four draws, existing peel geometry, reduced-motion and Canvas/static fallback
-  contracts remain. A missing peel orientation uniform had caused WebGL shader
-  compilation to fail and the old amber Canvas fallback to appear even when
-  serving current Slice 1 source; Slice 2 fixes it. Focused tests/type/lint pass.
-  A short frontend-only WebGL smoke showed moving multicolour structures with
-  no obvious seam/pole break, but representative GPU cost, sustained motion,
-  drag and native visual acceptance remain unverified. Canvas fallback still
-  uses its older amber approximation.
+- v0.2.3 Living Surface Slices 1–3 use one deterministic, seamless object-space
+  two-twist/two-scale field for the WebGL body and existing peels. Shared pigment,
+  bounded displacement, tangent-sampled normals and world-space lighting produce
+  moving warm/cool regions. Low/medium/high compile 0/1/2 optional fine samples
+  for luminance/glint only; the broad field and palette remain identical. AUTO
+  keeps its windowed hysteresis, using paced intervals for overload and CPU
+  render-submission cost for headroom. The engine retains seed, phase, orientation,
+  semantic state and existing audio envelope across backend/quality changes;
+  hidden/reduced-motion and four-draw contracts remain. Active backend and fallback
+  reason are non-visually exposed on the ambient host, and shader-build failures
+  log the error, preventing the older amber Canvas fallback from masquerading as
+  WebGL. Focused tests/type/lint pass. A short frontend-only demo verified WebGL2
+  active at all three tiers and captured a preview; human visual acceptance,
+  representative GPU/mobile performance, sustained drag/motion and native review
+  remain open. Canvas fallback still uses its older amber approximation.
 - The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal
   outcome. Replacement turns wait for predecessor terminal publication; stale chunks

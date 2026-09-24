@@ -17,6 +17,7 @@ export type QualityDecision = ResolvedQuality | "canvas2d";
 /** Small frame-pacing governor. It never observes hidden frames or persists its decisions. */
 export class AdaptiveQualityGovernor {
   private readonly samples: Float32Array;
+  private readonly renderSamples: Float32Array;
   private count = 0;
   private windowStartedMs: number | undefined;
   private headroomWindows = 0;
@@ -34,6 +35,7 @@ export class AdaptiveQualityGovernor {
     this.current = initial;
     this.sampleWindow = options.sampleWindow;
     this.samples = new Float32Array(options.sampleWindow ?? 360);
+    this.renderSamples = new Float32Array(options.sampleWindow ?? 360);
     this.windowMs = options.windowMs ?? 5000;
     this.cooldownMs = options.cooldownMs ?? 5000;
     this.promotionWindows = options.promotionWindows ?? 6;
@@ -55,6 +57,7 @@ export class AdaptiveQualityGovernor {
     settings: VisualEngineSettings,
     budget: RenderBudget,
     visible = true,
+    renderDurationMs = frameIntervalMs,
   ): QualityDecision | undefined {
     if (
       !visible ||
@@ -64,7 +67,11 @@ export class AdaptiveQualityGovernor {
     )
       return undefined;
     if (this.windowStartedMs === undefined) this.windowStartedMs = nowMs;
-    this.samples[this.count++] = frameIntervalMs;
+    this.samples[this.count] = frameIntervalMs;
+    this.renderSamples[this.count++] =
+      Number.isFinite(renderDurationMs) && renderDurationMs >= 0
+        ? renderDurationMs
+        : frameIntervalMs;
     const complete = this.sampleWindow
       ? this.count >= this.sampleWindow
       : nowMs - this.windowStartedMs >= this.windowMs || this.count >= this.samples.length;
@@ -72,12 +79,15 @@ export class AdaptiveQualityGovernor {
     const ordered = Array.from(this.samples.subarray(0, this.count)).sort(
       (left, right) => left - right,
     );
+    const renderOrdered = Array.from(this.renderSamples.subarray(0, this.count)).sort(
+      (left, right) => left - right,
+    );
     const overloads = ordered.filter((value) => value > (1000 / budget.activeFps) * 1.5).length;
     this.count = 0;
     this.windowStartedMs = undefined;
-    const p90 = ordered[Math.floor((ordered.length - 1) * 0.9)];
+    const p90Render = renderOrdered[Math.floor((renderOrdered.length - 1) * 0.9)];
     const frameBudget = 1000 / budget.activeFps;
-    this.headroomWindows = p90 < frameBudget * 0.45 ? this.headroomWindows + 1 : 0;
+    this.headroomWindows = p90Render < frameBudget * 0.45 ? this.headroomWindows + 1 : 0;
     this.overloadWindows = overloads / ordered.length > 0.1 ? this.overloadWindows + 1 : 0;
     if (nowMs - this.lastChangeMs < this.cooldownMs) return undefined;
     const rank = ranks.indexOf(this.current);

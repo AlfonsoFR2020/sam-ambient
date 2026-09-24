@@ -48,6 +48,7 @@ describe("visual quality and geometry", () => {
   it("enforces the formal mobile budget and DPR cap", () => {
     const budget = RENDER_BUDGETS.low;
     expect(budget).toMatchObject({
+      fineOctaves: 0,
       peels: 6,
       peelSamples: 16,
       particles: 12,
@@ -57,6 +58,8 @@ describe("visual quality and geometry", () => {
       antialias: false,
     });
     expect(effectivePixelRatio(390, 844, 3, budget)).toBe(1);
+    expect(RENDER_BUDGETS.medium.fineOctaves).toBe(1);
+    expect(RENDER_BUDGETS.high.fineOctaves).toBe(2);
   });
 
   it("creates deterministic bounded fragmented peels in one geometry batch", () => {
@@ -87,7 +90,7 @@ describe("visual quality and geometry", () => {
   });
 
   it("keeps maximum peel displacement inside the Visual Engine radius bound", () => {
-    const maximumDeformation = 0.006 + 0.026 * 0.55 + 0.022 * 0.35;
+    const maximumDeformation = 0.04;
     const maximumLift = PEEL_LIFT_RANGE.maximum + 0.018;
     const maximumSpheroidDistance = (1.1 + maximumDeformation + maximumLift) * 1.06;
     expect(maximumSpheroidDistance).toBeLessThanOrEqual(1.31);

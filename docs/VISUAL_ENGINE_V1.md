@@ -392,7 +392,8 @@ on screenshots. Shaders are bundled static source compatible with current CSP.
 ## 8. Performance envelope and quality
 
 These are implementation/acceptance budgets, **not measurements of current Sam**.
-Maintain the same warm sphere, fragmented peels and state geometry at every level.
+Maintain the same two-scale Living Surface, palette grammar, breathing and state
+geometry at every level; optional detail must not move primary colour regions.
 
 | Budget | Low | Medium | High |
 | --- | --- | --- | --- |
@@ -401,6 +402,7 @@ Maintain the same warm sphere, fragmented peels and state geometry at every leve
 | Peels x centerline samples | 6 x 16 | 11 x 20 | 16 x 24 |
 | Peel vertices / triangles | 192 / 180 | 440 / 418 | 768 / 736 |
 | Particles / lights | 12 / 1 | 24 / 2 | 40 / 3 |
+| Optional fine field samples per fragment | 0 | 1 | 2 |
 | Idle / active FPS | 24 / 30 | 30 / 60 | 30 / 60 |
 | DPR cap / backing-pixel cap | 1 / 1M | 1.5 / 2M | 2 / 3M |
 
@@ -437,8 +439,14 @@ of stable headroom; AUTO on desktop/high_end may promote through high after sust
 measured headroom. Explicit profiles remain hard caps and explicit quality a desired
 ceiling, not proof that the device can sustain it.
 Ignore hidden/startup windows in adaptation. Poor performance at minimum selects
-Canvas after two bad windows; report the fallback in settings, do not probe GPU
-vendor strings as proof of capability. Explicit quality still obeys memory caps.
+Canvas after two bad windows; expose the fallback in unobtrusive diagnostics,
+not an intrusive permanent control. Do not probe GPU vendor strings as proof
+of capability. Explicit quality still obeys memory caps.
+The current v0.2.3 governor switches whole resolved budgets with this existing
+hysteresis. It uses paced frame intervals to detect overload and bounded CPU
+render-submission duration to infer promotion headroom; neither is a GPU timer
+nor a trusted model-inference workload signal. Component-by-component shedding
+remains a later refinement, not a present claim.
 
 ## 9. Accessibility, fallback and platform parity
 
@@ -554,6 +562,23 @@ ElevenLabs/Hume-style adapters may supply such data; no integration is implied.
   representative low-power/mobile device later. Tests on desktop alone do not
   establish mobile viability. Compare equivalent fixtures in browser and native
   WebView with matching DPR/quality; tolerate raster differences, not state drift.
+
+For a frontend-only human preview, start the already-installed Vite toolchain
+from `ui`:
+
+```powershell
+node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 1420 --strictPort
+```
+
+Open `http://127.0.0.1:1420/?transport=demo` in the Codex built-in browser.
+This demo needs no Sam core, model or audio service. Confirm
+that the served `living-material.ts` is from the current checkout before trusting
+the image. The ambient host exposes `data-sam-renderer="webgl2"` when the intended
+shader is active; `canvas2d` or `static` and `data-sam-fallback-reason` mean the
+older amber fallback is being shown. Shader-build failures also log their error
+to the browser console. Dismiss the demo startup panel to inspect the Orb, and
+stop the dev server when the preview is no longer needed. A screenshot or Canvas
+fallback alone is not human acceptance of the WebGL Living Surface.
 
 ### B. Human visual acceptance (separate future session)
 

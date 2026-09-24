@@ -4,6 +4,8 @@ export type ResolvedQuality = Exclude<VisualQuality, "auto">;
 
 export interface RenderBudget {
   readonly quality: ResolvedQuality;
+  /** Compile-time optional field samples; the two core scales are always present. */
+  readonly fineOctaves: 0 | 1 | 2;
   readonly sphereLongitude: number;
   readonly sphereLatitude: number;
   readonly peels: number;
@@ -20,6 +22,7 @@ export interface RenderBudget {
 export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = Object.freeze({
   low: Object.freeze({
     quality: "low",
+    fineOctaves: 0,
     sphereLongitude: 32,
     sphereLatitude: 16,
     peels: 6,
@@ -34,6 +37,7 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
   }),
   medium: Object.freeze({
     quality: "medium",
+    fineOctaves: 1,
     sphereLongitude: 72,
     sphereLatitude: 36,
     peels: 11,
@@ -48,6 +52,7 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
   }),
   high: Object.freeze({
     quality: "high",
+    fineOctaves: 2,
     sphereLongitude: 96,
     sphereLatitude: 48,
     peels: 16,

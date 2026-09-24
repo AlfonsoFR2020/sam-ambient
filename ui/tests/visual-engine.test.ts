@@ -13,6 +13,7 @@ const fakeCanvas = () => {
   const listeners = new Map<string, EventListener>();
   return {
     className: "",
+    dataset: {} as DOMStringMap,
     style: {} as CSSStyleDeclaration,
     width: 0,
     height: 0,
@@ -31,6 +32,7 @@ const fakeCanvas = () => {
 const fakeHost = (width = 390, height = 844) => {
   const classes = new Set<string>();
   return {
+    dataset: {} as DOMStringMap,
     classList: {
       add: (name: string) => classes.add(name),
       remove: (name: string) => classes.delete(name),
@@ -91,6 +93,7 @@ describe("visual engine lifecycle", () => {
 
   it("falls back without binding Canvas onto a failed WebGL surface", () => {
     let attempts = 0;
+    const host = fakeHost();
     const backend: RendererBackend = {
       kind: "canvas2d",
       update() {},
@@ -102,16 +105,35 @@ describe("visual engine lifecycle", () => {
     };
     const engine = new VisualEngine({
       createCanvas: fakeCanvas,
-      backendFactory: (_canvas, kind) => {
+      backendFactory: (canvas, kind) => {
         attempts++;
+        if (kind === "webgl2") canvas.dataset.samWebglFailure = "shader-build";
         return kind === "webgl2" ? null : backend;
       },
       requestFrame: () => 1,
       cancelFrame() {},
     });
-    engine.mount(fakeHost());
+    engine.mount(host);
     expect(engine.rendererKind).toBe("canvas2d");
+    expect(host.dataset.samRenderer).toBe("canvas2d");
+    expect(host.dataset.samFallbackReason).toBe("shader-build");
     expect(attempts).toBe(2);
+    engine.dispose();
+    expect(host.dataset.samRenderer).toBeUndefined();
+  });
+
+  it("exposes a non-visual static fallback diagnostic when neither backend starts", () => {
+    const host = fakeHost();
+    const engine = new VisualEngine({
+      createCanvas: fakeCanvas,
+      backendFactory: () => null,
+      requestFrame: () => 1,
+      cancelFrame() {},
+    });
+    engine.mount(host);
+    expect(engine.rendererKind).toBe("static");
+    expect(host.dataset.samRenderer).toBe("static");
+    expect(host.dataset.samFallbackReason).toBe("webgl2-unavailable");
     engine.dispose();
   });
 
@@ -208,6 +230,116 @@ describe("visual engine lifecycle", () => {
     tick(50_000);
     expect(renders.at(-1)?.phase).toBe(phaseBeforeReplacement);
     engine.dispose();
+  });
+
+  it("keeps seed, phase, orientation, speaking state and envelope through AUTO demotion and recovery", () => {
+    let now = 0;
+    let serial = 0;
+    let sequence = 0;
+    let disposals = 0;
+    const callbacks = new Map<number, FrameRequestCallback>();
+    const builds: { quality: string; seed: number; motion: MotionEvaluator }[] = [];
+    const rendered: {
+      quality: string;
+      phase: number;
+      envelope: number;
+      foreground: string;
+      orientation: number[];
+    }[] = [];
+    const base = readyInput();
+    const speakingAt = (time: number): VisualInputV1 => ({
+      ...base,
+      sequence: ++sequence,
+      receivedMs: time,
+      audio: { output: { receivedMs: time, envelope: 0.9 } },
+      interaction: { ...base.interaction, foreground: "speaking", speaking: true },
+    });
+    const engine = new VisualEngine({
+      settings: { quality: "auto", deviceProfile: "desktop", reducedMotion: "off" },
+      seed: 913,
+      createCanvas: fakeCanvas,
+      clock: () => now,
+      requestFrame: (callback) => {
+        callbacks.set(++serial, callback);
+        return serial;
+      },
+      cancelFrame: (handle) => callbacks.delete(handle),
+      backendFactory: (_canvas, kind, budget, settings, seed, motion) => {
+        builds.push({ quality: budget.quality, seed, motion });
+        let input = speakingAt(now);
+        let orientation = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+        return {
+          kind,
+          update: (next) => {
+            input = next;
+          },
+          configure() {},
+          resize() {},
+          setObjectOrientation: (matrix) => {
+            orientation = [...matrix];
+          },
+          render: (time) => {
+            const frame = motion.evaluate(input, time, settings, budget, false);
+            rendered.push({
+              quality: budget.quality,
+              phase: frame.fieldPhase1,
+              envelope: frame.envelope,
+              foreground: frame.foreground,
+              orientation,
+            });
+          },
+          dispose: () => disposals++,
+        };
+      },
+    });
+    engine.mount(fakeHost());
+    engine.update(speakingAt(0));
+    engine.beginInteraction(100, 100, 0);
+    engine.moveInteraction(140, 115, 0);
+    engine.cancelInteraction();
+    const step = (time: number) => {
+      now = time;
+      engine.update(speakingAt(time));
+      const pending = callbacks.entries().next().value as [number, FrameRequestCallback];
+      expect(pending).toBeDefined();
+      callbacks.delete(pending[0]);
+      pending[1](time);
+    };
+    for (let time = 100; time <= 5_400; time += 100) step(time);
+    expect(builds.map((build) => build.quality)).toEqual(["medium", "low"]);
+    const beforeDemotion = rendered.filter((view) => view.quality === "medium").at(-1);
+    const afterDemotion = rendered.find((view) => view.quality === "low");
+    expect(beforeDemotion).toBeDefined();
+    expect(afterDemotion).toBeDefined();
+    expect(Math.abs((afterDemotion?.phase ?? 0) - (beforeDemotion?.phase ?? 0))).toBeLessThan(0.02);
+    expect(afterDemotion?.envelope).toBeGreaterThan(0.2);
+    expect(afterDemotion?.foreground).toBe("speaking");
+    expect(afterDemotion?.orientation).toEqual(beforeDemotion?.orientation);
+    expect(builds[1].seed).toBe(builds[0].seed);
+    expect(builds[1].motion).toBe(builds[0].motion);
+    engine.configure({ intensity: 0.7 });
+    expect(builds).toHaveLength(2);
+    let time = 5_400;
+    for (let index = 0; index < 1_000 && builds.length < 3; index++) {
+      time += 34;
+      step(time);
+    }
+    expect(builds.map((build) => build.quality)).toEqual(["medium", "low", "medium"]);
+    expect(builds[2].seed).toBe(builds[0].seed);
+    expect(builds[2].motion).toBe(builds[0].motion);
+    const beforePromotion = rendered.filter((view) => view.quality === "low").at(-1);
+    step(time + 34);
+    const afterPromotion = rendered.at(-1);
+    expect(afterPromotion?.quality).toBe("medium");
+    expect(Math.abs((afterPromotion?.phase ?? 0) - (beforePromotion?.phase ?? 0))).toBeLessThan(
+      0.02,
+    );
+    expect(afterPromotion?.envelope).toBeGreaterThan(0.2);
+    expect(afterPromotion?.foreground).toBe("speaking");
+    expect(afterPromotion?.orientation).toEqual(beforePromotion?.orientation);
+    engine.dispose();
+    expect(disposals).toBe(3);
+    expect(callbacks.size).toBe(0);
   });
 
   it("allocates no renderer while disabled and releases one when disabled later", () => {
@@ -403,6 +535,7 @@ describe("visual engine lifecycle", () => {
   });
 
   it("falls back on context loss, retries twice, then remains on Canvas", () => {
+    const host = fakeHost();
     const canvases: ReturnType<typeof fakeCanvas>[] = [];
     const callbacks = new Map<number, FrameRequestCallback>();
     let frame = 0;
@@ -442,11 +575,13 @@ describe("visual engine lifecycle", () => {
       pending[1](0);
     };
 
-    engine.mount(fakeHost());
+    engine.mount(host);
     loseContext();
     expect(engine.rendererKind).toBe("canvas2d");
+    expect(host.dataset.samFallbackReason).toBe("context-lost");
     restore();
     expect(engine.rendererKind).toBe("webgl2");
+    expect(host.dataset.samFallbackReason).toBeUndefined();
     loseContext();
     restore();
     expect(engine.rendererKind).toBe("webgl2");

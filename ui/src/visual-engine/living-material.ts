@@ -13,6 +13,9 @@ export const PIGMENTS = Object.freeze({
   teal: [0.035, 0.58, 0.46] as Color,
 });
 
+/** Optional luminance/roughness only; these never enter the palette coordinate. */
+export const FINE_DETAIL_AMPLITUDES = [0.06, 0.025] as const;
+
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 const smooth = (lo: number, hi: number, value: number): number => {
   const t = clamp01((value - lo) / (hi - lo));
@@ -55,6 +58,9 @@ const glslColor = (color: Color): string => `vec3(${color.map((n) => n.toFixed(4
 
 /** Shared by the sphere and existing peels after the field is sampled. */
 export const LIVING_MATERIAL_GLSL = `
+#ifndef SAM_FINE_OCTAVES
+#define SAM_FINE_OCTAVES 0
+#endif
 uniform int u_light_count;
 uniform float u_light_phase;
 
@@ -77,6 +83,17 @@ LivingPigment livingPigment(LivingField field) {
   return LivingPigment(clamp(mix(warm, cool, coolWeight) * fold, 0.0, 1.0), coolWeight);
 }
 
+float livingSurfaceDetail(LivingField field) {
+  float detail = 0.0;
+#if SAM_FINE_OCTAVES >= 1
+  detail += ${FINE_DETAIL_AMPLITUDES[0].toFixed(3)} * simplex3(7.2 * field.transported + u_field_offset_a);
+#endif
+#if SAM_FINE_OCTAVES >= 2
+  detail += ${FINE_DETAIL_AMPLITUDES[1].toFixed(3)} * simplex3(14.4 * field.transported + u_field_offset_b);
+#endif
+  return detail * (0.65 + 0.35 * field.activity);
+}
+
 struct LivingLight { float diffuse; float glint; float rim; };
 LivingLight livingLight(vec3 normal, vec3 position) {
   vec3 n = normalize(normal), view = vec3(0.0, 0.0, 1.0);
@@ -91,6 +108,9 @@ LivingLight livingLight(vec3 normal, vec3 position) {
     vec3 light = normalize(orbit - position);
     diffuse += max(dot(n, light), 0.0) * (0.82 - fi * 0.10);
     glint += pow(max(dot(n, normalize(light + view)), 0.0), 34.0) * (0.72 - fi * 0.12);
+#if SAM_FINE_OCTAVES >= 2
+    glint += pow(max(dot(n, normalize(light + view)), 0.0), 72.0) * (0.20 - fi * 0.03);
+#endif
   }
   return LivingLight(diffuse, glint, pow(1.0 - max(dot(n, view), 0.0), 3.0));
 }

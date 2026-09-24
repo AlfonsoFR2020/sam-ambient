@@ -88,4 +88,17 @@ describe("adaptive visual quality", () => {
       decision = governor.observe(4, index * 100, automatic, RENDER_BUDGETS.medium) ?? decision;
     expect(decision).toBe("high");
   });
+
+  it("uses render cost for promotion without mistaking intentional frame pacing for load", () => {
+    const governor = new AdaptiveQualityGovernor("low", {
+      sampleWindow: 2,
+      cooldownMs: 0,
+      promotionWindows: 2,
+    });
+    for (let index = 0; index < 3; index++)
+      expect(
+        governor.observe(1000 / 30, index * 40, automatic, RENDER_BUDGETS.low, true, 3),
+      ).toBeUndefined();
+    expect(governor.observe(1000 / 30, 120, automatic, RENDER_BUDGETS.low, true, 3)).toBe("medium");
+  });
 });

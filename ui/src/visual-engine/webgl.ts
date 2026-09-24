@@ -59,12 +59,13 @@ void main(){
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
   LivingLight light=livingLight(v_normal,v_position);
+  float fine=livingSurfaceDetail(field);
   float illumination=0.31+light.diffuse*0.70+u_intensity*0.32;
   vec3 innerWarmth=vec3(0.085,0.026,0.012)*(1.0-field.broad)*0.35;
   vec3 glintColor=mix(vec3(1.0,0.68,0.38),vec3(0.55,0.77,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.88,0.31,0.13),vec3(0.29,0.48,0.83),pigment.cool);
-  vec3 linear=pigment.albedo*illumination+innerWarmth
-    +glintColor*(light.glint*0.58+u_highlight*0.20)
+  vec3 linear=pigment.albedo*illumination*(1.0+fine)+innerWarmth
+    +glintColor*(light.glint*(0.58+max(fine,0.0)*0.30)+u_highlight*0.20)
     +rimColor*light.rim*(0.18+u_rim*0.55);
   linear=linear/(1.+linear);
   color=vec4(pow(linear,vec3(1./2.2)),1.);
@@ -155,11 +156,12 @@ void main(){
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
   LivingLight light=livingLight(v_normal,v_position);
+  float fine=livingSurfaceDetail(field);
   float alpha=clamp(v_alpha*v_facing*(.5+.5*u_emission),0.,.82);
   vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
-  vec3 linear=pigment.albedo*(0.38+light.diffuse*0.78+u_intensity*0.34)
-    +glintColor*(light.glint*0.65+v_highlight*0.20)
+  vec3 linear=pigment.albedo*(0.38+light.diffuse*0.78+u_intensity*0.34)*(1.0+fine)
+    +glintColor*(light.glint*(0.65+max(fine,0.0)*0.30)+v_highlight*0.20)
     +rimColor*light.rim*0.28;
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
@@ -220,6 +222,8 @@ void main(){
   color=vec4(vec3(.88,.18,.035)*alpha,alpha);
 }`;
 
+class ShaderBuildError extends Error {}
+
 const compile = (gl: WebGL2RenderingContext, type: number, source: string): WebGLShader => {
   const shader = gl.createShader(type);
   if (!shader) throw new Error("WebGL shader allocation failed");
@@ -228,10 +232,14 @@ const compile = (gl: WebGL2RenderingContext, type: number, source: string): WebG
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     const message = gl.getShaderInfoLog(shader) ?? "unknown shader error";
     gl.deleteShader(shader);
-    throw new Error(message);
+    throw new ShaderBuildError(message);
   }
   return shader;
 };
+
+/** Constructed only when a backend is created; optional noise compiles out on low. */
+const withFineDetail = (source: string, fineOctaves: 0 | 1 | 2): string =>
+  source.replace("#version 300 es\n", `#version 300 es\n#define SAM_FINE_OCTAVES ${fineOctaves}\n`);
 
 const program = (gl: WebGL2RenderingContext, vertex: string, fragment: string): WebGLProgram => {
   const result = gl.createProgram();
@@ -246,7 +254,7 @@ const program = (gl: WebGL2RenderingContext, vertex: string, fragment: string): 
   if (!gl.getProgramParameter(result, gl.LINK_STATUS)) {
     const message = gl.getProgramInfoLog(result) ?? "unknown link error";
     gl.deleteProgram(result);
-    throw new Error(message);
+    throw new ShaderBuildError(message);
   }
   return result;
 };
@@ -407,8 +415,8 @@ export class WebGLBackend implements RendererBackend {
       typeof matchMedia === "undefined"
         ? undefined
         : matchMedia("(prefers-reduced-motion: reduce)");
-    this.orbProgram = program(gl, ORB_VERTEX, ORB_FRAGMENT);
-    this.peelProgram = program(gl, PEEL_VERTEX, PEEL_FRAGMENT);
+    this.orbProgram = program(gl, ORB_VERTEX, withFineDetail(ORB_FRAGMENT, budget.fineOctaves));
+    this.peelProgram = program(gl, PEEL_VERTEX, withFineDetail(PEEL_FRAGMENT, budget.fineOctaves));
     this.haloProgram = program(gl, HALO_VERTEX, HALO_FRAGMENT);
     this.particleProgram = program(gl, PARTICLE_VERTEX, PARTICLE_FRAGMENT);
     this.orbUniforms = {
@@ -689,17 +697,31 @@ export function createWebGLBackend(
   seed: number,
   motion: MotionEvaluator,
 ): WebGLBackend | null {
-  const gl = canvas.getContext("webgl2", {
-    alpha: true,
-    antialias: budget.antialias,
-    depth: true,
-    premultipliedAlpha: true,
-    preserveDrawingBuffer: false,
-  });
-  if (!gl) return null;
+  let gl: WebGL2RenderingContext | null;
+  try {
+    gl = canvas.getContext("webgl2", {
+      alpha: true,
+      antialias: budget.antialias,
+      depth: true,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+    });
+  } catch (error) {
+    if (canvas.dataset) canvas.dataset.samWebglFailure = "context-error";
+    console.warn("Sam WebGL2 context failed; using the Canvas fallback.", error);
+    return null;
+  }
+  if (!gl) {
+    if (canvas.dataset) canvas.dataset.samWebglFailure = "context-unavailable";
+    return null;
+  }
   try {
     return new WebGLBackend(canvas, gl, budget, settings, seed, motion);
-  } catch {
+  } catch (error) {
+    if (canvas.dataset)
+      canvas.dataset.samWebglFailure =
+        error instanceof ShaderBuildError ? "shader-build" : "backend-initialization";
+    console.warn("Sam WebGL2 renderer failed; using the Canvas fallback.", error);
     gl.getExtension("WEBGL_lose_context")?.loseContext();
     return null;
   }

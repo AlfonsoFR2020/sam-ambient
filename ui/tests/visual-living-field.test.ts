@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { INITIAL_UI_STATE } from "../src/protocol/types";
 import { VisualInputAdapter } from "../src/visual-engine/input";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "../src/visual-engine/living-field";
 import {
+  FINE_DETAIL_AMPLITUDES,
   LIVING_MATERIAL_GLSL,
   LIVING_SURFACE_VERTEX_GLSL,
   sampleLivingPigment,
@@ -11,6 +12,7 @@ import { MotionEvaluator } from "../src/visual-engine/motion";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
 import { DEFAULT_VISUAL_ENGINE_SETTINGS } from "../src/visual-engine/types";
 import {
+  createWebGLBackend,
   ORB_FRAGMENT,
   ORB_VERTEX,
   PEEL_FRAGMENT,
@@ -317,63 +319,162 @@ describe("living field substrate", () => {
     expect(LIVING_MATERIAL_GLSL).toContain("orbit - position");
   });
 
-  it("feeds identical seeded field uniforms to two materials within four draws", () => {
-    const shaderSources: string[] = [];
-    const states: { program: object; values: number[] }[] = [];
-    const offsets: { program: object; name: string; values: number[] }[] = [];
-    const draws: string[] = [];
-    let currentProgram: object = {};
-    const gl = new Proxy(
-      {
+  it("keeps seeded field/material identity and four draws across all quality tiers", () => {
+    let baseFragments: string[] | undefined;
+    let baseOffsets: number[][] | undefined;
+    for (const budget of Object.values(RENDER_BUDGETS)) {
+      const shaderSources: string[] = [];
+      const states: { program: object; values: number[] }[] = [];
+      const offsets: { program: object; name: string; values: number[] }[] = [];
+      const draws: string[] = [];
+      const deleted = { programs: 0, vaos: 0, buffers: 0 };
+      let currentProgram: object = {};
+      const gl = new Proxy(
+        {
+          VERTEX_SHADER: 1,
+          FRAGMENT_SHADER: 2,
+          COMPILE_STATUS: 3,
+          LINK_STATUS: 4,
+          COLOR_BUFFER_BIT: 1,
+          DEPTH_BUFFER_BIT: 2,
+          createShader: (type: number) => ({ type }),
+          shaderSource: (_shader: object, source: string) => shaderSources.push(source),
+          getShaderParameter: () => true,
+          createProgram: () => ({}),
+          getProgramParameter: () => true,
+          createVertexArray: () => ({}),
+          createBuffer: () => ({}),
+          deleteProgram: () => deleted.programs++,
+          deleteVertexArray: () => deleted.vaos++,
+          deleteBuffer: () => deleted.buffers++,
+          getUniformLocation: (program: object, name: string) => ({ program, name }),
+          useProgram: (program: object) => {
+            currentProgram = program;
+          },
+          uniform4f: (_location: object, ...values: number[]) => {
+            states.push({ program: currentProgram, values });
+          },
+          uniform3f: (location: { name: string }, ...values: number[]) => {
+            offsets.push({ program: currentProgram, name: location.name, values });
+          },
+          drawElements: () => draws.push("indexed"),
+          drawArrays: () => draws.push("array"),
+        },
+        { get: (target, key) => (key in target ? target[key as keyof typeof target] : () => {}) },
+      ) as unknown as WebGL2RenderingContext;
+      const backend = new WebGLBackend(
+        { width: 0, height: 0 } as HTMLCanvasElement,
+        gl,
+        budget,
+        DEFAULT_VISUAL_ENGINE_SETTINGS,
+        42,
+        new MotionEvaluator(42),
+      );
+      backend.update(new VisualInputAdapter().ingest(INITIAL_UI_STATE, 0));
+      backend.render(0);
+      const fragments = shaderSources.filter((source) => source.includes(LIVING_MATERIAL_GLSL));
+      expect(shaderSources.filter((source) => source.includes(LIVING_FIELD_GLSL))).toHaveLength(4);
+      expect(fragments).toHaveLength(2);
+      for (const fragment of fragments) {
+        expect(fragment).toContain(`#define SAM_FINE_OCTAVES ${budget.fineOctaves}`);
+        expect(fragment).toContain("sampleLivingField(normalize(v_object_direction))");
+        expect(fragment).toContain("LivingPigment pigment=livingPigment(field)");
+      }
+      const normalized = fragments.map((source) =>
+        source.replace(
+          `#define SAM_FINE_OCTAVES ${budget.fineOctaves}`,
+          "#define SAM_FINE_OCTAVES 0",
+        ),
+      );
+      if (baseFragments) expect(normalized).toEqual(baseFragments);
+      else baseFragments = normalized;
+      expect(states).toHaveLength(2);
+      expect(states[0].values).toEqual(states[1].values);
+      expect(states[0].program).not.toBe(states[1].program);
+      expect(offsets).toHaveLength(4);
+      expect(offsets[0].values).toEqual(offsets[2].values);
+      expect(offsets[1].values).toEqual(offsets[3].values);
+      const seeded = offsets.map((entry) => entry.values);
+      if (baseOffsets) expect(seeded).toEqual(baseOffsets);
+      else baseOffsets = seeded;
+      expect(draws).toEqual(["indexed", "indexed", "indexed", "array"]);
+      backend.dispose();
+      expect(deleted).toEqual({ programs: 4, vaos: 4, buffers: 7 });
+    }
+  });
+
+  it("makes optional fine detail deterministic and unable to move primary pigment", () => {
+    expect(FINE_DETAIL_AMPLITUDES).toEqual([0.06, 0.025]);
+    expect(LIVING_MATERIAL_GLSL).toContain("simplex3(7.2 * field.transported");
+    expect(LIVING_MATERIAL_GLSL).toContain("simplex3(14.4 * field.transported");
+    const [offsetA, offsetB] = createFieldOffsets(42);
+    for (let i = 0; i < 256; i++) {
+      const field = sample(fibonacciDirection(i, 256), state, 42);
+      const pigment = sampleLivingPigment(field);
+      const q = field.q;
+      const sampleFine = (frequency: number, offset: Vec3) =>
+        simplex3([
+          frequency * q[0] + offset[0],
+          frequency * q[1] + offset[1],
+          frequency * q[2] + offset[2],
+        ]);
+      const first = FINE_DETAIL_AMPLITUDES[0] * sampleFine(7.2, offsetA);
+      const second = FINE_DETAIL_AMPLITUDES[1] * sampleFine(14.4, offsetB);
+      for (const budget of Object.values(RENDER_BUDGETS)) {
+        const detail =
+          (budget.fineOctaves >= 1 ? first : 0) + (budget.fineOctaves >= 2 ? second : 0);
+        expect(Math.abs(detail)).toBeLessThanOrEqual(0.085);
+        expect(sampleLivingPigment(field)).toEqual(pigment);
+      }
+    }
+  });
+
+  it("records shader-build and missing-WebGL fallback causes without suppressing them", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const failingGL = {
         VERTEX_SHADER: 1,
-        FRAGMENT_SHADER: 2,
-        COMPILE_STATUS: 3,
-        LINK_STATUS: 4,
-        COLOR_BUFFER_BIT: 1,
-        DEPTH_BUFFER_BIT: 2,
-        createShader: (type: number) => ({ type }),
-        shaderSource: (_shader: object, source: string) => shaderSources.push(source),
-        getShaderParameter: () => true,
+        createShader: () => ({}),
         createProgram: () => ({}),
-        getProgramParameter: () => true,
-        createVertexArray: () => ({}),
-        createBuffer: () => ({}),
-        getUniformLocation: (program: object, name: string) => ({ program, name }),
-        useProgram: (program: object) => {
-          currentProgram = program;
-        },
-        uniform4f: (_location: object, ...values: number[]) => {
-          states.push({ program: currentProgram, values });
-        },
-        uniform3f: (location: { name: string }, ...values: number[]) => {
-          offsets.push({ program: currentProgram, name: location.name, values });
-        },
-        drawElements: () => draws.push("indexed"),
-        drawArrays: () => draws.push("array"),
-      },
-      { get: (target, key) => (key in target ? target[key as keyof typeof target] : () => {}) },
-    ) as unknown as WebGL2RenderingContext;
-    const canvas = { width: 0, height: 0 } as HTMLCanvasElement;
-    const motion = new MotionEvaluator(42);
-    const backend = new WebGLBackend(
-      canvas,
-      gl,
-      RENDER_BUDGETS.low,
-      DEFAULT_VISUAL_ENGINE_SETTINGS,
-      42,
-      motion,
-    );
-    backend.update(new VisualInputAdapter().ingest(INITIAL_UI_STATE, 0));
-    backend.render(0);
-    expect(shaderSources.filter((source) => source.includes(LIVING_FIELD_GLSL))).toHaveLength(4);
-    expect(shaderSources.filter((source) => source.includes(LIVING_MATERIAL_GLSL))).toHaveLength(2);
-    expect(states).toHaveLength(2);
-    expect(states[0].values).toEqual(states[1].values);
-    expect(states[0].program).not.toBe(states[1].program);
-    expect(offsets).toHaveLength(4);
-    expect(offsets[0].values).toEqual(offsets[2].values);
-    expect(offsets[1].values).toEqual(offsets[3].values);
-    expect(draws).toEqual(["indexed", "indexed", "indexed", "array"]);
-    backend.dispose();
+        shaderSource() {},
+        compileShader() {},
+        getShaderParameter: () => false,
+        getShaderInfoLog: () => "undeclared uniform",
+        deleteShader() {},
+        getExtension: () => null,
+      } as unknown as WebGL2RenderingContext;
+      const shaderCanvas = {
+        dataset: {} as DOMStringMap,
+        getContext: () => failingGL,
+      } as unknown as HTMLCanvasElement;
+      expect(
+        createWebGLBackend(
+          shaderCanvas,
+          RENDER_BUDGETS.low,
+          DEFAULT_VISUAL_ENGINE_SETTINGS,
+          42,
+          new MotionEvaluator(42),
+        ),
+      ).toBeNull();
+      expect(shaderCanvas.dataset.samWebglFailure).toBe("shader-build");
+      expect(warn).toHaveBeenCalledOnce();
+      expect(String(warn.mock.calls[0]?.[1])).toContain("undeclared uniform");
+      const missingCanvas = {
+        dataset: {} as DOMStringMap,
+        getContext: () => null,
+      } as unknown as HTMLCanvasElement;
+      expect(
+        createWebGLBackend(
+          missingCanvas,
+          RENDER_BUDGETS.low,
+          DEFAULT_VISUAL_ENGINE_SETTINGS,
+          42,
+          new MotionEvaluator(42),
+        ),
+      ).toBeNull();
+      expect(missingCanvas.dataset.samWebglFailure).toBe("context-unavailable");
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
