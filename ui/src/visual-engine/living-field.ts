@@ -91,15 +91,27 @@ float simplex3(vec3 point) {
   );
 }
 
-LivingField sampleLivingField(vec3 objectDirection) {
+vec3 transportFieldDirection(vec3 objectDirection) {
   const vec3 AXIS_A = vec3(0.4, 0.8, 0.3);
   const vec3 AXIS_B = vec3(-0.7, 0.2, 0.6);
   vec3 q = normalize(objectDirection);
   q = sphericalTwist(q, normalize(AXIS_A), u_field_state.x, u_field_state.z);
-  q = normalize(sphericalTwist(q, normalize(AXIS_B), u_field_state.y, u_field_state.w));
+  return normalize(sphericalTwist(q, normalize(AXIS_B), u_field_state.y, u_field_state.w));
+}
+
+float broadDensityAt(vec3 transportedDirection) {
+  return clamp(0.5 + 0.5 * simplex3(1.8 * transportedDirection + u_field_offset_a), 0.0, 1.0);
+}
+
+float sampleBroadDensity(vec3 objectDirection) {
+  return broadDensityAt(transportFieldDirection(objectDirection));
+}
+
+LivingField sampleLivingField(vec3 objectDirection) {
+  vec3 q = transportFieldDirection(objectDirection);
   LivingField field;
   field.transported = q;
-  field.broad = clamp(0.5 + 0.5 * simplex3(1.8 * q + u_field_offset_a), 0.0, 1.0);
+  field.broad = broadDensityAt(q);
   field.medium = clamp(0.5 + 0.5 * simplex3(3.6 * q + u_field_offset_b), 0.0, 1.0);
   field.palette = 0.70 * field.broad + 0.30 * field.medium;
   field.activity = smoothstep(0.20, 0.50, abs(field.broad - field.medium));

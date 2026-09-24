@@ -6,6 +6,7 @@ import {
   type IndexedGeometry,
 } from "./geometry";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
+import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
 import type { MotionEvaluator, MotionFrame } from "./motion";
 import { PARTICLE_GOLD, PARTICLE_VISIBILITY_HASH } from "./particles";
 import type { RenderBudget } from "./quality";
@@ -31,22 +32,14 @@ out vec3 v_object_direction;
 mat3 rotateX(float a){float c=cos(a),s=sin(a);return mat3(1.,0.,0.,0.,c,s,0.,-s,c);}
 mat3 rotateY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,c);}
 mat3 rotateZ(float a){float c=cos(a),s=sin(a);return mat3(c,s,0.,-s,c,0.,0.,0.,1.);}
+${LIVING_FIELD_GLSL}
+${LIVING_SURFACE_VERTEX_GLSL}
 void main(){
-  vec3 axisA=normalize(vec3(.70,.20,.60));
-  vec3 axisB=normalize(vec3(-.25,.91,.32));
-  vec3 axisC=normalize(vec3(.41,-.36,.84));
-  float pA=2.0*dot(axisA,a_normal)+u_breath_phase;
-  float pB=3.0*dot(axisB,a_normal)+u_ripple_phase;
-  float pC=7.0*dot(axisC,a_normal)-u_ripple_phase*.71;
-  float deformation=.006*sin(pA)+u_deformation*.55*sin(pB)+u_ripple*.35*sin(pC);
-  vec3 gradient=.012*cos(pA)*axisA+u_deformation*1.65*cos(pB)*axisB+u_ripple*2.45*cos(pC)*axisC;
-  gradient-=a_normal*dot(gradient,a_normal);
-  vec3 localNormal=normalize(a_normal-gradient/max(.9,u_radius+deformation));
   mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin)*u_object_orientation;
-  vec3 position=a_position*(u_radius+deformation);
-  position.y*=1.06;
+  vec3 position=livingBodyPoint(a_position,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
+  vec3 localNormal=livingBodyNormal(a_normal,position,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
   v_position=rotation*position;
-  v_normal=normalize(rotation*vec3(localNormal.x,localNormal.y/1.06,localNormal.z));
+  v_normal=normalize(rotation*localNormal);
   v_object_direction=a_normal;
   gl_Position=vec4(v_position.xy*u_scale,-v_position.z*.25,1.);
 }`;
@@ -57,33 +50,22 @@ in vec3 v_normal;
 in vec3 v_position;
 in vec3 v_object_direction;
 uniform float u_intensity;
-uniform int u_light_count;
-uniform float u_light_phase;
 uniform float u_rim;
 uniform float u_highlight;
-uniform mat3 u_object_orientation;
 out vec4 color;
 ${LIVING_FIELD_GLSL}
+${LIVING_MATERIAL_GLSL}
 void main(){
   LivingField field=sampleLivingField(normalize(v_object_direction));
-  vec3 n=normalize(v_normal), view=vec3(0.,0.,1.);
-  float diffuse=.09;
-  float specular=0.;
-  for(int i=0;i<3;i++){
-    if(i>=u_light_count) break;
-    float fi=float(i);
-    float phase=u_light_phase*(1.+fi*.37)+fi*2.094;
-    float incline=.18+fi*.17;
-    vec3 orbit=vec3(cos(phase)*1.6,sin(phase*.83+fi)*1.3,1.35+sin(phase)*.18);
-    orbit.yz=mat2(cos(incline),-sin(incline),sin(incline),cos(incline))*orbit.yz;
-    vec3 light=normalize(orbit-v_position);
-    diffuse+=max(dot(n,light),0.)*(.56-fi*.065);
-    specular+=pow(max(dot(n,normalize(light+view)),0.),18.)*(.48-fi*.055);
-  }
-  float rim=pow(1.-max(dot(n,view),0.),3.);
-  vec3 base=mix(vec3(.145,.014,.004),vec3(.98,.255,.04),clamp(diffuse,0.,1.));
-  base*=.91+.18*field.palette+.03*field.activity;
-  vec3 linear=base*(.28+u_intensity*.82)+vec3(1.,.49,.11)*(specular+u_highlight*.28)+vec3(.96,.24,.025)*rim*(u_rim+.08);
+  LivingPigment pigment=livingPigment(field);
+  LivingLight light=livingLight(v_normal,v_position);
+  float illumination=0.31+light.diffuse*0.70+u_intensity*0.32;
+  vec3 innerWarmth=vec3(0.085,0.026,0.012)*(1.0-field.broad)*0.35;
+  vec3 glintColor=mix(vec3(1.0,0.68,0.38),vec3(0.55,0.77,1.0),pigment.cool);
+  vec3 rimColor=mix(vec3(0.88,0.31,0.13),vec3(0.29,0.48,0.83),pigment.cool);
+  vec3 linear=pigment.albedo*illumination+innerWarmth
+    +glintColor*(light.glint*0.58+u_highlight*0.20)
+    +rimColor*light.rim*(0.18+u_rim*0.55);
   linear=linear/(1.+linear);
   color=vec4(pow(linear,vec3(1./2.2)),1.);
 }`;
@@ -108,13 +90,18 @@ uniform float u_peel_width;
 uniform float u_coherence;
 uniform float u_rephase;
 uniform float u_highlight;
+uniform mat3 u_object_orientation;
 out float v_alpha;
 out float v_facing;
 out float v_highlight;
 out vec3 v_object_direction;
+out vec3 v_normal;
+out vec3 v_position;
 mat3 rotateX(float a){float c=cos(a),s=sin(a);return mat3(1.,0.,0.,0.,c,s,0.,-s,c);}
 mat3 rotateY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,c);}
 mat3 rotateZ(float a){float c=cos(a),s=sin(a);return mat3(c,s,0.,-s,c,0.,0.,0.,1.);}
+${LIVING_FIELD_GLSL}
+${LIVING_SURFACE_VERTEX_GLSL}
 vec3 carrier(float u,float family){
   float phi=atan(sinh(u));
   float lambda=(1.65+.06*sin(u_peel_travel*.17+a_surface.w))*u+family*6.2831853+(family-.33)*u_opening*.06;
@@ -138,12 +125,13 @@ void main(){
   direction=local*direction;
   v_object_direction=direction;
   mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin)*u_object_orientation;
-  float deformation=.006*sin(2.0*dot(direction,normalize(vec3(.7,.2,.6)))+u_breath_phase)+u_deformation*.55*sin(3.0*dot(direction,normalize(vec3(-.25,.91,.32)))+u_ripple_phase)+u_ripple*.35*sin(7.0*dot(direction,normalize(vec3(.41,-.36,.84)))-u_ripple_phase*.71);
   float lift=a_surface.y+u_peel_lift*(.68+.32*sin(a_surface.w+u_peel_travel*.43));
-  vec3 position=direction*(u_radius+deformation+lift);
-  position.y*=1.06;
+  vec3 position=livingBodyPoint(direction,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
+  position+=direction*lift*vec3(1.0,1.06,1.0);
   vec3 world=rotation*position;
-  vec3 normal=normalize(rotation*direction);
+  vec3 normal=normalize(rotation*vec3(direction.x,direction.y/1.06,direction.z));
+  v_normal=normal;
+  v_position=world;
   v_alpha=a_surface.z*fade*fade*(1.+alignment*.16);
   v_facing=smoothstep(-.02,.15,normal.z);
   v_highlight=alignment*.35+u_highlight*(.25+.75*pow(1.-abs(q),3.));
@@ -155,17 +143,26 @@ precision highp float;
 in float v_alpha;
 in float v_facing;
 in vec3 v_object_direction;
+in vec3 v_normal;
+in vec3 v_position;
 uniform float u_intensity;
 uniform float u_emission;
 in float v_highlight;
 out vec4 color;
 ${LIVING_FIELD_GLSL}
+${LIVING_MATERIAL_GLSL}
 void main(){
   LivingField field=sampleLivingField(normalize(v_object_direction));
+  LivingPigment pigment=livingPigment(field);
+  LivingLight light=livingLight(v_normal,v_position);
   float alpha=clamp(v_alpha*v_facing*(.5+.5*u_emission),0.,.82);
-  vec3 warm=mix(vec3(.88,.16,.025),vec3(1.,.62,.24),clamp(u_intensity*.62+v_highlight,0.,1.));
-  warm*=.91+.18*field.palette+.03*field.activity;
-  color=vec4(warm*alpha,alpha);
+  vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
+  vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
+  vec3 linear=pigment.albedo*(0.38+light.diffuse*0.78+u_intensity*0.34)
+    +glintColor*(light.glint*0.65+v_highlight*0.20)
+    +rimColor*light.rim*0.28;
+  linear=linear/(1.0+linear);
+  color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
 }`;
 
 const PARTICLE_VERTEX = `#version 300 es
@@ -358,6 +355,8 @@ export class WebGLBackend implements RendererBackend {
     };
   private readonly peelUniforms: CommonUniforms &
     FieldUniforms & {
+      readonly lightCount: WebGLUniformLocation;
+      readonly lightPhase: WebGLUniformLocation;
       readonly spin: WebGLUniformLocation;
       readonly precession: WebGLUniformLocation;
       readonly breathPhase: WebGLUniformLocation;
@@ -430,6 +429,8 @@ export class WebGLBackend implements RendererBackend {
     this.peelUniforms = {
       ...this.commonUniformLocations(this.peelProgram),
       ...this.fieldUniformLocations(this.peelProgram),
+      lightCount: location(gl, this.peelProgram, "u_light_count"),
+      lightPhase: location(gl, this.peelProgram, "u_light_phase"),
       spin: location(gl, this.peelProgram, "u_spin"),
       precession: location(gl, this.peelProgram, "u_precession"),
       breathPhase: location(gl, this.peelProgram, "u_breath_phase"),
@@ -571,6 +572,7 @@ export class WebGLBackend implements RendererBackend {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     bindProgram(gl, this.peelProgram);
     this.setCommonUniforms(this.peelUniforms, frame);
+    gl.uniform1i(this.peelUniforms.lightCount, this.budget.lights);
     this.setPeelUniforms(frame);
     gl.bindVertexArray(this.peels.vao);
     gl.drawElements(gl.TRIANGLES, this.peels.count, gl.UNSIGNED_SHORT, 0);
@@ -642,6 +644,7 @@ export class WebGLBackend implements RendererBackend {
     const gl = this.gl;
     const uniforms = this.peelUniforms;
     this.setFieldState(uniforms, frame);
+    gl.uniform1f(uniforms.lightPhase, frame.lightPhase);
     gl.uniform1f(uniforms.spin, frame.spin);
     gl.uniform1f(uniforms.precession, frame.precession);
     gl.uniform1f(uniforms.breathPhase, frame.breathPhase);

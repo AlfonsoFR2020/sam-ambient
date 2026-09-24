@@ -4,14 +4,20 @@ Updated: 2026-09-24
 
 ## MVP status
 
-- v0.2.3 Living Surface Slice 1 adds a deterministic, seamless object-space
-  two-twist/two-scale 3D simplex field shared by the WebGL orb and existing
-  ribbon-peel materials. The engine now owns motion/field phase across quality,
-  renderer and context replacement; hidden or suspended drawing does not catch
-  up phase on resume. Existing geometry, four draws, reduced-motion and Canvas
-  fallback contracts remain. Focused mathematical/lifecycle tests and type/lint
-  checks pass; actual shader compilation, GPU cost and visual acceptance have
-  not yet been verified in a browser/native renderer.
+- v0.2.3 Living Surface Slices 1–2 establish a deterministic, seamless
+  object-space two-twist/two-scale 3D simplex field and make it the primary
+  WebGL body/peel pigment source. Broad density now drives bounded shared
+  displacement and tangent-sampled body normals; warm-dominant red/copper/gold
+  regions meet localized pink/violet/blue/teal folds under shared world-space
+  light, glint and rim response. The engine owns phase across backend changes;
+  four draws, existing peel geometry, reduced-motion and Canvas/static fallback
+  contracts remain. A missing peel orientation uniform had caused WebGL shader
+  compilation to fail and the old amber Canvas fallback to appear even when
+  serving current Slice 1 source; Slice 2 fixes it. Focused tests/type/lint pass.
+  A short frontend-only WebGL smoke showed moving multicolour structures with
+  no obvious seam/pole break, but representative GPU cost, sustained motion,
+  drag and native visual acceptance remain unverified. Canvas fallback still
+  uses its older amber approximation.
 - The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal
   outcome. Replacement turns wait for predecessor terminal publication; stale chunks

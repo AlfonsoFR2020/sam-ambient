@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { INITIAL_UI_STATE } from "../src/protocol/types";
 import { VisualInputAdapter } from "../src/visual-engine/input";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "../src/visual-engine/living-field";
+import {
+  LIVING_MATERIAL_GLSL,
+  LIVING_SURFACE_VERTEX_GLSL,
+  sampleLivingPigment,
+} from "../src/visual-engine/living-material";
 import { MotionEvaluator } from "../src/visual-engine/motion";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
 import { DEFAULT_VISUAL_ENGINE_SETTINGS } from "../src/visual-engine/types";
@@ -131,6 +136,57 @@ const sample = (direction: Vec3, state: FieldState, seed: number) => {
 };
 
 const state: FieldState = [0.73, 1.2, 0.18, -0.1];
+const fibonacciDirection = (index: number, count: number): Vec3 => {
+  const y = 1 - (2 * (index + 0.5)) / count;
+  const angle = index * Math.PI * (3 - Math.sqrt(5));
+  const radial = Math.sqrt(1 - y * y);
+  return [Math.cos(angle) * radial, y, Math.sin(angle) * radial];
+};
+const clamp = (value: number, minimum: number, maximum: number) =>
+  Math.min(maximum, Math.max(minimum, value));
+const scale = (direction: Vec3, factor: number): Vec3 => [
+  direction[0] * factor,
+  direction[1] * factor,
+  direction[2] * factor,
+];
+const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const subtract = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const displacement = (
+  direction: Vec3,
+  breath: number,
+  ripplePhase: number,
+  deformation: number,
+  ripple: number,
+) => {
+  const broad = sample(direction, state, 42).broad;
+  return clamp(
+    0.012 * (broad - 0.5) +
+      0.006 * Math.sin(breath) * (1 + 0.2 * (broad - 0.5)) +
+      deformation *
+        0.55 *
+        Math.sin(3 * dot(normalize([-0.25, 0.91, 0.32]), direction) + ripplePhase) +
+      ripple *
+        0.35 *
+        Math.sin(7 * dot(normalize([0.41, -0.36, 0.84]), direction) - ripplePhase * 0.71),
+    -0.04,
+    0.04,
+  );
+};
+const bodyPoint = (direction: Vec3, breath: number): Vec3 => {
+  const n = normalize(direction);
+  const point = scale(n, 1 + displacement(n, breath, 0.5, 0.026, 0.022));
+  return [point[0], point[1] * 1.06, point[2]];
+};
+const bodyNormal = (direction: Vec3, breath: number): Vec3 => {
+  const n = normalize(direction);
+  const helper: Vec3 = Math.abs(n[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+  const tangentA = normalize(cross(helper, n));
+  const tangentB = normalize(cross(n, tangentA));
+  const point = bodyPoint(n, breath);
+  const pointA = bodyPoint(normalize(add(n, scale(tangentA, 0.012))), breath);
+  const pointB = bodyPoint(normalize(add(n, scale(tangentB, 0.012))), breath);
+  return normalize(cross(subtract(pointA, point), subtract(pointB, point)));
+};
 const expectNear = (
   a: ReturnType<typeof sample>,
   b: ReturnType<typeof sample>,
@@ -178,13 +234,87 @@ describe("living field substrate", () => {
   it("shares one object-space GLSL field in body and peel materials", () => {
     for (const fragment of [ORB_FRAGMENT, PEEL_FRAGMENT]) {
       expect(fragment.split(LIVING_FIELD_GLSL)).toHaveLength(2);
+      expect(fragment.split(LIVING_MATERIAL_GLSL)).toHaveLength(2);
       expect(fragment).toContain("sampleLivingField(normalize(v_object_direction))");
+      expect(fragment).toContain("LivingPigment pigment=livingPigment(field)");
       expect(fragment).not.toContain("v_uv");
+    }
+    for (const vertex of [ORB_VERTEX, PEEL_VERTEX]) {
+      expect(vertex).toContain(LIVING_SURFACE_VERTEX_GLSL);
+      expect(vertex).toContain("livingBodyPoint(");
     }
     expect(ORB_VERTEX).toContain("v_object_direction=a_normal");
     expect(PEEL_VERTEX).toContain("v_object_direction=direction");
-    expect(LIVING_FIELD_GLSL).toContain("simplex3(1.8 * q + u_field_offset_a)");
+    for (const vertex of [ORB_VERTEX, PEEL_VERTEX]) {
+      expect(vertex).toContain("uniform mat3 u_object_orientation;");
+      expect(vertex).toContain("*u_object_orientation");
+    }
+    expect(ORB_VERTEX).toContain("livingBodyNormal(");
+    expect(LIVING_FIELD_GLSL).toContain("simplex3(1.8 * transportedDirection + u_field_offset_a)");
     expect(LIVING_FIELD_GLSL).toContain("simplex3(3.6 * q + u_field_offset_b)");
+  });
+
+  it("maps bounded, warm-dominant but non-monochrome pigments over the sphere", () => {
+    let warm = 0;
+    let cool = 0;
+    let blueDominant = 0;
+    let darkestRed = 1;
+    let brightestRed = 0;
+    for (let i = 0; i < 512; i++) {
+      const field = sample(fibonacciDirection(i, 512), state, 42);
+      const pigment = sampleLivingPigment(field);
+      expect(sampleLivingPigment(field)).toEqual(pigment);
+      for (const channel of pigment.albedo) {
+        expect(channel).toBeGreaterThanOrEqual(0);
+        expect(channel).toBeLessThanOrEqual(1);
+      }
+      if (pigment.cool < 0.5) warm++;
+      else cool++;
+      if (pigment.albedo[2] > pigment.albedo[0]) blueDominant++;
+      darkestRed = Math.min(darkestRed, pigment.albedo[0]);
+      brightestRed = Math.max(brightestRed, pigment.albedo[0]);
+    }
+    expect(warm).toBeGreaterThan(256);
+    expect(cool).toBeGreaterThan(12);
+    expect(blueDominant).toBeGreaterThan(4);
+    expect(brightestRed - darkestRed).toBeGreaterThan(0.25);
+  });
+
+  it("bounds field/breath/audio displacement and keeps tangent normals stable at poles", () => {
+    expect(LIVING_SURFACE_VERTEX_GLSL).toContain("sampleBroadDensity(n)");
+    expect(LIVING_SURFACE_VERTEX_GLSL).toContain("clamp(0.012 * (broad - 0.5)");
+    expect(LIVING_SURFACE_VERTEX_GLSL).toContain("abs(n.y) < 0.9");
+    for (let i = 0; i < 512; i++) {
+      const direction = fibonacciDirection(i, 512);
+      const value = displacement(direction, i * 0.13, i * 0.07, 0.026, 0.022);
+      expect(value).toBeGreaterThanOrEqual(-0.04);
+      expect(value).toBeLessThanOrEqual(0.04);
+      const normal = bodyNormal(direction, i * 0.13);
+      expect(normal.every(Number.isFinite)).toBe(true);
+      expect(Math.hypot(...normal)).toBeCloseTo(1, 6);
+      expect(dot(normal, direction)).toBeGreaterThan(0.8);
+    }
+    for (const direction of [
+      [0, 1, 0],
+      [0, -1, 0],
+    ] as Vec3[]) {
+      const normal = bodyNormal(direction, 1.2);
+      expect(normal.every(Number.isFinite)).toBe(true);
+      expect(dot(normal, direction)).toBeGreaterThan(0.8);
+    }
+  });
+
+  it("keeps object-space pigment under drag while world-space illumination changes", () => {
+    const direction = normalize([0.33, -0.26, 0.91]);
+    const material = sampleLivingPigment(sample(direction, state, 42));
+    const normal = bodyNormal(direction, 0.4);
+    const rotated: Vec3 = [normal[2], normal[1], -normal[0]];
+    const light = normalize([0.6, 0.2, 1.2]);
+    expect(sampleLivingPigment(sample(direction, state, 42))).toEqual(material);
+    expect(Math.abs(dot(normal, light) - dot(rotated, light))).toBeGreaterThan(0.2);
+    expect(ORB_VERTEX).toContain("v_normal=normalize(rotation*localNormal)");
+    expect(ORB_VERTEX).toContain("v_object_direction=a_normal");
+    expect(LIVING_MATERIAL_GLSL).toContain("orbit - position");
   });
 
   it("feeds identical seeded field uniforms to two materials within four draws", () => {
@@ -235,7 +365,8 @@ describe("living field substrate", () => {
     );
     backend.update(new VisualInputAdapter().ingest(INITIAL_UI_STATE, 0));
     backend.render(0);
-    expect(shaderSources.filter((source) => source.includes(LIVING_FIELD_GLSL))).toHaveLength(2);
+    expect(shaderSources.filter((source) => source.includes(LIVING_FIELD_GLSL))).toHaveLength(4);
+    expect(shaderSources.filter((source) => source.includes(LIVING_MATERIAL_GLSL))).toHaveLength(2);
     expect(states).toHaveLength(2);
     expect(states[0].values).toEqual(states[1].values);
     expect(states[0].program).not.toBe(states[1].program);
