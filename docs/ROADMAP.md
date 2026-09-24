@@ -6,14 +6,12 @@ items live in [Backlog](BACKLOG.md). Priorities may change after real use.
 
 ## Post-0.2 patch-alpha progression
 
-- `0.2.0` and `0.2.1` are published. Favor frequent coherent patch alphas over a
+- `0.2.0`, `0.2.1` and `0.2.2` are published. Favor frequent coherent patch alphas over a
   large unrelated unreleased delta: a small green slice that materially improves the
   public alpha is sufficient, while a knowingly broken intermediate commit is not a
   release.
-- The focused generation and interaction reliability slice is integrated into `dev`
-  and prepared as the `0.2.2` release candidate. Deterministic Windows/package gates
-  and release metadata may establish a shippable checkpoint, but publication remains
-  human-controlled.
+- The focused generation and interaction reliability slice shipped in `0.2.2`.
+  Publication of later checkpoints remains human-controlled.
 - Treat the remaining hosted Ubuntu Python-test failure as known deferred Linux work.
   Do not weaken CI to hide it; perform the dedicated compatibility review around 0.3.0.
 - Let later coherent slices become `0.2.3` and later patch alphas
@@ -34,13 +32,20 @@ items live in [Backlog](BACKLOG.md). Priorities may change after real use.
 
 ## Visual Engine polish
 
-- Refine silhouette antialiasing and efficient material/specular cues; widen/lift
-  and vary peel carriers/fragments, state breathing, lights, and sparse particles.
+- Use [Sam Orb visual direction](VISUAL_DIRECTION.md) for the post-0.2.2 identity:
+  one procedural living surface, a related outer membrane, timely audio response
+  and quality that yields to core AI work. [Visual Engine v1](VISUAL_ENGINE_V1.md)
+  remains the current implementation contract. A separate strong-model architecture
+  pass must choose bounded field, shell and mapping approaches before code changes.
+- Develop the direction in five dependent design stages: living surface foundation;
+  organic outer shell/peels; audio embodiment; adaptive richness/polish; and Orb Lab
+  tooling/refinement. Each accepted, green part may become a small 0.2.x or 0.3.x
+  release; do not wait for a single visual rewrite. The stages are not release dates.
 - Human-accept the implemented damped pointer rotation, persisted profile controls,
   low-power emulation, adaptive quality, and strengthened state readability.
-- Treat audio-reactive embodiment/diagnostics as a moderately high-priority future
-  design direction. Preserve the envelope-driven baseline; implement nothing until
-  its strong-model signal, mapping, performance and fixture checkpoints are accepted.
+- Preserve the envelope-driven baseline while comparing richer audio features and
+  diagnostic fixtures through the v1 strong-model checkpoints. Continue to measure
+  responsiveness under local model load and on `mobile_2020`.
 
 ## Productization
 
@@ -52,8 +57,7 @@ items live in [Backlog](BACKLOG.md). Priorities may change after real use.
   Restart, and Quit distinct owner controls.
 - Validate the integrated native identity and taskbar icon, then recheck the
   version-sensitive architecture infographic. Native plus ambient acceptance remains
-  a human-controlled alpha-release concern after published `0.2.0`/`0.2.1` and
-  prepared `0.2.2`.
+  a human-controlled alpha-release concern after published `0.2.0`/`0.2.1`/`0.2.2`.
 
 ## Computer agency
 

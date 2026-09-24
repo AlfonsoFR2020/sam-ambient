@@ -43,14 +43,15 @@ preference store; adaptive resolved quality remains renderer-local and is not
 persisted as user intent.
 
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
-renderer, audio/state and visual-settings specification. This branch implements its
+renderer, audio/state and visual-settings specification. `dev` implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded
 continuous state/audio motion, batched fragmented peels, analytic lights and sparse
 particles, with Canvas/CSS fallback. It also implements direct pointer/touch rotation,
 damped inertia, persisted typed visual settings, profile-capped mobile emulation and
 measured quality adaptation. Spectral extraction, prosodic mapping and human visual
-acceptance remain pending. The compiled static bundle uses the real event decoder and
-reducer; this branch remains unmerged.
+acceptance remain pending. [Sam Orb visual direction](VISUAL_DIRECTION.md) records
+the later shared-field and outer-membrane artistic goal without claiming those
+effects exist. The compiled static bundle uses the real event decoder and reducer.
 
 ## Native shell boundary
 

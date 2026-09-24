@@ -21,12 +21,21 @@ in [Roadmap](ROADMAP.md).
 
 ## UI and Visual Engine
 
+- **Living Orb direction:** design a seam-safe, low-cost shared surface/colour
+  field, related outer-membrane openings and material response before changing the
+  v1 renderer. Compare analytic flow/noise approaches, several cheap shell-mask
+  boundaries and the existing loxodromic fallback under the `mobile_2020` and
+  four-draw budgets in [Visual direction](VISUAL_DIRECTION.md). Keep broad palette,
+  translucency and richer depth experimental until measured and visually accepted.
 - **Moderately high priority - audio-reactive embodiment and diagnostics:** complete
   the strong-model checkpoints in [Visual Engine v1](VISUAL_ENGINE_V1.md#14-future-direction-audio-reactive-embodiment-and-diagnostics)
   before implementation. Evaluate a bounded feature extractor, independent
   input/output observability, coherent procedural mappings, diagnostic fixtures and
   an owner-facing high-level settings concept without weakening v1 geometry, draw,
   cadence, privacy or fallback constraints.
+- Compare a workload-aware quality governor, high-end/demo richness and Orb Lab
+  contact sheets using deterministic state/audio fixtures. Protect first-token,
+  inference, audio and UI latency; do not treat visual FPS alone as acceptance.
 - Complete human visual acceptance across WebGL2, Canvas, reduced motion, supported
   window sizes, and `mobile_2020`; particle visibility and the overall Visual Engine
   appearance remain materially below the alpha target.

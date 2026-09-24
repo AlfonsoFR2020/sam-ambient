@@ -2,10 +2,12 @@
 
 Status: implementation contract. The core renderer, state choreography, direct
 manipulation, persistent visual preferences and bounded measured adaptation have
-landed on `feature/visual-polish`; human visual/native acceptance remains pending.
+landed on `dev`; human visual/native acceptance remains pending.
 Spectral/prosodic mapping and the audio-reactive embodiment direction in section 14
 remain future design work. This document owns renderer, input, motion, quality and
-settings decisions. It does not authorize a shell merge or change voice policy.
+settings decisions. [Sam Orb visual direction](VISUAL_DIRECTION.md) records the
+post-v0.2.2 artistic aim and alternative geometry; it does not change these
+implementation bounds or voice policy by itself.
 
 ## 1. Visual identity and renderer decision
 
@@ -45,6 +47,12 @@ in immutable buffers. Base spheroid axes are `(1, 1.06, 0.96)`; state opening ca
 change the Y axis by at most 0.04. The final radial bound in section 5 is mandatory.
 
 ### Fragmented loxodromic peels
+
+This is the implemented v1 geometry and a valid efficient fallback. The preferred
+future outer-membrane interpretation, including sector masks and candidate cheap
+boundary representations, is described in [Sam Orb visual direction](VISUAL_DIRECTION.md#outer-membrane-and-peels).
+Replacing this geometry or its draw/depth rules requires a measured engineering
+decision; the direction document does not silently supersede this contract.
 
 The loxodromes are invisible mathematical carriers, never complete visible
 ribbons. Render 6/11/16 independent elongated peels at low/medium/high quality,
@@ -575,10 +583,11 @@ ElevenLabs/Hume-style adapters may supply such data; no integration is implied.
 | G | Browser/native fixture, timing, resize and resource regression checks. | Routine/repetitive (low-reasoning) execution; escalate only measured failures. |
 | H | Human visual acceptance and bounded parameter adjustments. | Human judgment; short high-reasoning interpretation, not an automatic pass. |
 
-Commit green checkpoints during those later passes. Do not merge unaccepted shell
-branches as a prerequisite for the renderer: use the existing React boundary.
-No unresolved renderer/geometry/contract decision is deferred to implementation;
-only visual acceptance and measured hardware tuning may adjust bounded defaults.
+These A-H rows record the v1 implementation sequence, not the new Orb direction's
+schedule. Use the existing React boundary for later work. The v1 geometry and
+contract choices remain authoritative for current code; the proposed living field,
+outer membrane and wider palette need a separate measured architecture decision
+before implementation, as described in [Visual direction](VISUAL_DIRECTION.md#five-design-stages).
 
 ## 14. Future direction: audio-reactive embodiment and diagnostics
 
@@ -588,6 +597,9 @@ independent input/output envelopes, low/mid/high bands, normalized autocorrelati
 shape coefficients, expiry rules, visual bounds and fallbacks remain authoritative.
 Exact mappings, constants, settings, transport fields and feature extraction choices
 below require the separate design checkpoints in section 14.7 before implementation.
+The [Orb direction](VISUAL_DIRECTION.md#audio-as-a-timely-disturbance) places these
+features in one living surface/membrane system; this section keeps the engineering
+constraints and alternative signal bases.
 
 ### 14.1 Purpose and authority boundary
 

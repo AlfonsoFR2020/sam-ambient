@@ -43,15 +43,12 @@ Updated: 2026-09-24
   updates. Deterministic validation covers these paths; final human visual/native
   acceptance and a future unobstructed ambient-layout pass remain open.
 
-- `0.2.0` and `0.2.1` are published under the existing alpha convention. The focused
-  generation and interaction reliability slice is integrated into `dev` and versioned
-  as the `0.2.2` release candidate; its exact preparation commit awaits hosted Windows
-  Quality, package-smoke and Native Package validation after push. Hosted Ubuntu reaches
-  Python tests but retains an unresolved Linux-only failure that is explicitly deferred
-  to the dedicated 0.3.0
-  Linux review under the Windows-first alpha policy. Human visual/native/acoustic
-  acceptance and signed installer/AV acceptance remain intentionally deferred;
-  preparation is not publication approval.
+- `0.2.0`, `0.2.1` and `0.2.2` are published under the Windows-first alpha convention.
+  The 0.2.2 generation and interaction reliability slice is integrated into `dev`.
+  Hosted Windows Quality and Native Package passed on its final commit; the known
+  Ubuntu failure caused dependent package smoke to skip. Linux review remains
+  deferred to 0.3.0. Physical visual/native/acoustic acceptance and signed
+  installer/AV acceptance remain separate future gates, not claims of this release.
 - Native integration checkpoint (`feature/ambient-shell`): the thin Tauri 2 shell
   is reconciled with the frozen ambient React source. It owns the native window,
   single-instance focus, identity/icons, one trusted supervisor child, fixed
@@ -91,11 +88,9 @@ Updated: 2026-09-24
   Whisper assets available; Windows TTS, audio, UI, Python and root ready.
 - GitHub CI repeats Python/Ruff and frontend/Biome/type/build gates on Windows/Linux,
   then builds wheel/sdist and smoke-installs the wheel. Windows Quality and Native
-  Package are green through the integrated stabilization baseline; the version-only
-  preparation commit still requires hosted validation. Ubuntu fails during Python
-  tests, so its dependent package smoke is skipped; this known Linux issue is deferred
-  to 0.3.0 rather than hidden by weakened tests or broad runner packages. Publishing
-  remains explicitly manual.
+  Package passed for the published 0.2.2 source. Ubuntu still fails, so its dependent
+  package smoke was skipped; this known Linux issue remains visible and deferred
+  to 0.3.0. Publishing later releases remains manual.
 - Unreleased TTS hardening: response-language evidence now reaches synthesis;
   Windows enumerates installed voices and selects locale/language before fallback.
   Existing cancellable PCM contract retained; cloud speech remains disabled.
@@ -137,9 +132,9 @@ Updated: 2026-09-24
   and stops only a service Sam started. Restart/failure/Emergency Stop never apply
   exit cleanup, unsupported providers fail closed, and timeouts cannot block shutdown.
 - The accepted combined source on `dev` preserves the frozen ambient behavior and
-  includes the native application boundary. The 0.2.2 scope is closed; no new feature
-  work belongs in this release candidate. Combined human acceptance and final
-  publication approval remain outstanding.
+  includes the native application boundary. The 0.2.2 scope is closed. The later
+  [Orb visual direction](VISUAL_DIRECTION.md) is design intent, not implemented
+  fluid surface, outer membrane or audio extractor; human visual acceptance remains open.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
 - 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
   Ollama and unavailable unprivileged Windows symlink creation). Frontend:
@@ -147,12 +142,11 @@ Updated: 2026-09-24
   production build pass.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
   `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
-- The 0.2.2 release build is expected to produce
+- The 0.2.2 release build targets
   `dist/sam_ambient-0.2.2-py3-none-any.whl` and
-  `dist/sam_ambient-0.2.2.tar.gz`. These artifacts were not built during the local
-  lightweight preparation pass. The wheel must include the production UI, launchers,
-  configuration example, license, and third-party notices; deterministic artifact
-  validation and isolated-install smoke remain release-preparation gates.
+  `dist/sam_ambient-0.2.2.tar.gz`. The wheel must include the production UI, launchers,
+  configuration example, license, and third-party notices. Artifact validation and
+  isolated-install smoke remain important gates for later distribution work.
 - Original Sam material is Apache-2.0; NOTICE attributes Copyright 2026
   Alfonso Ernesto de la Fuente Ruiz, PhD. Bundled React/MIT notices are retained.
 
@@ -298,7 +292,7 @@ Updated: 2026-09-24
 
 - Physical voice/Linux hardware acceptance and a seamless installer remain open.
 - Native and ambient source are integrated on `dev`, but combined product/visual/native
-  acceptance, native packaging verification, signing, and publication remain open.
+  acceptance and signed-installer publication remain open.
   The rejected ambient experiment is not part of `dev`.
 - Visual polish Pass 3 makes WebGL particles materially visible as bounded, seeded
   gold points and maps density to their deterministic visible share. Quality/profile
@@ -322,9 +316,9 @@ Updated: 2026-09-24
   session-resume policy and broader physical voice reliability. The 0.2.2 deterministic
   slice now defines Stop/Mute and current-session transcript behavior without claiming
   physical acoustic acceptance.
-- Audio-reactive visual embodiment and diagnostics are documented future design work;
-  no extractor, protocol, renderer, DSP, setting or diagnostic UI implementation is
-  claimed by this checkpoint.
+- Audio-reactive visual embodiment and diagnostics, like the wider Orb direction,
+  are documented future design work. No new field, shell, extractor, protocol, DSP,
+  setting or diagnostic UI is claimed by this checkpoint.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 
