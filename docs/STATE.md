@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-18
+Updated: 2026-09-24
 
 ## MVP status
 
@@ -43,12 +43,12 @@ Updated: 2026-09-18
   updates. Deterministic validation covers these paths; final human visual/native
   acceptance and a future unobstructed ambient-layout pass remain open.
 
-- `0.2.0` is published under the existing alpha convention. The nine-commit
-  stabilization slice is integrated into `dev` and versioned as the `0.2.1` release
-  candidate. Hosted Windows Quality and Native Package are green for the integrated
-  stabilization baseline (`c477800`); the exact versioned preparation commit awaits
-  hosted validation after push. Hosted Ubuntu reaches Python tests but retains an
-  unresolved Linux-only failure that is explicitly deferred to the dedicated 0.3.0
+- `0.2.0` and `0.2.1` are published under the existing alpha convention. The focused
+  generation and interaction reliability slice is integrated into `dev` and versioned
+  as the `0.2.2` release candidate; its exact preparation commit awaits hosted Windows
+  Quality, package-smoke and Native Package validation after push. Hosted Ubuntu reaches
+  Python tests but retains an unresolved Linux-only failure that is explicitly deferred
+  to the dedicated 0.3.0
   Linux review under the Windows-first alpha policy. Human visual/native/acoustic
   acceptance and signed installer/AV acceptance remain intentionally deferred;
   preparation is not publication approval.
@@ -137,7 +137,7 @@ Updated: 2026-09-18
   and stops only a service Sam started. Restart/failure/Emergency Stop never apply
   exit cleanup, unsupported providers fail closed, and timeouts cannot block shutdown.
 - The accepted combined source on `dev` preserves the frozen ambient behavior and
-  includes the native application boundary. The 0.2.1 scope is closed; no new feature
+  includes the native application boundary. The 0.2.2 scope is closed; no new feature
   work belongs in this release candidate. Combined human acceptance and final
   publication approval remain outstanding.
 - Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
@@ -147,9 +147,9 @@ Updated: 2026-09-18
   production build pass.
 - `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
   `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
-- The 0.2.1 release build is expected to produce
-  `dist/sam_ambient-0.2.1-py3-none-any.whl` and
-  `dist/sam_ambient-0.2.1.tar.gz`. These artifacts were not built during the local
+- The 0.2.2 release build is expected to produce
+  `dist/sam_ambient-0.2.2-py3-none-any.whl` and
+  `dist/sam_ambient-0.2.2.tar.gz`. These artifacts were not built during the local
   lightweight preparation pass. The wheel must include the production UI, launchers,
   configuration example, license, and third-party notices; deterministic artifact
   validation and isolated-install smoke remain release-preparation gates.
@@ -318,9 +318,10 @@ Updated: 2026-09-18
 - Voice reliability Pass 2 bounds dense noise-held initial STT candidates: sparse
   candidates still discard at 12 seconds, while every initial candidate finalizes at
   24 seconds. Empty results discard; meaningful sustained speech commits. Physical
-  acceptance remains needed for language drift, noise hallucination risk, mute
-  semantics, transcript/history behavior, session-resume policy and broader voice
-  reliability.
+  acceptance remains needed for language drift, noise hallucination risk,
+  session-resume policy and broader physical voice reliability. The 0.2.2 deterministic
+  slice now defines Stop/Mute and current-session transcript behavior without claiming
+  physical acoustic acceptance.
 - Audio-reactive visual embodiment and diagnostics are documented future design work;
   no extractor, protocol, renderer, DSP, setting or diagnostic UI implementation is
   claimed by this checkpoint.

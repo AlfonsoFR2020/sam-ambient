@@ -56,13 +56,13 @@ Sam is an experiment toward that kind of computer: one in which interaction is
 centered on **goals, conversation, context, and dynamically generated
 interfaces**, rather than on manually traversing fixed software structures.
 
-**Status:** **Sam 0.2.1 alpha release candidate.** Windows is the currently
+**Status:** **Sam 0.2.2 alpha release candidate.** Windows is the currently
 validated local-provider and native-package path. Full Linux compatibility is
 deferred to the dedicated 0.3.0 Linux review; the remaining hosted Ubuntu Python-test
 failure is a known non-blocker under the current Windows-first alpha policy.
 Packaging, signing, antivirus review, and final human voice/visual/native acceptance
 remain human release gates. Text interaction is the recommended, most reliable
-0.2.1 alpha mode; voice input remains experimental.
+0.2.2 alpha mode; voice input remains experimental.
 The development line opens an isolated Sam app window with installed Edge/Chrome/
 Chromium. Use `uv run sam-ambient --ui-mode browser` for normal-browser/debug mode;
 if no supported app browser is found, the default browser remains the fallback.
@@ -229,7 +229,7 @@ Frontend development requires Node 22.12+ and pnpm (the version is pinned in
 ```sh
 # Linux/macOS; use scripts/package.ps1 on Windows
 scripts/package.sh
-uv tool install ./dist/sam_ambient-0.2.1-py3-none-any.whl
+uv tool install ./dist/sam_ambient-0.2.2-py3-none-any.whl
 sam-ambient --root /path/to/workspace
 ```
 

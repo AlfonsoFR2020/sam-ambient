@@ -1,7 +1,7 @@
 # Release checklist
 
-`0.2.0` is published and `0.2.1` is being prepared. Release approval and publication
-remain human-controlled and do not follow automatically from a green branch.
+`0.2.0` and `0.2.1` are published; `0.2.2` is being prepared. Release approval and
+publication remain human-controlled and do not follow automatically from a green branch.
 
 ## Patch-alpha cadence
 
@@ -12,13 +12,13 @@ the public alpha. Do not batch unrelated completed work merely to make a release
 larger, and do not publish a knowingly broken intermediate commit for calendar
 cadence. The unit is a green coherent checkpoint.
 
-The current nine-commit stabilization slice is integrated into `dev` as the `0.2.1`
-candidate. Future voice-reliability fixes can form later coherent patch alphas rather
-than expanding this release. Preparation is not publication approval.
+The generation-terminality, delivery-handoff and core-interaction reliability commits
+`4e22d16`, `95ed273` and `2d3bd3a` are integrated into `dev` as the focused `0.2.2`
+candidate. Deferred UI, session, visual, language and Linux work must not expand this
+release. Preparation is not publication approval.
 
-The 0.2.1 alpha is Windows-first. Hosted Windows Quality and Native Package jobs are
-green for the integrated stabilization baseline (`c477800`); the exact versioned
-release-preparation commit must still pass its hosted Windows gates after push.
+The 0.2.2 alpha is Windows-first. The exact versioned release-preparation commit must
+pass its hosted Windows Quality, package-smoke and Native Package gates after push.
 Hosted Ubuntu reaches Python tests but retains a known unresolved failure. That Linux
 issue is explicitly deferred to the dedicated 0.3.0 compatibility review and does
 not block this patch alpha; do not mark the Ubuntu job successful artificially or

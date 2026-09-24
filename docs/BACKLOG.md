@@ -7,11 +7,11 @@ in [Roadmap](ROADMAP.md).
 
 ## Release-known issues
 
-- Recommend text interaction for the most reliable 0.2.1 alpha experience; voice
+- Recommend text interaction for the most reliable 0.2.2 alpha experience; voice
   input remains experimental.
 - Complete the dedicated Linux compatibility review around 0.3.0. Hosted Ubuntu CI
   currently reaches Python tests but retains an unresolved Linux-only failure; it is
-  explicit deferred work, not a silently weakened or artificially green 0.2.1 gate.
+  explicit deferred work, not a silently weakened or artificially green 0.2.x gate.
 - Stabilize language detection where drift can select the wrong TTS language.
 - Continue physical voice/noise/language reliability work without treating acoustic
   tuning as generation-lifecycle repair.

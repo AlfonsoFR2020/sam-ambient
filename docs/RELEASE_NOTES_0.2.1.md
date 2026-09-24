@@ -1,6 +1,6 @@
 # Sam 0.2.1 alpha release notes
 
-Sam 0.2.1 is a focused stabilization patch for the Windows-first public alpha.
+Sam 0.2.1 is a published stabilization patch for the Windows-first public alpha.
 
 ## What changed
 
@@ -30,9 +30,6 @@ tests but has an unresolved Linux-only failure, so its dependent package-smoke j
 skipped. This is recorded deferred work for a potential 0.3.0+ Linux compatibility
 review; CI has not been weakened or marked green artificially.
 
-The exact versioned release-preparation commit must pass the hosted Windows quality,
-native-package and package-smoke gates before publication.
-
-The release preparation does not include a signed Windows installer, model bundle,
+The release does not include a signed Windows installer, model bundle,
 cloud speech service, automatic model download, AEC, or implementation of the newly
 documented audio-reactive visual direction.

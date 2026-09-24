@@ -3,7 +3,7 @@ from sam_ambient.cli import main
 
 
 def test_package_has_version() -> None:
-    assert __version__ == "0.2.0"
+    assert __version__ == "0.2.2"
 
 
 def test_cli_reports_ready(capsys: object) -> None:

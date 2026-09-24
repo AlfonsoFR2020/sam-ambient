@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.2 (alpha) - Unreleased
+## 0.2.2 (alpha) - Release candidate
 
 ### Highlights
 
@@ -33,7 +33,7 @@ reducer tests pass. Broader Python/frontend gates and live slow/cancelled Gemma
 acceptance, especially physical echo/overlap behavior without AEC, remain recommended
 before release approval.
 
-## 0.2.1 (alpha) - Release candidate
+## 0.2.1 (alpha) - Published
 
 ### Highlights
 
