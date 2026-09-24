@@ -66,7 +66,7 @@ def test_multi_turn_language_playback_recovery_stale_cancel_and_shutdown(tmp_pat
             assert "naranja" in provider.contexts[1][1].content
             assert all(stream.stopped and not stream.aborted for stream in streams[:2])
             assert runtime._ready_event().payload["tts_selection"]["voice"]["locale"] == "en-US"
-            runtime.submit_user_message("Tell me more about that fruit.")
+            interrupted_generation = runtime.submit_user_message("Tell me more about that fruit.")
             current_token = runtime._active_token
             assert await asyncio.to_thread(streams[2].writing.wait, 2)
             old_token.cancel("late old event")
@@ -81,10 +81,18 @@ def test_multi_turn_language_playback_recovery_stale_cancel_and_shutdown(tmp_pat
             while True:
                 event = await asyncio.wait_for(subscription.get(), 1)
                 seen.append(event)
-                if event.type is EventType.MODEL_CANCELLED:
+                if (
+                    event.type is EventType.TTS_CANCELLED
+                    and event.generation_id == interrupted_generation
+                ):
                     break
             states = [e.payload.get("to") for e in seen if e.type is EventType.VOICE_STATE_CHANGED]
             assert states[:3] == ["THINKING", "SPEAKING", "IDLE"]
+            assert not any(
+                event.type is EventType.MODEL_CANCELLED
+                and event.generation_id == interrupted_generation
+                for event in seen
+            )
             assert not any(e.type is EventType.COMPONENT_ERROR for e in seen)
         finally:
             await runtime.close()

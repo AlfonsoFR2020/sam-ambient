@@ -230,15 +230,17 @@ def test_runtime_streams_model_through_real_tts_boundary_and_persists_turn(
         while True:
             event = await asyncio.wait_for(subscription.get(), 2)
             seen.append(event)
-            if (
-                event.type is EventType.TRANSCRIPT_FINAL
-                and event.payload.get("role") == "assistant"
-            ):
+            if event.type is EventType.TTS_COMPLETED:
                 break
         assert output.token is not None and not output.token.is_cancelled
         await runtime.close()
         await subscription.close()
         assert output.frames == _FakeTts.frame_count
+        assert any(
+            event.type is EventType.TRANSCRIPT_FINAL
+            and event.payload.get("role") == "assistant"
+            for event in seen
+        )
         assert EventType.TTS_STARTED in {event.type for event in seen}
         assert EventType.TTS_COMPLETED in {event.type for event in seen}
         assert not {EventType.TTS_CANCELLED, EventType.MODEL_CANCELLED} & {
@@ -248,6 +250,7 @@ def test_runtime_streams_model_through_real_tts_boundary_and_persists_turn(
         assert completed.payload["spoken_text"] == "Hello from Sam."
         assert runtime.state is not None
         assert [message.role for message in runtime.state.recent()] == ["user", "assistant"]
+        assert all(task.done() for task in runtime._tasks)
 
     asyncio.run(scenario())
 
