@@ -237,8 +237,7 @@ def test_runtime_streams_model_through_real_tts_boundary_and_persists_turn(
         await subscription.close()
         assert output.frames == _FakeTts.frame_count
         assert any(
-            event.type is EventType.TRANSCRIPT_FINAL
-            and event.payload.get("role") == "assistant"
+            event.type is EventType.TRANSCRIPT_FINAL and event.payload.get("role") == "assistant"
             for event in seen
         )
         assert EventType.TTS_STARTED in {event.type for event in seen}
