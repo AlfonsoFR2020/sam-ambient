@@ -1,3 +1,4 @@
+import type { MotionEvaluator } from "./motion";
 import type { RenderBudget } from "./quality";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
 
@@ -19,6 +20,7 @@ export type BackendFactory = (
   budget: RenderBudget,
   settings: VisualEngineSettings,
   seed: number,
+  motion: MotionEvaluator,
 ) => RendererBackend | null;
 
 export function chooseRendererKind(

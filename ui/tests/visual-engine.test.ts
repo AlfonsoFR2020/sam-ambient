@@ -4,7 +4,9 @@ import { chooseRendererKind, type RendererBackend } from "../src/visual-engine/b
 import { CanvasBackend } from "../src/visual-engine/canvas";
 import { VisualEngine } from "../src/visual-engine/engine";
 import { VisualInputAdapter } from "../src/visual-engine/input";
+import { MotionEvaluator } from "../src/visual-engine/motion";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
+import type { VisualInputV1 } from "../src/visual-engine/types";
 import { DEFAULT_VISUAL_ENGINE_SETTINGS } from "../src/visual-engine/types";
 
 const fakeCanvas = () => {
@@ -140,6 +142,71 @@ describe("visual engine lifecycle", () => {
 
     expect(particleBudgets).toEqual([12, 40, 12]);
     expect(disposed).toBe(2);
+    engine.dispose();
+  });
+
+  it("retains engine-owned field phase through backend changes, drag, and hidden resume", () => {
+    let now = 0;
+    let nextFrame = 0;
+    const callbacks = new Map<number, FrameRequestCallback>();
+    const evaluators: MotionEvaluator[] = [];
+    const renders: { phase: number; twist: number; orientation: number[] }[] = [];
+    const engine = new VisualEngine({
+      seed: 33,
+      createCanvas: fakeCanvas,
+      clock: () => now,
+      requestFrame: (callback) => {
+        callbacks.set(++nextFrame, callback);
+        return nextFrame;
+      },
+      cancelFrame: (handle) => callbacks.delete(handle),
+      backendFactory: (_canvas, kind, budget, settings, _seed, motion) => {
+        evaluators.push(motion);
+        let input: VisualInputV1 = readyInput();
+        let orientation = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+        return {
+          kind,
+          update: (next) => {
+            input = next;
+          },
+          configure() {},
+          resize() {},
+          setObjectOrientation: (matrix) => {
+            orientation = [...matrix];
+          },
+          render: (time) => {
+            const frame = motion.evaluate(input, time, settings, budget);
+            renders.push({ phase: frame.fieldPhase1, twist: frame.fieldTwist1, orientation });
+          },
+          dispose() {},
+        };
+      },
+    });
+    const tick = (time: number) => {
+      const pending = callbacks.entries().next().value as [number, FrameRequestCallback];
+      callbacks.delete(pending[0]);
+      now = time;
+      pending[1](time);
+    };
+    engine.mount(fakeHost());
+    engine.update(readyInput());
+    tick(50);
+    tick(100);
+    const phaseBeforeReplacement = renders.at(-1)?.phase;
+    engine.configure({ quality: "high", deviceProfile: "high_end" });
+    expect(evaluators[1]).toBe(evaluators[0]);
+    expect(renders.at(-1)?.phase).toBe(phaseBeforeReplacement);
+    engine.configure({ renderer: "canvas2d" });
+    expect(evaluators[2]).toBe(evaluators[0]);
+    expect(renders.at(-1)?.phase).toBe(phaseBeforeReplacement);
+    engine.beginInteraction(100, 100, now);
+    engine.moveInteraction(160, 130, now);
+    expect(renders.at(-1)?.orientation).not.toEqual(renders.at(-2)?.orientation);
+    expect(renders.at(-1)?.phase).toBe(phaseBeforeReplacement);
+    engine.setVisible(false);
+    engine.setVisible(true);
+    tick(50_000);
+    expect(renders.at(-1)?.phase).toBe(phaseBeforeReplacement);
     engine.dispose();
   });
 
@@ -453,6 +520,7 @@ describe("visual engine lifecycle", () => {
       RENDER_BUDGETS.low,
       { ...DEFAULT_VISUAL_ENGINE_SETTINGS, reducedMotion: "on" },
       12,
+      new MotionEvaluator(12),
     );
     backend.update(new VisualInputAdapter().ingest(INITIAL_UI_STATE, 0));
     backend.resize(400, 400, 2);

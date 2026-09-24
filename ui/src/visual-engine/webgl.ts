@@ -5,13 +5,14 @@ import {
   createSphereGeometry,
   type IndexedGeometry,
 } from "./geometry";
-import { MotionEvaluator, type MotionFrame } from "./motion";
+import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
+import type { MotionEvaluator, MotionFrame } from "./motion";
 import { PARTICLE_GOLD, PARTICLE_VISIBILITY_HASH } from "./particles";
 import type { RenderBudget } from "./quality";
 import { HALO_OPACITY_SCALE } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
 
-const ORB_VERTEX = `#version 300 es
+export const ORB_VERTEX = `#version 300 es
 precision highp float;
 layout(location=0) in vec3 a_position;
 layout(location=1) in vec3 a_normal;
@@ -26,6 +27,7 @@ uniform float u_ripple;
 uniform mat3 u_object_orientation;
 out vec3 v_normal;
 out vec3 v_position;
+out vec3 v_object_direction;
 mat3 rotateX(float a){float c=cos(a),s=sin(a);return mat3(1.,0.,0.,0.,c,s,0.,-s,c);}
 mat3 rotateY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,c);}
 mat3 rotateZ(float a){float c=cos(a),s=sin(a);return mat3(c,s,0.,-s,c,0.,0.,0.,1.);}
@@ -45,13 +47,15 @@ void main(){
   position.y*=1.06;
   v_position=rotation*position;
   v_normal=normalize(rotation*vec3(localNormal.x,localNormal.y/1.06,localNormal.z));
+  v_object_direction=a_normal;
   gl_Position=vec4(v_position.xy*u_scale,-v_position.z*.25,1.);
 }`;
 
-const ORB_FRAGMENT = `#version 300 es
+export const ORB_FRAGMENT = `#version 300 es
 precision highp float;
 in vec3 v_normal;
 in vec3 v_position;
+in vec3 v_object_direction;
 uniform float u_intensity;
 uniform int u_light_count;
 uniform float u_light_phase;
@@ -59,7 +63,9 @@ uniform float u_rim;
 uniform float u_highlight;
 uniform mat3 u_object_orientation;
 out vec4 color;
+${LIVING_FIELD_GLSL}
 void main(){
+  LivingField field=sampleLivingField(normalize(v_object_direction));
   vec3 n=normalize(v_normal), view=vec3(0.,0.,1.);
   float diffuse=.09;
   float specular=0.;
@@ -76,12 +82,13 @@ void main(){
   }
   float rim=pow(1.-max(dot(n,view),0.),3.);
   vec3 base=mix(vec3(.145,.014,.004),vec3(.98,.255,.04),clamp(diffuse,0.,1.));
+  base*=.91+.18*field.palette+.03*field.activity;
   vec3 linear=base*(.28+u_intensity*.82)+vec3(1.,.49,.11)*(specular+u_highlight*.28)+vec3(.96,.24,.025)*rim*(u_rim+.08);
   linear=linear/(1.+linear);
   color=vec4(pow(linear,vec3(1./2.2)),1.);
 }`;
 
-const PEEL_VERTEX = `#version 300 es
+export const PEEL_VERTEX = `#version 300 es
 precision highp float;
 layout(location=0) in vec4 a_base;
 layout(location=1) in vec4 a_surface;
@@ -104,6 +111,7 @@ uniform float u_highlight;
 out float v_alpha;
 out float v_facing;
 out float v_highlight;
+out vec3 v_object_direction;
 mat3 rotateX(float a){float c=cos(a),s=sin(a);return mat3(1.,0.,0.,0.,c,s,0.,-s,c);}
 mat3 rotateY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,c);}
 mat3 rotateZ(float a){float c=cos(a),s=sin(a);return mat3(c,s,0.,-s,c,0.,0.,0.,1.);}
@@ -128,6 +136,7 @@ void main(){
   vec3 direction=normalize(c*cos(side*peelWidth*fade)+across*sin(side*peelWidth*fade));
   mat3 local=rotateX(a_motion.y)*rotateZ(a_motion.z);
   direction=local*direction;
+  v_object_direction=direction;
   mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase*.37))*rotateZ(.08*sin(u_breath_phase*.21))*rotateY(u_spin)*u_object_orientation;
   float deformation=.006*sin(2.0*dot(direction,normalize(vec3(.7,.2,.6)))+u_breath_phase)+u_deformation*.55*sin(3.0*dot(direction,normalize(vec3(-.25,.91,.32)))+u_ripple_phase)+u_ripple*.35*sin(7.0*dot(direction,normalize(vec3(.41,-.36,.84)))-u_ripple_phase*.71);
   float lift=a_surface.y+u_peel_lift*(.68+.32*sin(a_surface.w+u_peel_travel*.43));
@@ -141,17 +150,21 @@ void main(){
   gl_Position=vec4(world.xy*u_scale,-world.z*.25,1.);
 }`;
 
-const PEEL_FRAGMENT = `#version 300 es
+export const PEEL_FRAGMENT = `#version 300 es
 precision highp float;
 in float v_alpha;
 in float v_facing;
+in vec3 v_object_direction;
 uniform float u_intensity;
 uniform float u_emission;
 in float v_highlight;
 out vec4 color;
+${LIVING_FIELD_GLSL}
 void main(){
+  LivingField field=sampleLivingField(normalize(v_object_direction));
   float alpha=clamp(v_alpha*v_facing*(.5+.5*u_emission),0.,.82);
   vec3 warm=mix(vec3(.88,.16,.025),vec3(1.,.62,.24),clamp(u_intensity*.62+v_highlight,0.,1.));
+  warm*=.91+.18*field.palette+.03*field.activity;
   color=vec4(warm*alpha,alpha);
 }`;
 
@@ -266,6 +279,12 @@ interface CommonUniforms {
   readonly scale: WebGLUniformLocation;
 }
 
+interface FieldUniforms {
+  readonly state: WebGLUniformLocation;
+  readonly offsetA: WebGLUniformLocation;
+  readonly offsetB: WebGLUniformLocation;
+}
+
 const arrayResource = (
   gl: WebGL2RenderingContext,
   vertices: Float32Array,
@@ -323,36 +342,38 @@ export class WebGLBackend implements RendererBackend {
   private readonly peels: DrawResource;
   private readonly halo: DrawResource;
   private readonly particles: DrawResource;
-  private readonly orbUniforms: CommonUniforms & {
-    readonly lightCount: WebGLUniformLocation;
-    readonly spin: WebGLUniformLocation;
-    readonly precession: WebGLUniformLocation;
-    readonly breathPhase: WebGLUniformLocation;
-    readonly ripplePhase: WebGLUniformLocation;
-    readonly deformation: WebGLUniformLocation;
-    readonly ripple: WebGLUniformLocation;
-    readonly lightPhase: WebGLUniformLocation;
-    readonly rim: WebGLUniformLocation;
-    readonly highlight: WebGLUniformLocation;
-    readonly orientation: WebGLUniformLocation;
-  };
-  private readonly peelUniforms: CommonUniforms & {
-    readonly spin: WebGLUniformLocation;
-    readonly precession: WebGLUniformLocation;
-    readonly breathPhase: WebGLUniformLocation;
-    readonly ripplePhase: WebGLUniformLocation;
-    readonly deformation: WebGLUniformLocation;
-    readonly ripple: WebGLUniformLocation;
-    readonly travel: WebGLUniformLocation;
-    readonly opening: WebGLUniformLocation;
-    readonly lift: WebGLUniformLocation;
-    readonly width: WebGLUniformLocation;
-    readonly coherence: WebGLUniformLocation;
-    readonly rephase: WebGLUniformLocation;
-    readonly highlight: WebGLUniformLocation;
-    readonly emission: WebGLUniformLocation;
-    readonly orientation: WebGLUniformLocation;
-  };
+  private readonly orbUniforms: CommonUniforms &
+    FieldUniforms & {
+      readonly lightCount: WebGLUniformLocation;
+      readonly spin: WebGLUniformLocation;
+      readonly precession: WebGLUniformLocation;
+      readonly breathPhase: WebGLUniformLocation;
+      readonly ripplePhase: WebGLUniformLocation;
+      readonly deformation: WebGLUniformLocation;
+      readonly ripple: WebGLUniformLocation;
+      readonly lightPhase: WebGLUniformLocation;
+      readonly rim: WebGLUniformLocation;
+      readonly highlight: WebGLUniformLocation;
+      readonly orientation: WebGLUniformLocation;
+    };
+  private readonly peelUniforms: CommonUniforms &
+    FieldUniforms & {
+      readonly spin: WebGLUniformLocation;
+      readonly precession: WebGLUniformLocation;
+      readonly breathPhase: WebGLUniformLocation;
+      readonly ripplePhase: WebGLUniformLocation;
+      readonly deformation: WebGLUniformLocation;
+      readonly ripple: WebGLUniformLocation;
+      readonly travel: WebGLUniformLocation;
+      readonly opening: WebGLUniformLocation;
+      readonly lift: WebGLUniformLocation;
+      readonly width: WebGLUniformLocation;
+      readonly coherence: WebGLUniformLocation;
+      readonly rephase: WebGLUniformLocation;
+      readonly highlight: WebGLUniformLocation;
+      readonly emission: WebGLUniformLocation;
+      readonly orientation: WebGLUniformLocation;
+    };
   private readonly haloUniforms: {
     readonly aspect: WebGLUniformLocation;
     readonly intensity: WebGLUniformLocation;
@@ -381,6 +402,7 @@ export class WebGLBackend implements RendererBackend {
     private readonly budget: RenderBudget,
     private settings: VisualEngineSettings,
     seed: number,
+    motion: MotionEvaluator,
   ) {
     this.reducedMotionMedia =
       typeof matchMedia === "undefined"
@@ -392,6 +414,7 @@ export class WebGLBackend implements RendererBackend {
     this.particleProgram = program(gl, PARTICLE_VERTEX, PARTICLE_FRAGMENT);
     this.orbUniforms = {
       ...this.commonUniformLocations(this.orbProgram),
+      ...this.fieldUniformLocations(this.orbProgram),
       lightCount: location(gl, this.orbProgram, "u_light_count"),
       spin: location(gl, this.orbProgram, "u_spin"),
       precession: location(gl, this.orbProgram, "u_precession"),
@@ -406,6 +429,7 @@ export class WebGLBackend implements RendererBackend {
     };
     this.peelUniforms = {
       ...this.commonUniformLocations(this.peelProgram),
+      ...this.fieldUniformLocations(this.peelProgram),
       spin: location(gl, this.peelProgram, "u_spin"),
       precession: location(gl, this.peelProgram, "u_precession"),
       breathPhase: location(gl, this.peelProgram, "u_breath_phase"),
@@ -436,7 +460,14 @@ export class WebGLBackend implements RendererBackend {
       orientation: location(gl, this.particleProgram, "u_object_orientation"),
       density: location(gl, this.particleProgram, "u_density"),
     };
-    this.motion = new MotionEvaluator(seed);
+    this.motion = motion;
+    const [offsetA, offsetB] = createFieldOffsets(seed);
+    bindProgram(gl, this.orbProgram);
+    gl.uniform3f(this.orbUniforms.offsetA, offsetA[0], offsetA[1], offsetA[2]);
+    gl.uniform3f(this.orbUniforms.offsetB, offsetB[0], offsetB[1], offsetB[2]);
+    bindProgram(gl, this.peelProgram);
+    gl.uniform3f(this.peelUniforms.offsetA, offsetA[0], offsetA[1], offsetA[2]);
+    gl.uniform3f(this.peelUniforms.offsetB, offsetB[0], offsetB[1], offsetB[2]);
     this.orb = indexedResource(
       gl,
       createSphereGeometry(budget.sphereLongitude, budget.sphereLatitude),
@@ -566,6 +597,25 @@ export class WebGLBackend implements RendererBackend {
     };
   }
 
+  private fieldUniformLocations(shader: WebGLProgram): FieldUniforms {
+    const gl = this.gl;
+    return {
+      state: location(gl, shader, "u_field_state"),
+      offsetA: location(gl, shader, "u_field_offset_a"),
+      offsetB: location(gl, shader, "u_field_offset_b"),
+    };
+  }
+
+  private setFieldState(uniforms: FieldUniforms, frame: MotionFrame): void {
+    this.gl.uniform4f(
+      uniforms.state,
+      frame.fieldPhase1,
+      frame.fieldPhase2,
+      frame.fieldTwist1,
+      frame.fieldTwist2,
+    );
+  }
+
   private setCommonUniforms(uniforms: CommonUniforms, frame: MotionFrame): void {
     const gl = this.gl;
     gl.uniform1f(uniforms.radius, frame.radius);
@@ -576,6 +626,7 @@ export class WebGLBackend implements RendererBackend {
   private setOrbUniforms(frame: MotionFrame): void {
     const gl = this.gl;
     const uniforms = this.orbUniforms;
+    this.setFieldState(uniforms, frame);
     gl.uniform1f(uniforms.spin, frame.spin);
     gl.uniform1f(uniforms.precession, frame.precession);
     gl.uniform1f(uniforms.breathPhase, frame.breathPhase);
@@ -590,6 +641,7 @@ export class WebGLBackend implements RendererBackend {
   private setPeelUniforms(frame: MotionFrame): void {
     const gl = this.gl;
     const uniforms = this.peelUniforms;
+    this.setFieldState(uniforms, frame);
     gl.uniform1f(uniforms.spin, frame.spin);
     gl.uniform1f(uniforms.precession, frame.precession);
     gl.uniform1f(uniforms.breathPhase, frame.breathPhase);
@@ -632,6 +684,7 @@ export function createWebGLBackend(
   budget: RenderBudget,
   settings: VisualEngineSettings,
   seed: number,
+  motion: MotionEvaluator,
 ): WebGLBackend | null {
   const gl = canvas.getContext("webgl2", {
     alpha: true,
@@ -642,7 +695,7 @@ export function createWebGLBackend(
   });
   if (!gl) return null;
   try {
-    return new WebGLBackend(canvas, gl, budget, settings, seed);
+    return new WebGLBackend(canvas, gl, budget, settings, seed, motion);
   } catch {
     gl.getExtension("WEBGL_lose_context")?.loseContext();
     return null;

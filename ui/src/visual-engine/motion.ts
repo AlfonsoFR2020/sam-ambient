@@ -107,6 +107,10 @@ export interface MotionFrame {
   ripplePhase: number;
   lightPhase: number;
   particlePhase: number;
+  fieldPhase1: number;
+  fieldPhase2: number;
+  fieldTwist1: number;
+  fieldTwist2: number;
   peelTravel: number;
   peelLift: number;
   peelWidth: number;
@@ -193,6 +197,10 @@ export class MotionEvaluator {
   private lightPhase: number;
   private particlePhase: number;
   private peelTravel: number;
+  private fieldPhase1: number;
+  private fieldPhase2: number;
+  private fieldTwistPhase1: number;
+  private fieldTwistPhase2: number;
   private readonly frame: MotionFrame;
 
   constructor(seed = 0x5a17) {
@@ -204,6 +212,10 @@ export class MotionEvaluator {
     this.lightPhase = wrap(phase * 2.71);
     this.particlePhase = wrap(phase * 3.13);
     this.peelTravel = wrap(phase * 0.41);
+    this.fieldPhase1 = wrap(phase * 0.83);
+    this.fieldPhase2 = wrap(phase * 1.37);
+    this.fieldTwistPhase1 = wrap(phase * 1.91);
+    this.fieldTwistPhase2 = wrap(phase * 2.43);
     this.frame = {
       foreground: "idle",
       radius: 1,
@@ -215,6 +227,10 @@ export class MotionEvaluator {
       ripplePhase: this.ripplePhase,
       lightPhase: this.lightPhase,
       particlePhase: this.particlePhase,
+      fieldPhase1: this.fieldPhase1,
+      fieldPhase2: this.fieldPhase2,
+      fieldTwist1: 0.32 * Math.sin(this.fieldTwistPhase1),
+      fieldTwist2: -0.24 * Math.sin(this.fieldTwistPhase2),
       peelTravel: this.peelTravel,
       peelLift: 0.002,
       peelWidth: 1,
@@ -235,6 +251,11 @@ export class MotionEvaluator {
       warmth: 0,
       reducedMotion: false,
     };
+  }
+
+  /** Drop wall-clock time while no surface is visible; spatial phase is not caught up. */
+  pauseClock(): void {
+    this.lastMs = undefined;
   }
 
   evaluate(
@@ -362,6 +383,10 @@ export class MotionEvaluator {
       this.ripplePhase = wrap(this.ripplePhase + (0.31 + this.envelope * 0.21) * motion * dt);
       this.lightPhase = wrap(this.lightPhase + 0.086 * speedInfluence * motion * dt);
       this.particlePhase = wrap(this.particlePhase + 0.041 * speedInfluence * motion * dt);
+      this.fieldPhase1 = wrap(this.fieldPhase1 + 0.035 * motion * dt);
+      this.fieldPhase2 = wrap(this.fieldPhase2 - 0.023 * motion * dt);
+      this.fieldTwistPhase1 = wrap(this.fieldTwistPhase1 + 0.067 * motion * dt);
+      this.fieldTwistPhase2 = wrap(this.fieldTwistPhase2 - 0.053 * motion * dt);
       const holding = input.interaction.floor === "holding" ? 0.86 : 1;
       this.peelTravel = wrap(this.peelTravel + this.drift * holding * speedInfluence * motion * dt);
     }
@@ -423,6 +448,10 @@ export class MotionEvaluator {
     this.frame.ripplePhase = this.ripplePhase;
     this.frame.lightPhase = this.lightPhase;
     this.frame.particlePhase = this.particlePhase;
+    this.frame.fieldPhase1 = this.fieldPhase1;
+    this.frame.fieldPhase2 = this.fieldPhase2;
+    this.frame.fieldTwist1 = 0.32 * Math.sin(this.fieldTwistPhase1);
+    this.frame.fieldTwist2 = -0.24 * Math.sin(this.fieldTwistPhase2);
     this.frame.peelTravel = this.peelTravel;
     this.frame.peelLift = clamp(
       this.lift + speakingLift + inputLift - this.interruption * 0.006,

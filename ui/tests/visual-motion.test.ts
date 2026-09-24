@@ -121,6 +121,68 @@ describe("continuous Visual Engine motion", () => {
     );
     expect(actual.spin).toBeCloseTo(expected.spin, 8);
     expect(actual.peelTravel).toBeCloseTo(expected.peelTravel, 8);
+    expect(actual.fieldPhase1).toBeCloseTo(expected.fieldPhase1, 8);
+    expect(actual.fieldTwist2).toBeCloseTo(expected.fieldTwist2, 8);
+  });
+
+  it("keeps seeded field phases bounded and deterministic across long running wraps", () => {
+    const input = visualInput("idle");
+    const moving = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, motionIntensity: 1 };
+    const first = new MotionEvaluator(42);
+    const second = new MotionEvaluator(42);
+    let wrapped = false;
+    let previous = first.evaluate(input, 0, moving, RENDER_BUDGETS.low).fieldPhase1;
+    second.evaluate(input, 0, moving, RENDER_BUDGETS.low);
+    for (let step = 1; step <= 5_000; step++) {
+      const now = step * 50;
+      const a = first.evaluate(input, now, moving, RENDER_BUDGETS.low);
+      const b = second.evaluate(input, now, moving, RENDER_BUDGETS.low);
+      wrapped ||= a.fieldPhase1 < previous;
+      previous = a.fieldPhase1;
+      expect(a.fieldPhase1).toBe(b.fieldPhase1);
+      expect(a.fieldPhase2).toBe(b.fieldPhase2);
+      expect(a.fieldTwist1).toBe(b.fieldTwist1);
+      expect(a.fieldTwist2).toBe(b.fieldTwist2);
+    }
+    const frame = first.evaluate(input, 250_050, moving, RENDER_BUDGETS.low);
+    expect(wrapped).toBe(true);
+    expect(frame.fieldPhase1).toBeGreaterThanOrEqual(0);
+    expect(frame.fieldPhase1).toBeLessThan(2 * Math.PI);
+    expect(frame.fieldPhase2).toBeGreaterThanOrEqual(0);
+    expect(frame.fieldPhase2).toBeLessThan(2 * Math.PI);
+    expect(Math.abs(frame.fieldTwist1)).toBeLessThanOrEqual(0.32);
+    expect(Math.abs(frame.fieldTwist2)).toBeLessThanOrEqual(0.24);
+  });
+
+  it("freezes field phase during hidden and reduced-motion intervals", () => {
+    const input = visualInput("idle");
+    const evaluator = new MotionEvaluator(17);
+    evaluator.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const before = evaluator.evaluate(
+      input,
+      50,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    const phase = [before.fieldPhase1, before.fieldPhase2, before.fieldTwist1, before.fieldTwist2];
+    evaluator.pauseClock();
+    const resumed = evaluator.evaluate(
+      input,
+      50_000,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect([
+      resumed.fieldPhase1,
+      resumed.fieldPhase2,
+      resumed.fieldTwist1,
+      resumed.fieldTwist2,
+    ]).toEqual(phase);
+    const reduced = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, reducedMotion: "on" as const };
+    const still = evaluator.evaluate(input, 100_000, reduced, RENDER_BUDGETS.low);
+    expect([still.fieldPhase1, still.fieldPhase2, still.fieldTwist1, still.fieldTwist2]).toEqual(
+      phase,
+    );
   });
 
   it("holds startup, reconnecting, and stopped inputs as dim stationary idle forms", () => {

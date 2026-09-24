@@ -2,6 +2,7 @@ import type { BackendFactory, RendererBackend, RendererKind } from "./backend";
 import { CanvasBackend } from "./canvas";
 import { AdaptiveQualityGovernor } from "./governor";
 import { OrbInteraction } from "./interaction";
+import { MotionEvaluator } from "./motion";
 import { effectivePixelRatio, type RenderBudget, resolveRenderBudget } from "./quality";
 import { resolveVisualEngineSettings } from "./settings";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -18,10 +19,10 @@ export interface VisualEngineOptions {
   readonly backendFactory?: BackendFactory;
 }
 
-const defaultFactory: BackendFactory = (canvas, kind, budget, settings, seed) => {
-  if (kind === "webgl2") return createWebGLBackend(canvas, budget, settings, seed);
+const defaultFactory: BackendFactory = (canvas, kind, budget, settings, seed, motion) => {
+  if (kind === "webgl2") return createWebGLBackend(canvas, budget, settings, seed, motion);
   const context = canvas.getContext("2d", { alpha: true });
-  return context ? new CanvasBackend(canvas, context, budget, settings, seed) : null;
+  return context ? new CanvasBackend(canvas, context, budget, settings, seed, motion) : null;
 };
 
 export class VisualEngine {
@@ -44,6 +45,7 @@ export class VisualEngine {
   private contextLosses = 0;
   private forceCanvas = false;
   private readonly interaction = new OrbInteraction();
+  private readonly motion: MotionEvaluator;
   private readonly governor: AdaptiveQualityGovernor;
   private resizeObserver?: ResizeObserver;
   private intersectionObserver?: IntersectionObserver;
@@ -60,6 +62,7 @@ export class VisualEngine {
     this.budget = resolveRenderBudget(this.settings);
     this.governor = new AdaptiveQualityGovernor(this.budget.quality);
     this.seed = options.seed ?? 0x5a17;
+    this.motion = new MotionEvaluator(this.seed);
     this.clock = options.clock ?? (() => performance.now());
     this.requestFrame = options.requestFrame ?? ((callback) => requestAnimationFrame(callback));
     this.cancelFrame = options.cancelFrame ?? ((handle) => cancelAnimationFrame(handle));
@@ -297,6 +300,7 @@ export class VisualEngine {
     if (!this.shouldAnimate()) {
       if (this.frame) this.cancelFrame(this.frame);
       this.frame = 0;
+      if (!this.canDraw()) this.motion.pauseClock();
       return;
     }
     if (!this.frame) this.frame = this.requestFrame(this.tick);
@@ -323,7 +327,14 @@ export class VisualEngine {
       canvas.className = "ambient-scene__field";
       canvas.setAttribute("aria-hidden", "true");
       canvas.style.pointerEvents = "none";
-      const backend = this.backendFactory(canvas, kind, this.budget, this.settings, this.seed);
+      const backend = this.backendFactory(
+        canvas,
+        kind,
+        this.budget,
+        this.settings,
+        this.seed,
+        this.motion,
+      );
       if (!backend) continue;
       this.canvas = canvas;
       this.backend = backend;

@@ -1,5 +1,5 @@
 import type { RendererBackend } from "./backend";
-import { MotionEvaluator } from "./motion";
+import type { MotionEvaluator } from "./motion";
 import type { RenderBudget } from "./quality";
 import { haloOpacity } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -12,7 +12,6 @@ export class CanvasBackend implements RendererBackend {
   private gradient?: CanvasGradient;
   private input?: VisualInputV1;
   private readonly orientation = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
-  private readonly motion: MotionEvaluator;
   private readonly reducedMotionMedia: MediaQueryList | undefined;
 
   constructor(
@@ -21,8 +20,8 @@ export class CanvasBackend implements RendererBackend {
     private readonly budget: RenderBudget,
     private settings: VisualEngineSettings,
     private readonly seed: number,
+    private readonly motion: MotionEvaluator,
   ) {
-    this.motion = new MotionEvaluator(seed);
     this.reducedMotionMedia =
       typeof matchMedia === "undefined"
         ? undefined

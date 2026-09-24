@@ -4,6 +4,14 @@ Updated: 2026-09-24
 
 ## MVP status
 
+- v0.2.3 Living Surface Slice 1 adds a deterministic, seamless object-space
+  two-twist/two-scale 3D simplex field shared by the WebGL orb and existing
+  ribbon-peel materials. The engine now owns motion/field phase across quality,
+  renderer and context replacement; hidden or suspended drawing does not catch
+  up phase on resume. Existing geometry, four draws, reduced-motion and Canvas
+  fallback contracts remain. Focused mathematical/lifecycle tests and type/lint
+  checks pass; actual shader compilation, GPU cost and visual acceptance have
+  not yet been verified in a browser/native renderer.
 - The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal
   outcome. Replacement turns wait for predecessor terminal publication; stale chunks
