@@ -11,6 +11,9 @@ interface AmbientSceneProps {
   state: UiState;
   settings: VisualEngineSettings;
   diagnosticsOpen?: boolean;
+  commandError?: string;
+  onCloseDiagnostics?: () => void;
+  controlEvent?: { id: number; message: string };
 }
 
 export function AmbientScene({
@@ -18,11 +21,17 @@ export function AmbientScene({
   state,
   settings,
   diagnosticsOpen = false,
+  commandError,
+  onCloseDiagnostics,
+  controlEvent,
 }: AmbientSceneProps) {
   const host = useRef<HTMLDivElement>(null);
   const engine = useRef<VisualEngine | null>(null);
   const adapter = useRef(new VisualInputAdapter());
   const initialSettings = useRef(settings);
+  const priorSystem = useRef<UiState | null>(null);
+  const priorControlId = useRef(0);
+  const priorCommandError = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!host.current) return;
     const visualEngine = new VisualEngine({ settings: initialSettings.current });
@@ -42,6 +51,47 @@ export function AmbientScene({
   useEffect(() => {
     engine.current?.setDiagnosticsEnabled(diagnosticsOpen);
   }, [diagnosticsOpen]);
+  useEffect(() => {
+    const prior = priorSystem.current;
+    priorSystem.current = state;
+    if (!prior) return;
+    const changes: string[] = [];
+    if (prior.connection !== state.connection)
+      changes.push(`core connection ${prior.connection} → ${state.connection}`);
+    if (prior.startupLifecycle !== state.startupLifecycle)
+      changes.push(`startup ${prior.startupLifecycle} → ${state.startupLifecycle}`);
+    if (prior.conversationalState !== state.conversationalState)
+      changes.push(`semantic state ${prior.conversationalState} → ${state.conversationalState}`);
+    if (prior.provider !== state.provider || prior.model !== state.model)
+      changes.push(`provider/model ${state.provider ?? "none"} / ${state.model ?? "none"}`);
+    if (prior.sttStatus !== state.sttStatus)
+      changes.push(`speech input ${state.sttStatus ?? "unknown"}`);
+    if (prior.ttsBackend !== state.ttsBackend)
+      changes.push(`spoken output ${state.ttsBackend ?? "unknown"}`);
+    if (prior.microphoneEnabled !== state.microphoneEnabled)
+      changes.push(`microphone ${state.microphoneEnabled ? "on" : "muted"}`);
+    if (prior.ttsOutputEnabled !== state.ttsOutputEnabled)
+      changes.push(`voice output ${state.ttsOutputEnabled ? "on" : "muted"}`);
+    if (prior.audioSettings !== state.audioSettings && state.audioSettings)
+      changes.push(
+        `audio gain in/out ${state.audioSettings.inputGain} / ${state.audioSettings.outputGain}`,
+      );
+    if (prior.protocolError !== state.protocolError && state.protocolError)
+      changes.push(`protocol error ${state.protocolError}`);
+    if (prior.diagnosticReason !== state.diagnosticReason && state.diagnosticReason)
+      changes.push(`core detail ${state.diagnosticReason}`);
+    for (const change of changes) engine.current?.recordExternalEvent(change);
+  }, [state]);
+  useEffect(() => {
+    if (!controlEvent || controlEvent.id === priorControlId.current) return;
+    priorControlId.current = controlEvent.id;
+    engine.current?.recordExternalEvent(controlEvent.message);
+  }, [controlEvent]);
+  useEffect(() => {
+    if (commandError && commandError !== priorCommandError.current)
+      engine.current?.recordExternalEvent(`control error ${commandError}`);
+    priorCommandError.current = commandError;
+  }, [commandError]);
 
   return (
     <>
@@ -74,7 +124,14 @@ export function AmbientScene({
           />
         )}
       </div>
-      {diagnosticsOpen && <VisualDiagnostics engine={engine} />}
+      {diagnosticsOpen && (
+        <VisualDiagnostics
+          engine={engine}
+          state={state}
+          commandError={commandError}
+          onClose={onCloseDiagnostics}
+        />
+      )}
     </>
   );
 }

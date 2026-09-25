@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased — 0.2.3 frontend reliability pass
+
+- Fix the fullscreen Microphone sensitivity crash and the same Output volume
+  event-lifetime bug; unexpected React render failures now show Reload interface
+  and technical details instead of leaving a black window. Later renderer frame
+  exceptions fall back through Canvas to a visible static Orb and log the cause.
+- Consolidate startup into one plain-language status with observed service/model/
+  speech facts. Keep raw protocol detail in expandable details and diagnostics.
+- Correct physical vertical Orb drag and moderately extend coast. Retain the Motion
+  speed default while making its maximum three times the default autonomous rate.
+- Split Controls into Conversation, Appearance, Device, System and Diagnostics;
+  clarify help including the device reduced-motion setting.
+- Extend the existing diagnostics overlay with reported core/model/audio state,
+  renderer timing and a bounded 64-event history, plus an accessible UI route and
+  event-level verbose console output. Missing core health or audio features remain
+  explicitly unreported.
+- Add focused Chrome browser regressions for fullscreen sliders, physical vertical
+  drag, mobile overlay layout and an unexpected renderer exception.
+
+**Validation boundary:** focused frontend tests, typecheck, changed-file lint and
+browser interaction tests cover this pass. Human visual, physical voice/audio,
+representative GPU/mobile performance and native acceptance remain open.
+
 ## 0.2.2 (alpha) - Release candidate
 
 ### Highlights

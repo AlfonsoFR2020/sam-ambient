@@ -131,7 +131,9 @@ core and static UI. Startup may take several tens of seconds while an installed
 model loads. The browser/app window opens once after UI readiness:
 [http://127.0.0.1:8766](http://127.0.0.1:8766). Closing a fallback browser tab
 does not stop Sam; closing the owned app window requests graceful shutdown.
-The startup card reports provider discovery and model loading. If several models
+The startup card reports observed connection, provider, model and speech status.
+Raw connection detail is expandable while the main explanation stays plain-language.
+If several models
 are available, choose a provider/model and optionally remember it. After changing
 LM Studio externally, use **Rescan**; **Continue in available mode** keeps diagnostics
 and settings usable but cannot produce an answer without a model.

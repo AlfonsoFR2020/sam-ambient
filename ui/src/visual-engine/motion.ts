@@ -148,6 +148,14 @@ const wrap = (value: number): number => {
   return wrapped < 0 ? wrapped + TWO_PI : wrapped;
 };
 
+/** Preserve the established 0.6 default while giving the upper control range useful headroom. */
+export const motionRateScale = (setting: number): number => {
+  const value = clamp(setting, 0, 1);
+  if (value <= 0.6) return value;
+  const upper = (value - 0.6) / 0.4;
+  return value + 0.8 * upper * upper;
+};
+
 const live = (
   feature: AudioFeatures | undefined,
   now: number,
@@ -379,7 +387,7 @@ export class MotionEvaluator {
       ? 0
       : blend(this.peak, peakResponse, dt, peakResponse > this.peak ? 0.025 : 0.18);
 
-    const motion = spatiallyFrozen ? 0 : settings.motionIntensity;
+    const motion = spatiallyFrozen ? 0 : motionRateScale(settings.motionIntensity);
     if (dt > 0 && motion > 0) {
       const speedInfluence = 1 + Math.min(0.35, this.envelope * 0.3);
       this.spinPhase = wrap(this.spinPhase + this.spinSpeed * motion * dt);

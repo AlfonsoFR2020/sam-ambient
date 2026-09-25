@@ -48,6 +48,7 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | Vite / React plugin | 7.1.5 / 5.0.2 | MIT | https://vite.dev/ | Frontend development and production build | Development dependencies | Retain MIT notices |
 | TypeScript | 5.9.2 | Apache-2.0 | https://www.typescriptlang.org/ | Typed frontend compilation | Development dependency | Retain Apache-2.0 notice |
 | Vitest | 3.2.4 | MIT | https://vitest.dev/ | Deterministic frontend tests | Development dependency | Retain MIT notice |
+| Playwright Test / Playwright / Playwright Core | 1.63.0 | Apache-2.0 | https://github.com/microsoft/playwright | Browser interaction regressions for the local UI | Development-only dependencies; Chrome is an external test browser, not bundled with Sam | Retain Apache-2.0 notice |
 | Biome | 2.2.3 | MIT OR Apache-2.0 | https://biomejs.dev/ | Frontend formatting and linting | Development dependency with native CLI | Retain selected license notice |
 | esbuild / Rollup / Babel | 0.25.12 / 4.63.1 / 7.29.x | MIT | https://github.com/evanw/esbuild | Transpilation and bundling used by Vite/Vitest | Transitive development dependencies, including platform binaries | Retain MIT notices |
 | caniuse-lite | 1.0.30001810 | CC-BY-4.0 | https://github.com/browserslist/caniuse-lite | Browser compatibility data used by build tooling | Transitive development data | Preserve attribution and CC-BY-4.0 notice |

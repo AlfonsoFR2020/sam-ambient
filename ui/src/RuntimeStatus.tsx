@@ -1,5 +1,5 @@
 import type { UiState } from "./protocol/types";
-import { statusPresentation } from "./status";
+import { friendlyStartupReason, statusPresentation } from "./status";
 
 export function RuntimeStatus({ state }: { state: UiState }) {
   const presentation = statusPresentation(state);
@@ -8,13 +8,13 @@ export function RuntimeStatus({ state }: { state: UiState }) {
       <summary>
         {state.model
           ? `${state.provider} · ${state.model}`
-          : (state.selectionReason ?? "Connecting to Sam…")}
+          : (friendlyStartupReason(state.selectionReason) ?? "Local model not ready")}
       </summary>
       <dl>
         <dt>Local model</dt>
         <dd>{state.model ? `${state.provider} · ${state.model}` : "Not ready"}</dd>
         <dt>Provider</dt>
-        <dd>{state.selectionReason ?? "Waiting for local provider discovery"}</dd>
+        <dd>{state.provider ?? "Waiting for local provider discovery"}</dd>
         <dt>Speech input</dt>
         <dd>{state.sttStatus ?? "Waiting for readiness"}</dd>
         <dt>Spoken output</dt>

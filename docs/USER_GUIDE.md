@@ -53,8 +53,8 @@ language voice; nothing is installed automatically. INFO logs report the request
 language, selected voice/locale and fallback reason. eSpeak receives the requested
 language; no cloud TTS service is connected.
 
-Expand the provider/model line for selection reason and STT/TTS status, also
-shown in Controls. Successful local responses remember the provider/model in
+Open **Controls → System** for provider/model and STT/TTS status. Successful local
+responses remember the provider/model in
 `<root>/.sam/state.db`. Explicit CLI options override this preference; stale
 preferences fall back deterministically. There is no model download or automatic
 cloud switch. **Rescan providers/models** refreshes installed and loaded inventory
@@ -62,9 +62,11 @@ and can adopt a newly available configured/remembered model without restarting.
 If several models are viable, the startup card asks for a provider/model choice
 and can remember it after successful local use.
 Before core readiness, the main view says **Starting Sam**; after a core restart it
-says **Reconnecting**. Degraded notices state what remains usable. Controls keeps
-the detailed provider/model, speech input, spoken output, selected voice, and
-local/cloud policy so the main ambient view stays quiet.
+says **Reconnecting**. The startup card shows reported service, provider, model and
+speech facts instead of a fixed progress checklist. The main view presents one
+plain-language explanation; raw connection and setup errors are under **Technical
+details** or **Diagnostics**. A render failure leaves a visible **Reload interface**
+button. **System** keeps provider/model, speech, selected voice and privacy details.
 
 ## Configuration and readiness
 
@@ -83,8 +85,10 @@ The warm light field is the main view. Listening opens its shape; transcription
 gathers it; thinking uses folded motion; speaking responds to output amplitude.
 The discreet text label remains the authoritative accessible state indication.
 Controls recede at the lower edge but remain visible and focusable; Escape closes
-the panel and returns focus. Transcript content scrolls within a bounded readable
-region rather than covering the whole view. Expand provider details inside Controls
+the panel and returns focus. The **Conversation**, **Appearance**, **Device**,
+**System** and **Diagnostics** categories keep voice interaction apart from visual
+and performance settings. Transcript content scrolls within a bounded readable
+region rather than covering the whole view. Expand provider details in **System**
 for readiness and the last reported speech voice/locale, when core supplies it.
 Reduced motion respects the OS preference (including changes while running) or the
 local control. It freezes continuous geometry motion, retaining state/light feedback.
@@ -110,21 +114,23 @@ normal `--ui-mode browser` tab does not stop Sam.
 - **Transcript**, **Reduced motion**, **Intensity**, and fullscreen are local
   presentation preferences, not permissions for the model.
 
-The **Display** controls also provide visual quality, a performance profile,
-motion, audio reactivity, and particle amount. **2020 smartphone** deliberately
+**Appearance** provides motion, visual intensity, audio reactivity, particle amount,
+reduced motion and fullscreen. **Device** provides quality and performance profile.
+The Motion speed upper range is faster while its default is unchanged.
+**2020 smartphone** deliberately
 uses Sam's low-power mobile budget even on a desktop; **Auto** starts conservatively
 and adapts only from measured render cost. These owner preferences survive interface
 reload and Sam restart, while automatic quality decisions do not. Drag the orb with
 a mouse or one finger to reorient it; reduced motion keeps direct reorientation but
 suppresses inertial and autonomous movement.
 
-The **Conversation & voice** controls include **Microphone sensitivity** and
+The **Conversation** controls include **Microphone sensitivity** and
 **Output volume**, each from 0-200% with 100% as the default. They adjust Sam's
 application PCM signal, not the operating-system microphone or master-volume mixer.
 Changes are committed when a pointer drag or keyboard adjustment finishes and persist
 across interface reload and Sam restart.
 
-The **Application** controls also define what happens to local AI resources on a
+The **System** controls also define what happens to local AI resources on a
 graceful Quit. Both defaults are **Keep**. **Unload if Sam loaded it** applies only
 to a model Sam successfully loaded during the current runtime scope and only where
 the provider exposes a safe unload operation (currently LM Studio). **Stop if Sam
@@ -139,6 +145,14 @@ Keyboard: **Ctrl+M** toggles the microphone outside text fields;
 reloads only the interface and reconnects to the running core; **Escape** closes
 the current Controls/dialog surface or exits fullscreen, never Sam. Reload does
 not restart Sam or its model provider.
+
+**Controls → Diagnostics** opens a scrollable status panel with the current core
+connection, reported provider/model/STT/TTS/microphone state, renderer, quality,
+frame estimate, visual phases, audio envelopes and recent events. The overlay has
+a Close button and closes when Controls opens. Ctrl+Alt+V is an
+optional desktop shortcut. Missing readings are shown as unreported; this panel
+does not measure server health, model memory or detailed audio spectra. When open,
+meaningful events also appear in the browser/shell console without per-frame logs.
 
 File access is constrained to authorized roots (`--root` selects the workspace).
 Writes additionally need `--allow-workspace-write` and approval. Process requests

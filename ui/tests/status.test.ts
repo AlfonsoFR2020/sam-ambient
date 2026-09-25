@@ -6,6 +6,7 @@ describe("plain-language runtime status", () => {
   it("describes truthful startup and reconnect states", () => {
     expect(statusPresentation({ ...resetUiState(), connection: "connecting" })).toMatchObject({
       label: "Starting Sam",
+      notice: "Connecting to Sam’s local service…",
     });
     expect(
       statusPresentation({ ...resetUiState(), connection: "offline", sessionId: "prior" }),
@@ -22,10 +23,11 @@ describe("plain-language runtime status", () => {
       ttsBackend: "disabled/unavailable",
     });
     expect(status.limitations).toEqual([
-      "Local model unavailable: LM Studio startup timed out",
+      "Local model setup took too long. Retry or rescan.",
       "Voice input is unavailable; text input remains available.",
       "Spoken output is unavailable; responses remain readable.",
     ]);
+    expect(status.notice).toBe(status.limitations[0]);
   });
 
   it.each([
@@ -60,5 +62,27 @@ describe("plain-language runtime status", () => {
         ttsBackend: "windows-system-speech",
       }).limitations,
     ).toHaveLength(0);
+  });
+
+  it("keeps protocol wording out of the primary startup notice", () => {
+    const status = statusPresentation({
+      ...resetUiState(),
+      connection: "offline",
+      protocolError: "Sam core WebSocket connection failed",
+    });
+    expect(status.notice).toBe("Sam cannot reach its local service. It will keep retrying.");
+    expect(status.notice).not.toMatch(/WebSocket|Protocol/);
+  });
+
+  it("reports actual model loading without claiming unknown speech components failed", () => {
+    const status = statusPresentation({
+      ...resetUiState(),
+      connection: "connected",
+      sessionId: "session",
+      startupLifecycle: "loading_model",
+      pendingModel: "local-chat",
+    });
+    expect(status.notice).toBe("Loading local-chat…");
+    expect(status.limitations).toHaveLength(1);
   });
 });

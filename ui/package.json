@@ -10,6 +10,7 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
+    "test:browser": "playwright test",
     "lint": "biome check .",
     "format": "biome format --write ."
   },
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.3",
+    "@playwright/test": "^1.63.0",
     "@tauri-apps/cli": "2.11.4",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",

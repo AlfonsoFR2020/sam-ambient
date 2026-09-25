@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_FRAME_DELTA_SECONDS,
   MotionEvaluator,
+  motionRateScale,
   STATE_TARGETS,
 } from "../src/visual-engine/motion";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
@@ -99,6 +100,14 @@ describe("continuous Visual Engine motion", () => {
     const movingFrame = moving.evaluate(input, 80, movingSettings, RENDER_BUDGETS.low);
     expect(stoppedFrame.spin).toBe(initialSpin);
     expect(movingFrame.spin).toBeGreaterThan(initialSpin);
+  });
+
+  it("keeps the established default speed and expands the upper range smoothly", () => {
+    expect(motionRateScale(0)).toBe(0);
+    expect(motionRateScale(0.6)).toBeCloseTo(0.6);
+    expect(motionRateScale(0.8)).toBeGreaterThan(0.8);
+    expect(motionRateScale(1)).toBeCloseTo(1.8);
+    expect(motionRateScale(0.59)).toBeLessThan(motionRateScale(0.61));
   });
 
   it("audio reactivity changes live response but not silent idle motion", () => {

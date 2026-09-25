@@ -2,7 +2,7 @@ import type { BackendFactory, RendererBackend, RendererKind } from "./backend";
 import { CanvasBackend } from "./canvas";
 import { AdaptiveQualityGovernor } from "./governor";
 import { OrbInteraction } from "./interaction";
-import { MotionEvaluator } from "./motion";
+import { MotionEvaluator, motionRateScale } from "./motion";
 import { effectivePixelRatio, type RenderBudget, resolveRenderBudget } from "./quality";
 import { resolveVisualEngineSettings } from "./settings";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -37,6 +37,7 @@ export interface VisualDiagnosticSnapshot {
   readonly qualityPolicy: VisualEngineSettings["quality"];
   readonly profile: VisualEngineSettings["deviceProfile"];
   readonly approximateFps: number;
+  readonly renderSubmissionMs: number;
   readonly foreground: string;
   readonly centre: readonly [number, number, number];
   readonly quaternion: readonly number[];
@@ -79,7 +80,9 @@ export class VisualEngine {
   private staticTransitionUntil = 0;
   private contextLosses = 0;
   private forceCanvas = false;
+  private forcedFallbackReason?: string;
   private approximateFps = 0;
+  private renderSubmissionMs = 0;
   private lastPeelTravel?: number;
   private lastFieldPhase1?: number;
   private lastFieldPhase2?: number;
@@ -191,6 +194,7 @@ export class VisualEngine {
     if (qualityPolicyChanged || rendererChanged) this.governor.reset(nextBudget.quality);
     if (rendererChanged) {
       this.forceCanvas = false;
+      this.forcedFallbackReason = undefined;
       this.contextLosses = 0;
     }
     if (!next.enabled) {
@@ -240,7 +244,7 @@ export class VisualEngine {
     this.pushOrientation();
     this.lastQuaternion.set(this.interaction.orientationQuaternion());
     this.hasLastQuaternion = true;
-    this.backend?.render(now);
+    this.renderBackend(now);
   }
 
   endInteraction(): void {
@@ -260,7 +264,13 @@ export class VisualEngine {
   }
 
   setDiagnosticsEnabled(enabled: boolean): void {
+    if (this.diagnosticsEnabled === enabled) return;
     this.diagnosticsEnabled = enabled;
+    this.recordEvent(enabled ? "diagnostics enabled" : "diagnostics disabled");
+  }
+
+  recordExternalEvent(message: string): void {
+    this.recordEvent(message);
   }
 
   diagnosticSnapshot(): VisualDiagnosticSnapshot {
@@ -273,6 +283,7 @@ export class VisualEngine {
       qualityPolicy: this.settings.quality,
       profile: this.settings.deviceProfile,
       approximateFps: this.canDraw() ? this.approximateFps : 0,
+      renderSubmissionMs: this.renderSubmissionMs,
       foreground: frame.foreground,
       centre: [0, 0, 0], // Translation is not implemented; do not imply measured wandering.
       quaternion: [...orientation.quaternion],
@@ -286,7 +297,7 @@ export class VisualEngine {
       flowRate:
         this.reducedMotion() || !this.hasLiveAvailability(this.input)
           ? 0
-          : this.settings.motionIntensity * 0.14,
+          : motionRateScale(this.settings.motionIntensity) * 0.14,
       seed: this.seed,
       inputEnvelope: frame.inputEnvelope,
       outputEnvelope: frame.outputEnvelope,
@@ -340,7 +351,10 @@ export class VisualEngine {
     if (!this.shouldAnimate()) return;
     if (this.reducedMotion() || !this.hasLiveAvailability(this.input)) {
       if (now - this.lastStaticDraw >= 1000 / 15) {
-        this.backend?.render(now);
+        if (!this.renderBackend(now)) {
+          this.syncLoop();
+          return;
+        }
         this.lastStaticDraw = now;
         this.staticRenderPending = this.reducedMotion() && now < this.staticTransitionUntil;
       }
@@ -372,7 +386,10 @@ export class VisualEngine {
       this.checkOrientationContinuity();
       const frameInterval = this.lastDraw ? now - this.lastDraw : 1000 / fps;
       const renderStarted = this.clock();
-      this.backend?.render(now);
+      if (!this.renderBackend(now)) {
+        this.syncLoop();
+        return;
+      }
       const peelTravel = this.motion.currentFrame.peelTravel;
       const fieldPhase1 = this.motion.currentFrame.fieldPhase1;
       const fieldPhase2 = this.motion.currentFrame.fieldPhase2;
@@ -389,6 +406,9 @@ export class VisualEngine {
         this.recordEvent("peel phase wrapped continuously");
       this.lastPeelTravel = peelTravel;
       const renderDuration = Math.max(0, this.clock() - renderStarted);
+      this.renderSubmissionMs = this.renderSubmissionMs
+        ? this.renderSubmissionMs * 0.85 + renderDuration * 0.15
+        : renderDuration;
       const adapted = this.governor.observe(
         frameInterval,
         now,
@@ -402,6 +422,7 @@ export class VisualEngine {
       );
       if (adapted === "canvas2d") {
         this.forceCanvas = true;
+        this.forcedFallbackReason = "governor-overload";
         this.recordEvent("AUTO fallback after measured frame overload");
         this.createBackend("AUTO overload");
       } else if (adapted) {
@@ -461,9 +482,7 @@ export class VisualEngine {
         ? ["canvas2d"]
         : ["webgl2", "canvas2d"];
     let fallbackReason = this.forceCanvas
-      ? this.contextLosses > 0
-        ? "context-lost"
-        : "governor-overload"
+      ? (this.forcedFallbackReason ?? "governor-overload")
       : this.settings.renderer === "canvas2d"
         ? "requested-canvas2d"
         : undefined;
@@ -529,6 +548,7 @@ export class VisualEngine {
     if (this.backend?.kind !== "webgl2") return;
     this.contextLosses += 1;
     this.forceCanvas = true;
+    this.forcedFallbackReason = "context-lost";
     this.recordEvent("WebGL context lost");
     this.createBackend("context lost");
     this.requestStaticRender();
@@ -538,6 +558,7 @@ export class VisualEngine {
         this.restorationFrame = 0;
         if (!this.host || !this.settings.enabled) return;
         this.forceCanvas = false;
+        this.forcedFallbackReason = undefined;
         this.createBackend("context restore attempt");
         if (this.backend?.kind !== "webgl2") this.forceCanvas = true;
         this.requestStaticRender();
@@ -584,7 +605,10 @@ export class VisualEngine {
       this.syncLoop();
       return;
     }
-    this.backend?.render(now);
+    if (!this.renderBackend(now)) {
+      this.syncLoop();
+      return;
+    }
     this.lastStaticDraw = now;
     this.staticRenderPending = this.reducedMotion() && now < this.staticTransitionUntil;
     this.syncLoop();
@@ -592,6 +616,37 @@ export class VisualEngine {
 
   private pushOrientation(): void {
     this.backend?.setObjectOrientation(this.interaction.orientationMatrix());
+  }
+
+  private renderBackend(now: number): boolean {
+    if (!this.backend) return false;
+    try {
+      this.backend.render(now);
+      return true;
+    } catch (error) {
+      const kind = this.backend.kind;
+      console.error(`[Sam visual] ${kind} render failed`, error);
+      this.recordEvent(
+        `${kind} runtime render failure: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      if (kind === "webgl2") {
+        this.forceCanvas = true;
+        this.forcedFallbackReason = "render-failure";
+        try {
+          this.createBackend("render failure");
+          this.staticRenderPending = true;
+          this.syncLoop();
+          return false;
+        } catch (fallbackError) {
+          console.error("[Sam visual] Canvas fallback failed", fallbackError);
+        }
+      }
+      this.releaseBackend();
+      this.host?.classList.add("visual-engine--static");
+      this.setBackendDiagnostic("static", "render-failure");
+      this.recordEvent("backend static (render failure)");
+      return false;
+    }
   }
 
   private checkOrientationContinuity(): void {
@@ -613,7 +668,7 @@ export class VisualEngine {
   private recordEvent(message: string): void {
     const event = { at: new Date().toISOString(), message };
     this.diagnosticEvents.push(event);
-    if (this.diagnosticEvents.length > 12) this.diagnosticEvents.shift();
+    if (this.diagnosticEvents.length > 64) this.diagnosticEvents.shift();
     if (this.diagnosticsEnabled) console.info(`[Sam visual ${event.at}] ${message}`);
   }
 }

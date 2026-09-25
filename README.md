@@ -156,21 +156,24 @@ guarded NSIS path bundles the Python companion, while providers, models, and
 Whisper assets remain external. Browser mode remains supported. See
 [Getting started](docs/GETTING_STARTED.md) for native development details.
 
-Use **Controls → Text request** to type, or enable **Microphone** when the separate
-speech prerequisites are ready. **Rescan providers/models** refreshes inventory;
+Use **Controls → Conversation → Text request** to type, or enable **Microphone**
+when the separate speech prerequisites are ready. **Rescan providers/models** refreshes inventory;
 **Restart Sam** restarts managed Python components while keeping external model
 services available; **Reload interface** reconnects only the React UI; and
 **Quit Sam** performs confirmed shutdown. Input/output gain, visual quality,
 performance profile, reduced motion, intensity, and local-resource-on-exit
-preferences are in Controls. Exit preferences default to keeping providers and
-models available and only act on resources Sam itself started or loaded.
+preferences are grouped in **Appearance**, **Device**, and **System**. Exit
+preferences default to keeping providers and models available and only act on
+resources Sam itself started or loaded.
 
 The Visual Engine uses a warm, responsive light field rather than a solid sphere.
 Listening opens the ribbons, transcription gathers them, thinking folds inward,
 and speaking follows output amplitude. Controls remain keyboard-accessible at the
 lower edge; reduced-motion preference keeps state feedback without continuous motion.
-Expand the model line in Controls for provider selection, speech readiness, chosen
-voice, actionable limitations, and local/cloud policy.
+Open **Controls → System** for provider, model, speech and privacy readiness.
+**Controls → Diagnostics** opens the optional core, audio and renderer status panel;
+it is available by touch as well as Ctrl+Alt+V. Technical connection errors stay
+there or under startup details while the main view gives a plain-language status.
 
 See [Getting started](docs/GETTING_STARTED.md) for prerequisites and first launch,
 and the [User guide](docs/USER_GUIDE.md) for controls, status, and safe operation.

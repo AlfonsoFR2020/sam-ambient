@@ -268,3 +268,18 @@ master specification are recorded here.
   attributes, with shader-build errors in the console. This provides a dependable
   debugging/preview check without adding a permanent Controls element. Canvas
   remains a safe amber fallback, not visual acceptance of the WebGL surface.
+
+## D-021 — One startup narrator and one diagnostics history
+
+- **Accepted:** 2026-09-25. User-facing startup status comes from the existing UI
+  state in one card or notice; connection and readiness facts reflect actual reports.
+  Raw protocol and core reasons remain accessible in expandable details and the
+  developer diagnostics surface. An unexpected React render exception shows a
+  reload path instead of silently unmounting the window.
+- Controls use separate Conversation, Appearance, Device, System and Diagnostics
+  categories. The Diagnostics route is visible on touch devices and supersedes
+  D-020's shortcut-only discoverability choice; the overlay remains optional and
+  closes when Controls opens to avoid mobile obstruction.
+- Reuse the engine's bounded event history for renderer and existing UI/core state.
+  This adds no new core authority, protocol event, microphone processing or audio
+  feature extraction. Verbose browser output logs event changes rather than frames.

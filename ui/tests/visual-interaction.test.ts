@@ -6,6 +6,13 @@ describe("orb interaction", () => {
     const interaction = new OrbInteraction();
     interaction.begin(100, 100, 0);
     interaction.move(100, 140, 20);
+    expect(interaction.orientationMatrix()[7]).toBeLessThan(0);
+  });
+
+  it("moves the front-facing material upward when the pointer is dragged upward", () => {
+    const interaction = new OrbInteraction();
+    interaction.begin(100, 140, 0);
+    interaction.move(100, 100, 20);
     expect(interaction.orientationMatrix()[7]).toBeGreaterThan(0);
   });
 

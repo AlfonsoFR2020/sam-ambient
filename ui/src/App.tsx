@@ -203,25 +203,16 @@ function ControlButton({
   );
 }
 
-const friendlyStartupReason = (reason: string | undefined): string | undefined => {
-  if (!reason) return undefined;
-  if (/several local conversational models/i.test(reason))
-    return "Several local models are available. Choose one to continue.";
-  if (/no usable local chat model/i.test(reason))
-    return "No conversational model is ready. Rescan after starting or loading a local model.";
-  if (/startup\/load failed/i.test(reason))
-    return "A local model was found, but it could not be loaded. Retry or choose another model.";
-  return reason;
-};
-
 export function StartupCard({
   state,
+  commandError,
   dismissed = false,
   onDismiss = () => undefined,
   onRestart = () => undefined,
   applyAction = () => undefined,
 }: {
   state: UiState;
+  commandError?: string;
   dismissed?: boolean;
   onDismiss?: () => void;
   onRestart?: () => void;
@@ -252,27 +243,51 @@ export function StartupCard({
     state.startupLifecycle === "waiting_for_model_choice";
   const visible = !dismissed && state.startupLifecycle !== "dismissed";
   if (!visible || state.applicationStopped) return null;
-  const technicalReason = state.diagnosticReason ?? presentation.notice;
-  const displayedReason = friendlyStartupReason(technicalReason);
-  const steps = [
-    { label: "Starting core", ready: Boolean(state.sessionId) },
-    { label: "Detecting local AI providers", ready: Boolean(state.provider) },
+  const technicalReason =
+    commandError ?? state.protocolError ?? state.diagnosticReason ?? state.selectionReason;
+  const displayedReason = commandError
+    ? "Sam could not apply that control. Try again."
+    : presentation.notice;
+  const facts = [
     {
-      label:
-        state.startupLifecycle === "loading_model"
-          ? `Loading ${state.pendingModel ?? "local model"}…`
-          : state.model
-            ? `Local model ready · ${state.model}`
-            : "Selecting a conversational model",
-      ready: Boolean(state.model),
+      label: "Local service",
+      value:
+        state.connection === "connected"
+          ? "Connected"
+          : state.connection === "offline"
+            ? "Disconnected"
+            : "Connecting",
     },
     {
-      label: state.sttStatus?.toLowerCase().includes("ready")
-        ? "Speech recognition ready"
-        : "Checking speech recognition",
-      ready: Boolean(state.sttStatus),
+      label: "Provider",
+      value: state.provider ?? (state.connection === "connected" ? "Checking" : "Waiting"),
     },
-    { label: "Ready", ready: Boolean(state.model && state.sessionId) },
+    {
+      label: "Model",
+      value:
+        state.model ??
+        (state.startupLifecycle === "loading_model"
+          ? `Loading ${state.pendingModel ?? "local model"}`
+          : state.startupLifecycle === "waiting_for_model_choice"
+            ? "Choose a model"
+            : "Not ready"),
+    },
+    {
+      label: "Speech input",
+      value: state.sttStatus
+        ? /ready/i.test(state.sttStatus)
+          ? "Available"
+          : "Unavailable"
+        : "Awaiting status",
+    },
+    {
+      label: "Spoken output",
+      value: state.ttsBackend
+        ? /unavailable|disabled|missing|failed/i.test(state.ttsBackend)
+          ? "Unavailable"
+          : "Available"
+        : "Awaiting status",
+    },
   ];
   return (
     <aside className="startup-card" aria-label="Sam startup" aria-live="polite">
@@ -295,15 +310,16 @@ export function StartupCard({
         )}
         {state.samAuthor && <small className="startup-card__author">{state.samAuthor}</small>}
       </div>
-      <ol>
-        {steps.map((step) => (
-          <li data-ready={step.ready || undefined} key={step.label}>
-            {step.label}
-          </li>
+      <dl className="startup-card__facts">
+        {facts.map((fact) => (
+          <div key={fact.label}>
+            <dt>{fact.label}</dt>
+            <dd>{fact.value}</dd>
+          </div>
         ))}
-      </ol>
+      </dl>
       {displayedReason && <p>{displayedReason}</p>}
-      {technicalReason && displayedReason !== technicalReason && (
+      {technicalReason && (
         <details className="startup-card__details">
           <summary>Technical details</summary>
           <small>{technicalReason}</small>
@@ -373,7 +389,12 @@ export function StartupCard({
         </div>
       )}
       <div className="startup-card__actions">
-        <button type="button" onClick={() => applyAction({ type: "providers.rescan" })}>
+        <button
+          type="button"
+          disabled={state.connection !== "connected"}
+          title="Check local services and models again when Sam is connected."
+          onClick={() => applyAction({ type: "providers.rescan" })}
+        >
           {state.startupLifecycle === "blocked" ? "Retry / Rescan" : "Rescan"}
         </button>
         {choice && (
@@ -489,7 +510,11 @@ export default function App() {
     providerOnExit: "keep" as "keep" | "stop_if_sam_started",
   });
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [controlsTab, setControlsTab] = useState<
+    "conversation" | "appearance" | "device" | "system" | "diagnostics"
+  >("conversation");
   const [visualDiagnosticsOpen, setVisualDiagnosticsOpen] = useState(false);
+  const [controlEvent, setControlEvent] = useState({ id: 0, message: "" });
   const [quitConfirmation, setQuitConfirmation] = useState(false);
   const [restartConfirmation, setRestartConfirmation] = useState(false);
   const [startupDismissed, setStartupDismissed] = useState(false);
@@ -499,6 +524,8 @@ export default function App() {
   const [presentedLabel, setPresentedLabel] = useState("Starting Sam");
   const visual = toAmbientVisualModel(state, visualSettings.intensity);
   const runtimeStatus = statusPresentation(state);
+  const startupVisible =
+    !startupDismissed && state.startupLifecycle !== "dismissed" && !state.applicationStopped;
   stateRef.current = state;
 
   useEffect(() => {
@@ -559,6 +586,14 @@ export default function App() {
 
   const applyAction = useCallback(
     (action: ControlAction) => {
+      if (action.type !== "visual_settings.set")
+        setControlEvent((prior) => ({
+          id: prior.id + 1,
+          message:
+            action.type === "audio_settings.set"
+              ? `control audio gain in/out ${action.inputGain} / ${action.outputGain}`
+              : `control ${action.type}`,
+        }));
       const command = commandForAction(action, stateRef.current);
       if (command) {
         setCommandError(undefined);
@@ -574,8 +609,13 @@ export default function App() {
   );
 
   const toggleFullscreen = useCallback(async () => {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.documentElement.requestFullscreen();
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch (error) {
+      console.warn("[Sam UI] Fullscreen request failed", error);
+      setCommandError("Fullscreen is unavailable in this window.");
+    }
   }, []);
 
   const persistVisual = useCallback(
@@ -601,12 +641,14 @@ export default function App() {
       if (event.ctrlKey && event.altKey && event.key.toLowerCase() === "v" && !editing) {
         event.preventDefault();
         setVisualDiagnosticsOpen((open) => !open);
+        setControlsOpen(false);
         return;
       }
       const intent = shortcutIntent(event, editing);
       if (intent === "close_surface") {
         if (quitConfirmation) setQuitConfirmation(false);
         else if (restartConfirmation) setRestartConfirmation(false);
+        else if (visualDiagnosticsOpen) setVisualDiagnosticsOpen(false);
         else if (controlsOpen) {
           setControlsOpen(false);
           controlsButton.current?.focus();
@@ -625,7 +667,15 @@ export default function App() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [applyAction, controlsOpen, quitConfirmation, quitSam, restartConfirmation, startupDismissed]);
+  }, [
+    applyAction,
+    controlsOpen,
+    quitConfirmation,
+    quitSam,
+    restartConfirmation,
+    startupDismissed,
+    visualDiagnosticsOpen,
+  ]);
 
   const pending = state.pendingCommandIds.length > 0;
   return (
@@ -639,10 +689,14 @@ export default function App() {
           state={state}
           settings={visualSettings}
           diagnosticsOpen={visualDiagnosticsOpen}
+          commandError={commandError}
+          controlEvent={controlEvent}
+          onCloseDiagnostics={() => setVisualDiagnosticsOpen(false)}
         />
       )}
       <StartupCard
         state={state}
+        commandError={commandError}
         dismissed={startupDismissed}
         onDismiss={() => setStartupDismissed(true)}
         onRestart={() => setRestartConfirmation(true)}
@@ -668,9 +722,14 @@ export default function App() {
           </small>
         )}
       </header>
-      {runtimeStatus.notice && !quitRequested && !state.applicationStopped && (
-        <output className="status-notice">{runtimeStatus.notice}</output>
-      )}
+      {!startupVisible &&
+        !quitRequested &&
+        !state.applicationStopped &&
+        (commandError || runtimeStatus.notice) && (
+          <output className="status-notice">
+            {commandError ? "Sam could not apply that control. Try again." : runtimeStatus.notice}
+          </output>
+        )}
       <QuitDialog
         open={quitConfirmation && !state.applicationStopped && !quitRequested}
         onCancel={() => setQuitConfirmation(false)}
@@ -703,357 +762,412 @@ export default function App() {
         type="button"
         aria-expanded={controlsOpen}
         aria-controls={controlsId}
-        onClick={() => setControlsOpen((open) => !open)}
+        onClick={() => {
+          setVisualDiagnosticsOpen(false);
+          setControlsOpen((open) => !open);
+        }}
       >
         {controlsOpen ? "Close" : "Controls"}
       </button>
       {controlsOpen && (
         <section className="controls" id={controlsId} aria-label="Sam controls">
-          <RuntimeStatus state={state} />
-          <section className="controls__group" aria-labelledby={`${controlsId}-conversation`}>
-            <h2 id={`${controlsId}-conversation`}>Conversation &amp; voice</h2>
-            <form
-              className="controls__request"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const text = textRequest.trim();
-                if (!text || state.connection !== "connected") return;
-                applyAction({ type: "user_message.submit", text });
-                setTextRequest("");
-              }}
-            >
-              <label htmlFor={`${controlsId}-request`}>Text request</label>
-              <div>
-                <input
-                  id={`${controlsId}-request`}
-                  type="text"
-                  value={textRequest}
-                  maxLength={4000}
-                  placeholder="Ask Sam…"
-                  onChange={(event) => setTextRequest(event.currentTarget.value)}
-                />
+          <nav className="controls__tabs" aria-label="Controls categories">
+            {(["conversation", "appearance", "device", "system", "diagnostics"] as const).map(
+              (tab) => (
                 <button
-                  type="submit"
-                  disabled={!textRequest.trim() || pending || state.connection !== "connected"}
+                  key={tab}
+                  type="button"
+                  aria-pressed={controlsTab === tab}
+                  onClick={() => setControlsTab(tab)}
                 >
-                  Send
+                  {
+                    {
+                      conversation: "Conversation",
+                      appearance: "Appearance",
+                      device: "Device",
+                      system: "System",
+                      diagnostics: "Diagnostics",
+                    }[tab]
+                  }
                 </button>
-              </div>
-            </form>
-            <ControlButton
-              help="Enable or pause microphone capture. Ctrl+M."
-              disabled={pending || state.connection !== "connected"}
-              onClick={() =>
-                applyAction({ type: "microphone.set", enabled: !state.microphoneEnabled })
-              }
-              aria-keyshortcuts="Control+M"
-            >
-              Microphone {state.microphoneEnabled ? "on" : "muted"}
-            </ControlButton>
-            {/(speech|microphone)/i.test(state.diagnosticReason ?? "") && (
-              <ControlButton
-                help="Retry the system-default microphone and local speech-recognition stream."
-                disabled={pending || state.connection !== "connected"}
-                onClick={() => applyAction({ type: "microphone.set", enabled: true })}
-              >
-                Retry speech input
-              </ControlButton>
+              ),
             )}
-            <ControlButton
-              help="Mute stops current speech and future spoken replies. Text responses remain visible."
-              disabled={pending || state.connection !== "connected"}
-              onClick={() =>
-                applyAction({ type: "tts_output.set", enabled: !state.ttsOutputEnabled })
-              }
-            >
-              Voice {state.ttsOutputEnabled ? "on" : "muted"}
-            </ControlButton>
-            <ControlButton
-              help="Stop the current spoken response without shutting down Sam."
-              disabled={state.connection !== "connected"}
-              onClick={() => applyAction({ type: "stop_speaking" })}
-            >
-              Stop speaking
-            </ControlButton>
-            <label
-              className="visual-setting"
-              title="Adjust Sam's captured microphone signal, not the operating-system microphone level."
-            >
-              <span>Microphone sensitivity</span>
-              <input
-                aria-label="Microphone sensitivity"
-                type="range"
-                min="0"
-                max="200"
-                value={Math.round(audioSettings.inputGain * 100)}
-                onChange={(event) =>
-                  setAudioSettings((current) => ({
-                    ...current,
-                    inputGain: Number(event.currentTarget.value) / 100,
-                  }))
-                }
-                onPointerUp={persistAudio}
-                onKeyUp={persistAudio}
-              />
-            </label>
-            <label
-              className="visual-setting"
-              title="Adjust Sam's playback signal, not the operating-system master volume."
-            >
-              <span>Output volume</span>
-              <input
-                aria-label="Output volume"
-                type="range"
-                min="0"
-                max="200"
-                value={Math.round(audioSettings.outputGain * 100)}
-                onChange={(event) =>
-                  setAudioSettings((current) => ({
-                    ...current,
-                    outputGain: Number(event.currentTarget.value) / 100,
-                  }))
-                }
-                onPointerUp={persistAudio}
-                onKeyUp={persistAudio}
-              />
-            </label>
-          </section>
-          <section className="controls__group" aria-labelledby={`${controlsId}-system`}>
-            <h2 id={`${controlsId}-system`}>System &amp; model</h2>
-            <ControlButton
-              help="Check again for available local AI services and models."
-              disabled={pending || state.connection !== "connected"}
-              onClick={() => {
-                setStartupDismissed(false);
-                applyAction({ type: "providers.rescan" });
-              }}
-            >
-              Rescan providers/models
-            </ControlButton>
-            <ControlButton
-              help="Restart Sam's managed components. External model services are left alone."
-              disabled={state.connection !== "connected"}
-              onClick={() => setRestartConfirmation(true)}
-            >
-              Restart Sam
-            </ControlButton>
-          </section>
-          <section className="controls__group" aria-labelledby={`${controlsId}-safety`}>
-            <h2 id={`${controlsId}-safety`}>Safety</h2>
-            <ControlButton
-              className="controls__emergency"
-              help="Immediately cancel the active response, tools, queued speech and playback. Ctrl+Shift+X."
-              disabled={state.connection !== "connected"}
-              onClick={() => applyAction({ type: "emergency_stop" })}
-              aria-keyshortcuts="Control+Shift+X"
-            >
-              Emergency stop
-            </ControlButton>
-            <ControlButton
-              className="controls__capability-revoke"
-              help="Prevent Sam from using computer-control capabilities until trusted restoration."
-              disabled={
-                pending || state.connection !== "connected" || !state.capabilityAuthorityActive
-              }
-              onClick={() => applyAction({ type: "capabilities.revoke_all" })}
-            >
-              {state.capabilityAuthorityActive
-                ? "Disable all capabilities"
-                : "Capabilities disabled"}
-            </ControlButton>
-          </section>
-          <section className="controls__group" aria-labelledby={`${controlsId}-display`}>
-            <h2 id={`${controlsId}-display`}>Display</h2>
-            <ControlButton
-              help="Developer-only live visual state and recent renderer events. Ctrl+Alt+V."
-              onClick={() => setVisualDiagnosticsOpen((open) => !open)}
-              aria-keyshortcuts="Control+Alt+V"
-            >
-              Visual diagnostics {visualDiagnosticsOpen ? "on" : "off"}
-            </ControlButton>
-            <ControlButton
-              help="Show or hide the conversation transcript on this device."
-              onClick={() =>
-                applyAction({ type: "transcript.set", visible: !preferences.transcriptVisible })
-              }
-            >
-              Transcript {preferences.transcriptVisible ? "shown" : "hidden"}
-            </ControlButton>
-            <ControlButton
-              help="Enter or leave fullscreen. Escape exits fullscreen."
-              onClick={() => void toggleFullscreen()}
-            >
-              Toggle fullscreen
-            </ControlButton>
-            <label className="visual-setting">
-              <span>Quality</span>
-              <select
-                value={visualSettings.quality}
-                onChange={(event) =>
-                  persistVisual({
-                    quality: event.currentTarget.value as VisualEngineSettings["quality"],
-                  })
-                }
-                title="Controls visual detail. Auto adapts to performance."
-              >
-                <option value="auto">Auto</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </label>
-            <label className="visual-setting">
-              <span>Performance profile</span>
-              <select
-                value={visualSettings.deviceProfile}
-                onChange={(event) =>
-                  persistVisual({
-                    deviceProfile: event.currentTarget
-                      .value as VisualEngineSettings["deviceProfile"],
-                  })
-                }
-                title="Sets the initial Auto detail and its cap; the governor may later lower or raise detail within that cap."
-              >
-                <option value="auto">Auto</option>
-                <option value="mobile_2020">2020 smartphone</option>
-                <option value="low_power">Low power (phone cap)</option>
-                <option value="desktop">Desktop</option>
-                <option value="high_end">High-end desktop</option>
-              </select>
-            </label>
-            <label className="visual-setting">
-              <span>Visual intensity</span>
-              <input
-                aria-label="Visual intensity"
-                type="range"
-                min="0"
-                max="100"
-                value={Math.round(visualSettings.intensity * 100)}
-                onChange={(event) =>
-                  persistVisual({ intensity: Number(event.currentTarget.value) / 100 })
-                }
-              />
-            </label>
-            <label className="visual-setting">
-              <span>Motion speed</span>
-              <input
-                aria-label="Motion intensity"
-                title="Scales rotation, surface flow, peels, particles and breathing; 0 pauses autonomous motion."
-                type="range"
-                min="0"
-                max="100"
-                value={Math.round(visualSettings.motionIntensity * 100)}
-                onChange={(event) =>
-                  persistVisual({ motionIntensity: Number(event.currentTarget.value) / 100 })
-                }
-              />
-            </label>
-            <label className="visual-setting">
-              <span>Audio reactivity</span>
-              <input
-                aria-label="Audio reactivity"
-                title="Only changes the Orb when live microphone or playback activity is present."
-                type="range"
-                min="0"
-                max="100"
-                value={Math.round(visualSettings.audioReactivity * 100)}
-                onChange={(event) =>
-                  persistVisual({ audioReactivity: Number(event.currentTarget.value) / 100 })
-                }
-              />
-            </label>
-            <label className="visual-setting">
-              <span>Particles</span>
-              <input
-                aria-label="Particle amount"
-                title="Changes the visible share of sparse orbiting particles in discrete steps."
-                type="range"
-                min="0"
-                max="100"
-                value={Math.round(visualSettings.particleDensity * 100)}
-                onChange={(event) =>
-                  persistVisual({ particleDensity: Number(event.currentTarget.value) / 100 })
-                }
-              />
-            </label>
-            <label className="visual-setting">
-              <span>Reduced motion</span>
-              <select
-                value={visualSettings.reducedMotion}
-                onChange={(event) =>
-                  persistVisual({
-                    reducedMotion: event.currentTarget
-                      .value as VisualEngineSettings["reducedMotion"],
-                  })
-                }
-              >
-                <option value="system">Follow system</option>
-                <option value="on">On</option>
-                <option value="off">Off</option>
-              </select>
-            </label>
-          </section>
-          <section className="controls__group" aria-labelledby={`${controlsId}-application`}>
-            <h2 id={`${controlsId}-application`}>Application</h2>
-            <label className="visual-setting">
-              <span>Model when Sam quits</span>
-              <select
-                value={lifecycleSettings.modelOnExit}
-                title="Unload only a model Sam loaded during this application session. Restart keeps it available."
-                onChange={(event) => {
-                  const modelOnExit = event.currentTarget
-                    .value as typeof lifecycleSettings.modelOnExit;
-                  const settings = { ...lifecycleSettings, modelOnExit };
-                  setLifecycleSettings(settings);
-                  applyAction({ type: "lifecycle_settings.set", ...settings });
+          </nav>
+          {controlsTab === "system" && <RuntimeStatus state={state} />}
+          {controlsTab === "conversation" && (
+            <section className="controls__group" aria-labelledby={`${controlsId}-conversation`}>
+              <h2 id={`${controlsId}-conversation`}>Conversation &amp; voice</h2>
+              <form
+                className="controls__request"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const text = textRequest.trim();
+                  if (!text || state.connection !== "connected") return;
+                  applyAction({ type: "user_message.submit", text });
+                  setTextRequest("");
                 }}
               >
-                <option value="keep">Keep loaded</option>
-                <option value="unload_if_sam_loaded">Unload if Sam loaded it (LM Studio)</option>
-              </select>
-            </label>
-            <label className="visual-setting">
-              <span>Local AI service when Sam quits</span>
-              <select
-                value={lifecycleSettings.providerOnExit}
-                title="Stop a local AI service only when Sam started it. Existing and shared services are left running."
-                onChange={(event) => {
-                  const providerOnExit = event.currentTarget
-                    .value as typeof lifecycleSettings.providerOnExit;
-                  const settings = { ...lifecycleSettings, providerOnExit };
-                  setLifecycleSettings(settings);
-                  applyAction({ type: "lifecycle_settings.set", ...settings });
+                <label htmlFor={`${controlsId}-request`}>Text request</label>
+                <div>
+                  <input
+                    id={`${controlsId}-request`}
+                    type="text"
+                    title="Type a request for the selected conversational model."
+                    value={textRequest}
+                    maxLength={4000}
+                    placeholder="Ask Sam…"
+                    onChange={(event) => setTextRequest(event.currentTarget.value)}
+                  />
+                  <button
+                    type="submit"
+                    title="Send this text request to Sam."
+                    disabled={!textRequest.trim() || pending || state.connection !== "connected"}
+                  >
+                    Send
+                  </button>
+                </div>
+              </form>
+              <ControlButton
+                help="Enable or pause microphone capture. Ctrl+M."
+                disabled={pending || state.connection !== "connected"}
+                onClick={() =>
+                  applyAction({ type: "microphone.set", enabled: !state.microphoneEnabled })
+                }
+                aria-keyshortcuts="Control+M"
+              >
+                Microphone {state.microphoneEnabled ? "on" : "muted"}
+              </ControlButton>
+              {/(speech|microphone)/i.test(state.diagnosticReason ?? "") && (
+                <ControlButton
+                  help="Retry the system-default microphone and local speech-recognition stream."
+                  disabled={pending || state.connection !== "connected"}
+                  onClick={() => applyAction({ type: "microphone.set", enabled: true })}
+                >
+                  Retry speech input
+                </ControlButton>
+              )}
+              <ControlButton
+                help="Mute stops current speech and future spoken replies. Text responses remain visible."
+                disabled={pending || state.connection !== "connected"}
+                onClick={() =>
+                  applyAction({ type: "tts_output.set", enabled: !state.ttsOutputEnabled })
+                }
+              >
+                Voice {state.ttsOutputEnabled ? "on" : "muted"}
+              </ControlButton>
+              <ControlButton
+                help="Stop the current spoken response without shutting down Sam."
+                disabled={state.connection !== "connected"}
+                onClick={() => applyAction({ type: "stop_speaking" })}
+              >
+                Stop speaking
+              </ControlButton>
+              <label
+                className="visual-setting"
+                title="Adjust Sam's captured microphone signal, not the operating-system microphone level."
+              >
+                <span>Microphone sensitivity</span>
+                <input
+                  aria-label="Microphone sensitivity"
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={Math.round(audioSettings.inputGain * 100)}
+                  onChange={(event) => {
+                    const inputGain = Number(event.currentTarget.value) / 100;
+                    setAudioSettings((current) => ({ ...current, inputGain }));
+                  }}
+                  onPointerUp={persistAudio}
+                  onKeyUp={persistAudio}
+                />
+              </label>
+              <label
+                className="visual-setting"
+                title="Adjust Sam's playback signal, not the operating-system master volume."
+              >
+                <span>Output volume</span>
+                <input
+                  aria-label="Output volume"
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={Math.round(audioSettings.outputGain * 100)}
+                  onChange={(event) => {
+                    const outputGain = Number(event.currentTarget.value) / 100;
+                    setAudioSettings((current) => ({ ...current, outputGain }));
+                  }}
+                  onPointerUp={persistAudio}
+                  onKeyUp={persistAudio}
+                />
+              </label>
+              <ControlButton
+                help="Show or hide the conversation transcript on this device."
+                onClick={() =>
+                  applyAction({ type: "transcript.set", visible: !preferences.transcriptVisible })
+                }
+              >
+                Transcript {preferences.transcriptVisible ? "shown" : "hidden"}
+              </ControlButton>
+            </section>
+          )}
+          {controlsTab === "system" && (
+            <section className="controls__group" aria-labelledby={`${controlsId}-system`}>
+              <h2 id={`${controlsId}-system`}>System &amp; model</h2>
+              <ControlButton
+                help="Check again for available local AI services and models."
+                disabled={pending || state.connection !== "connected"}
+                onClick={() => {
+                  setStartupDismissed(false);
+                  applyAction({ type: "providers.rescan" });
                 }}
               >
-                <option value="keep">Keep running</option>
-                <option value="stop_if_sam_started">Stop if Sam started it</option>
-              </select>
-            </label>
-            <small>These choices apply to Quit. Restart keeps local AI resources available.</small>
-            <ControlButton
-              help="Reload only the Sam interface and reconnect to the running core. Models and managed components are not restarted. Ctrl+R."
-              onClick={() => window.location.reload()}
-              aria-keyshortcuts="Control+R"
-            >
-              Reload interface
-            </ControlButton>
-            <ControlButton
-              help="Stop Sam and close its owned window where supported. Ctrl+Q."
-              disabled={state.connection !== "connected" || quitRequested}
-              onClick={quitSam}
-              aria-keyshortcuts="Control+Q"
-            >
-              Quit Sam
-            </ControlButton>
-          </section>
+                Rescan providers/models
+              </ControlButton>
+              <ControlButton
+                help="Restart Sam's managed components. External model services are left alone."
+                disabled={state.connection !== "connected"}
+                onClick={() => setRestartConfirmation(true)}
+              >
+                Restart Sam
+              </ControlButton>
+            </section>
+          )}
+          {controlsTab === "system" && (
+            <section className="controls__group" aria-labelledby={`${controlsId}-safety`}>
+              <h2 id={`${controlsId}-safety`}>Safety</h2>
+              <ControlButton
+                className="controls__emergency"
+                help="Immediately cancel the active response, tools, queued speech and playback. Ctrl+Shift+X."
+                disabled={state.connection !== "connected"}
+                onClick={() => applyAction({ type: "emergency_stop" })}
+                aria-keyshortcuts="Control+Shift+X"
+              >
+                Emergency stop
+              </ControlButton>
+              <ControlButton
+                className="controls__capability-revoke"
+                help="Prevent Sam from using computer-control capabilities until trusted restoration."
+                disabled={
+                  pending || state.connection !== "connected" || !state.capabilityAuthorityActive
+                }
+                onClick={() => applyAction({ type: "capabilities.revoke_all" })}
+              >
+                {state.capabilityAuthorityActive
+                  ? "Disable all capabilities"
+                  : "Capabilities disabled"}
+              </ControlButton>
+            </section>
+          )}
+          {controlsTab === "appearance" && (
+            <section className="controls__group" aria-labelledby={`${controlsId}-display`}>
+              <h2 id={`${controlsId}-display`}>Appearance</h2>
+              <ControlButton
+                help="Enter or leave fullscreen. Escape exits fullscreen."
+                onClick={() => void toggleFullscreen()}
+              >
+                Toggle fullscreen
+              </ControlButton>
+            </section>
+          )}
+          {controlsTab === "device" && (
+            <section className="controls__group" aria-label="Device performance">
+              <h2>Visual performance</h2>
+              <label className="visual-setting">
+                <span>Performance profile</span>
+                <select
+                  value={visualSettings.deviceProfile}
+                  onChange={(event) =>
+                    persistVisual({
+                      deviceProfile: event.currentTarget
+                        .value as VisualEngineSettings["deviceProfile"],
+                    })
+                  }
+                  title="Sets the initial Auto detail and its cap; the governor may later lower or raise detail within that cap."
+                >
+                  <option value="auto">Auto</option>
+                  <option value="mobile_2020">2020 smartphone</option>
+                  <option value="low_power">Low power (phone cap)</option>
+                  <option value="desktop">Desktop</option>
+                  <option value="high_end">High-end desktop</option>
+                </select>
+              </label>
+              <label className="visual-setting">
+                <span>Quality</span>
+                <select
+                  value={visualSettings.quality}
+                  onChange={(event) =>
+                    persistVisual({
+                      quality: event.currentTarget.value as VisualEngineSettings["quality"],
+                    })
+                  }
+                  title="Controls visual detail. Auto adapts to performance."
+                >
+                  <option value="auto">Auto</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+            </section>
+          )}
+          {controlsTab === "appearance" && (
+            <section className="controls__group" aria-label="Visual motion and material">
+              <h2>Visual behavior</h2>
+              <label className="visual-setting">
+                <span>Visual intensity</span>
+                <input
+                  aria-label="Visual intensity"
+                  title="Adjust overall Orb material intensity without changing voice or system volume."
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(visualSettings.intensity * 100)}
+                  onChange={(event) =>
+                    persistVisual({ intensity: Number(event.currentTarget.value) / 100 })
+                  }
+                />
+              </label>
+              <label className="visual-setting">
+                <span>Motion speed</span>
+                <input
+                  aria-label="Motion speed"
+                  title="Scales autonomous rotation, surface flow, peels, particles and breathing. The upper range is faster; 0 pauses autonomous motion."
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(visualSettings.motionIntensity * 100)}
+                  onChange={(event) =>
+                    persistVisual({ motionIntensity: Number(event.currentTarget.value) / 100 })
+                  }
+                />
+              </label>
+              <label className="visual-setting">
+                <span>Audio reactivity</span>
+                <input
+                  aria-label="Audio reactivity"
+                  title="Only changes the Orb when live microphone or playback activity is present."
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(visualSettings.audioReactivity * 100)}
+                  onChange={(event) =>
+                    persistVisual({ audioReactivity: Number(event.currentTarget.value) / 100 })
+                  }
+                />
+              </label>
+              <label className="visual-setting">
+                <span>Particles</span>
+                <input
+                  aria-label="Particle amount"
+                  title="Changes the visible share of sparse orbiting particles in discrete steps."
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(visualSettings.particleDensity * 100)}
+                  onChange={(event) =>
+                    persistVisual({ particleDensity: Number(event.currentTarget.value) / 100 })
+                  }
+                />
+              </label>
+              <label className="visual-setting">
+                <span>Reduced motion</span>
+                <select
+                  value={visualSettings.reducedMotion}
+                  title="Follow the device accessibility setting, or override it for Sam."
+                  onChange={(event) =>
+                    persistVisual({
+                      reducedMotion: event.currentTarget
+                        .value as VisualEngineSettings["reducedMotion"],
+                    })
+                  }
+                >
+                  <option value="system">Follow device accessibility setting</option>
+                  <option value="on">On</option>
+                  <option value="off">Off</option>
+                </select>
+              </label>
+            </section>
+          )}
+          {controlsTab === "system" && (
+            <section className="controls__group" aria-labelledby={`${controlsId}-application`}>
+              <h2 id={`${controlsId}-application`}>Application</h2>
+              <label className="visual-setting">
+                <span>Model when Sam quits</span>
+                <select
+                  value={lifecycleSettings.modelOnExit}
+                  title="Unload only a model Sam loaded during this application session. Restart keeps it available."
+                  onChange={(event) => {
+                    const modelOnExit = event.currentTarget
+                      .value as typeof lifecycleSettings.modelOnExit;
+                    const settings = { ...lifecycleSettings, modelOnExit };
+                    setLifecycleSettings(settings);
+                    applyAction({ type: "lifecycle_settings.set", ...settings });
+                  }}
+                >
+                  <option value="keep">Keep loaded</option>
+                  <option value="unload_if_sam_loaded">Unload if Sam loaded it (LM Studio)</option>
+                </select>
+              </label>
+              <label className="visual-setting">
+                <span>Local AI service when Sam quits</span>
+                <select
+                  value={lifecycleSettings.providerOnExit}
+                  title="Stop a local AI service only when Sam started it. Existing and shared services are left running."
+                  onChange={(event) => {
+                    const providerOnExit = event.currentTarget
+                      .value as typeof lifecycleSettings.providerOnExit;
+                    const settings = { ...lifecycleSettings, providerOnExit };
+                    setLifecycleSettings(settings);
+                    applyAction({ type: "lifecycle_settings.set", ...settings });
+                  }}
+                >
+                  <option value="keep">Keep running</option>
+                  <option value="stop_if_sam_started">Stop if Sam started it</option>
+                </select>
+              </label>
+              <small>
+                These choices apply to Quit. Restart keeps local AI resources available.
+              </small>
+              <ControlButton
+                help="Reload only the Sam interface and reconnect to the running core. Models and managed components are not restarted. Ctrl+R."
+                onClick={() => window.location.reload()}
+                aria-keyshortcuts="Control+R"
+              >
+                Reload interface
+              </ControlButton>
+              <ControlButton
+                help="Stop Sam and close its owned window where supported. Ctrl+Q."
+                disabled={state.connection !== "connected" || quitRequested}
+                onClick={quitSam}
+                aria-keyshortcuts="Control+Q"
+              >
+                Quit Sam
+              </ControlButton>
+            </section>
+          )}
+          {controlsTab === "diagnostics" && (
+            <section className="controls__group" aria-label="Developer diagnostics">
+              <h2>Developer diagnostics</h2>
+              <p className="controls__description">
+                Live core, audio and renderer status with a bounded event history.
+              </p>
+              <ControlButton
+                help="Open Sam status and diagnostics. Includes core, model, audio and renderer details. Ctrl+Alt+V."
+                onClick={() => {
+                  setVisualDiagnosticsOpen(true);
+                  setControlsOpen(false);
+                }}
+                aria-keyshortcuts="Control+Alt+V"
+              >
+                Open status &amp; diagnostics
+              </ControlButton>
+            </section>
+          )}
           <p className="controls__hint">
             Ctrl+M microphone · Ctrl+Shift+X emergency stop · Ctrl+R reload interface · Ctrl+Q Quit
             Sam · Esc closes the current Controls or dialog surface, never Sam
           </p>
         </section>
-      )}
-      {(state.protocolError || commandError) && (
-        <p className="protocol-error">{commandError ?? `Protocol: ${state.protocolError}`}</p>
       )}
     </main>
   );

@@ -1,13 +1,13 @@
 # Sam implementation state
 
-Updated: 2026-09-24
+Updated: 2026-09-25
 
 ## MVP status
 
 - v0.2.3 Living Surface Slices 1–3 use one deterministic, seamless object-space
   two-twist/two-scale field for the WebGL body and existing peels. Shared pigment,
   bounded displacement, tangent-sampled normals and world-space lighting produce
-  moving warm/cool regions. Low/medium/high compile 0/1/2 optional fine samples
+  phase-continuous warm/cool regions. Low/medium/high compile 0/1/2 optional fine samples
   for luminance/glint only; the broad field and palette remain identical. AUTO
   keeps its windowed hysteresis, using paced intervals for overload and CPU
   render-submission cost for headroom. The engine retains seed, phase, orientation,
@@ -19,20 +19,21 @@ Updated: 2026-09-24
   active at all three tiers and captured a preview; human visual acceptance,
   representative GPU/mobile performance, sustained drag/motion and native review
   remain open. Canvas fallback still uses its older amber approximation.
-- Human-acceptance repair on `dev` keeps that WebGL material, corrects fractional
-  consumers of wrapped peel/breath/light/ripple/particle phases that could snap
-  at wrap boundaries, increases broad-field circulation to a perceivable idle
-  rate, and restores intuitive vertical drag with moderately longer inertia.
-  Existing peels now rely on depth rather than premature facing fade; seeded
-  particle orbits span more inclinations and move more visibly. WebGL visual
-  intensity now directly scales body/peel material, while Motion speed scales
-  rotation, field, peel and particle phases; audio reactivity still requires live
-  input/output activity. Centre translation is not implemented. A hidden-by-default
-  developer overlay reports renderer/fallback, quality, approximate FPS, state,
-  fixed centre, quaternion, phases, seed, envelopes and bounded timestamped events.
-  The High-end desktop profile now starts Auto at high detail instead of duplicating
-  Desktop's medium start; Low power and `mobile_2020` share the documented low cap.
-  Deterministic tests do not replace final human visual or representative GPU checks.
+- The 0.2.3 frontend reliability pass fixes the actual Microphone sensitivity and
+  Output volume slider crash by reading input values before queued React updates;
+  a render error boundary retains a visible Reload interface path, and render-time
+  exceptions fall back through Canvas to a static Orb with diagnostic events. Browser-level
+  fullscreen slider and physical upward/downward drag regressions pass. Pointer Y
+  now matches screen projection; inertia damping is 2.5 rather than 3.2. Motion
+  speed keeps its 0.6 default rate and reaches 3× that rate at its maximum.
+  Startup presents one plain-language explanation and observed service/model/speech
+  facts; raw protocol detail stays in expandable details and diagnostics. Controls
+  now separate Conversation, Appearance, Device, System and Diagnostics. The existing
+  overlay adds core/model/audio state and 64 bounded events, with event-level verbose
+  console output and a mobile-safe close route. It exposes existing envelopes, not
+  new audio features or a new cross-process telemetry contract. The field still
+  appears too static to the human despite phase changes, and physical voice, membrane,
+  palette, lighting, particles and representative GPU/mobile acceptance remain open.
 - The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal
   outcome. Replacement turns wait for predecessor terminal publication; stale chunks
@@ -230,6 +231,9 @@ Updated: 2026-09-24
 - React 19 + TypeScript + WebGL2/Canvas/CSS renders ambient state and voice/TTS
   metrics, concise transcript, interruption, tool approval, update, offline,
   reconnect, reduced-motion, and intensity state.
+- The startup card uses actual connection, provider, model and speech reports; an
+  unexpected React render error displays a reload path. A tabbed Controls panel
+  and optional diagnostics overlay expose currently reported core and renderer data.
 - `sam-ui` is a small loopback-only static HTTP component on port 8766. It
   serves compiled assets with traversal rejection and a restrictive CSP; the
   UI uses protocol-v1 WebSocket transport to core port 8765 by default.

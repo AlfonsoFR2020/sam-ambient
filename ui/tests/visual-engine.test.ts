@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { INITIAL_UI_STATE } from "../src/protocol/types";
 import { chooseRendererKind, type RendererBackend } from "../src/visual-engine/backend";
 import { CanvasBackend } from "../src/visual-engine/canvas";
@@ -135,6 +135,46 @@ describe("visual engine lifecycle", () => {
     expect(host.dataset.samRenderer).toBe("static");
     expect(host.dataset.samFallbackReason).toBe("webgl2-unavailable");
     engine.dispose();
+  });
+
+  it("recovers a later renderer exception through Canvas and then a visible static Orb", () => {
+    const host = fakeHost();
+    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const engine = new VisualEngine({
+      createCanvas: fakeCanvas,
+      backendFactory: (_canvas, kind) => ({
+        kind,
+        update() {},
+        configure() {},
+        resize() {},
+        setObjectOrientation() {},
+        render() {
+          throw new Error(`${kind} runtime failure`);
+        },
+        dispose() {},
+      }),
+      requestFrame: () => 1,
+      cancelFrame() {},
+    });
+    try {
+      engine.mount(host);
+      engine.update(readyInput());
+      engine.beginInteraction(100, 100, 0);
+      engine.moveInteraction(110, 100, 20);
+      expect(engine.rendererKind).toBe("canvas2d");
+      expect(host.dataset.samFallbackReason).toBe("render-failure");
+      engine.moveInteraction(120, 100, 40);
+      expect(engine.rendererKind).toBe("static");
+      expect(host.classes.has("visual-engine--static")).toBe(true);
+      expect(
+        engine
+          .diagnosticSnapshot()
+          .events.some((event) => event.message.includes("runtime render failure")),
+      ).toBe(true);
+    } finally {
+      engine.dispose();
+      errors.mockRestore();
+    }
   });
 
   it("separately reports fixed centre, orientation, field phase, quality and backend events", () => {

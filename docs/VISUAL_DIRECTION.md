@@ -1,7 +1,7 @@
 # Sam Orb visual direction
 
-Status: **future artistic and systems direction after v0.2.2**, not a description of
-the current renderer or permission to implement it. [Visual Engine v1](VISUAL_ENGINE_V1.md)
+Status: **artistic and systems direction for continuing visual stages**, not a
+description of all current renderer behavior. [Visual Engine v1](VISUAL_ENGINE_V1.md)
 defines today's renderer, data, interaction, accessibility and performance contract;
 [State](STATE.md) records what has landed. This document gives later design work a
 shared visual aim while leaving mathematical and performance choices open.
@@ -51,6 +51,16 @@ flow; sparse particles appear where the shared energetic state warrants them.
 Audio and conversational state alter a compact set of common parameters rather
 than independently switching decorative effects.
 
+The broad structures must visibly circulate over seconds in ordinary use; changing
+phase values without perceptible migration is insufficient. Preserve coherent forms
+as they travel, without a frozen skin or boiling detail. Manual rotation should feel
+like grasping one material body. If time evolution competes with that impression,
+reduce or hold its *rate* while the pointer owns the Orb and ease the rate back after
+release; never reset the phases or change coordinate space at that boundary. Keep
+autonomous rotation and surface flow conceptually separable even if today's Motion
+control drives both. A future dedicated flow control should be calibrated around
+the accepted idle equilibrium; an Auto setting needs a real control signal.
+
 Possible field ingredients include low order analytic flow, seeded simplex or
 curl-like noise, a few FBM octaves, gentle domain warping, spherical/object-space
 sampling, SDF-like masks, analytic diffuse/specular/Fresnel response and bounded
@@ -69,8 +79,15 @@ violet, blue and teal passages if legibility, tone bounds and visual acceptance
 support it. It does not silently replace v1's bounded warm themes. A broad palette
 shift, true translucency or extra rendering pass needs a later contract decision;
 the current Canvas/static fallbacks still need a recognizable Sam.
+Within this warm identity, hue relationships, saturation and tonal balance should
+shift slowly enough to feel like one living organism rather than cycle through fixed
+red/cyan/yellow/orange placements or flicker through rainbow noise.
 
-### Stage 1 substrate decision for a v0.2.3 plan
+The current small-scale ovoid and mountain/valley relief has naturalistic appeal.
+Retain bounded relief while comparing subtler and stronger expressions; neither a
+perfect sphere nor exaggerated terrain is a decided target.
+
+### Living-field substrate and constraints
 
 Use a **procedural 3D object-space field carried by two analytic spherical
 twists**. The present UV mesh remains geometry only; never use longitude/latitude
@@ -213,6 +230,11 @@ subtle lift, curvature, finite thickness or translucency can separate the shell
 from the body. The membrane samples the body's flow and colour field while using
 a somewhat stronger rim response, different reflectivity or softened opacity.
 Its silhouette remains elegant and connected to the sphere.
+Fragments should differ subtly in radial lift, sit clearly outside the body and
+read as material with controlled opacity and crispness. Activity and later audio may
+increase lift/extension smoothly. Shared-field tint remains desirable. Intersections
+and transparent ordering need a membrane-level solution, with specular response on
+capable hardware rather than a cosmetic fix to crossing ribbons.
 
 Several cheap representations deserve a measured comparison before selection:
 
@@ -287,6 +309,13 @@ VAD, STT, interruption or cancellation authority. Section 14 of v1 keeps the
 detailed feature, expiry, privacy and mapping questions for a strong-model pass.
 
 ## Richness must use spare compute
+
+The orbiting key must actually register as moving illumination, glints and a gentle
+day/night depth change, with a believable ambient fill. Mathematical light presence
+alone is not an acceptance criterion. Particle richness should preserve slow inclined
+orbits while offering a wider high-end population, diverse size/shape/colour and
+longer reach into the black viewport. Low-power tiers remain sparse. Later activity
+may add restrained XYZ movement only from timely audio/waveform evidence.
 
 Voice capture, STT, interruption, first model content, inference, UI response, TTS
 and playback take priority. The current v1 caps, including `mobile_2020`, four

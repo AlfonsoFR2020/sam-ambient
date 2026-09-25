@@ -22,7 +22,7 @@ export class OrbInteraction {
   constructor(
     private readonly sensitivity = 0.006,
     private readonly maximumVelocity = 4,
-    private readonly damping = 3.2,
+    private readonly damping = 2.5,
   ) {
     this.writeMatrix();
   }
@@ -42,7 +42,7 @@ export class OrbInteraction {
     const dy = y - this.lastY;
     const dt = clamp((nowMs - this.lastMs) / 1000, 1 / 240, 0.1);
     const yaw = dx * this.sensitivity;
-    const pitch = -dy * this.sensitivity;
+    const pitch = dy * this.sensitivity;
     this.rotate(pitch, yaw);
     this.velocityX = clamp(pitch / dt, -this.maximumVelocity, this.maximumVelocity);
     this.velocityY = clamp(yaw / dt, -this.maximumVelocity, this.maximumVelocity);

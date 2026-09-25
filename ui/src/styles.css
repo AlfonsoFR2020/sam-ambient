@@ -142,10 +142,10 @@ select {
   top: 12px;
   right: 12px;
   z-index: 4;
-  width: min(340px, calc(100vw - 24px));
-  max-height: min(38vh, 340px);
-  overflow: hidden;
-  padding: 8px 10px;
+  width: min(410px, calc(100vw - 24px));
+  max-height: min(72dvh, 620px);
+  overflow: auto;
+  padding: 10px 12px;
   border: 1px solid #9cb7cc55;
   border-radius: 8px;
   color: #dceaf4;
@@ -154,18 +154,69 @@ select {
     10px / 1.35 ui-monospace,
     Consolas,
     monospace;
-  pointer-events: none;
+  pointer-events: auto;
   user-select: text;
 }
 
 .visual-diagnostics strong {
   font-size: 11px;
 }
-.visual-diagnostics__events {
-  margin-top: 5px;
-  border-top: 1px solid #9cb7cc55;
-  padding-top: 4px;
+.visual-diagnostics__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.visual-diagnostics__header button {
+  border: 1px solid #9cb7cc55;
+  border-radius: 6px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+}
+.visual-diagnostics__summary {
+  margin: 5px 0 8px;
   color: #a9becd;
+}
+.visual-diagnostics details {
+  margin-top: 7px;
+  border-top: 1px solid #9cb7cc33;
+  padding-top: 6px;
+}
+.visual-diagnostics summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.visual-diagnostics dl {
+  display: grid;
+  grid-template-columns: minmax(110px, 42%) minmax(0, 1fr);
+  gap: 3px 8px;
+  margin: 6px 0 0;
+}
+.visual-diagnostics dt {
+  color: #8095a8;
+}
+.visual-diagnostics dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.visual-diagnostics__error {
+  color: #f0b2a6;
+  overflow-wrap: anywhere;
+}
+.visual-diagnostics__events {
+  max-height: 180px;
+  margin-top: 6px;
+  overflow: auto;
+  color: #a9becd;
+}
+.visual-diagnostics__events > div {
+  padding: 2px 0;
+  overflow-wrap: anywhere;
+}
+.visual-diagnostics__events time {
+  color: #829caf;
 }
 
 .ambient-scene.visual-engine--static::before,
@@ -336,7 +387,7 @@ select {
   line-height: 1.2;
 }
 
-.startup-card ol,
+.startup-card__facts,
 .startup-card p {
   grid-column: 1 / -1;
   margin: 8px 0 0;
@@ -394,16 +445,25 @@ select {
   cursor: pointer;
 }
 
-.startup-card ol {
+.startup-card__facts {
   display: grid;
-  gap: 7px;
-  padding-left: 24px;
-  color: #aa927e;
-  font-size: 0.8rem;
+  gap: 6px;
+  padding: 0;
+  font-size: 0.76rem;
 }
 
-.startup-card li[data-ready="true"] {
+.startup-card__facts > div {
+  display: grid;
+  grid-template-columns: minmax(100px, 42%) 1fr;
+  gap: 8px;
+}
+.startup-card__facts dt {
+  color: #a88d76;
+}
+.startup-card__facts dd {
+  margin: 0;
   color: #efc28f;
+  overflow-wrap: anywhere;
 }
 
 .startup-card p {
@@ -535,6 +595,30 @@ select {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.controls__tabs {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.controls .controls__tabs button {
+  width: auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+.controls .controls__tabs button[aria-pressed="true"] {
+  border-color: #d8a77b88;
+  color: #f2caa7;
+  background: #a45b2d33;
+}
+.controls__description {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #9ba7bc;
+  font-size: 0.73rem;
 }
 
 .control-with-help {
@@ -686,13 +770,31 @@ select {
   font-size: 0.66rem;
 }
 
-.protocol-error {
-  position: absolute;
-  right: 24px;
-  top: 20px;
-  max-width: min(420px, 70vw);
-  color: #e5b0aa;
-  font-size: 0.75rem;
+.ui-error {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  width: min(540px, calc(100vw - 40px));
+  margin: 16vh auto;
+  padding: 24px;
+  border: 1px solid #c67b6366;
+  border-radius: 16px;
+  color: #eadac8;
+  background: #1d1612;
+}
+.ui-error h1,
+.ui-error p {
+  margin: 0;
+}
+.ui-error button {
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.ui-error pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .tool-activity {
@@ -796,6 +898,11 @@ select {
 }
 
 @media (max-width: 600px) {
+  .visual-diagnostics {
+    top: 68px;
+    right: 12px;
+    max-height: calc(100dvh - 150px);
+  }
   .status {
     left: 20px;
     right: 20px;
