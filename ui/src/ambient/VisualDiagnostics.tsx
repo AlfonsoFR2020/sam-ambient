@@ -136,6 +136,8 @@ export function VisualDiagnostics({
           <dd>{snapshot.fieldPhases.map((value) => fixed(value)).join(" / ")}</dd>
           <dt>Field twists</dt>
           <dd>{snapshot.fieldTwists.map((value) => fixed(value)).join(" / ")}</dd>
+          <dt>Palette balance</dt>
+          <dd>{fixed(snapshot.paletteBalance)}</dd>
           <dt>Flow / peel</dt>
           <dd>
             {fixed(snapshot.flowRate, 3)} rad/s / {fixed(snapshot.peelTravel)}

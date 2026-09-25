@@ -116,7 +116,9 @@ normal `--ui-mode browser` tab does not stop Sam.
 
 **Appearance** provides motion, visual intensity, audio reactivity, particle amount,
 reduced motion and fullscreen. **Device** provides quality and performance profile.
-The Motion speed upper range is faster while its default is unchanged.
+The Motion speed upper range is faster while its default is unchanged. It scales
+several autonomous motions; Sam internally slows surface circulation while you
+drag the Orb and eases it back afterward. There is no separate Surface Flow control yet.
 **2020 smartphone** deliberately
 uses Sam's low-power mobile budget even on a desktop; **Auto** starts conservatively
 and adapts only from measured render cost. These owner preferences survive interface

@@ -290,6 +290,7 @@ interface CommonUniforms {
 
 interface FieldUniforms {
   readonly state: WebGLUniformLocation;
+  readonly paletteBalance: WebGLUniformLocation;
   readonly offsetA: WebGLUniformLocation;
   readonly offsetB: WebGLUniformLocation;
 }
@@ -615,6 +616,7 @@ export class WebGLBackend implements RendererBackend {
     const gl = this.gl;
     return {
       state: location(gl, shader, "u_field_state"),
+      paletteBalance: location(gl, shader, "u_palette_balance"),
       offsetA: location(gl, shader, "u_field_offset_a"),
       offsetB: location(gl, shader, "u_field_offset_b"),
     };
@@ -628,6 +630,7 @@ export class WebGLBackend implements RendererBackend {
       frame.fieldTwist1,
       frame.fieldTwist2,
     );
+    this.gl.uniform1f(uniforms.paletteBalance, frame.paletteBalance);
   }
 
   private setCommonUniforms(uniforms: CommonUniforms, frame: MotionFrame): void {

@@ -206,7 +206,7 @@ describe("visual engine lifecycle", () => {
     expect(snapshot.qualityPolicy).toBe("high");
     expect(snapshot.renderer).toBe("webgl2");
     expect(snapshot.fallbackReason).toBeUndefined();
-    expect(snapshot.flowRate).toBeCloseTo(0.084);
+    expect(snapshot.flowRate).toBe(0); // The fake backend has not evaluated a frame.
     expect(snapshot.events.some((event) => event.message.includes("controls quality=high"))).toBe(
       true,
     );
@@ -304,10 +304,20 @@ describe("visual engine lifecycle", () => {
     engine.moveInteraction(160, 130, now);
     expect(renders.at(-1)?.orientation).not.toEqual(renders.at(-2)?.orientation);
     expect(renders.at(-1)?.phase).toBe(phaseBeforeReplacement);
+    tick(150);
+    const heldRate = engine.diagnosticSnapshot().flowRate;
+    expect(heldRate).toBeGreaterThan(0);
+    expect(heldRate).toBeLessThan(0.084);
+    const heldPhase = renders.at(-1)?.phase;
+    engine.endInteraction();
+    expect(renders.at(-1)?.phase).toBe(heldPhase);
+    tick(200);
+    expect(engine.diagnosticSnapshot().flowRate).toBeGreaterThan(heldRate);
+    const phaseBeforeHide = renders.at(-1)?.phase;
     engine.setVisible(false);
     engine.setVisible(true);
     tick(50_000);
-    expect(renders.at(-1)?.phase).toBe(phaseBeforeReplacement);
+    expect(renders.at(-1)?.phase).toBe(phaseBeforeHide);
     expect(
       engine.diagnosticSnapshot().events.some((event) => event.message.startsWith("unexpected")),
     ).toBe(false);

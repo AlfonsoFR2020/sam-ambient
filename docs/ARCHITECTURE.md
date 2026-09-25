@@ -49,9 +49,14 @@ continuous state/audio motion, batched fragmented peels, analytic lights and spa
 particles, with Canvas/CSS fallback. It also implements direct pointer/touch rotation,
 damped inertia, persisted typed visual settings, profile-capped mobile emulation and
 measured quality adaptation. Spectral extraction, prosodic mapping and human visual
-acceptance remain pending. [Sam Orb visual direction](VISUAL_DIRECTION.md) records
-the later shared-field and outer-membrane artistic goal without claiming those
-effects exist. The compiled static bundle uses the real event decoder and reducer.
+acceptance remain pending. The WebGL body and current peels share a deterministic
+object-space field. Engine-owned elapsed-time clocks separately advance orientation,
+relief, material shears, palette balance, lighting and particles; pointer ownership
+temporarily reduces the material rate without resetting phase. The existing quality
+tiers retain the same broad field, with optional fine samples only on higher tiers.
+[Sam Orb visual direction](VISUAL_DIRECTION.md) records the intended outer membrane
+and remaining artistic work. The compiled static bundle uses the real event decoder
+and reducer.
 
 ## Native shell boundary
 

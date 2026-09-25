@@ -2,7 +2,7 @@ import type { BackendFactory, RendererBackend, RendererKind } from "./backend";
 import { CanvasBackend } from "./canvas";
 import { AdaptiveQualityGovernor } from "./governor";
 import { OrbInteraction } from "./interaction";
-import { MotionEvaluator, motionRateScale } from "./motion";
+import { MotionEvaluator } from "./motion";
 import { effectivePixelRatio, type RenderBudget, resolveRenderBudget } from "./quality";
 import { resolveVisualEngineSettings } from "./settings";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -47,6 +47,7 @@ export interface VisualDiagnosticSnapshot {
   readonly precession: number;
   readonly fieldPhases: readonly [number, number];
   readonly fieldTwists: readonly [number, number];
+  readonly paletteBalance: number;
   readonly peelTravel: number;
   readonly flowRate: number;
   readonly seed: number;
@@ -164,8 +165,11 @@ export class VisualEngine {
     this.input = input;
     this.backend?.update(input);
     if (this.reducedMotion() && stateChanged) this.staticTransitionUntil = this.clock() + 200;
-    if (this.reducedMotion() || !this.hasLiveAvailability(input)) this.requestStaticRender();
-    else this.syncLoop();
+    if (this.reducedMotion() || !this.hasLiveAvailability(input)) {
+      this.motion.setPointerHolding(false);
+      this.interaction.cancel();
+      this.requestStaticRender();
+    } else this.syncLoop();
   }
 
   configure(value: Partial<VisualEngineSettings>): void {
@@ -189,7 +193,10 @@ export class VisualEngine {
     const rebuild = nextBudget.quality !== this.budget.quality || rendererChanged;
     this.settings = next;
     if (!wasReduced && this.reducedMotion()) this.staticTransitionUntil = this.clock() + 200;
-    if (this.reducedMotion() || next.motionIntensity === 0) this.interaction.stopInertia();
+    if (this.reducedMotion() || !next.enabled) {
+      this.motion.setPointerHolding(false);
+      this.interaction.cancel();
+    } else if (next.motionIntensity === 0) this.interaction.stopInertia();
     this.budget = nextBudget;
     if (qualityPolicyChanged || rendererChanged) this.governor.reset(nextBudget.quality);
     if (rendererChanged) {
@@ -229,6 +236,10 @@ export class VisualEngine {
 
   setVisible(visible: boolean): void {
     if (this.visible !== visible) this.recordEvent(visible ? "visible/resume" : "hidden/pause");
+    if (!visible) {
+      this.motion.setPointerHolding(false);
+      this.interaction.cancel();
+    }
     this.visible = visible;
     this.syncLoop();
   }
@@ -236,6 +247,7 @@ export class VisualEngine {
   beginInteraction(x: number, y: number, now = this.clock()): void {
     if (this.reducedMotion() || !this.hasLiveAvailability(this.input)) return;
     this.interaction.begin(x, y, now);
+    this.motion.setPointerHolding(true);
   }
 
   moveInteraction(x: number, y: number, now = this.clock()): void {
@@ -248,6 +260,7 @@ export class VisualEngine {
   }
 
   endInteraction(): void {
+    this.motion.setPointerHolding(false);
     if (this.reducedMotion() || !this.hasLiveAvailability(this.input)) {
       this.interaction.cancel();
       return;
@@ -256,6 +269,7 @@ export class VisualEngine {
   }
 
   cancelInteraction(): void {
+    this.motion.setPointerHolding(false);
     this.interaction.cancel();
   }
 
@@ -293,11 +307,9 @@ export class VisualEngine {
       precession: frame.precession,
       fieldPhases: [frame.fieldPhase1, frame.fieldPhase2],
       fieldTwists: [frame.fieldTwist1, frame.fieldTwist2],
+      paletteBalance: frame.paletteBalance,
       peelTravel: frame.peelTravel,
-      flowRate:
-        this.reducedMotion() || !this.hasLiveAvailability(this.input)
-          ? 0
-          : motionRateScale(this.settings.motionIntensity) * 0.14,
+      flowRate: frame.surfaceFlowRate * 0.14,
       seed: this.seed,
       inputEnvelope: frame.inputEnvelope,
       outputEnvelope: frame.outputEnvelope,
@@ -306,6 +318,7 @@ export class VisualEngine {
   }
 
   dispose(): void {
+    this.motion.setPointerHolding(false);
     if (this.frame) this.cancelFrame(this.frame);
     if (this.restorationFrame) this.cancelFrame(this.restorationFrame);
     this.frame = 0;
@@ -335,11 +348,17 @@ export class VisualEngine {
 
   private readonly onVisibility = () => {
     this.recordEvent(document.hidden ? "document hidden/pause" : "document visible/resume");
+    if (document.hidden) {
+      this.motion.setPointerHolding(false);
+      this.interaction.cancel();
+    }
     this.syncLoop();
   };
 
   private readonly onReducedMotionChange = () => {
     if (this.reducedMotion()) {
+      this.motion.setPointerHolding(false);
+      this.interaction.cancel();
       this.interaction.stopInertia();
       this.staticTransitionUntil = this.clock() + 200;
     }

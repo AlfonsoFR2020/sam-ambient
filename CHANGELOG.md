@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased — 0.2.3 frontend reliability pass
+## Unreleased — 0.2.3
+
+### Living Surface dynamics
+
+- Replace nearly rigid material transport with two broad asymmetric, evolving
+  shears while retaining shared Orb/peel tint, deterministic seeds, bounded relief,
+  four draws and existing quality tiers.
+- Slow material circulation during pointer hold and ease it back after release
+  without a phase jump or stopping whole-Orb motion. Add a separate slow palette
+  balance clock; the full palette, membrane, lighting, particles and audio work
+  remain later visual stages.
+- Add focused elapsed-time/drag continuity and front-hemisphere deformation tests,
+  plus a fixed-orientation WebGL pixel regression for visible material movement.
+
+### Frontend reliability
 
 - Fix the fullscreen Microphone sensitivity crash and the same Output volume
   event-lifetime bug; unexpected React render failures now show Reload interface
@@ -19,9 +33,10 @@
 - Add focused Chrome browser regressions for fullscreen sliders, physical vertical
   drag, mobile overlay layout and an unexpected renderer exception.
 
-**Validation boundary:** focused frontend tests, typecheck, changed-file lint and
-browser interaction tests cover this pass. Human visual, physical voice/audio,
-representative GPU/mobile performance and native acceptance remain open.
+**Validation boundary:** focused frontend tests, typecheck, changed-file lint,
+browser interaction tests and an isolated WebGL material check cover these passes.
+Human visual, physical voice/audio, representative GPU/mobile performance and
+native acceptance remain open.
 
 ## 0.2.2 (alpha) - Release candidate
 

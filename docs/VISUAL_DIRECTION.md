@@ -89,33 +89,39 @@ perfect sphere nor exaggerated terrain is a decided target.
 
 ### Living-field substrate and constraints
 
-Use a **procedural 3D object-space field carried by two analytic spherical
-twists**. The present UV mesh remains geometry only; never use longitude/latitude
+Use a **procedural 3D object-space field carried by two broad spherical
+shears**. The present UV mesh remains geometry only; never use longitude/latitude
 to address the material. For each normalized, unrotated object direction `n`,
-let two fixed seeded, nonparallel unit axes be approximately
+let two fixed nonparallel unit axes be approximately
 `a1 = normalize(.4,.8,.3)` and `a2 = normalize(-.7,.2,.6)`. For each axis in order:
 
 ```text
 mu_i = dot(a_i, q_previous)
-f(mu) = (1-mu*mu)*(1+0.35*mu)
-theta_i = phi_i + twist_i*f(mu_i)
+f(mu,q) = (1-mu*mu)*(1+0.35*mu)*(1+0.42*dot(otherAxis,q))
+theta_i = phi_i + twist_i*f(mu_i,q_previous)
 q_i = rotate_about_axis(q_previous, a_i, -theta_i)
 q_0 = n; q = normalize(q_2)
 ```
 
-`phi_i` are slowly advancing phases (initial rates `+.035` and `-.023` rad/s,
-raised after human observation to `+.14` and `-.09` before the Motion control's
-default 0.6 scale); `twist_i = A_i*sin(psi_i)` with initial `A_i = +.32, -.24`
-rad and `psi_i` rates `+.067, -.053` rad/s (now `+.11, -.08` before Motion
-scaling). Compute `sin(psi_i)` once per frame, not per
-fragment. Wrap each phase modulo `2*pi`; rotations stay continuous at the wrap.
-Each twist is an invertible longitude shear around its own axis because `mu_i`
-does not change during that rotation. Their composition transports and folds
-material without a grid simulation, UV seam, pole singularity or growing history.
+`phi_i` advance at `+.14` and `-.09` rad/s before the Motion control's default
+0.6 scale. `twist_i = A_i*sin(psi_i)` uses `A_i = +.78, -.56` rad and `psi_i`
+rates `+.19, -.13` rad/s; seeded phase offsets keep the default seed's shear
+active immediately. Compute `sin(psi_i)` once per frame, not per fragment.
+Wrap each phase modulo `2*pi`; rotations stay continuous at the wrap. The old
+uniform-angle terms mostly transported the pattern as a rigid image, while its
+small shear began near zero with the default seed. The companion-axis profile
+adds broad, asymmetric deformation as regions travel. It remains smooth across
+the whole sphere, though the exact analytic inverse of the prior axisymmetric
+latitude shear is no longer assumed. No grid simulation or growing history is needed.
 Use one shared deterministic seed for fixed noise offsets, not per-frame random
 values. These are bounded starting parameters for visual acceptance. The
-existing Motion control scales the phase rates; a separate automatic surface
-speed would require a real signal and is not claimed here.
+existing Motion control scales the phase rates. A material-specific rate gate
+reduces flow toward 12% while the pointer holds the Orb (0.14 s easing) and
+returns it toward normal after release (0.8 s easing). Integrate that gate over
+elapsed time; do not accumulate hidden phase or catch up after release. Breathing,
+whole-Orb rotation and particle orbits continue independently. A future persisted
+Surface Flow control can scale this internal rate without changing the field shader;
+an Auto speed would require a real signal and is not claimed here.
 
 Sample one specified, self-contained **3D simplex gradient noise** function at
 two scales from this same `q`:
@@ -123,15 +129,19 @@ two scales from this same `q`:
 ```text
 B = sat(.5 + .5*N3(1.8*q + seedOffset1))   // broad density
 M = sat(.5 + .5*N3(3.6*q + seedOffset2))   // medium folds
-palette = .70*B + .30*M
-cool = smoothstep(.64,.78,M)*smoothstep(.40,.60,1-B)
+balance = .68 + .07*sin(palettePhase)
+palette = balance*B + (1-balance)*M
+cool = .94*(1-smoothstep(.29,.57,B))*smoothstep(.39,.63,M)
 activity = smoothstep(.20,.50,abs(B-M))
 ```
 
 The offsets are fixed, independent vectors derived once from the existing test
-seed. A warm linear-light palette maps `palette` through red/copper, orange and
-gold. `cool` gates a localized pink-to-violet/blue/teal accent instead of a
-global rainbow gradient; the default should remain predominantly warm. Those
+seed. `palettePhase` has its own slow `.027` rad/s base clock before the high-level
+Motion scale; it changes the relation between broad and medium warm regions, not
+the hue of the entire Orb. A warm linear-light palette maps `palette` through
+red/copper, orange and gold. `cool` gates a localized pink-to-violet/blue/teal
+accent instead of a global rainbow gradient; the default should remain
+predominantly warm. Those
 palette stops and the cool-region fraction need human review, but hue placement
 must depend on `B`, `M` and `q` at every quality tier. Optional samples at
 `7.2*q` and `14.4*q` may modulate luminance/roughness only, with amplitudes at

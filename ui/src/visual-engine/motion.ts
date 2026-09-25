@@ -3,6 +3,19 @@ import type { AudioFeatures, VisualEngineSettings, VisualForeground, VisualInput
 
 const TWO_PI = Math.PI * 2;
 export const MAX_FRAME_DELTA_SECONDS = 0.05;
+/** Independent material clock; a future Surface Flow setting can scale this rate. */
+export const SURFACE_FLOW = Object.freeze({
+  phaseA: 0.14,
+  phaseB: -0.09,
+  shearA: 0.19,
+  shearB: -0.13,
+  shearAmplitudeA: 0.78,
+  shearAmplitudeB: -0.56,
+  pointerRate: 0.12,
+  pointerEaseSeconds: 0.14,
+  releaseEaseSeconds: 0.8,
+});
+const PALETTE_EVOLUTION_RATE = 0.027;
 
 export interface StateTarget {
   readonly radius: number;
@@ -111,6 +124,8 @@ export interface MotionFrame {
   fieldPhase2: number;
   fieldTwist1: number;
   fieldTwist2: number;
+  surfaceFlowRate: number;
+  paletteBalance: number;
   peelTravel: number;
   peelLift: number;
   peelWidth: number;
@@ -209,6 +224,9 @@ export class MotionEvaluator {
   private fieldPhase2: number;
   private fieldTwistPhase1: number;
   private fieldTwistPhase2: number;
+  private palettePhase: number;
+  private surfaceFlowGate = 1;
+  private pointerHolding = false;
   private readonly frame: MotionFrame;
 
   constructor(seed = 0x5a17) {
@@ -222,8 +240,10 @@ export class MotionEvaluator {
     this.peelTravel = wrap(phase * 0.41);
     this.fieldPhase1 = wrap(phase * 0.83);
     this.fieldPhase2 = wrap(phase * 1.37);
-    this.fieldTwistPhase1 = wrap(phase * 1.91);
-    this.fieldTwistPhase2 = wrap(phase * 2.43);
+    // The default seed is small; offsets keep shear active from the first frame.
+    this.fieldTwistPhase1 = wrap(phase * 1.91 + 0.32);
+    this.fieldTwistPhase2 = wrap(phase * 2.43 + 2.1);
+    this.palettePhase = wrap(phase * 2.83 + 0.4);
     this.frame = {
       foreground: "idle",
       radius: 1,
@@ -237,8 +257,10 @@ export class MotionEvaluator {
       particlePhase: this.particlePhase,
       fieldPhase1: this.fieldPhase1,
       fieldPhase2: this.fieldPhase2,
-      fieldTwist1: 0.32 * Math.sin(this.fieldTwistPhase1),
-      fieldTwist2: -0.24 * Math.sin(this.fieldTwistPhase2),
+      fieldTwist1: SURFACE_FLOW.shearAmplitudeA * Math.sin(this.fieldTwistPhase1),
+      fieldTwist2: SURFACE_FLOW.shearAmplitudeB * Math.sin(this.fieldTwistPhase2),
+      surfaceFlowRate: 0,
+      paletteBalance: 0.68 + 0.07 * Math.sin(this.palettePhase),
       peelTravel: this.peelTravel,
       peelLift: 0.002,
       peelWidth: 1,
@@ -269,6 +291,11 @@ export class MotionEvaluator {
   /** Read-only diagnostic view; the renderer still owns the single reused frame. */
   get currentFrame(): Readonly<MotionFrame> {
     return this.frame;
+  }
+
+  /** Pointer ownership slows material transport without resetting or banking phase. */
+  setPointerHolding(holding: boolean): void {
+    this.pointerHolding = holding;
   }
 
   evaluate(
@@ -388,6 +415,15 @@ export class MotionEvaluator {
       : blend(this.peak, peakResponse, dt, peakResponse > this.peak ? 0.025 : 0.18);
 
     const motion = spatiallyFrozen ? 0 : motionRateScale(settings.motionIntensity);
+    const flowTarget = this.pointerHolding ? SURFACE_FLOW.pointerRate : 1;
+    const flowTau = this.pointerHolding
+      ? SURFACE_FLOW.pointerEaseSeconds
+      : SURFACE_FLOW.releaseEaseSeconds;
+    const flowResponse = 1 - Math.exp(-dt / flowTau);
+    const surfaceFlowDelta =
+      motion * (flowTarget * dt + (this.surfaceFlowGate - flowTarget) * flowTau * flowResponse);
+    this.surfaceFlowGate += (flowTarget - this.surfaceFlowGate) * flowResponse;
+    const surfaceFlowRate = motion * this.surfaceFlowGate;
     if (dt > 0 && motion > 0) {
       const speedInfluence = 1 + Math.min(0.35, this.envelope * 0.3);
       this.spinPhase = wrap(this.spinPhase + this.spinSpeed * motion * dt);
@@ -396,10 +432,11 @@ export class MotionEvaluator {
       this.ripplePhase = wrap(this.ripplePhase + (0.31 + this.envelope * 0.21) * motion * dt);
       this.lightPhase = wrap(this.lightPhase + 0.086 * speedInfluence * motion * dt);
       this.particlePhase = wrap(this.particlePhase + 0.18 * speedInfluence * motion * dt);
-      this.fieldPhase1 = wrap(this.fieldPhase1 + 0.14 * motion * dt);
-      this.fieldPhase2 = wrap(this.fieldPhase2 - 0.09 * motion * dt);
-      this.fieldTwistPhase1 = wrap(this.fieldTwistPhase1 + 0.11 * motion * dt);
-      this.fieldTwistPhase2 = wrap(this.fieldTwistPhase2 - 0.08 * motion * dt);
+      this.fieldPhase1 = wrap(this.fieldPhase1 + SURFACE_FLOW.phaseA * surfaceFlowDelta);
+      this.fieldPhase2 = wrap(this.fieldPhase2 + SURFACE_FLOW.phaseB * surfaceFlowDelta);
+      this.fieldTwistPhase1 = wrap(this.fieldTwistPhase1 + SURFACE_FLOW.shearA * surfaceFlowDelta);
+      this.fieldTwistPhase2 = wrap(this.fieldTwistPhase2 + SURFACE_FLOW.shearB * surfaceFlowDelta);
+      this.palettePhase = wrap(this.palettePhase + PALETTE_EVOLUTION_RATE * motion * dt);
       const holding = input.interaction.floor === "holding" ? 0.86 : 1;
       this.peelTravel = wrap(
         this.peelTravel + 0.25 * this.drift * holding * speedInfluence * motion * dt,
@@ -465,8 +502,10 @@ export class MotionEvaluator {
     this.frame.particlePhase = this.particlePhase;
     this.frame.fieldPhase1 = this.fieldPhase1;
     this.frame.fieldPhase2 = this.fieldPhase2;
-    this.frame.fieldTwist1 = 0.32 * Math.sin(this.fieldTwistPhase1);
-    this.frame.fieldTwist2 = -0.24 * Math.sin(this.fieldTwistPhase2);
+    this.frame.fieldTwist1 = SURFACE_FLOW.shearAmplitudeA * Math.sin(this.fieldTwistPhase1);
+    this.frame.fieldTwist2 = SURFACE_FLOW.shearAmplitudeB * Math.sin(this.fieldTwistPhase2);
+    this.frame.surfaceFlowRate = surfaceFlowRate;
+    this.frame.paletteBalance = 0.68 + 0.07 * Math.sin(this.palettePhase);
     this.frame.peelTravel = this.peelTravel;
     this.frame.peelLift = clamp(
       this.lift + speakingLift + inputLift - this.interruption * 0.006,

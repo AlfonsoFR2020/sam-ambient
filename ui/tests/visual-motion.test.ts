@@ -4,6 +4,7 @@ import {
   MotionEvaluator,
   motionRateScale,
   STATE_TARGETS,
+  SURFACE_FLOW,
 } from "../src/visual-engine/motion";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
 import {
@@ -144,6 +145,67 @@ describe("continuous Visual Engine motion", () => {
     expect(frame.fieldPhase2).not.toBe(start2);
   });
 
+  it("slows material transport under a pointer and eases back without a phase jump", () => {
+    const input = visualInput("idle");
+    const held = new MotionEvaluator(0x5a17);
+    const free = new MotionEvaluator(0x5a17);
+    held.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    free.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const start = held.currentFrame.fieldPhase1;
+    const initialSpin = held.currentFrame.spin;
+    held.setPointerHolding(true);
+    expect(held.currentFrame.fieldPhase1).toBe(start);
+    for (let time = 50; time <= 2_000; time += 50) {
+      held.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+      free.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    }
+    const heldPhase = held.currentFrame.fieldPhase1;
+    expect(heldPhase - start).toBeGreaterThan(0);
+    expect(heldPhase - start).toBeLessThan((free.currentFrame.fieldPhase1 - start) * 0.4);
+    expect(held.currentFrame.spin).toBeCloseTo(free.currentFrame.spin);
+    expect(held.currentFrame.spin).toBeGreaterThan(initialSpin);
+    expect(held.currentFrame.surfaceFlowRate).toBeCloseTo(0.6 * SURFACE_FLOW.pointerRate, 3);
+    held.setPointerHolding(false);
+    expect(held.currentFrame.fieldPhase1).toBe(heldPhase);
+    for (let time = 2_050; time <= 4_000; time += 50)
+      held.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    expect(held.currentFrame.fieldPhase1).toBeGreaterThan(heldPhase);
+    expect(held.currentFrame.surfaceFlowRate).toBeGreaterThan(0.5);
+    expect(held.currentFrame.surfaceFlowRate).toBeLessThanOrEqual(0.6);
+  });
+
+  it("integrates pointer flow by elapsed time across 20 and 60 FPS schedules", () => {
+    const input = visualInput("idle");
+    const slow = new MotionEvaluator(0x5a17);
+    const fast = new MotionEvaluator(0x5a17);
+    slow.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    fast.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    slow.setPointerHolding(true);
+    fast.setPointerHolding(true);
+    for (let frame = 1; frame <= 60; frame++)
+      slow.evaluate(input, frame * 50, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    for (let frame = 1; frame <= 180; frame++)
+      fast.evaluate(input, frame * (1000 / 60), DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    expect(slow.currentFrame.fieldPhase1).toBeCloseTo(fast.currentFrame.fieldPhase1, 6);
+    expect(slow.currentFrame.fieldPhase2).toBeCloseTo(fast.currentFrame.fieldPhase2, 6);
+    expect(slow.currentFrame.fieldTwist1).toBeCloseTo(fast.currentFrame.fieldTwist1, 6);
+    expect(slow.currentFrame.paletteBalance).toBeCloseTo(fast.currentFrame.paletteBalance, 6);
+  });
+
+  it("evolves palette balance on its own slow clock while keeping it bounded", () => {
+    const evaluator = new MotionEvaluator(0x5a17);
+    const input = visualInput("idle");
+    evaluator.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const start = evaluator.currentFrame.paletteBalance;
+    evaluator.setPointerHolding(true);
+    for (let time = 50; time <= 60_000; time += 50)
+      evaluator.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    expect(evaluator.currentFrame.paletteBalance).not.toBeCloseTo(start, 3);
+    expect(evaluator.currentFrame.paletteBalance).toBeGreaterThanOrEqual(0.61);
+    expect(evaluator.currentFrame.paletteBalance).toBeLessThanOrEqual(0.75);
+    expect(evaluator.currentFrame.surfaceFlowRate).toBeLessThan(0.1);
+  });
+
   it("caps integration at 50 ms after a stall", () => {
     const input = visualInput("idle");
     const capped = new MotionEvaluator(42);
@@ -186,6 +248,8 @@ describe("continuous Visual Engine motion", () => {
       expect(a.fieldPhase2).toBe(b.fieldPhase2);
       expect(a.fieldTwist1).toBe(b.fieldTwist1);
       expect(a.fieldTwist2).toBe(b.fieldTwist2);
+      expect(a.paletteBalance).toBe(b.paletteBalance);
+      expect(a.surfaceFlowRate).toBe(b.surfaceFlowRate);
     }
     const frame = first.evaluate(input, 250_050, moving, RENDER_BUDGETS.low);
     expect(wrapped).toBe(true);
@@ -193,8 +257,8 @@ describe("continuous Visual Engine motion", () => {
     expect(frame.fieldPhase1).toBeLessThan(2 * Math.PI);
     expect(frame.fieldPhase2).toBeGreaterThanOrEqual(0);
     expect(frame.fieldPhase2).toBeLessThan(2 * Math.PI);
-    expect(Math.abs(frame.fieldTwist1)).toBeLessThanOrEqual(0.32);
-    expect(Math.abs(frame.fieldTwist2)).toBeLessThanOrEqual(0.24);
+    expect(Math.abs(frame.fieldTwist1)).toBeLessThanOrEqual(SURFACE_FLOW.shearAmplitudeA);
+    expect(Math.abs(frame.fieldTwist2)).toBeLessThanOrEqual(-SURFACE_FLOW.shearAmplitudeB);
   });
 
   it("freezes field phase during hidden and reduced-motion intervals", () => {

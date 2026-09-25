@@ -21,22 +21,18 @@ in [Roadmap](ROADMAP.md).
 
 ## UI and Visual Engine
 
-- **Living Orb direction:** design a seam-safe, low-cost shared surface/colour
-  field, related outer-membrane openings and material response before changing the
-  v1 renderer. Compare analytic flow/noise approaches, several cheap shell-mask
-  boundaries and the existing loxodromic fallback under the `mobile_2020` and
-  four-draw budgets in [Visual direction](VISUAL_DIRECTION.md). Keep broad palette,
-  translucency and richer depth experimental until measured and visually accepted.
-- **Visible circulation and drag ownership:** the present field phases change, but
-  the first human beta still reads the broad colours as a texture rotating with the
-  Orb. Make persistent large structures visibly migrate on a human timescale without
-  procedural boiling. The shader samples unrotated object directions before the
-  orientation transform, so the apparent texture sliding during drag is consistent
-  with advection continuing while the pointer owns the Orb; verify perceptually and
-  consider a strong rate reduction/hold during drag with a smooth post-release ramp,
-  never a phase jump. A separate Surface Flow/Circulation Speed control needs a clean
-  settings/protocol path and bounds around a useful default. Do not claim Auto until
-  a real signal and algorithm exist.
+- **Living Orb direction:** retain the shared, seam-safe body/peel field and the
+  `mobile_2020` and four-draw budgets while developing a measured irregular outer
+  membrane and richer material depth. Compare candidate shell masks and the existing
+  loxodromic fallback. Broad palette, translucency and depth still need visual and
+  hardware acceptance; see [Visual direction](VISUAL_DIRECTION.md).
+- **Human acceptance of circulation and drag ownership:** the first human beta
+  perceived the older nearly rigid field as static. The new asymmetric shear makes
+  fixed-orientation WebGL material change over seconds, and pointer ownership eases
+  field flow down and back without a phase jump. Verify that the full composition now
+  reads as coherent circulation and that drag feels like grasping one object. A
+  separate Surface Flow control still needs a clean persisted settings/protocol path
+  and bounds around an accepted default. Do not claim Auto without a real signal.
 - **Palette and relief:** retain warm dominance and multicolour regions, but evolve
   colour relationships, saturation and tonal balance slowly beyond the repetitive
   red/cyan/yellow/orange combination. Avoid discontinuities and rainbow noise. Keep
@@ -51,10 +47,11 @@ in [Roadmap](ROADMAP.md).
   specular response only where the hardware budget permits. Do not heavily polish
   ribbons that are planned for replacement.
 - **Lighting:** the shader has world-space orbiting light calculations and constant
-  ambient fill, with 1/2/3 key lights by quality. Human use could perceive neither
-  the moving key nor convincing fill/day-night/glints. Measure light direction,
-  normal/material response and contrast on real hardware, then tune a clearly
-  perceptible but bounded orbiting key and ambient depth at each tier.
+  ambient fill, with 1/2/3 key lights by quality. Its front-biased trajectory,
+  roughly two-minute default orbit and tone-mapped fill plausibly weaken the moving
+  key; the human could perceive neither it nor convincing ambient depth/glints.
+  Measure direction, normal/material response and contrast on real hardware before
+  tuning each tier. The new field pass did not change lighting coefficients.
 - **Particles:** current low/medium/high budgets are 12/24/40 points, and the
   density slider only reveals a share of that cap. Explore roughly 5–10× the high
   count when measured hardware headroom permits while keeping lightweight tiers.

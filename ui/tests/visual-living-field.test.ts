@@ -34,9 +34,16 @@ const cross = (a: Vec3, b: Vec3): Vec3 => [
 ];
 
 // Test-only scalar reference for the shared GLSL construction; never used per frame.
-const twist = (direction: Vec3, axis: Vec3, phase: number, amplitude: number): Vec3 => {
+const twist = (
+  direction: Vec3,
+  axis: Vec3,
+  companion: Vec3,
+  phase: number,
+  amplitude: number,
+): Vec3 => {
   const mu = dot(axis, direction);
-  const angle = -(phase + amplitude * (1 - mu * mu) * (1 + 0.35 * mu));
+  const profile = (1 - mu * mu) * (1 + 0.35 * mu) * (1 + 0.42 * dot(companion, direction));
+  const angle = -(phase + amplitude * profile);
   const c = Math.cos(angle);
   const s = Math.sin(angle);
   const perpendicular = cross(axis, direction);
@@ -47,8 +54,10 @@ const twist = (direction: Vec3, axis: Vec3, phase: number, amplitude: number): V
   ];
 };
 const transport = (direction: Vec3, state: FieldState): Vec3 => {
-  const first = twist(normalize(direction), normalize([0.4, 0.8, 0.3]), state[0], state[2]);
-  return normalize(twist(first, normalize([-0.7, 0.2, 0.6]), state[1], state[3]));
+  const a = normalize([0.4, 0.8, 0.3]);
+  const b = normalize([-0.7, 0.2, 0.6]);
+  const first = twist(normalize(direction), a, b, state[0], state[2]);
+  return normalize(twist(first, b, a, state[1], state[3]));
 };
 
 const latticeHash = (cell: Vec3): number => {
@@ -119,7 +128,7 @@ const simplex3 = (point: Vec3): number => {
       simplexCorner(add([1, 1, 1]), offset([1, 1, 1], 3)))
   );
 };
-const sample = (direction: Vec3, state: FieldState, seed: number) => {
+const sample = (direction: Vec3, state: FieldState, seed: number, balance = 0.7) => {
   const q = transport(direction, state);
   const [a, b] = createFieldOffsets(seed);
   const noise = (scale: number, offset: readonly number[]) =>
@@ -132,7 +141,7 @@ const sample = (direction: Vec3, state: FieldState, seed: number) => {
     q,
     broad,
     medium,
-    palette: 0.7 * broad + 0.3 * medium,
+    palette: balance * broad + (1 - balance) * medium,
     activity: t * t * (3 - 2 * t),
   };
 };
@@ -200,6 +209,55 @@ const expectNear = (
 };
 
 describe("living field substrate", () => {
+  it("deforms broad front-facing material relationships instead of only rotating a texture", () => {
+    const evaluator = new MotionEvaluator(0x5a17);
+    const input = new VisualInputAdapter().ingest(
+      { ...INITIAL_UI_STATE, connection: "connected", provider: "demo", model: "demo" },
+      0,
+    );
+    const start = evaluator.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const initial: FieldState = [
+      start.fieldPhase1,
+      start.fieldPhase2,
+      start.fieldTwist1,
+      start.fieldTwist2,
+    ];
+    const initialBalance = start.paletteBalance;
+    for (let time = 50; time <= 6_000; time += 50)
+      evaluator.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    const end = evaluator.currentFrame;
+    const later: FieldState = [end.fieldPhase1, end.fieldPhase2, end.fieldTwist1, end.fieldTwist2];
+    const front = Array.from({ length: 512 }, (_, i) => fibonacciDirection(i, 512)).filter(
+      (direction) => direction[2] > 0.3,
+    );
+    let changedSeparation = 0;
+    let changedPalette = 0;
+    let frameChange = 0;
+    const nextFrame: FieldState = [
+      later[0] + (0.14 * 0.6) / 30,
+      later[1] - (0.09 * 0.6) / 30,
+      later[2],
+      later[3],
+    ];
+    for (let i = 0; i < front.length; i++) {
+      const direction = front[i];
+      const other = front[(i + 31) % front.length];
+      const first = sample(direction, initial, 0x5a17, initialBalance);
+      const second = sample(direction, later, 0x5a17, end.paletteBalance);
+      changedSeparation += Math.abs(
+        dot(first.q, sample(other, initial, 0x5a17).q) -
+          dot(second.q, sample(other, later, 0x5a17).q),
+      );
+      changedPalette += Math.abs(first.palette - second.palette);
+      frameChange += Math.abs(
+        second.palette - sample(direction, nextFrame, 0x5a17, end.paletteBalance).palette,
+      );
+    }
+    expect(changedSeparation / front.length).toBeGreaterThan(0.03);
+    expect(changedPalette / front.length).toBeGreaterThan(0.04);
+    expect(frameChange / front.length).toBeLessThan(0.005);
+  });
+
   it("moves pigment at fixed object directions over human time without boiling frame to frame", () => {
     const tenSeconds: FieldState = [
       state[0] + 0.14 * 0.6 * 10,
@@ -351,6 +409,7 @@ describe("living field substrate", () => {
       const offsets: { program: object; name: string; values: number[] }[] = [];
       const draws: string[] = [];
       const materialIntensity: number[] = [];
+      const paletteBalanceUniforms: { program: object; value: number }[] = [];
       const deleted = { programs: 0, vaos: 0, buffers: 0 };
       let currentProgram: object = {};
       const gl = new Proxy(
@@ -383,6 +442,8 @@ describe("living field substrate", () => {
           },
           uniform1f: (location: { name: string }, value: number) => {
             if (location.name === "u_intensity") materialIntensity.push(value);
+            if (location.name === "u_palette_balance")
+              paletteBalanceUniforms.push({ program: currentProgram, value });
           },
           drawElements: () => draws.push("indexed"),
           drawArrays: () => draws.push("array"),
@@ -422,6 +483,9 @@ describe("living field substrate", () => {
       expect(states).toHaveLength(4);
       expect(states[0].values).toEqual(states[1].values);
       expect(states[0].program).not.toBe(states[1].program);
+      expect(paletteBalanceUniforms).toHaveLength(4);
+      expect(paletteBalanceUniforms[0].value).toBe(paletteBalanceUniforms[1].value);
+      expect(paletteBalanceUniforms[2].value).toBe(paletteBalanceUniforms[3].value);
       expect(offsets).toHaveLength(4);
       expect(offsets[0].values).toEqual(offsets[2].values);
       expect(offsets[1].values).toEqual(offsets[3].values);

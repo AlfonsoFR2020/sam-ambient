@@ -17,6 +17,7 @@ export function createFieldOffsets(
 export const LIVING_FIELD_GLSL = `
 precision highp int;
 uniform vec4 u_field_state; // phi1, phi2, twist1, twist2
+uniform float u_palette_balance;
 uniform vec3 u_field_offset_a;
 uniform vec3 u_field_offset_b;
 
@@ -28,9 +29,12 @@ struct LivingField {
   float activity;
 };
 
-vec3 sphericalTwist(vec3 direction, vec3 axis, float phase, float twist) {
+vec3 sphericalTwist(vec3 direction, vec3 axis, vec3 companionAxis, float phase, float twist) {
   float mu = clamp(dot(axis, direction), -1.0, 1.0);
-  float profile = (1.0 - mu * mu) * (1.0 + 0.35 * mu);
+  // The companion-axis term gives each belt a broad asymmetric fold. Both
+  // changing shears move material differently across the visible hemisphere.
+  float profile = (1.0 - mu * mu) * (1.0 + 0.35 * mu)
+    * (1.0 + 0.42 * dot(companionAxis, direction));
   float angle = -(phase + twist * profile);
   float s = sin(angle), c = cos(angle);
   return direction * c + cross(axis, direction) * s + axis * mu * (1.0 - c);
@@ -94,9 +98,10 @@ float simplex3(vec3 point) {
 vec3 transportFieldDirection(vec3 objectDirection) {
   const vec3 AXIS_A = vec3(0.4, 0.8, 0.3);
   const vec3 AXIS_B = vec3(-0.7, 0.2, 0.6);
+  vec3 axisA = normalize(AXIS_A), axisB = normalize(AXIS_B);
   vec3 q = normalize(objectDirection);
-  q = sphericalTwist(q, normalize(AXIS_A), u_field_state.x, u_field_state.z);
-  return normalize(sphericalTwist(q, normalize(AXIS_B), u_field_state.y, u_field_state.w));
+  q = sphericalTwist(q, axisA, axisB, u_field_state.x, u_field_state.z);
+  return normalize(sphericalTwist(q, axisB, axisA, u_field_state.y, u_field_state.w));
 }
 
 float broadDensityAt(vec3 transportedDirection) {
@@ -113,7 +118,7 @@ LivingField sampleLivingField(vec3 objectDirection) {
   field.transported = q;
   field.broad = broadDensityAt(q);
   field.medium = clamp(0.5 + 0.5 * simplex3(3.6 * q + u_field_offset_b), 0.0, 1.0);
-  field.palette = 0.70 * field.broad + 0.30 * field.medium;
+  field.palette = mix(field.medium, field.broad, u_palette_balance);
   field.activity = smoothstep(0.20, 0.50, abs(field.broad - field.medium));
   return field;
 }

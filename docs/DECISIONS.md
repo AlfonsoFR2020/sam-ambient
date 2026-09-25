@@ -283,3 +283,22 @@ master specification are recorded here.
 - Reuse the engine's bounded event history for renderer and existing UI/core state.
   This adds no new core authority, protocol event, microphone processing or audio
   feature extraction. Verbose browser output logs event changes rather than frames.
+
+## D-022 — Separate material transport from Orb orientation and palette balance
+
+- **Accepted:** 2026-09-25. Keep the shared two-scale object-space field and its
+  body/peel sampling, but add companion-axis asymmetry to both spherical shears.
+  The prior dominant uniform rotations moved the field almost rigidly; its small,
+  slowly varying shear started near zero with the default seed. Bounded seeded
+  shear now changes broad spatial relationships immediately. This gives up the
+  prior exact axisymmetric inverse while preserving continuous, seam-safe sampling.
+- The engine-owned motion evaluator integrates a material-specific flow rate from
+  elapsed time. Pointer hold eases that rate toward 12%, then release eases it back
+  without resetting or banking phase. Whole-Orb rotation, relief breathing,
+  palette balance, lighting and particles keep their own clocks. Palette balance
+  slowly changes how the existing broad and medium fields combine; no global hue
+  cycle or public Surface Flow setting is introduced.
+- No extra noise octave, draw pass, geometry budget or dependency is added. Two
+  inexpensive companion-axis dot products per field transport and one palette
+  uniform are the main shader cost. Representative GPU timing and human perception
+  remain acceptance questions.

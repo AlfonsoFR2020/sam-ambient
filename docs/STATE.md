@@ -4,11 +4,16 @@ Updated: 2026-09-25
 
 ## MVP status
 
-- v0.2.3 Living Surface Slices 1–3 use one deterministic, seamless object-space
-  two-twist/two-scale field for the WebGL body and existing peels. Shared pigment,
-  bounded displacement, tangent-sampled normals and world-space lighting produce
-  phase-continuous warm/cool regions. Low/medium/high compile 0/1/2 optional fine samples
-  for luminance/glint only; the broad field and palette remain identical. AUTO
+- v0.2.3 Living Surface uses one deterministic, seamless object-space
+  two-shear/two-scale field for the WebGL body and existing peels. Broad asymmetric
+  shears now deform and carry pigment regions instead of relying mainly on rigid
+  material rotation. A separate slow palette-balance clock changes the broad/medium
+  relationship without globally shifting hue. Pointer ownership eases the material
+  flow down to 12% and back without banking or resetting phase; Orb orientation,
+  bounded ovoid relief/breathing, lighting and particles retain distinct clocks.
+  Fixed-orientation WebGL pixels move substantially over six seconds and remain
+  smooth at 50 ms; human perceptual acceptance remains open. Low/medium/high still
+  compile 0/1/2 optional fine samples for luminance/glint only. AUTO
   keeps its windowed hysteresis, using paced intervals for overload and CPU
   render-submission cost for headroom. The engine retains seed, phase, orientation,
   semantic state and existing audio envelope across backend/quality changes;
@@ -31,9 +36,9 @@ Updated: 2026-09-25
   now separate Conversation, Appearance, Device, System and Diagnostics. The existing
   overlay adds core/model/audio state and 64 bounded events, with event-level verbose
   console output and a mobile-safe close route. It exposes existing envelopes, not
-  new audio features or a new cross-process telemetry contract. The field still
-  appears too static to the human despite phase changes, and physical voice, membrane,
-  palette, lighting, particles and representative GPU/mobile acceptance remain open.
+  new audio features or a new cross-process telemetry contract. Physical voice,
+  membrane, full palette/lighting art direction, particles and representative
+  GPU/mobile acceptance remain open.
 - The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal
   outcome. Replacement turns wait for predecessor terminal publication; stale chunks
