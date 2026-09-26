@@ -190,6 +190,7 @@ describe("continuous Visual Engine motion", () => {
     expect(slow.currentFrame.fieldPhase2).toBeCloseTo(fast.currentFrame.fieldPhase2, 6);
     expect(slow.currentFrame.fieldTwist1).toBeCloseTo(fast.currentFrame.fieldTwist1, 6);
     expect(slow.currentFrame.paletteBalance).toBeCloseTo(fast.currentFrame.paletteBalance, 6);
+    expect(slow.currentFrame.paletteContrast).toBeCloseTo(fast.currentFrame.paletteContrast, 6);
   });
 
   it("evolves palette balance on its own slow clock while keeping it bounded", () => {
@@ -197,12 +198,16 @@ describe("continuous Visual Engine motion", () => {
     const input = visualInput("idle");
     evaluator.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
     const start = evaluator.currentFrame.paletteBalance;
+    const initialContrast = evaluator.currentFrame.paletteContrast;
     evaluator.setPointerHolding(true);
     for (let time = 50; time <= 60_000; time += 50)
       evaluator.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
     expect(evaluator.currentFrame.paletteBalance).not.toBeCloseTo(start, 3);
     expect(evaluator.currentFrame.paletteBalance).toBeGreaterThanOrEqual(0.61);
     expect(evaluator.currentFrame.paletteBalance).toBeLessThanOrEqual(0.75);
+    expect(evaluator.currentFrame.paletteContrast).not.toBeCloseTo(initialContrast, 3);
+    expect(evaluator.currentFrame.paletteContrast).toBeGreaterThanOrEqual(0.86);
+    expect(evaluator.currentFrame.paletteContrast).toBeLessThanOrEqual(1.14);
     expect(evaluator.currentFrame.surfaceFlowRate).toBeLessThan(0.1);
   });
 
@@ -249,6 +254,7 @@ describe("continuous Visual Engine motion", () => {
       expect(a.fieldTwist1).toBe(b.fieldTwist1);
       expect(a.fieldTwist2).toBe(b.fieldTwist2);
       expect(a.paletteBalance).toBe(b.paletteBalance);
+      expect(a.paletteContrast).toBe(b.paletteContrast);
       expect(a.surfaceFlowRate).toBe(b.surfaceFlowRate);
     }
     const frame = first.evaluate(input, 250_050, moving, RENDER_BUDGETS.low);

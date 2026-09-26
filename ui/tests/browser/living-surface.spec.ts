@@ -123,3 +123,148 @@ test("shared WebGL material visibly changes with fixed Orb orientation and light
   expect(result.frameChannelDelta).toBeLessThan(3);
   expect(result.changedFraction).toBeGreaterThan(0.25);
 });
+
+test("membrane depth, moving illumination, and palette act on one fixed body", async ({ page }) => {
+  await page.goto("/?transport=demo");
+  const result = await page.evaluate(async () => {
+    const [
+      { INITIAL_UI_STATE },
+      { VisualInputAdapter },
+      { MotionEvaluator },
+      { RENDER_BUDGETS },
+      { DEFAULT_VISUAL_ENGINE_SETTINGS },
+      { WebGLBackend },
+    ] = await Promise.all([
+      import("../../src/protocol/types"),
+      import("../../src/visual-engine/input"),
+      import("../../src/visual-engine/motion"),
+      import("../../src/visual-engine/quality"),
+      import("../../src/visual-engine/types"),
+      import("../../src/visual-engine/webgl"),
+    ]);
+    const canvas = document.createElement("canvas");
+    canvas.id = "isolated-surface";
+    document.body.append(canvas);
+    const gl = canvas.getContext("webgl2", { antialias: false, preserveDrawingBuffer: true });
+    if (!gl) throw new Error("WebGL2 is required for this composition regression");
+    const seed = 0x5a17;
+    const input = new VisualInputAdapter().ingest(
+      { ...INITIAL_UI_STATE, connection: "connected", provider: "demo", model: "demo" },
+      0,
+    );
+    const motion = new MotionEvaluator(seed);
+    const base = {
+      ...motion.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low),
+    };
+    let current = base;
+    const suppliedMotion = { evaluate: () => current } as unknown as InstanceType<
+      typeof MotionEvaluator
+    >;
+    const body = new WebGLBackend(
+      canvas,
+      gl,
+      { ...RENDER_BUDGETS.low, peels: 0 },
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      seed,
+      suppliedMotion,
+    );
+    const composed = new WebGLBackend(
+      canvas,
+      gl,
+      RENDER_BUDGETS.low,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      seed,
+      suppliedMotion,
+    );
+    body.update(input);
+    composed.update(input);
+    body.resize(480, 480, 1);
+    composed.resize(480, 480, 1);
+    const read = (backend: InstanceType<typeof WebGLBackend>) => {
+      backend.render(0);
+      const pixels = new Uint8Array(480 * 480 * 4);
+      gl.readPixels(0, 0, 480, 480, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      return pixels;
+    };
+    const bare = read(body);
+    const membrane = read(composed);
+    current = { ...base, lightPhase: base.lightPhase + 1.7 };
+    const relit = read(body);
+    current = { ...base, paletteBalance: 0.75, paletteContrast: 1.14 };
+    const paletteA = read(body);
+    current = { ...base, paletteBalance: 0.61, paletteContrast: 0.86 };
+    const paletteB = read(body);
+    let coverage = 0;
+    let tintAgreement = 0;
+    let lightSum = 0;
+    let lightSquare = 0;
+    let paletteDelta = 0;
+    let count = 0;
+    for (let y = 90; y < 390; y += 2) {
+      for (let x = 90; x < 390; x += 2) {
+        const at = (y * 480 + x) * 4;
+        if (bare[at + 3] < 250) continue;
+        const dr = membrane[at] - bare[at];
+        const dg = membrane[at + 1] - bare[at + 1];
+        const db = membrane[at + 2] - bare[at + 2];
+        if (Math.abs(dr) + Math.abs(dg) + Math.abs(db) > 15) {
+          coverage++;
+          const original = [bare[at], bare[at + 1], bare[at + 2]];
+          const outer = [membrane[at], membrane[at + 1], membrane[at + 2]];
+          const norm = (v: number[]) => Math.hypot(...v);
+          tintAgreement +=
+            (original[0] * outer[0] + original[1] * outer[1] + original[2] * outer[2]) /
+            (norm(original) * norm(outer));
+        }
+        const light =
+          (relit[at] - bare[at] + (relit[at + 1] - bare[at + 1]) + (relit[at + 2] - bare[at + 2])) /
+          3;
+        lightSum += light;
+        lightSquare += light * light;
+        paletteDelta +=
+          (Math.abs(paletteA[at] - paletteB[at]) +
+            Math.abs(paletteA[at + 1] - paletteB[at + 1]) +
+            Math.abs(paletteA[at + 2] - paletteB[at + 2])) /
+          3;
+        count++;
+      }
+    }
+    const error = gl.getError();
+    body.dispose();
+    composed.dispose();
+    const tierErrors: number[] = [];
+    current = base;
+    for (const budget of [RENDER_BUDGETS.medium, RENDER_BUDGETS.high]) {
+      const backend = new WebGLBackend(
+        canvas,
+        gl,
+        budget,
+        DEFAULT_VISUAL_ENGINE_SETTINGS,
+        seed,
+        suppliedMotion,
+      );
+      backend.update(input);
+      backend.resize(480, 480, 1);
+      backend.render(0);
+      tierErrors.push(gl.getError());
+      backend.dispose();
+    }
+    return {
+      coverage,
+      tintAgreement: tintAgreement / coverage,
+      lightSpatialDeviation: Math.sqrt(lightSquare / count - (lightSum / count) ** 2),
+      paletteMeanDelta: paletteDelta / count,
+      count,
+      error,
+      tierErrors,
+    };
+  });
+  console.info("Isolated membrane/light/palette pixels:", result);
+  expect(result.error).toBe(0);
+  expect(result.tierErrors).toEqual([0, 0]);
+  expect(result.count).toBeGreaterThan(5_000);
+  expect(result.coverage).toBeGreaterThan(250);
+  expect(result.tintAgreement).toBeGreaterThan(0.94);
+  expect(result.lightSpatialDeviation).toBeGreaterThan(2);
+  expect(result.paletteMeanDelta).toBeGreaterThan(1);
+});

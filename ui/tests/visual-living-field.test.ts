@@ -363,6 +363,26 @@ describe("living field substrate", () => {
     expect(brightestRed - darkestRed).toBeGreaterThan(0.25);
   });
 
+  it("evolves local warm and cool boundaries without globally tinting every region", () => {
+    const pigmentAt = (broad: number, medium: number, balance: number, contrast: number) => {
+      const blend = balance * broad + (1 - balance) * medium;
+      return sampleLivingPigment(
+        { broad, medium, palette: clamp(0.5 + (blend - 0.5) * contrast, 0, 1) },
+        balance,
+        contrast,
+      );
+    };
+    const coolFoldA = pigmentAt(0.42, 0.62, 0.61, 0.86);
+    const coolFoldB = pigmentAt(0.42, 0.62, 0.75, 1.14);
+    expect(Math.abs(coolFoldA.cool - coolFoldB.cool)).toBeGreaterThan(0.03);
+    const stableWarmA = pigmentAt(0.9, 0.2, 0.61, 0.86);
+    const stableWarmB = pigmentAt(0.9, 0.2, 0.75, 1.14);
+    expect(stableWarmA.cool).toBe(0);
+    expect(stableWarmB.cool).toBe(0);
+    expect(stableWarmA.albedo[0]).toBeGreaterThan(stableWarmA.albedo[2]);
+    expect(stableWarmB.albedo[0]).toBeGreaterThan(stableWarmB.albedo[2]);
+  });
+
   it("bounds field/breath/audio displacement and keeps tangent normals stable at poles", () => {
     expect(LIVING_SURFACE_VERTEX_GLSL).toContain("sampleBroadDensity(n)");
     expect(LIVING_SURFACE_VERTEX_GLSL).toContain("clamp(0.012 * (broad - 0.5)");

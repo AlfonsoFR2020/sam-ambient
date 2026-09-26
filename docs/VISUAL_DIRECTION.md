@@ -130,15 +130,19 @@ two scales from this same `q`:
 B = sat(.5 + .5*N3(1.8*q + seedOffset1))   // broad density
 M = sat(.5 + .5*N3(3.6*q + seedOffset2))   // medium folds
 balance = .68 + .07*sin(palettePhase)
-palette = balance*B + (1-balance)*M
-cool = .94*(1-smoothstep(.29,.57,B))*smoothstep(.39,.63,M)
+contrast = 1 + .14*sin(paletteContrastPhase)
+palette = sat(.5 + (balance*B + (1-balance)*M - .5)*contrast)
+coolBoundary = .12*(contrast-1) + .10*(balance-.68)
+cool = .94*(1-smoothstep(.29+coolBoundary,.57+coolBoundary,B))
+       *smoothstep(.39-coolBoundary,.63-coolBoundary,M)
 activity = smoothstep(.20,.50,abs(B-M))
 ```
 
 The offsets are fixed, independent vectors derived once from the existing test
-seed. `palettePhase` has its own slow `.027` rad/s base clock before the high-level
-Motion scale; it changes the relation between broad and medium warm regions, not
-the hue of the entire Orb. A warm linear-light palette maps `palette` through
+seed. `palettePhase` and `paletteContrastPhase` have separate `.027` and `.016`
+rad/s base clocks before the high-level Motion scale. They change the relation
+and local boundaries of broad and medium warm regions, not the hue of the entire
+Orb. A warm linear-light palette maps `palette` through
 red/copper, orange and gold. `cool` gates a localized pink-to-violet/blue/teal
 accent instead of a global rainbow gradient; the default should remain
 predominantly warm. Those
@@ -171,16 +175,22 @@ therefore changes which moving currents catch the slowly orbiting lights, and
 the day/night impression arises from light/material geometry rather than a
 four-state palette animation. Preserve v1 tone, extent and no-flash bounds.
 
-Build this as one shared GLSL field chunk used by body and existing peels; the
-future shell will sample `n` and the identical `q/B/M` before applying its own
-mask, lift and more translucent material. Existing peels can inherit the field
-while their current geometry remains. Sparse particles may sample `B/activity`
+The primary light travels in world/view space across the visible limb rather
+than remaining in a nearly front-facing arc. Its phase retains the independent
+`.086` rad/s base clock before Motion scaling (about two minutes at the default
+Motion setting). Medium/high add low-weight fill lights instead of equally strong
+keys, while the material keeps a stable ambient floor. This addresses the old
+front-biased trajectory and multi-light flattening without moving the material
+coordinates. Isolated fixed-body WebGL pixels show a spatial lighting change;
+human perception and representative-device contrast remain unverified.
+
+The shared GLSL field chunk is used by body and the WebGL membrane fragments.
+Both sample the same `n` and identical transported `q/B/M`; the membrane adds
+separate lift, soft edges and material response. Sparse particles may sample `B/activity`
 at their object directions in the vertex shader. Keep four draws, depth order,
 WebGL2 and Canvas/static fallback. The field and four phases must be owned above
-the replaceable backend: current backend recreation also recreates its motion
-evaluator, which would reset currents during an AUTO quality change. A single
-engine-owned evaluator/phase clock should supply both renderers and survive
-quality changes and context recreation. Hidden/stopped/reduced-motion rules
+the replaceable backend: the engine-owned evaluator/phase clock supplies both
+renderers and survives quality changes and context recreation. Hidden/stopped/reduced-motion rules
 freeze spatial phase according to v1; no catch-up work is queued on return.
 
 Low/`mobile_2020` evaluates the two mandatory noise scales and one light at the
@@ -221,48 +231,27 @@ dependency or code incorporated by this decision.
 
 ### Outer membrane and peels
 
-The preferred future peel image is a thin spherical outer membrane, slightly
-outside the body, with broad irregular openings. Imagine several soft cone-like
-or sector-like volumes pointing approximately outward from the orb's centre.
-Where each volume intersects the shell, the shell becomes invisible; surviving
-curved shell fragments read as peels from the same organism. This is a conceptual
-construction, not a demand for 3D boolean geometry. A mask on a thin shell may
-achieve the appearance much more cheaply. Openings should be few and broad, with
-moderately curved sides and softly irregular boundaries; avoid tiny detached
-islands, perfectly circular holes and jittering edges.
+The WebGL membrane now consists of seeded curved patches with broad irregular
+boundaries. A fixed interleaved distribution keeps existing patches in place
+when quality adds more. Each patch inherits the body's radius, bounded relief,
+orientation and object-space field, then lifts most at its center and approaches
+the body at its feathered edge. Near-opaque fragments write depth, reducing
+the crossing order ambiguity of the old translucent ribbons. Curvature-sensitive
+normals and restrained specular response let moving light reveal separation.
+This remains one membrane draw, without per-frame geometry rebuilds, sorting or
+extra field noise. Low/medium/high retain the 6/11/16 fragment and 16/20/24
+perimeter budgets. Geometry is about 1.5 times the former strip vertex count
+and 2.6 times its triangle count; broader coverage can raise fragment cost.
 
-A candidate sector has a centre direction, angular radius and a few boundary
-controls. Smoothly moving those controls changes the opening without rebuilding
-mesh topology. In active states its effective origin could shift slightly in XYZ,
-altering the projected shell intersection and making the opening migrate through
-the orb. Any such shift must stay bounded and continuous. Along surviving edges,
-subtle lift, curvature, finite thickness or translucency can separate the shell
-from the body. The membrane samples the body's flow and colour field while using
-a somewhat stronger rim response, different reflectivity or softened opacity.
-Its silhouette remains elegant and connected to the sphere.
-Fragments should differ subtly in radial lift, sit clearly outside the body and
-read as material with controlled opacity and crispness. Activity and later audio may
-increase lift/extension smoothly. Shared-field tint remains desirable. Intersections
-and transparent ordering need a membrane-level solution, with specular response on
-capable hardware rather than a cosmetic fix to crossing ribbons.
-
-Several cheap representations deserve a measured comparison before selection:
-
-| Candidate | Useful property | Main uncertainty |
-| --- | --- | --- |
-| Angular cap mask with smooth angular samples | Few parameters, stable shell mesh and smooth feathering | Repeated caps can look circular or regular. |
-| Low order Fourier perturbation of sector radius | Compact analytic irregular boundary, easy continuous phase | Harmonics can ripple, alias or form small islands. |
-| Short spline/Bézier boundary controls | Art-directable broad bends and asymmetric openings | Control interpolation, seams and intersections need care. |
-| Existing loxodromic carriers | Already implemented, batched, cheap and useful for Canvas fallback | Thin ribbon silhouette does not by itself read as a shell. |
-
-These can be hybridized: a few masked shell openings for the broad silhouette and
-the existing carriers for limited edge highlights or low-cost fallback. The v1
-loxodromic peels remain the implemented geometry and a valid comparison baseline,
-not discarded history. A full translucent shell, multiple layers or refraction
-should not be assumed affordable: depth, blending, overdraw and fallback behaviour
-must be checked against the current four-draw and memory envelope before changing
-it. The engineering pass should settle masks, mesh continuity, edge treatment,
-occlusion and deterministic seeding with representative mobile and desktop views.
+The remaining visual question is whether patches read as one loosened outer
+layer rather than individual plates. If not, a connected thin shell with a
+few broad openings remains a candidate. Openings should have moderately curved,
+irregular boundaries without tiny islands or regular bands. Later activity and
+audio can modulate each fragment's lift. The current autonomous phase gives
+each only a small continuous lift variation. The v1 loxodromic carriers remain
+the Canvas fallback and comparison baseline. A full translucent shell, multiple
+layers or refraction needs representative GPU and alpha-order measurements
+before adoption.
 
 ## One continuous conversational body
 

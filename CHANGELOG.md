@@ -2,6 +2,18 @@
 
 ## Unreleased — 0.2.3
 
+### Visual embodiment I
+
+- Replace WebGL peel ribbons with seeded curved membrane fragments that share
+  the body's displaced geometry and moving pigment, lift irregularly, and use
+  near-opaque depth-aware composition with curvature-sensitive highlights.
+- Let one moving key light cross the Orb's limb while additional tier lights
+  provide restrained fill. Add a second slow palette contrast clock so warm
+  region boundaries evolve without whole-Orb hue cycling.
+- Add deterministic membrane geometry and elapsed-time palette checks plus an
+  isolated WebGL composition regression. Human visual and representative GPU
+  acceptance remain open.
+
 ### Living Surface dynamics
 
 - Replace nearly rigid material transport with two broad asymmetric, evolving
@@ -9,8 +21,7 @@
   four draws and existing quality tiers.
 - Slow material circulation during pointer hold and ease it back after release
   without a phase jump or stopping whole-Orb motion. Add a separate slow palette
-  balance clock; the full palette, membrane, lighting, particles and audio work
-  remain later visual stages.
+  balance clock; particles and audio remain later visual stages.
 - Add focused elapsed-time/drag continuity and front-hemisphere deformation tests,
   plus a fixed-orientation WebGL pixel regression for visible material movement.
 

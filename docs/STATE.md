@@ -1,16 +1,22 @@
 # Sam implementation state
 
-Updated: 2026-09-25
+Updated: 2026-09-26
 
 ## MVP status
 
 - v0.2.3 Living Surface uses one deterministic, seamless object-space
-  two-shear/two-scale field for the WebGL body and existing peels. Broad asymmetric
+  two-shear/two-scale field for the WebGL body and irregular membrane fragments. Broad asymmetric
   shears now deform and carry pigment regions instead of relying mainly on rigid
-  material rotation. A separate slow palette-balance clock changes the broad/medium
-  relationship without globally shifting hue. Pointer ownership eases the material
+  material rotation. Separate slow palette-balance and contrast clocks change the
+  spatial warm-region relationship without globally shifting hue. Pointer ownership eases the material
   flow down to 12% and back without banking or resetting phase; Orb orientation,
   bounded ovoid relief/breathing, lighting and particles retain distinct clocks.
+  Seeded membrane patches share body displacement and field sampling, lift toward
+  their centers, approach attachment at irregular edges, and use near-opaque
+  depth-writing blending and shape-sensitive normals. One primary light crosses
+  the limb; medium/high tier lights provide weak fill. Four draws and 1/2/3 lights
+  remain. Membrane vertex count rises to about 1.5 times the old peel geometry; GPU cost
+  and visual acceptance on representative hardware remain open.
   Fixed-orientation WebGL pixels move substantially over six seconds and remain
   smooth at 50 ms; human perceptual acceptance remains open. Low/medium/high still
   compile 0/1/2 optional fine samples for luminance/glint only. AUTO
@@ -21,7 +27,9 @@ Updated: 2026-09-25
   reason are non-visually exposed on the ambient host, and shader-build failures
   log the error, preventing the older amber Canvas fallback from masquerading as
   WebGL. Focused tests/type/lint pass. A short frontend-only demo verified WebGL2
-  active at all three tiers and captured a preview; human visual acceptance,
+  active at all three tiers and captured a preview. An isolated fixed-body WebGL
+  check measures membrane tint alignment, spatial lighting variation and palette
+  change; human visual acceptance,
   representative GPU/mobile performance, sustained drag/motion and native review
   remain open. Canvas fallback still uses its older amber approximation.
 - The 0.2.3 frontend reliability pass fixes the actual Microphone sensitivity and
@@ -37,7 +45,7 @@ Updated: 2026-09-25
   overlay adds core/model/audio state and 64 bounded events, with event-level verbose
   console output and a mobile-safe close route. It exposes existing envelopes, not
   new audio features or a new cross-process telemetry contract. Physical voice,
-  membrane, full palette/lighting art direction, particles and representative
+  full palette/lighting art direction, particles and representative
   GPU/mobile acceptance remain open.
 - The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal

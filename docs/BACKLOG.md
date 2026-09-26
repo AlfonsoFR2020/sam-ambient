@@ -22,10 +22,11 @@ in [Roadmap](ROADMAP.md).
 ## UI and Visual Engine
 
 - **Living Orb direction:** retain the shared, seam-safe body/peel field and the
-  `mobile_2020` and four-draw budgets while developing a measured irregular outer
-  membrane and richer material depth. Compare candidate shell masks and the existing
-  loxodromic fallback. Broad palette, translucency and depth still need visual and
-  hardware acceptance; see [Visual direction](VISUAL_DIRECTION.md).
+  `mobile_2020` and four-draw budgets. Irregular lifted membrane fragments now
+  replace the WebGL ribbons; compare their continuity and depth against the
+  older loxodromic fallback on representative hardware. Broad palette,
+  translucency and depth still need human visual acceptance; see
+  [Visual direction](VISUAL_DIRECTION.md).
 - **Human acceptance of circulation and drag ownership:** the first human beta
   perceived the older nearly rigid field as static. The new asymmetric shear makes
   fixed-orientation WebGL material change over seconds, and pointer ownership eases
@@ -34,24 +35,23 @@ in [Roadmap](ROADMAP.md).
   separate Surface Flow control still needs a clean persisted settings/protocol path
   and bounds around an accepted default. Do not claim Auto without a real signal.
 - **Palette and relief:** retain warm dominance and multicolour regions, but evolve
-  colour relationships, saturation and tonal balance slowly beyond the repetitive
-  red/cyan/yellow/orange combination. Avoid discontinuities and rainbow noise. Keep
+  colour relationships, saturation and tonal balance beyond the new slow local
+  balance/contrast changes if human review still finds repetitive
+  red/cyan/yellow/orange. Avoid discontinuities and rainbow noise. Keep
   the current bounded ovoid/mountain character pending art direction: it comes from
   Y scaling 1.06, field/breath displacement and older audio response terms clamped
   to ±0.04. Tune prominence later rather than flattening it by assumption.
-- **Outer membrane/peels:** replace the current intersecting ribbons with a measured
-  irregular outer membrane. Preserve shared-field tint, make fragments more legible
-  and farther from the body, give individual fragments subtly different radial lift,
-  and allow later activity/audio to extend them. Resolve the current transparency,
-  blur/opacity and crossing/intersection lines in that architecture; add convincing
-  specular response only where the hardware budget permits. Do not heavily polish
-  ribbons that are planned for replacement.
-- **Lighting:** the shader has world-space orbiting light calculations and constant
-  ambient fill, with 1/2/3 key lights by quality. Its front-biased trajectory,
-  roughly two-minute default orbit and tone-mapped fill plausibly weaken the moving
-  key; the human could perceive neither it nor convincing ambient depth/glints.
-  Measure direction, normal/material response and contrast on real hardware before
-  tuning each tier. The new field pass did not change lighting coefficients.
+- **Outer membrane/peels:** evaluate whether seeded curved patches read as one
+  lifted membrane rather than separate plates. Check soft edge depth writes,
+  overlapping fragments, opacity, silhouette and specular balance at low/mobile
+  and high tiers; the isolated WebGL check establishes tint alignment, not human
+  perception or worst-case alpha ordering. Later activity/audio may increase
+  individual lift. Consider a connected shell mask only if the measured patches
+  remain visually disconnected; avoid an expensive transparency system by default.
+- **Lighting:** the primary light now crosses the limb and additional tier lights
+  are weak fill. Fixed-body WebGL pixels show spatial variation with light phase,
+  but human visibility, ambient depth and restrained glints remain unverified.
+  Measure each tier on representative hardware before further art-direction tuning.
 - **Particles:** current low/medium/high budgets are 12/24/40 points, and the
   density slider only reveals a share of that cap. Explore roughly 5–10× the high
   count when measured hardware headroom permits while keeping lightweight tiers.
@@ -83,8 +83,8 @@ in [Roadmap](ROADMAP.md).
   envelopes, but has no measured server health, loaded-model memory/latency,
   frequency features or physical audio-device diagnostics. Do not fabricate values,
   create a second telemetry pipeline or turn this into a terminal emulator.
-- Revisit intrinsic alpha-order/intersection lines in the current batched ribbons
-  during the planned outer-membrane stage; no CPU per-frame sorting was added.
+- Revisit any remaining soft-edge alpha-order artifacts in overlapping membrane
+  fragments if representative views reveal them; no CPU per-frame sorting was added.
 - Consider bounded centre XYZ wandering and later waveform-driven peel/particle
   perturbations only after the relevant input evidence is available. The current
   centre remains fixed and diagnostics label it as such.

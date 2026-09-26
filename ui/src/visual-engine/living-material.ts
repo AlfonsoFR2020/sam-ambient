@@ -28,11 +28,15 @@ const mix = (a: Color, b: Color, t: number): Color => [
 ];
 
 /** Test/reference counterpart of the GLSL pigment grammar; not used per frame. */
-export function sampleLivingPigment(field: {
-  readonly broad: number;
-  readonly medium: number;
-  readonly palette: number;
-}): { readonly albedo: Color; readonly cool: number } {
+export function sampleLivingPigment(
+  field: {
+    readonly broad: number;
+    readonly medium: number;
+    readonly palette: number;
+  },
+  balance = 0.68,
+  contrast = 1,
+): { readonly albedo: Color; readonly cool: number } {
   const { broad, medium, palette } = field;
   const warm = mix(
     mix(PIGMENTS.red, PIGMENTS.copper, smooth(0.19, 0.46, palette)),
@@ -45,7 +49,11 @@ export function sampleLivingPigment(field: {
     mix(PIGMENTS.blue, PIGMENTS.teal, smooth(0.65, 0.82, coolCoordinate)),
     smooth(0.53, 0.72, coolCoordinate),
   );
-  const coolWeight = 0.94 * (1 - smooth(0.29, 0.57, broad)) * smooth(0.39, 0.63, medium);
+  const coolBoundary = 0.12 * (contrast - 1) + 0.1 * (balance - 0.68);
+  const coolWeight =
+    0.94 *
+    (1 - smooth(0.29 + coolBoundary, 0.57 + coolBoundary, broad)) *
+    smooth(0.39 - coolBoundary, 0.63 - coolBoundary, medium);
   const fold = 0.83 + 0.29 * broad + 0.13 * (smooth(0.34, 0.68, medium) - 0.5);
   const pigment = mix(warm, cool, coolWeight);
   return {
@@ -78,7 +86,9 @@ LivingPigment livingPigment(LivingField field) {
     mix(${glslColor(PIGMENTS.blue)}, ${glslColor(PIGMENTS.teal)}, smoothstep(0.65, 0.82, coolCoordinate)),
     smoothstep(0.53, 0.72, coolCoordinate)
   );
-  float coolWeight = 0.94 * (1.0 - smoothstep(0.29, 0.57, field.broad)) * smoothstep(0.39, 0.63, field.medium);
+  float coolBoundary = .12 * (u_palette_contrast - 1.0) + .10 * (u_palette_balance - .68);
+  float coolWeight = 0.94 * (1.0 - smoothstep(0.29 + coolBoundary, 0.57 + coolBoundary, field.broad))
+    * smoothstep(0.39 - coolBoundary, 0.63 - coolBoundary, field.medium);
   float fold = 0.83 + 0.29 * field.broad + 0.13 * (smoothstep(0.34, 0.68, field.medium) - 0.5);
   return LivingPigment(clamp(mix(warm, cool, coolWeight) * fold, 0.0, 1.0), coolWeight);
 }
@@ -102,14 +112,18 @@ LivingLight livingLight(vec3 normal, vec3 position) {
     if (i >= u_light_count) break;
     float fi = float(i);
     float phase = u_light_phase + fi * 2.094;
-    float incline = 0.18 + fi * 0.17;
-    vec3 orbit = vec3(cos(phase) * 1.6, sin(phase + fi) * 1.3, 1.35 + sin(phase) * 0.18);
+    float incline = 0.12 + fi * 0.14;
+    // The primary light crosses the limb; secondary lights are weak fill, so
+    // medium/high tiers do not flatten the same form with multiple strong keys.
+    vec3 orbit = vec3(cos(phase) * 1.85, sin(phase + .35) * 1.30,
+      .62 + sin(phase - .7) * .48);
     orbit.yz = mat2(cos(incline), -sin(incline), sin(incline), cos(incline)) * orbit.yz;
     vec3 light = normalize(orbit - position);
-    diffuse += max(dot(n, light), 0.0) * (0.82 - fi * 0.10);
-    glint += pow(max(dot(n, normalize(light + view)), 0.0), 34.0) * (0.72 - fi * 0.12);
+    float weight = i == 0 ? .92 : (i == 1 ? .20 : .12);
+    diffuse += max(dot(n, light), 0.0) * weight;
+    glint += pow(max(dot(n, normalize(light + view)), 0.0), 38.0) * weight * .58;
 #if SAM_FINE_OCTAVES >= 2
-    glint += pow(max(dot(n, normalize(light + view)), 0.0), 72.0) * (0.20 - fi * 0.03);
+    glint += pow(max(dot(n, normalize(light + view)), 0.0), 72.0) * weight * .11;
 #endif
   }
   return LivingLight(diffuse, glint, pow(1.0 - max(dot(n, view), 0.0), 3.0));

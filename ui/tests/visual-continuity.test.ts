@@ -9,8 +9,8 @@ describe("wrapped visual phase continuity", () => {
         /u_(?:peel_travel|breath_phase|ripple_phase|light_phase|phase)\s*\*\s*0?\.\d/,
       );
     }
-    expect(PEEL_VERTEX).toContain("float cadence=abs(a_motion.x)<.012?1.:2.;");
-    expect(PEEL_VERTEX).toContain("v_facing=1.");
+    expect(PEEL_VERTEX).toContain("sin(u_peel_travel+a_motion.y)");
+    expect(PEEL_VERTEX).toContain("v_object_direction=direction");
     expect(PARTICLE_VERTEX).toContain("float cadence=rank<.5?1.:2.;");
     expect(LIVING_MATERIAL_GLSL).not.toMatch(/ripplePhase\s*\*\s*0?\.\d/);
     expect(PARTICLE_VERTEX).not.toMatch(/angle\s*\*\s*0?\.\d/);

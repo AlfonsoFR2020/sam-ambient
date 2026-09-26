@@ -18,6 +18,7 @@ export const LIVING_FIELD_GLSL = `
 precision highp int;
 uniform vec4 u_field_state; // phi1, phi2, twist1, twist2
 uniform float u_palette_balance;
+uniform float u_palette_contrast;
 uniform vec3 u_field_offset_a;
 uniform vec3 u_field_offset_b;
 
@@ -118,7 +119,10 @@ LivingField sampleLivingField(vec3 objectDirection) {
   field.transported = q;
   field.broad = broadDensityAt(q);
   field.medium = clamp(0.5 + 0.5 * simplex3(3.6 * q + u_field_offset_b), 0.0, 1.0);
-  field.palette = mix(field.medium, field.broad, u_palette_balance);
+  // A slow contrast clock moves warm-region boundaries locally; it does not tint
+  // every pixel together or alter the material transport coordinates.
+  field.palette = clamp(0.5 + (mix(field.medium, field.broad, u_palette_balance) - 0.5)
+    * u_palette_contrast, 0.0, 1.0);
   field.activity = smoothstep(0.20, 0.50, abs(field.broad - field.medium));
   return field;
 }

@@ -4,6 +4,7 @@ import {
   createPeelDescriptors,
   createPeelGeometry,
   createSphereGeometry,
+  PEEL_EDGE_LIFT,
   PEEL_LIFT_RANGE,
   PEEL_WIDTH_RANGE,
 } from "../src/visual-engine/geometry";
@@ -66,27 +67,45 @@ describe("visual quality and geometry", () => {
   });
 
   it("creates deterministic bounded fragmented peels in one geometry batch", () => {
+    expect(
+      createPeelDescriptors(RENDER_BUDGETS.high.peels).slice(0, RENDER_BUDGETS.low.peels),
+    ).toEqual(createPeelDescriptors(RENDER_BUDGETS.low.peels));
     for (const budget of Object.values(RENDER_BUDGETS)) {
       const descriptors = createPeelDescriptors(budget.peels);
       const geometry = createPeelGeometry(budget);
       expect(descriptors).toHaveLength(budget.peels);
-      expect(geometry.vertices.length).toBe(budget.peels * budget.peelSamples * 2 * 12);
-      expect(geometry.indices.length).toBe(budget.peels * (budget.peelSamples - 1) * 6);
+      expect(geometry.vertices.length).toBe(budget.peels * (1 + budget.peelSamples * 3) * 10);
+      expect(geometry.indices.length).toBe(budget.peels * budget.peelSamples * 15);
       for (const peel of descriptors) {
-        expect(peel.halfLength).toBeGreaterThanOrEqual(0.22);
-        expect(peel.halfLength).toBeLessThanOrEqual(0.58);
-        expect(peel.width).toBeGreaterThanOrEqual(PEEL_WIDTH_RANGE.minimum);
-        expect(peel.width).toBeLessThanOrEqual(PEEL_WIDTH_RANGE.maximum);
+        expect(Math.hypot(...peel.center)).toBeCloseTo(1);
+        expect(peel.angularRadius).toBeGreaterThanOrEqual(PEEL_WIDTH_RANGE.minimum);
+        expect(peel.angularRadius).toBeLessThanOrEqual(PEEL_WIDTH_RANGE.maximum);
         expect(peel.lift).toBeGreaterThanOrEqual(PEEL_LIFT_RANGE.minimum);
         expect(peel.lift).toBeLessThanOrEqual(PEEL_LIFT_RANGE.maximum);
-        expect(Math.abs(peel.tiltX)).toBeLessThanOrEqual(Math.PI / 4.5);
-        expect(Math.abs(peel.tiltZ)).toBeLessThanOrEqual(Math.PI / 4.5);
+        expect(peel.opacity).toBeGreaterThanOrEqual(0.9);
       }
       expect(
         Math.max(...descriptors.map((peel) => peel.lift)) -
           Math.min(...descriptors.map((peel) => peel.lift)),
       ).toBeGreaterThan(0.004);
       expect(createPeelGeometry(budget).vertices).toEqual(geometry.vertices);
+      const patchVertices = 1 + budget.peelSamples * 3;
+      for (let patch = 0; patch < budget.peels; patch++) {
+        const start = patch * patchVertices * 10;
+        expect(geometry.vertices[start + 3]).toBe(0);
+        expect(geometry.vertices[start + (patchVertices - 1) * 10 + 3]).toBe(1);
+        const radii = new Set<number>();
+        for (let sample = 0; sample < budget.peelSamples; sample++) {
+          const at = start + (1 + budget.peelSamples * 2 + sample) * 10;
+          const center = descriptors[patch].center;
+          const dot =
+            center[0] * geometry.vertices[at] +
+            center[1] * geometry.vertices[at + 1] +
+            center[2] * geometry.vertices[at + 2];
+          radii.add(Math.round(Math.acos(dot) * 1000));
+        }
+        expect(radii.size).toBeGreaterThan(3);
+      }
     }
   });
 
@@ -98,7 +117,7 @@ describe("visual quality and geometry", () => {
 
   it("keeps maximum peel displacement inside the Visual Engine radius bound", () => {
     const maximumDeformation = 0.04;
-    const maximumLift = PEEL_LIFT_RANGE.maximum + 0.018;
+    const maximumLift = PEEL_EDGE_LIFT + (PEEL_LIFT_RANGE.maximum + 0.018) * 1.07 * 1.05;
     const maximumSpheroidDistance = (1.1 + maximumDeformation + maximumLift) * 1.06;
     expect(maximumSpheroidDistance).toBeLessThanOrEqual(1.31);
   });

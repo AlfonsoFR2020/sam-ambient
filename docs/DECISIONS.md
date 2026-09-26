@@ -302,3 +302,24 @@ master specification are recorded here.
   inexpensive companion-axis dot products per field transport and one palette
   uniform are the main shader cost. Representative GPU timing and human perception
   remain acceptance questions.
+
+## D-023 — Lift shared-field membrane fragments and separate key from fill
+
+- **Accepted:** 2026-09-26. Replace the WebGL loxodromic strips with seeded,
+  irregular curved membrane patches. Each patch follows the body's displaced
+  radius and unrotated field direction, with stronger central lift and a soft,
+  near-attached edge. Keep the existing peel count per tier and one batched draw.
+  The Canvas fallback retains its simpler strips.
+- Make fragments near opaque and depth writing, with a small blended edge rather
+  than accumulating transparent ribbons. Shape-derived fragment normals provide
+  restrained glints. Soft overlapping edges may still depend on draw order; do
+  not add CPU sorting or general transparency machinery without measured need.
+- Move the primary world-space light across the limb and reduce extra tier lights
+  to fill. Keep its clock separate from orientation, flow and palette. Add a
+  second slow palette contrast clock that changes local warm boundaries using
+  existing field values, without noise or global hue cycling.
+- The membrane uses about 1.5 times the old vertex count and 2.6 times its
+  triangles, with potentially greater fragment coverage. Draw count, mandatory
+  noise samples and quality caps stay fixed. Isolated WebGL measurements establish
+  spatial light/palette response and shared tint; GPU timing, plate-like appearance
+  and human visual acceptance remain open.
