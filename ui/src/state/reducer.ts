@@ -271,6 +271,10 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
     return {
       ...state,
       connection,
+      providerDiscovery: {
+        status: state.providerCatalog.length || state.model ? "stale" : "unavailable",
+        reason: "The local service disconnected.",
+      },
       priorConversationalState:
         state.conversationalState === "OFFLINE"
           ? state.priorConversationalState
@@ -338,6 +342,8 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     const readyModel = boundedText(event.payload.model);
     const readyPendingProvider = boundedText(event.payload.pending_provider);
     const readyPendingModel = boundedText(event.payload.pending_model);
+    const readyScanning = event.payload.provider_scan_active === true;
+    const readyRequestId = boundedText(event.payload.pending_provider_request_id, 120);
     const installedCount = readyCatalog.reduce(
       (count, provider) => count + provider.installedModels.length,
       0,
@@ -373,15 +379,27 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ttsBackend: boundedText(event.payload.tts_backend, 80),
       ttsSelection: speechSelection(event.payload.tts_selection),
       providerCatalog: readyCatalog,
-      startupLifecycle: readyModel
-        ? "ready_transition"
-        : readyPendingModel
+      providerDiscovery: {
+        status: readyScanning
+          ? "scanning"
+          : readyModel ||
+              readyCatalog.some((item) => item.models.length || item.installedModels.length)
+            ? "available"
+            : "empty",
+        ...(readyScanning && readyRequestId ? { requestId: readyRequestId } : {}),
+      },
+      startupLifecycle: readyScanning
+        ? readyPendingModel
           ? "loading_model"
-          : installedCount > 1
-            ? "waiting_for_model_choice"
-            : "blocked",
-      diagnosticReason:
-        boundedText(event.payload.model_unavailable_reason, 500) ?? next.diagnosticReason,
+          : "scanning"
+        : readyModel
+          ? "ready_transition"
+          : readyPendingModel
+            ? "loading_model"
+            : installedCount > 1
+              ? "waiting_for_model_choice"
+              : "blocked",
+      diagnosticReason: boundedText(event.payload.model_unavailable_reason, 500),
       cloudAllowed:
         typeof event.payload.cloud_allowed === "boolean"
           ? event.payload.cloud_allowed
@@ -420,10 +438,36 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
   }
   if (event.type === "provider.discovery") {
     const phase = boundedText(event.payload.state, 40);
+    const requestId = boundedText(event.payload.request_id, 120);
+    if (next.providerDiscovery.requestId && requestId !== next.providerDiscovery.requestId)
+      return state;
+    if (
+      !["scanning", "loading_model", "ready", "blocked", "failed"].includes(phase ?? "") ||
+      (event.payload.catalog !== undefined && !Array.isArray(event.payload.catalog))
+    ) {
+      return {
+        ...next,
+        providerDiscovery: {
+          status: "failed",
+          requestId,
+          reason: "Invalid provider discovery result.",
+        },
+        protocolError: "Invalid provider discovery result from Sam core",
+      };
+    }
     const catalog = providerCatalog(event.payload.catalog);
     const provider = boundedText(event.payload.provider, 80);
     const model = boundedText(event.payload.model, 256);
     const reason = boundedText(event.payload.reason, 500);
+    const inProgress = phase === "scanning" || phase === "loading_model";
+    const discoveryStatus = inProgress
+      ? "scanning"
+      : phase === "failed"
+        ? "failed"
+        : catalog.some((item) => item.models.length || item.installedModels.length) ||
+            (phase === "ready" && model)
+          ? "available"
+          : "empty";
     const startupLifecycle =
       phase === "ready"
         ? "ready_transition"
@@ -437,13 +481,24 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
               : "blocked";
     next = {
       ...next,
-      provider: phase === "ready" ? (provider ?? next.provider) : next.provider,
-      model: phase === "ready" ? (model ?? next.model) : next.model,
+      provider:
+        phase === "ready"
+          ? provider
+          : phase === "blocked" || phase === "failed"
+            ? undefined
+            : next.provider,
+      model:
+        phase === "ready"
+          ? model
+          : phase === "blocked" || phase === "failed"
+            ? undefined
+            : next.model,
       pendingProvider: phase === "loading_model" ? provider : undefined,
       pendingModel: phase === "loading_model" ? model : undefined,
       selectionReason: reason ?? next.selectionReason,
       diagnosticReason: phase === "ready" ? undefined : (reason ?? next.diagnosticReason),
-      providerCatalog: catalog.length ? catalog : next.providerCatalog,
+      providerCatalog: inProgress || phase === "failed" ? next.providerCatalog : catalog,
+      providerDiscovery: { status: discoveryStatus, requestId, reason },
       startupLifecycle,
     };
   } else if (event.type === "capability.authority_changed") {
@@ -607,6 +662,23 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     };
   } else if (event.type === "control.acknowledged" || event.type === "control.rejected") {
     const commandId = event.payload.command_id;
+    const discoveryResponse =
+      event.payload.command_type === "control.providers.rescan" ||
+      event.payload.command_type === "control.model.select";
+    if (
+      discoveryResponse &&
+      next.providerDiscovery.requestId &&
+      commandId !== next.providerDiscovery.requestId
+    ) {
+      return {
+        ...next,
+        pendingCommandIds: next.pendingCommandIds.filter((pending) => pending !== commandId),
+      };
+    }
+    const rejectedDiscovery =
+      event.type === "control.rejected" &&
+      discoveryResponse &&
+      commandId === next.providerDiscovery.requestId;
     const acknowledgedAuthorityEpoch = authorityEpoch(event.payload.capability_authority_epoch);
     const updatesCapabilityAuthority =
       event.type === "control.acknowledged" &&
@@ -644,6 +716,16 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         event.type === "control.rejected" && typeof event.payload.error === "string"
           ? event.payload.error
           : next.protocolError,
+      ...(rejectedDiscovery
+        ? {
+            providerDiscovery: {
+              status: "failed" as const,
+              requestId: next.providerDiscovery.requestId,
+              reason: boundedText(event.payload.error, 500) ?? "Provider discovery failed.",
+            },
+            startupLifecycle: next.model ? next.startupLifecycle : ("blocked" as const),
+          }
+        : {}),
       startupLifecycle:
         event.type === "control.acknowledged" && event.payload.application_restarting === true
           ? "starting"

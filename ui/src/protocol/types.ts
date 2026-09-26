@@ -137,6 +137,12 @@ export interface ProviderCatalogEntry {
   detail: string;
 }
 
+export interface ProviderDiscoveryState {
+  status: "unavailable" | "idle" | "scanning" | "available" | "empty" | "failed" | "stale";
+  requestId?: string;
+  reason?: string;
+}
+
 export interface UiState {
   samVersion?: string;
   samName?: string;
@@ -175,6 +181,7 @@ export interface UiState {
   diagnosticReason?: string;
   startupLifecycle: StartupLifecycle;
   providerCatalog: readonly ProviderCatalogEntry[];
+  providerDiscovery: ProviderDiscoveryState;
   visualSettings?: {
     quality: "auto" | "low" | "medium" | "high";
     deviceProfile: "auto" | "mobile_2020" | "low_power" | "desktop" | "high_end";
@@ -210,6 +217,7 @@ export const INITIAL_UI_STATE: UiState = {
   updateActivity: null,
   startupLifecycle: "starting",
   providerCatalog: [],
+  providerDiscovery: { status: "unavailable" },
 };
 
 export const isConversationalState = (value: unknown): value is ConversationalState =>

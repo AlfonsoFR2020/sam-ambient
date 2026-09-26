@@ -49,6 +49,13 @@ export function statusPresentation(state: UiState): StatusPresentation {
       limitations: [],
     };
   }
+  if (state.providerDiscovery.status === "scanning") {
+    return {
+      label: "Checking local models",
+      notice: "Checking available local services and conversational models…",
+      limitations: [],
+    };
+  }
   const limitations: string[] = [];
   if (!state.model) {
     const modelNotice =

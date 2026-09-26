@@ -348,3 +348,29 @@ master specification are recorded here.
   for 40 points). Draw count and noise samples stay fixed; tiny point fragments
   gain simple shape/color math. Wider on-screen coverage may increase fill cost.
   Representative GPU performance and human perception remain open.
+
+## D-025 — Correlate provider discovery with commands and connections
+
+- **Accepted:** 2026-09-26. The core includes the initiating command id in
+  `provider.discovery` events. Frontend discovery has one explicit operation
+  state: unavailable, scanning, available, empty, failed or stale. The latest
+  command id is retained through completion so a late older event cannot undo a
+  newer scan. Transport epochs reject events from earlier connections; a fresh
+  `system.ready` snapshot resets the discovery state after reconnect and reports
+  any still-running core scan with its command id.
+- A definitive empty/blocked result replaces the catalog, clears current
+  provider/model selection and prevents another response from using an invalid
+  model. A failed scan clears runtime model availability but may retain the last
+  catalog as stale inventory for diagnosis. Disconnect keeps last-known data
+  labeled stale, with commands disabled. Persisted last-good preference is stored
+  separately by the core and is not represented as an active selection.
+- Core discovery cancels and awaits a previous scan before starting the next.
+  Frontend terminal discovery clears the associated pending command even if its
+  acknowledgement arrives later. An unacknowledged command expires after 30
+  seconds; protocol rejection and malformed discovery are recoverable states.
+  Existing autonomous visuals have no dependency on discovery readiness.
+- The historical black-screen symptom was not reproduced with controlled
+  transport states. Verified defects were retained catalogs on empty results,
+  stale active model presentation, startup-only failure blocking later success,
+  and command pending state waiting unnecessarily for an acknowledgement after
+  discovery had finished. Real provider timing still needs integrated validation.

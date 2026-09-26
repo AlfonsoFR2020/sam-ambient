@@ -4,6 +4,17 @@ Updated: 2026-09-26
 
 ## MVP status
 
+- v0.2.3 provider discovery now has an explicit frontend operation state and
+  command/connection correlation. Rescan and model selection carry the originating
+  command id through core discovery events; older scans and prior-connection events
+  cannot replace newer results. A completed empty scan clears the catalog and
+  current runtime model, while disconnect retains clearly marked last-known data.
+  A failed scan remains recoverable; terminal discovery clears its pending command
+  even if the command acknowledgement arrives later. The core no longer keeps a
+  startup-only model failure after successful refresh or reports a completed
+  startup model as still pending. Expected scan errors stay in application state,
+  with a 30-second acknowledgement bound. Fake-transport and isolated browser
+  regressions pass; real provider discovery and model loading remain unverified.
 - v0.2.3 WebGL particles retain 12/24/40 points and one draw, but seeded
   paths now use a biased 1.2–2.45 Orb-radius distribution with a sparse far tail,
   independent orbit planes, integer-harmonic rates, slow bounded drift, and varied

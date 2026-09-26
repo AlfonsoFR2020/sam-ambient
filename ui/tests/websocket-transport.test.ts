@@ -62,4 +62,19 @@ describe("WebSocket core transport", () => {
     expect(() => new WebSocketTransport("ws://192.168.1.20:8765")).toThrow("loopback");
     expect(() => new WebSocketTransport("wss://127.0.0.1:8765")).toThrow("loopback");
   });
+
+  it("does not mistake an observer exception for invalid JSON", async () => {
+    const socket = new FakeSocket();
+    const transport = new WebSocketTransport("ws://127.0.0.1:8765", () => socket);
+    const connection = transport.connect({
+      onEvent: () => {
+        throw new Error("render observer failed");
+      },
+      onDisconnect() {},
+    });
+    socket.open();
+    await connection;
+    expect(() => socket.onmessage?.({ data: '{"protocol":1}' })).toThrow("render observer failed");
+    expect(socket.readyState).toBe(1);
+  });
 });

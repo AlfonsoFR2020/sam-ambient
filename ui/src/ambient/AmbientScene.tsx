@@ -58,6 +58,18 @@ export function AmbientScene({
     const changes: string[] = [];
     if (prior.connection !== state.connection)
       changes.push(`core connection ${prior.connection} → ${state.connection}`);
+    if (
+      prior.providerDiscovery.status !== state.providerDiscovery.status ||
+      prior.providerDiscovery.requestId !== state.providerDiscovery.requestId
+    )
+      changes.push(
+        `provider discovery ${state.providerDiscovery.status}${state.providerDiscovery.requestId ? ` (${state.providerDiscovery.requestId})` : ""}`,
+      );
+    if (
+      prior.providerDiscovery.reason !== state.providerDiscovery.reason &&
+      state.providerDiscovery.reason
+    )
+      changes.push(`provider discovery detail ${state.providerDiscovery.reason}`);
     if (prior.startupLifecycle !== state.startupLifecycle)
       changes.push(`startup ${prior.startupLifecycle} → ${state.startupLifecycle}`);
     if (prior.conversationalState !== state.conversationalState)

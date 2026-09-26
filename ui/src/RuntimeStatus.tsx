@@ -7,14 +7,24 @@ export function RuntimeStatus({ state }: { state: UiState }) {
     <details className="runtime-status">
       <summary>
         {state.model
-          ? `${state.provider} · ${state.model}`
+          ? `${state.provider} · ${state.model}${state.connection === "connected" ? "" : " (last known)"}`
           : (friendlyStartupReason(state.selectionReason) ?? "Local model not ready")}
       </summary>
       <dl>
         <dt>Local model</dt>
-        <dd>{state.model ? `${state.provider} · ${state.model}` : "Not ready"}</dd>
+        <dd>
+          {state.model
+            ? `${state.provider} · ${state.model}${state.connection === "connected" ? "" : " (last known)"}`
+            : "Not ready"}
+        </dd>
         <dt>Provider</dt>
         <dd>{state.provider ?? "Waiting for local provider discovery"}</dd>
+        {state.selectionReason && (
+          <>
+            <dt>Selection detail</dt>
+            <dd>{state.selectionReason}</dd>
+          </>
+        )}
         <dt>Speech input</dt>
         <dd>{state.sttStatus ?? "Waiting for readiness"}</dd>
         <dt>Spoken output</dt>

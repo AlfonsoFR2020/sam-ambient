@@ -42,6 +42,17 @@ field. Visual preferences use the typed runtime-settings boundary and persisted
 preference store; adaptive resolved quality remains renderer-local and is not
 persisted as user intent.
 
+Provider discovery is an explicit frontend operation beside the transport state.
+Rescan/model-select commands have unique ids; core discovery events echo the id,
+and the client retains the latest id across completion to reject late older scans.
+The transport epoch separately rejects events from earlier WebSocket connections.
+Core discovery serializes replacement scans and publishes scanning, ready,
+blocked or failed results. A definitive empty result clears active model
+availability; persisted last-good model preference remains separate. Disconnected
+catalog and selection data are last-known only, and a new `system.ready` is the
+authoritative reconnect snapshot. Command acknowledgements have a bounded wait,
+while a terminal discovery event can itself release the command's pending UI state.
+
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. `dev` implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded

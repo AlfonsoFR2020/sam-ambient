@@ -440,6 +440,90 @@ def test_runtime_rescan_hot_adopts_ready_local_provider(tmp_path):
     asyncio.run(scenario())
 
 
+def test_successful_rescan_clears_startup_model_failure(tmp_path):
+    async def scenario():
+        selected = ConversationProvider()
+        selected.id = "lm-studio"
+
+        async def refresh(_provider, _model):
+            return ProviderRefresh(selected, "gemma", "selected", ({"id": "lm-studio"},))
+
+        runtime = SamRuntime(
+            ConversationProvider(),
+            RuntimeConfig(tmp_path, model_unavailable_reason="No model at startup"),
+            provider_refresher=refresh,
+        )
+        try:
+            await runtime._refresh_providers(None, None, False, "scan-1")
+            await runtime._provider_refresh_task
+            assert await runtime._select_model(CancellationToken()) == "gemma"
+            assert runtime._model_unavailable_reason is None
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_empty_rescan_invalidates_previous_runtime_model(tmp_path):
+    async def scenario():
+        async def refresh(_provider, _model):
+            return ProviderRefresh(None, None, "No local conversational models", ())
+
+        runtime = SamRuntime(
+            ConversationProvider(),
+            RuntimeConfig(tmp_path, model="old-model"),
+            provider_refresher=refresh,
+        )
+        try:
+            await runtime._refresh_providers(None, None, False, "scan-2")
+            await runtime._provider_refresh_task
+            assert runtime._model is None
+            assert runtime._provider_catalog == ()
+            assert runtime._ready_event().payload["pending_model"] is None
+            with pytest.raises(RuntimeError, match="No local conversational models"):
+                await runtime._select_model(CancellationToken())
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_rapid_rescan_cancels_older_refresh_before_new_selection(tmp_path):
+    async def scenario():
+        entered = asyncio.Event()
+        cancelled = asyncio.Event()
+        selected = ConversationProvider()
+        selected.id = "ollama"
+
+        async def refresh(_provider, model):
+            if model == "old":
+                entered.set()
+                try:
+                    await asyncio.Event().wait()
+                finally:
+                    cancelled.set()
+            return ProviderRefresh(selected, "new", "latest scan", ({"id": "ollama"},))
+
+        runtime = SamRuntime(
+            ConversationProvider(), RuntimeConfig(tmp_path), provider_refresher=refresh
+        )
+        try:
+            await runtime._refresh_providers("ollama", "old", False, "scan-A")
+            await entered.wait()
+            assert runtime._ready_event().payload["provider_scan_active"] is True
+            assert runtime._ready_event().payload["pending_provider_request_id"] == "scan-A"
+            await runtime._refresh_providers("ollama", "new", False, "scan-B")
+            await runtime._provider_refresh_task
+            assert cancelled.is_set()
+            assert runtime._model == "new"
+            assert runtime.provider is selected
+            assert runtime._ready_event().payload["pending_provider_request_id"] is None
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
 def test_runtime_ready_event_keeps_pending_model_distinct(tmp_path):
     async def scenario():
         runtime = SamRuntime(

@@ -21,7 +21,7 @@ class RecordingBindings:
         self.messages: list[str] = []
         self.approvals: list[tuple[str, bool]] = []
         self.revocations: list[str] = []
-        self.refreshes: list[tuple[str | None, str | None, bool]] = []
+        self.refreshes: list[tuple[str | None, str | None, bool, str]] = []
         self.restarts: list[str] = []
         self.visual_settings: list[dict[str, object]] = []
         self.audio_settings: list[dict[str, object]] = []
@@ -57,9 +57,9 @@ class RecordingBindings:
         }
 
     async def refresh(
-        self, provider: str | None, model: str | None, remember: bool
+        self, provider: str | None, model: str | None, remember: bool, request_id: str
     ) -> dict[str, object]:
-        self.refreshes.append((provider, model, remember))
+        self.refreshes.append((provider, model, remember, request_id))
         return {"provider_refresh_started": True}
 
     async def restart(self, command: ControlCommand) -> None:
@@ -339,8 +339,8 @@ def test_provider_rescan_and_exact_model_selection_are_trusted_controls() -> Non
         assert selected.type == EventType.CONTROL_ACKNOWLEDGED
         assert malformed.type == EventType.CONTROL_REJECTED
         assert recording.refreshes == [
-            (None, None, False),
-            ("lm-studio", "google/gemma", True),
+            (None, None, False, "rescan"),
+            ("lm-studio", "google/gemma", True, "select"),
         ]
 
     asyncio.run(scenario())

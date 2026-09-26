@@ -55,17 +55,35 @@ export function VisualDiagnostics({
           <dt>Semantic state</dt>
           <dd>{state.conversationalState}</dd>
           <dt>Provider</dt>
-          <dd>{known(state.provider)}</dd>
+          <dd>
+            {known(state.provider)}
+            {state.provider && state.connection !== "connected" ? " (last known)" : ""}
+          </dd>
+          <dt>Provider discovery</dt>
+          <dd>{state.providerDiscovery.status}</dd>
+          {state.providerDiscovery.reason && (
+            <>
+              <dt>Discovery detail</dt>
+              <dd>{state.providerDiscovery.reason}</dd>
+            </>
+          )}
           <dt>Local AI services</dt>
           <dd>
             {state.providerCatalog.length
               ? state.providerCatalog
                   .map((item) => `${item.id}: ${item.running ? "running" : "unavailable"}`)
-                  .join(" · ")
+                  .join(" · ") +
+                (state.providerDiscovery.status === "stale" ||
+                state.providerDiscovery.status === "failed"
+                  ? " (last known)"
+                  : "")
               : "Not reported"}
           </dd>
           <dt>Active model</dt>
-          <dd>{known(state.model)}</dd>
+          <dd>
+            {known(state.model)}
+            {state.model && state.connection !== "connected" ? " (last known)" : ""}
+          </dd>
           {state.pendingModel && (
             <>
               <dt>Pending model</dt>

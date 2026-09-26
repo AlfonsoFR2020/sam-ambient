@@ -233,10 +233,17 @@ export function StartupCard({
     })),
   );
   const [providerChoice, setProviderChoice] = useState("auto");
+  const activeProviderChoice =
+    providerChoice === "auto" || providers.some((provider) => provider.id === providerChoice)
+      ? providerChoice
+      : "auto";
   const choices = allChoices.filter(
-    (item) => providerChoice === "auto" || item.provider === providerChoice,
+    (item) => activeProviderChoice === "auto" || item.provider === activeProviderChoice,
   );
   const [choice, setChoice] = useState("");
+  const validChoice = choices.some((item) => `${item.provider}\t${item.model}` === choice)
+    ? choice
+    : "";
   const [remember, setRemember] = useState(true);
   const showModelPicker =
     (!state.model && allChoices.length > 0) ||
@@ -260,12 +267,22 @@ export function StartupCard({
     },
     {
       label: "Provider",
-      value: state.provider ?? (state.connection === "connected" ? "Checking" : "Waiting"),
+      value:
+        (state.provider && state.connection !== "connected"
+          ? `${state.provider} (last known)`
+          : state.provider) ??
+        (state.connection !== "connected"
+          ? "Waiting"
+          : state.providerCatalog.length === 1
+            ? `${state.providerCatalog[0]?.id} (no model selected)`
+            : "Checking"),
     },
     {
       label: "Model",
       value:
-        state.model ??
+        (state.model && state.connection !== "connected"
+          ? `${state.model} (last known)`
+          : state.model) ??
         (state.startupLifecycle === "loading_model"
           ? `Loading ${state.pendingModel ?? "local model"}`
           : state.startupLifecycle === "waiting_for_model_choice"
@@ -330,7 +347,7 @@ export function StartupCard({
           <label htmlFor={providerSelectId}>Provider</label>
           <select
             id={providerSelectId}
-            value={providerChoice}
+            value={activeProviderChoice}
             onChange={(event) => {
               setProviderChoice(event.target.value);
               setChoice("");
@@ -358,7 +375,7 @@ export function StartupCard({
           <label htmlFor={modelSelectId}>Conversational model</label>
           <select
             id={modelSelectId}
-            value={choice}
+            value={validChoice}
             onChange={(event) => setChoice(event.target.value)}
           >
             <option value="">Choose a conversational model…</option>
@@ -391,17 +408,22 @@ export function StartupCard({
       <div className="startup-card__actions">
         <button
           type="button"
-          disabled={state.connection !== "connected"}
+          disabled={
+            state.connection !== "connected" || state.providerDiscovery.status === "scanning"
+          }
           title="Check local services and models again when Sam is connected."
           onClick={() => applyAction({ type: "providers.rescan" })}
         >
           {state.startupLifecycle === "blocked" ? "Retry / Rescan" : "Rescan"}
         </button>
-        {choice && (
+        {validChoice && (
           <button
             type="button"
+            disabled={
+              state.connection !== "connected" || state.providerDiscovery.status === "scanning"
+            }
             onClick={() => {
-              const [provider, model] = choice.split("\t");
+              const [provider, model] = validChoice.split("\t");
               if (provider && model)
                 applyAction({ type: "model.select", provider, model, remember });
             }}
@@ -915,7 +937,11 @@ export default function App() {
               <h2 id={`${controlsId}-system`}>System &amp; model</h2>
               <ControlButton
                 help="Check again for available local AI services and models."
-                disabled={pending || state.connection !== "connected"}
+                disabled={
+                  pending ||
+                  state.connection !== "connected" ||
+                  state.providerDiscovery.status === "scanning"
+                }
                 onClick={() => {
                   setStartupDismissed(false);
                   applyAction({ type: "providers.rescan" });

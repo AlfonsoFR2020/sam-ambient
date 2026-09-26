@@ -446,6 +446,10 @@ class SamRuntime:
         self._provider_refresher = provider_refresher
         self._provider_refresh_lock = asyncio.Lock()
         self._provider_catalog: tuple[Mapping[str, object], ...] = ()
+        self._pending_provider = config.startup_provider
+        self._pending_model = config.startup_model
+        self._pending_provider_request_id: str | None = None
+        self._provider_scan_active = False
         self._provider_selection_reason = config.provider_selection_reason
         self._model_unavailable_reason = config.model_unavailable_reason
         self.config = config
@@ -673,7 +677,11 @@ class SamRuntime:
         return {"lifecycle_settings": settings}
 
     async def _refresh_providers(
-        self, provider_id: str | None, model: str | None, remember: bool
+        self,
+        provider_id: str | None,
+        model: str | None,
+        remember: bool,
+        request_id: str | None = None,
     ) -> Mapping[str, object]:
         if self._provider_refresher is None:
             raise RuntimeError("Provider discovery is unavailable")
@@ -682,22 +690,29 @@ class SamRuntime:
         if self._provider_refresh_task is not None and not self._provider_refresh_task.done():
             self._provider_refresh_task.cancel()
             await asyncio.gather(self._provider_refresh_task, return_exceptions=True)
-        task = asyncio.create_task(self._perform_provider_refresh(provider_id, model, remember))
+        task = asyncio.create_task(
+            self._perform_provider_refresh(provider_id, model, remember, request_id)
+        )
         self._provider_refresh_task = task
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
         return {"provider_refresh_started": True}
 
     async def _perform_provider_refresh(
-        self, provider_id: str | None, model: str | None, remember: bool
+        self, provider_id: str | None, model: str | None, remember: bool, request_id: str | None
     ) -> None:
         async with self._provider_refresh_lock:
             target_provider = provider_id or self.config.startup_provider
             target_model = model or self.config.startup_model
+            self._pending_provider = target_provider
+            self._pending_model = target_model
+            self._pending_provider_request_id = request_id
+            self._provider_scan_active = True
             await self._publish_provider_status(
                 "loading_model" if target_model else "scanning",
                 provider=target_provider,
                 model=target_model,
+                request_id=request_id,
             )
             try:
                 result = await self._provider_refresher(provider_id, model)
@@ -709,20 +724,27 @@ class SamRuntime:
                     "retry or choose another model"
                 )
                 self._model_unavailable_reason = reason
+                self._model = None
                 log.exception("Provider refresh failed: %s", error)
-                await self._publish_provider_status("blocked", reason=reason)
+                await self._publish_provider_status("failed", reason=reason, request_id=request_id)
                 return
             self._provider_catalog = result.catalog
             self._provider_selection_reason = result.reason
             if result.provider is None or result.model is None:
+                if result.provider is not None and result.provider is not self.provider:
+                    await result.provider.aclose()
+                self._model = None
                 self._model_unavailable_reason = result.reason
-                await self._publish_provider_status("blocked", reason=result.reason)
+                await self._publish_provider_status(
+                    "blocked", reason=result.reason, request_id=request_id
+                )
                 return
             if not self._active_done.is_set():
                 await result.provider.aclose()
                 reason = "A response started during model discovery; wait for it, then Rescan"
                 self._model_unavailable_reason = reason
-                await self._publish_provider_status("blocked", reason=reason)
+                self._model = None
+                await self._publish_provider_status("failed", reason=reason, request_id=request_id)
                 return
             previous = self.provider
             registry = ProviderRegistry()
@@ -743,10 +765,20 @@ class SamRuntime:
             if previous is not result.provider:
                 await previous.aclose()
             await self._publish_provider_status(
-                "ready", provider=result.provider.id, model=result.model, reason=result.reason
+                "ready",
+                provider=result.provider.id,
+                model=result.model,
+                reason=result.reason,
+                request_id=request_id,
             )
 
     async def _publish_provider_status(self, state: str, **payload: object) -> None:
+        if state in {"ready", "blocked", "failed"}:
+            self._provider_scan_active = False
+            self._pending_provider = None
+            self._pending_model = None
+            self._pending_provider_request_id = None
+        payload = {key: value for key, value in payload.items() if value is not None}
         await self.events.publish(
             ProtocolEvent(
                 type="provider.discovery",
@@ -1835,8 +1867,8 @@ class SamRuntime:
         return None
 
     async def _select_model(self, cancellation: CancellationToken) -> str:
-        if self.config.model_unavailable_reason:
-            raise RuntimeError(self.config.model_unavailable_reason)
+        if self._model_unavailable_reason:
+            raise RuntimeError(self._model_unavailable_reason)
         if self._model is None:
             models = await self.provider.list_models(cancellation)
             if not models:
@@ -2045,8 +2077,10 @@ class SamRuntime:
                 "sam_author": __author__,
                 "provider": self.provider.id if self._model else None,
                 "model": self._model,
-                "pending_provider": self.config.startup_provider,
-                "pending_model": self.config.startup_model,
+                "pending_provider": self._pending_provider,
+                "pending_model": self._pending_model,
+                "provider_scan_active": self._provider_scan_active,
+                "pending_provider_request_id": self._pending_provider_request_id,
                 "selection_reason": self._provider_selection_reason,
                 "provider_catalog": list(self._provider_catalog),
                 "model_unavailable_reason": self._model_unavailable_reason,

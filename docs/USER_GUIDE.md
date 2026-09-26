@@ -61,6 +61,11 @@ cloud switch. **Rescan providers/models** refreshes installed and loaded invento
 and can adopt a newly available configured/remembered model without restarting.
 If several models are viable, the startup card asks for a provider/model choice
 and can remember it after successful local use.
+During Rescan, Sam shows that it is checking and temporarily disables another
+Rescan. An empty or failed scan leaves the interface usable and offers a retry;
+it does not silently keep a disappeared model selected. After disconnect, any
+previously shown provider or model is labeled last known until the local service
+reports fresh status.
 Before core readiness, the main view says **Starting Sam**; after a core restart it
 says **Reconnecting**. The startup card shows reported service, provider, model and
 speech facts instead of a fixed progress checklist. The main view presents one

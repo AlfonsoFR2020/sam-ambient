@@ -28,7 +28,7 @@ CancelActive = Callable[[frozenset[CancellationTarget], str], Awaitable[None]]
 SubmitUserMessage = Callable[[str, ControlCommand], Awaitable[None]]
 ResolveToolApproval = Callable[[ControlCommand, bool], Awaitable[bool]]
 RevokeCapabilities = Callable[[str], Awaitable[Mapping[str, object]]]
-RefreshProviders = Callable[[str | None, str | None, bool], Awaitable[Mapping[str, object]]]
+RefreshProviders = Callable[[str | None, str | None, bool, str], Awaitable[Mapping[str, object]]]
 SetVisualSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
 SetAudioSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
 SetLifecycleSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
@@ -151,7 +151,11 @@ class ControlDispatcher:
                 provider is None or model is None
             ):
                 raise ValueError("Model selection requires provider and model")
-            payload.update(await self._bindings.refresh_providers(provider, model, remember))
+            payload.update(
+                await self._bindings.refresh_providers(
+                    provider, model, remember, command.command_id
+                )
+            )
         elif command_type is ControlCommandType.APPLICATION_RESTART:
             if command.payload:
                 raise ValueError("Restart Sam does not accept arguments")

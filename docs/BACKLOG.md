@@ -98,7 +98,10 @@ in [Roadmap](ROADMAP.md).
 ## Behavior and settings
 
 - Add an owner setting for new-session versus resume-previous-conversation behavior.
-- Recover safely when provider/model Rescan leaves the UI black or unusable.
+- Validate provider/model Rescan, service disappearance, and model loading against
+  real LM Studio/Ollama and reconnect timing after the deterministic state and
+  isolated-browser recovery checks. The historical black-screen report was not
+  reproduced by the controlled transport scenarios.
 - Add an owner setting for transcript retention during interruption.
 - Physically accept LM Studio automatic model load and ownership-aware eject behavior.
 - Define model/context/VRAM policy.

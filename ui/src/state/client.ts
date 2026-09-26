@@ -40,6 +40,7 @@ export class ProtocolClient {
   private session?: TransportSession;
   private cancelFrame?: () => void;
   private cancelReconnect?: () => void;
+  private readonly commandTimeouts = new Map<string, () => void>();
   private running = false;
   private epoch = 0;
 
@@ -60,14 +61,68 @@ export class ProtocolClient {
     if (!this.running || !this.session || this.state.connection !== "connected") {
       throw new Error("Sam core is offline");
     }
+    if (this.state.pendingCommandIds.includes(command.command_id))
+      throw new Error("Control command is already pending");
+    const epoch = this.epoch;
+    const discoveryCommand =
+      command.type === "control.providers.rescan" || command.type === "control.model.select";
+    const priorDiscoveryId = discoveryCommand ? this.state.providerDiscovery.requestId : undefined;
+    if (priorDiscoveryId) {
+      this.commandTimeouts.get(priorDiscoveryId)?.();
+      this.commandTimeouts.delete(priorDiscoveryId);
+    }
     this.setState({
       ...this.state,
-      pendingCommandIds: [...this.state.pendingCommandIds, command.command_id],
+      pendingCommandIds: [
+        ...this.state.pendingCommandIds.filter((id) => id !== priorDiscoveryId),
+        command.command_id,
+      ],
       protocolError: undefined,
+      ...(discoveryCommand
+        ? {
+            providerDiscovery: { status: "scanning" as const, requestId: command.command_id },
+            startupLifecycle: "scanning" as const,
+          }
+        : {}),
     });
+    this.commandTimeouts.set(
+      command.command_id,
+      this.scheduler.delay(() => {
+        this.commandTimeouts.delete(command.command_id);
+        if (
+          !this.running ||
+          epoch !== this.epoch ||
+          !this.state.pendingCommandIds.includes(command.command_id)
+        )
+          return;
+        this.setState({
+          ...this.state,
+          pendingCommandIds: this.state.pendingCommandIds.filter((id) => id !== command.command_id),
+          protocolError: "Sam did not confirm the control command in time.",
+          ...(discoveryCommand
+            ? {
+                providerDiscovery: {
+                  status: "failed" as const,
+                  requestId: command.command_id,
+                  reason: "The scan did not start in time.",
+                },
+                startupLifecycle: "blocked" as const,
+              }
+            : {}),
+        });
+      }, 30_000),
+    );
     try {
       await this.session.send(command);
     } catch (error) {
+      this.commandTimeouts.get(command.command_id)?.();
+      this.commandTimeouts.delete(command.command_id);
+      if (
+        !this.running ||
+        epoch !== this.epoch ||
+        (discoveryCommand && this.state.providerDiscovery.requestId !== command.command_id)
+      )
+        return;
       const message = error instanceof Error ? error.message : "control command failed";
       this.setState({
         ...this.state,
@@ -75,6 +130,16 @@ export class ProtocolClient {
           (commandId) => commandId !== command.command_id,
         ),
         protocolError: message,
+        ...(discoveryCommand
+          ? {
+              providerDiscovery: {
+                status: "failed" as const,
+                requestId: command.command_id,
+                reason: message,
+              },
+              startupLifecycle: "blocked" as const,
+            }
+          : {}),
       });
       throw error;
     }
@@ -92,6 +157,7 @@ export class ProtocolClient {
     this.epoch += 1;
     this.cancelFrame?.();
     this.cancelReconnect?.();
+    this.clearCommandTimeouts();
     this.cancelFrame = undefined;
     this.cancelReconnect = undefined;
     void this.session?.close();
@@ -131,6 +197,7 @@ export class ProtocolClient {
   private disconnect(epoch: number): void {
     if (epoch !== this.epoch) return;
     this.epoch += 1;
+    this.clearCommandTimeouts();
     void this.session?.close();
     this.session = undefined;
     this.setState(withConnection(this.state, "offline"));
@@ -156,7 +223,35 @@ export class ProtocolClient {
       return;
     }
     if (!isVisualizationEvent(event.type)) {
-      this.setState(reduceProtocolEvent(this.state, event));
+      const terminalDiscoveryId =
+        event.type === "provider.discovery" &&
+        ["ready", "blocked", "failed"].includes(String(event.payload.state)) &&
+        typeof event.payload.request_id === "string" &&
+        event.payload.request_id === this.state.providerDiscovery.requestId
+          ? event.payload.request_id
+          : undefined;
+      if (terminalDiscoveryId) {
+        this.commandTimeouts.get(terminalDiscoveryId)?.();
+        this.commandTimeouts.delete(terminalDiscoveryId);
+      }
+      if (event.type === "control.acknowledged" || event.type === "control.rejected") {
+        const id = event.payload.command_id;
+        if (typeof id === "string") {
+          this.commandTimeouts.get(id)?.();
+          this.commandTimeouts.delete(id);
+        }
+      }
+      const reduced = reduceProtocolEvent(this.state, event);
+      this.setState(
+        terminalDiscoveryId && reduced !== this.state
+          ? {
+              ...reduced,
+              pendingCommandIds: reduced.pendingCommandIds.filter(
+                (id) => id !== terminalDiscoveryId,
+              ),
+            }
+          : reduced,
+      );
       if (this.state.applicationStopped) this.stop();
       return;
     }
@@ -169,6 +264,11 @@ export class ProtocolClient {
         this.setState({ ...state, droppedVisualizationEvents: this.coalescer.dropped });
       });
     }
+  }
+
+  private clearCommandTimeouts(): void {
+    for (const cancel of this.commandTimeouts.values()) cancel();
+    this.commandTimeouts.clear();
   }
 
   private setState(state: UiState): void {

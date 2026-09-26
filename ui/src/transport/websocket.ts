@@ -49,11 +49,14 @@ export class WebSocketTransport implements ProtocolTransport {
           socket.close(1003, "binary protocol events are unsupported");
           return;
         }
+        let event: unknown;
         try {
-          observer.onEvent(JSON.parse(data));
+          event = JSON.parse(data);
         } catch {
           socket.close(1002, "invalid JSON protocol event");
+          return;
         }
+        observer.onEvent(event);
       };
       socket.onerror = () => {
         if (!connected) reject(new Error("Sam core WebSocket connection failed"));

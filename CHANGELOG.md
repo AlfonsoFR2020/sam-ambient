@@ -2,6 +2,18 @@
 
 ## Unreleased — 0.2.3
 
+### Provider and connection reliability
+
+- Correlate Rescan/model-select discovery events to the initiating command and
+  reject older scans or events from a previous connection. Represent scanning,
+  empty, failed and stale discovery explicitly; keep Controls and the Orb mounted
+  through these states.
+- Replace the catalog on an empty result, invalidate a disappeared current model,
+  and clear startup-only model errors after successful recovery. Bound command
+  acknowledgement waits and release pending Controls on terminal discovery.
+- Add deterministic core and fake-transport regressions plus an isolated browser
+  Rescan/disconnect check. Real provider/model timing remains to be validated.
+
 ### Visual embodiment II
 
 - Extend WebGL particles from a narrow near-Orb band into a seeded, near-biased
