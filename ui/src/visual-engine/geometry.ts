@@ -1,4 +1,8 @@
-import { PARTICLE_POINT_SIZE_RANGE, PARTICLE_SHELL_RANGE } from "./particles";
+import {
+  PARTICLE_POINT_SIZE_RANGE,
+  PARTICLE_RADIUS_RANGE,
+  type ParticleParameters,
+} from "./particles";
 import type { RenderBudget } from "./quality";
 
 export interface IndexedGeometry {
@@ -170,22 +174,49 @@ export function createPeelGeometry(budget: RenderBudget, seed?: number): Indexed
   return { vertices, indices };
 }
 
-/** Seeded analytic particle parameters: phase, shell radius, inclination and size. */
+/** Seeded, tier-stable analytic paths; an interleaved radial quantile gives a sparse far tail. */
 export function createParticleGeometry(count: number, seed = 0x5a17): ArrayGeometry {
   const random = seeded(seed ^ 0x9e37_79b9);
-  const vertices = new Float32Array(count * 4);
+  const vertices = new Float32Array(count * 8);
   for (let index = 0; index < count; index++) {
+    const slot =
+      ((index & 1) << 5) |
+      ((index & 2) << 3) |
+      ((index & 4) << 1) |
+      ((index & 8) >> 1) |
+      ((index & 16) >> 3) |
+      ((index & 32) >> 5);
+    const quantile = (slot + random() * 0.5) / 64;
+    const cadence = (random() < 0.5 ? -1 : 1) * (random() < 0.36 ? 2 : 1);
     vertices.set(
       [
         random() * Math.PI * 2,
-        PARTICLE_SHELL_RANGE.minimum +
-          random() * (PARTICLE_SHELL_RANGE.maximum - PARTICLE_SHELL_RANGE.minimum),
-        (random() * 2 - 1) * (Math.PI / 2.4),
+        PARTICLE_RADIUS_RANGE.minimum +
+          quantile ** 2.15 * (PARTICLE_RADIUS_RANGE.maximum - PARTICLE_RADIUS_RANGE.minimum),
+        (random() * 2 - 1) * (Math.PI / 3.1),
+        random() * Math.PI * 2,
         PARTICLE_POINT_SIZE_RANGE.minimum +
           random() * (PARTICLE_POINT_SIZE_RANGE.maximum - PARTICLE_POINT_SIZE_RANGE.minimum),
+        cadence,
+        0.38 + random() * 0.35,
+        random(),
       ],
-      index * 4,
+      index * 8,
     );
   }
   return { vertices, count };
+}
+
+export function particleParameters(vertices: Float32Array, index: number): ParticleParameters {
+  const at = index * 8;
+  return {
+    phase: vertices[at],
+    radius: vertices[at + 1],
+    inclination: vertices[at + 2],
+    azimuth: vertices[at + 3],
+    size: vertices[at + 4],
+    cadence: vertices[at + 5] as ParticleParameters["cadence"],
+    opacity: vertices[at + 6],
+    tint: vertices[at + 7],
+  };
 }

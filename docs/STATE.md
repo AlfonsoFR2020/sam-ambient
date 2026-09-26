@@ -4,6 +4,18 @@ Updated: 2026-09-26
 
 ## MVP status
 
+- v0.2.3 WebGL particles retain 12/24/40 points and one draw, but seeded
+  paths now use a biased 1.2–2.45 Orb-radius distribution with a sparse far tail,
+  independent orbit planes, integer-harmonic rates, slow bounded drift, and varied
+  warm size/opacity/shape. The field stays centered on Sam rather than following
+  pointer rotation; depth testing occludes points behind body/membrane while rear
+  points outside the silhouette remain visible. Canvas intentionally has no
+  particles. The engine's new visual-only AmbientReactivity owns smoothed
+  sustained/onset response from existing reported envelopes and bounded particle
+  spread, rate and opacity perturbations; zero input leaves autonomous motion
+  unchanged. Input expiry remains in the adapter. Counts, draw budget, quality
+  caps and all core/audio protocols are unchanged. Representative GPU cost,
+  sparse-field perception and physical voice reactivity remain unverified.
 - v0.2.3 Living Surface uses one deterministic, seamless object-space
   two-shear/two-scale field for the WebGL body and irregular membrane fragments. Broad asymmetric
   shears now deform and carry pigment regions instead of relying mainly on rigid
@@ -45,7 +57,7 @@ Updated: 2026-09-26
   overlay adds core/model/audio state and 64 bounded events, with event-level verbose
   console output and a mobile-safe close route. It exposes existing envelopes, not
   new audio features or a new cross-process telemetry contract. Physical voice,
-  full palette/lighting art direction, particles and representative
+  full palette/lighting art direction, higher particle richness and representative
   GPU/mobile acceptance remain open.
 - The 0.2.2 core-interaction slice gives accepted generations one
   correlated completed, cancelled/superseded, timeout, empty-response or error terminal

@@ -48,6 +48,11 @@ export interface VisualDiagnosticSnapshot {
   readonly fieldPhases: readonly [number, number];
   readonly fieldTwists: readonly [number, number];
   readonly paletteBalance: number;
+  readonly particleBudget: number;
+  readonly particleDensity: number;
+  readonly particleSpread: number;
+  readonly reactivitySustained: number;
+  readonly reactivityOnset: number;
   readonly peelTravel: number;
   readonly flowRate: number;
   readonly seed: number;
@@ -308,6 +313,11 @@ export class VisualEngine {
       fieldPhases: [frame.fieldPhase1, frame.fieldPhase2],
       fieldTwists: [frame.fieldTwist1, frame.fieldTwist2],
       paletteBalance: frame.paletteBalance,
+      particleBudget: this.budget.particles,
+      particleDensity: this.settings.particleDensity,
+      particleSpread: frame.reactivity.particleSpread,
+      reactivitySustained: frame.reactivity.sustained,
+      reactivityOnset: frame.reactivity.onset,
       peelTravel: frame.peelTravel,
       flowRate: frame.surfaceFlowRate * 0.14,
       seed: this.seed,

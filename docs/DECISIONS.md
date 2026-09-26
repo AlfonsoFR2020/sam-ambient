@@ -323,3 +323,28 @@ master specification are recorded here.
   noise samples and quality caps stay fixed. Isolated WebGL measurements establish
   spatial light/palette response and shared tint; GPU timing, plate-like appearance
   and human visual acceptance remain open.
+
+## D-024 — Center particles in Sam's environment and bound visual reactivity
+
+- **Accepted:** 2026-09-26. Keep the 12/24/40 particle budgets and one batched
+  point draw, but replace the old 1.1–1.4 radius band with a deterministic,
+  near-biased 1.2–2.45 distribution and a sparse far tail. Individual points
+  have seeded orbital planes, integer-harmonic signed rates, independent slow
+  radial wander, and restrained warm size/opacity/shape variation. The particle
+  field no longer follows the user-controlled Orb quaternion.
+- Remove the additional camera-Z visibility fade. Body and membrane depth writes
+  already occlude points at overlapping pixels; rear points beyond the silhouette
+  should remain part of the environment. Points do not write depth and remain
+  premultiplied blended. Canvas continues to omit particles under its v1 fallback
+  budget. Far points can naturally leave a narrow viewport.
+- Add a renderer-only AmbientReactivity frame fed by existing, correlated visual
+  input envelopes and input peak. The adapter owns source freshness/expiry; this
+  layer owns visual sustained/onset attack and release. Its zero state is neutral,
+  and bounded particle spread (+0.14 Orb units), rate (+30%) and opacity (+26%)
+  add to autonomous animation. Existing relief, membrane and glow consumers use
+  the same smoothed sustained/onset values. No model, VAD, STT, TTS or semantic
+  authority is added.
+- The point buffer grows from four to eight floats per particle (at most 1.25 KiB
+  for 40 points). Draw count and noise samples stay fixed; tiny point fragments
+  gain simple shape/color math. Wider on-screen coverage may increase fill cost.
+  Representative GPU performance and human perception remain open.

@@ -307,14 +307,31 @@ Visual diagnostics may expose stale or frozen energy to a human but never acquir
 VAD, STT, interruption or cancellation authority. Section 14 of v1 keeps the
 detailed feature, expiry, privacy and mapping questions for a strong-model pass.
 
+The current renderer-only AmbientReactivity accepts existing input/output
+envelopes and the reported input peak. The input adapter validates, correlates
+and ages source samples; this visual layer alone owns response attack/release
+(sustained 60/180 ms, onset 25/180 ms, interrupted release 120 ms), with a
+50 ms integration cap and a zero neutral state. It exposes normalized sustained
+and onset values and bounded particle perturbations: at most +0.14 Orb units of
+spread, +30% orbit rate, and +26% opacity. Existing body relief, membrane lift
+and glow remain bounded consumers of those same smoothed values. There is no
+new speech/semantic inference or audio extractor. Later input/output waveform,
+frequency and semantic channels require real upstream evidence and timing tests.
+Suspending the visual clock clears held visual energy; resume uses only fresh
+reported input and does not advance orbital phases for the hidden interval.
+
 ## Richness must use spare compute
 
 The orbiting key must actually register as moving illumination, glints and a gentle
 day/night depth change, with a believable ambient fill. Mathematical light presence
-alone is not an acceptance criterion. Particle richness should preserve slow inclined
-orbits while offering a wider high-end population, diverse size/shape/colour and
-longer reach into the black viewport. Low-power tiers remain sparse. Later activity
-may add restrained XYZ movement only from timely audio/waveform evidence.
+alone is not an acceptance criterion. WebGL particles now form a seeded near-biased
+field with middle and sparse far paths, warm copper/gold variation, small shape and
+opacity differences, independent orbit planes and slow radial wandering. Their
+environmental frame does not rotate with pointer orientation; depth testing handles
+body/membrane occlusion. Existing 12/24/40 counts and four draws remain, so richer
+high-end populations still require measured spare compute. Canvas intentionally
+retains no particles. Later activity may add restrained XYZ movement only from
+timely audio/waveform evidence.
 
 Voice capture, STT, interruption, first model content, inference, UI response, TTS
 and playback take priority. The current v1 caps, including `mobile_2020`, four

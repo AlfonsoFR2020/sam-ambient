@@ -52,21 +52,22 @@ in [Roadmap](ROADMAP.md).
   are weak fill. Fixed-body WebGL pixels show spatial variation with light phase,
   but human visibility, ambient depth and restrained glints remain unverified.
   Measure each tier on representative hardware before further art-direction tuning.
-- **Particles:** current low/medium/high budgets are 12/24/40 points, and the
-  density slider only reveals a share of that cap. Explore roughly 5–10× the high
-  count when measured hardware headroom permits while keeping lightweight tiers.
-  Diversify size, shape/appearance and colour, retain slow inclined orbits, and
-  extend their atmosphere beyond the current 1.1–1.4 Orb-radius shell. Their short
-  reach is a geometry/lifetime assumption, not viewport clipping; the shader also
-  fades particles behind the Orb. Later use actual waveform/activity features for
-  modest XYZ perturbations instead of arbitrary randomness. Profile point fill and
-  overdraw before raising caps.
+- **Particles:** WebGL now has a seeded, biased 1.2–2.45 radius field with varied
+  paths, size, opacity and warm pigment; rear particles outside the silhouette
+  survive depth testing. Counts remain 12/24/40 and the density slider reveals
+  a share of that cap. Check whether the sparse tail actually gives useful
+  atmosphere on desktop and mobile; viewport clipping still limits the farthest
+  paths. Explore roughly 5–10× the high-end population only after point-fill,
+  overdraw and model-coexistence measurements preserve lightweight tiers.
+  Later actual waveform/semantic evidence may add modest XYZ perturbations.
 - **Moderately high priority - audio-reactive embodiment and diagnostics:** complete
   the strong-model checkpoints in [Visual Engine v1](VISUAL_ENGINE_V1.md#14-future-direction-audio-reactive-embodiment-and-diagnostics)
   before implementation. Evaluate a bounded feature extractor, independent
   input/output observability, coherent procedural mappings, diagnostic fixtures and
   an owner-facing high-level settings concept without weakening v1 geometry, draw,
   cadence, privacy or fallback constraints.
+  The new visual-only sustained/onset layer is a bounded destination for existing
+  envelopes, not a feature extractor or proof of useful live voice embodiment.
 - Compare a workload-aware quality governor, high-end/demo richness and Orb Lab
   contact sheets using deterministic state/audio fixtures. Protect first-token,
   inference, audio and UI latency; do not treat visual FPS alone as acceptance.

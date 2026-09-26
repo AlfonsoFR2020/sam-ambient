@@ -9,7 +9,13 @@ import {
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
 import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
 import type { MotionEvaluator, MotionFrame } from "./motion";
-import { PARTICLE_GOLD, PARTICLE_VISIBILITY_HASH } from "./particles";
+import {
+  PARTICLE_COPPER,
+  PARTICLE_GOLD,
+  PARTICLE_RADIAL_WANDER,
+  PARTICLE_VERTICAL_WANDER,
+  PARTICLE_VISIBILITY_HASH,
+} from "./particles";
 import type { RenderBudget } from "./quality";
 import { HALO_OPACITY_SCALE } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -160,40 +166,59 @@ void main(){
 
 export const PARTICLE_VERTEX = `#version 300 es
 precision highp float;
-layout(location=0) in vec4 a_particle;
+layout(location=0) in vec4 a_orbit;
+layout(location=1) in vec4 a_style;
 uniform float u_phase;
+uniform float u_drift_phase;
 uniform float u_excitation;
+uniform float u_spread;
+uniform float u_opacity_boost;
 uniform float u_radius;
 uniform float u_point_scale;
 uniform float u_density;
 uniform vec2 u_scale;
-uniform mat3 u_object_orientation;
 out float v_alpha;
+out float v_tint;
+out float v_shape;
 void main(){
-  float rank=fract(a_particle.x*${PARTICLE_VISIBILITY_HASH.toFixed(3)});
-  float cadence=rank<.5?1.:2.;
-  float direction=rank<.25?-1.:1.;
-  float angle=a_particle.x+u_phase*cadence*direction;
-  float shell=a_particle.y+.015*sin(angle+a_particle.x);
-  float incline=a_particle.z;
-  vec3 point=vec3(cos(angle)*shell,sin(angle)*shell,0.);
-  point.yz=mat2(cos(incline),-sin(incline),sin(incline),cos(incline))*point.yz;
-  point.xz=mat2(cos(a_particle.x),-sin(a_particle.x),sin(a_particle.x),cos(a_particle.x))*point.xz;
-  point=u_object_orientation*point*u_radius;
+  float rank=fract(a_orbit.x*${PARTICLE_VISIBILITY_HASH.toFixed(3)});
+  // a_style.y is an integer harmonic, so a wrapped phase has no seam.
+  float angle=a_orbit.x+u_phase*a_style.y;
+  float radius=a_orbit.y+${PARTICLE_RADIAL_WANDER.toFixed(3)}*sin(u_drift_phase*abs(a_style.y)+a_orbit.x)
+    +u_spread*(.35+.65*rank);
+  vec3 point=vec3(cos(angle)*radius,sin(angle)*radius,
+    ${PARTICLE_VERTICAL_WANDER.toFixed(3)}*sin(2.*angle+a_orbit.x));
+  float incline=a_orbit.z;
+  point.yz=mat2(cos(incline),sin(incline),-sin(incline),cos(incline))*point.yz;
+  point.xz=mat2(cos(a_orbit.w),sin(a_orbit.w),-sin(a_orbit.w),cos(a_orbit.w))*point.xz;
+  point*=u_radius;
   float visible=step(rank,u_density)*step(.0001,u_density);
-  v_alpha=smoothstep(-.08,.2,point.z)*(.64+u_excitation*.26)*visible;
+  // Depth testing against body/membrane handles occlusion; off-silhouette rear
+  // particles remain visible as a subdued part of the surrounding volume.
+  v_alpha=min(.85,a_style.z*(1.+u_opacity_boost)*(.74+.26*smoothstep(-2.2,2.2,point.z)))*visible;
+  v_tint=a_style.w;
+  v_shape=fract(a_orbit.x*.73+a_orbit.w*.31);
   gl_Position=vec4(point.xy*u_scale,-point.z*.25,1.);
-  gl_PointSize=a_particle.w*u_point_scale*(1.12+u_excitation*.48);
+  gl_PointSize=a_style.x*u_point_scale*(1.08-.25*smoothstep(1.2,2.45,a_orbit.y))*(1.+u_excitation*.2);
 }`;
 
 const PARTICLE_FRAGMENT = `#version 300 es
 precision highp float;
 in float v_alpha;
+in float v_tint;
+in float v_shape;
 out vec4 color;
 void main(){
-  float distanceFromCenter=length(gl_PointCoord-vec2(.5))*2.;
+  vec2 uv=(gl_PointCoord-vec2(.5))*2.;
+  float aspect=mix(.82,1.18,v_shape);
+  float distanceFromCenter=length(vec2(uv.x*aspect,uv.y/aspect));
   float alpha=v_alpha*(1.-smoothstep(.46,1.,distanceFromCenter));
-  color=vec4(vec3(${PARTICLE_GOLD.red.toFixed(3)},${PARTICLE_GOLD.green.toFixed(3)},${PARTICLE_GOLD.blue.toFixed(3)})*alpha,alpha);
+  vec3 pigment=mix(
+    vec3(${PARTICLE_COPPER.red.toFixed(3)},${PARTICLE_COPPER.green.toFixed(3)},${PARTICLE_COPPER.blue.toFixed(3)}),
+    vec3(${PARTICLE_GOLD.red.toFixed(3)},${PARTICLE_GOLD.green.toFixed(3)},${PARTICLE_GOLD.blue.toFixed(3)}),
+    v_tint
+  );
+  color=vec4(pigment*alpha,alpha);
 }`;
 
 const HALO_VERTEX = `#version 300 es
@@ -297,7 +322,9 @@ const arrayResource = (
   gl.bindBuffer(gl.ARRAY_BUFFER, vertex);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 16, 0);
+  gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 32, 0);
+  gl.enableVertexAttribArray(1);
+  gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 32, 16);
   gl.bindVertexArray(null);
   return { vao, vertex, count };
 };
@@ -383,11 +410,13 @@ export class WebGLBackend implements RendererBackend {
   };
   private readonly particleUniforms: {
     readonly phase: WebGLUniformLocation;
+    readonly driftPhase: WebGLUniformLocation;
     readonly excitation: WebGLUniformLocation;
+    readonly spread: WebGLUniformLocation;
+    readonly opacityBoost: WebGLUniformLocation;
     readonly radius: WebGLUniformLocation;
     readonly pointScale: WebGLUniformLocation;
     readonly scale: WebGLUniformLocation;
-    readonly orientation: WebGLUniformLocation;
     readonly density: WebGLUniformLocation;
   };
   private readonly motion: MotionEvaluator;
@@ -457,11 +486,13 @@ export class WebGLBackend implements RendererBackend {
     };
     this.particleUniforms = {
       phase: location(gl, this.particleProgram, "u_phase"),
+      driftPhase: location(gl, this.particleProgram, "u_drift_phase"),
       excitation: location(gl, this.particleProgram, "u_excitation"),
+      spread: location(gl, this.particleProgram, "u_spread"),
+      opacityBoost: location(gl, this.particleProgram, "u_opacity_boost"),
       radius: location(gl, this.particleProgram, "u_radius"),
       pointScale: location(gl, this.particleProgram, "u_point_scale"),
       scale: location(gl, this.particleProgram, "u_scale"),
-      orientation: location(gl, this.particleProgram, "u_object_orientation"),
       density: location(gl, this.particleProgram, "u_density"),
     };
     this.motion = motion;
@@ -520,8 +551,6 @@ export class WebGLBackend implements RendererBackend {
     gl.uniformMatrix3fv(this.orbUniforms.orientation, false, matrix);
     gl.useProgram(this.peelProgram);
     gl.uniformMatrix3fv(this.peelUniforms.orientation, false, matrix);
-    gl.useProgram(this.particleProgram);
-    gl.uniformMatrix3fv(this.particleUniforms.orientation, false, matrix);
   }
 
   resize(width: number, height: number, dpr: number): void {
@@ -584,7 +613,10 @@ export class WebGLBackend implements RendererBackend {
     gl.depthMask(false);
     bindProgram(gl, this.particleProgram);
     gl.uniform1f(this.particleUniforms.phase, frame.particlePhase);
+    gl.uniform1f(this.particleUniforms.driftPhase, frame.particleDriftPhase);
     gl.uniform1f(this.particleUniforms.excitation, frame.particleExcitation);
+    gl.uniform1f(this.particleUniforms.spread, frame.reactivity.particleSpread);
+    gl.uniform1f(this.particleUniforms.opacityBoost, frame.reactivity.particleOpacity);
     gl.uniform1f(this.particleUniforms.radius, frame.radius);
     gl.uniform1f(this.particleUniforms.pointScale, this.pointScale);
     gl.uniform1f(this.particleUniforms.density, this.settings.particleDensity);

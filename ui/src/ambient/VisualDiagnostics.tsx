@@ -138,6 +138,16 @@ export function VisualDiagnostics({
           <dd>{snapshot.fieldTwists.map((value) => fixed(value)).join(" / ")}</dd>
           <dt>Palette balance</dt>
           <dd>{fixed(snapshot.paletteBalance)}</dd>
+          <dt>Particle field</dt>
+          <dd>
+            {snapshot.particleBudget} budget / {fixed(snapshot.particleDensity)} density /{" "}
+            {fixed(snapshot.particleSpread, 3)} spread
+          </dd>
+          <dt>Visual reactivity</dt>
+          <dd>
+            {fixed(snapshot.reactivitySustained)} sustained / {fixed(snapshot.reactivityOnset)}{" "}
+            onset
+          </dd>
           <dt>Flow / peel</dt>
           <dd>
             {fixed(snapshot.flowRate, 3)} rad/s / {fixed(snapshot.peelTravel)}

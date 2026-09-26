@@ -2,6 +2,18 @@
 
 ## Unreleased — 0.2.3
 
+### Visual embodiment II
+
+- Extend WebGL particles from a narrow near-Orb band into a seeded, near-biased
+  field with a sparse far tail, varied calm paths and restrained warm appearance.
+  Rear particles outside the silhouette remain visible; points behind the body
+  or membrane are still occluded. Keep 12/24/40 tier counts and the four draws.
+- Add a bounded visual-only sustained/onset response using existing reported
+  envelopes. It smooths particle spread, rate and opacity around a fully living
+  autonomous baseline without adding audio capture or new model semantics.
+- Add deterministic geometry/reactivity tests and an isolated WebGL depth and
+  coverage regression. Human perception and representative GPU cost remain open.
+
 ### Visual embodiment I
 
 - Replace WebGL peel ribbons with seeded curved membrane fragments that share

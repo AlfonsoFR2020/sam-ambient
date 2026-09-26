@@ -45,17 +45,19 @@ persisted as user intent.
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. `dev` implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded
-continuous state/audio motion, batched fragmented peels, analytic lights and sparse
-particles, with Canvas/CSS fallback. It also implements direct pointer/touch rotation,
+continuous state/audio motion, batched lifted membrane fragments, analytic lights
+and sparse environmental particles, with Canvas/CSS fallback. It also implements direct pointer/touch rotation,
 damped inertia, persisted typed visual settings, profile-capped mobile emulation and
 measured quality adaptation. Spectral extraction, prosodic mapping and human visual
-acceptance remain pending. The WebGL body and current peels share a deterministic
+acceptance remain pending. The WebGL body and membrane share a deterministic
 object-space field. Engine-owned elapsed-time clocks separately advance orientation,
-relief, material shears, palette balance, lighting and particles; pointer ownership
+relief, material shears, palette evolution, lighting and particles; pointer ownership
 temporarily reduces the material rate without resetting phase. The existing quality
 tiers retain the same broad field, with optional fine samples only on higher tiers.
-[Sam Orb visual direction](VISUAL_DIRECTION.md) records the intended outer membrane
-and remaining artistic work. The compiled static bundle uses the real event decoder
+A visual-only AmbientReactivity layer smooths existing reported envelopes into
+bounded perturbations of those autonomous systems; it carries no microphone,
+speech or conversational authority. [Sam Orb visual direction](VISUAL_DIRECTION.md)
+records remaining artistic work. The compiled static bundle uses the real event decoder
 and reducer.
 
 ## Native shell boundary

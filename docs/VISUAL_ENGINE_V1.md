@@ -122,10 +122,14 @@ orbit with radii `(1.6,1.3,1.5)`, inclinations up to 35 degrees and angular spee
 0.07–0.13 rad/s. Clamp audio speed modulation to +35%. Particles marking the light
 positions may be slightly brighter but must not look like satellites with trails.
 
-Use 12/24/40 seeded camera-facing particle quads on shells of radius 1.1–1.4.
-Analytic phases produce slow orbit and bounded +/-0.025 radial drift; no simulation,
-sorting, spawning or unbounded lifetimes. Fade particles behind the sphere using
-depth testing. Particle density scales visibility, not random emission rate.
+Use 12/24/40 seeded camera-facing points. The v0.2.3 field supersedes the
+original 1.1–1.4 narrow shell with a near-biased 1.2–2.45 radius distribution
+and a sparse far tail. Integer-harmonic wrapped phases produce varied slow
+orbits; an independent slow phase gives bounded +/-0.035 radial drift. No
+simulation, sorting, spawning or unbounded lifetimes. Depth testing occludes
+particles behind the body or membrane at overlapping pixels, while rear points
+outside the silhouette remain visible. Particle density scales visibility,
+not random emission rate; Canvas retains its no-particle fallback.
 
 Lighting: vertex-shader geometry/displacement, fragment-shader diffuse light,
 one broad specular lobe (Blinn exponent 24), rim term `(1-dot(N,V))^3` and bounded

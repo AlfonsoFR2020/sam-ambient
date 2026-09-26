@@ -126,6 +126,52 @@ describe("continuous Visual Engine motion", () => {
     expect(b.evaluate(input, 50, reactive, RENDER_BUDGETS.low).envelope).toBeGreaterThan(0);
   });
 
+  it("perturbs particles without coupling surface, palette, or orientation clocks", () => {
+    const silent = new MotionEvaluator(42);
+    const stimulated = new MotionEvaluator(42);
+    const baseline = visualInput("speaking");
+    const active = visualInput("speaking", {
+      audio: { output: { receivedMs: 0, envelope: 0.8 } },
+    });
+    silent.evaluate(baseline, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    stimulated.evaluate(active, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    for (let time = 50; time <= 500; time += 50) {
+      silent.evaluate(baseline, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+      stimulated.evaluate(active, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    }
+    expect(silent.currentFrame.reactivity.particleSpread).toBe(0);
+    expect(stimulated.currentFrame.reactivity.particleSpread).toBeGreaterThan(0);
+    expect(stimulated.currentFrame.particlePhase).toBeGreaterThan(
+      silent.currentFrame.particlePhase,
+    );
+    expect(stimulated.currentFrame.fieldPhase1).toBe(silent.currentFrame.fieldPhase1);
+    expect(stimulated.currentFrame.paletteBalance).toBe(silent.currentFrame.paletteBalance);
+    expect(stimulated.currentFrame.paletteContrast).toBe(silent.currentFrame.paletteContrast);
+    expect(stimulated.currentFrame.spin).toBe(silent.currentFrame.spin);
+    expect(stimulated.currentFrame.particleDriftPhase).toBe(silent.currentFrame.particleDriftPhase);
+  });
+
+  it("drops stale visual energy across suspension without advancing autonomous phases", () => {
+    const evaluator = new MotionEvaluator(42);
+    const active = visualInput("speaking", {
+      audio: { output: { receivedMs: 0, envelope: 1 } },
+    });
+    evaluator.evaluate(active, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    evaluator.evaluate(active, 50, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
+    expect(evaluator.currentFrame.reactivity.sustained).toBeGreaterThan(0);
+    const before = evaluator.currentFrame.particlePhase;
+    evaluator.pauseClock();
+    const resumed = evaluator.evaluate(
+      active,
+      5_000,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      RENDER_BUDGETS.low,
+    );
+    expect(resumed.reactivity.sustained).toBe(0);
+    expect(resumed.reactivity.particleSpread).toBe(0);
+    expect(resumed.particlePhase).toBe(before);
+  });
+
   it("advects broad field phases visibly over ten seconds without requiring audio", () => {
     const evaluator = new MotionEvaluator(42);
     const input = visualInput("idle");
@@ -189,6 +235,11 @@ describe("continuous Visual Engine motion", () => {
     expect(slow.currentFrame.fieldPhase1).toBeCloseTo(fast.currentFrame.fieldPhase1, 6);
     expect(slow.currentFrame.fieldPhase2).toBeCloseTo(fast.currentFrame.fieldPhase2, 6);
     expect(slow.currentFrame.fieldTwist1).toBeCloseTo(fast.currentFrame.fieldTwist1, 6);
+    expect(slow.currentFrame.particlePhase).toBeCloseTo(fast.currentFrame.particlePhase, 6);
+    expect(slow.currentFrame.particleDriftPhase).toBeCloseTo(
+      fast.currentFrame.particleDriftPhase,
+      6,
+    );
     expect(slow.currentFrame.paletteBalance).toBeCloseTo(fast.currentFrame.paletteBalance, 6);
     expect(slow.currentFrame.paletteContrast).toBeCloseTo(fast.currentFrame.paletteContrast, 6);
   });

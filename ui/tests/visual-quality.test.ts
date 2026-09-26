@@ -7,12 +7,14 @@ import {
   PEEL_EDGE_LIFT,
   PEEL_LIFT_RANGE,
   PEEL_WIDTH_RANGE,
+  particleParameters,
 } from "../src/visual-engine/geometry";
 import {
   PARTICLE_GOLD,
   PARTICLE_POINT_SIZE_RANGE,
-  PARTICLE_SHELL_RANGE,
+  PARTICLE_RADIUS_RANGE,
   particleIsVisible,
+  particlePosition,
 } from "../src/visual-engine/particles";
 import {
   effectivePixelRatio,
@@ -123,25 +125,38 @@ describe("visual quality and geometry", () => {
   });
 
   it("creates bounded deterministic sparse particle parameters", () => {
+    const lowParticles = createParticleGeometry(RENDER_BUDGETS.low.particles).vertices;
+    const highParticles = createParticleGeometry(RENDER_BUDGETS.high.particles).vertices;
+    expect(highParticles.slice(0, lowParticles.length)).toEqual(lowParticles);
     for (const budget of Object.values(RENDER_BUDGETS)) {
       const particles = createParticleGeometry(budget.particles);
       expect(particles.count).toBe(budget.particles);
       expect(particles.vertices).toEqual(createParticleGeometry(budget.particles).vertices);
+      const radii: number[] = [];
       for (let index = 0; index < particles.count; index++) {
-        expect(particles.vertices[index * 4 + 1]).toBeGreaterThanOrEqual(
-          PARTICLE_SHELL_RANGE.minimum,
-        );
-        expect(particles.vertices[index * 4 + 1]).toBeLessThanOrEqual(PARTICLE_SHELL_RANGE.maximum);
-        expect(particles.vertices[index * 4 + 3]).toBeGreaterThanOrEqual(
-          PARTICLE_POINT_SIZE_RANGE.minimum,
-        );
-        expect(particles.vertices[index * 4 + 3]).toBeLessThanOrEqual(
-          PARTICLE_POINT_SIZE_RANGE.maximum,
-        );
+        const particle = particleParameters(particles.vertices, index);
+        radii.push(particle.radius);
+        expect(particle.radius).toBeGreaterThanOrEqual(PARTICLE_RADIUS_RANGE.minimum);
+        expect(particle.radius).toBeLessThanOrEqual(PARTICLE_RADIUS_RANGE.maximum);
+        expect(particle.size).toBeGreaterThanOrEqual(PARTICLE_POINT_SIZE_RANGE.minimum);
+        expect(particle.size).toBeLessThanOrEqual(PARTICLE_POINT_SIZE_RANGE.maximum);
+        expect([-2, -1, 1, 2]).toContain(particle.cadence);
+        expect(particle.opacity).toBeGreaterThanOrEqual(0.38);
+        expect(particle.opacity).toBeLessThanOrEqual(0.73);
+        expect(particle.tint).toBeGreaterThanOrEqual(0);
+        expect(particle.tint).toBeLessThanOrEqual(1);
+        for (const phase of [0, 0.7, 2.9, 5.6]) {
+          const position = particlePosition(particle, phase, phase * 0.32);
+          expect(Math.hypot(...position)).toBeGreaterThan(1.16);
+          expect(Math.hypot(...position)).toBeLessThan(2.5);
+        }
       }
+      expect(radii.filter((value) => value < 1.45).length).toBeGreaterThan(2);
+      expect(radii.filter((value) => value >= 1.45 && value < 2).length).toBeGreaterThan(1);
+      expect(radii.some((value) => value > 2)).toBe(true);
       const inclinations = Array.from(
         { length: particles.count },
-        (_, index) => particles.vertices[index * 4 + 2],
+        (_, index) => particleParameters(particles.vertices, index).inclination,
       );
       expect(Math.max(...inclinations) - Math.min(...inclinations)).toBeGreaterThan(1);
     }
@@ -152,7 +167,8 @@ describe("visual quality and geometry", () => {
     const visibleAt = (density: number) => {
       let count = 0;
       for (let index = 0; index < particles.count; index++) {
-        if (particleIsVisible(particles.vertices[index * 4], density)) count++;
+        if (particleIsVisible(particleParameters(particles.vertices, index).phase, density))
+          count++;
       }
       return count;
     };

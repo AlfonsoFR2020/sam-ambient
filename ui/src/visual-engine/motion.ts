@@ -1,3 +1,4 @@
+import { AmbientReactivity, type AmbientReactivityFrame } from "./ambient-reactivity";
 import type { RenderBudget } from "./quality";
 import type { AudioFeatures, VisualEngineSettings, VisualForeground, VisualInputV1 } from "./types";
 
@@ -121,6 +122,8 @@ export interface MotionFrame {
   ripplePhase: number;
   lightPhase: number;
   particlePhase: number;
+  particleDriftPhase: number;
+  reactivity: Readonly<AmbientReactivityFrame>;
   fieldPhase1: number;
   fieldPhase2: number;
   fieldTwist1: number;
@@ -181,8 +184,9 @@ const live = (
   if (!feature || value === undefined || !Number.isFinite(value)) return 0;
   const age = Math.max(0, now - feature.receivedMs);
   if (age >= 1000) return 0;
-  const release = age <= 250 ? 1 : Math.exp(-(age - 250) / 180);
-  return unit(value) * release;
+  // The input adapter has already aged accepted samples. Keep a safety TTL for
+  // direct producers, then leave visual attack/release to AmbientReactivity.
+  return unit(value);
 };
 
 /** One continuous, mutable evaluator. The returned frame is reused on every call. */
@@ -191,8 +195,7 @@ export class MotionEvaluator {
   private streamKey?: string;
   private lastInterruptSerial = 0;
   private initialized = false;
-  private envelope = 0;
-  private peak = 0;
+  private readonly ambientReactivity = new AmbientReactivity();
   private radius = 1;
   private glow = 0.24;
   private renderedGlow = 0.24;
@@ -221,6 +224,7 @@ export class MotionEvaluator {
   private ripplePhase: number;
   private lightPhase: number;
   private particlePhase: number;
+  private particleDriftPhase: number;
   private peelTravel: number;
   private fieldPhase1: number;
   private fieldPhase2: number;
@@ -240,6 +244,7 @@ export class MotionEvaluator {
     this.ripplePhase = wrap(phase * 2.17);
     this.lightPhase = wrap(phase * 2.71);
     this.particlePhase = wrap(phase * 3.13);
+    this.particleDriftPhase = wrap(phase * 1.37 + 0.7);
     this.peelTravel = wrap(phase * 0.41);
     this.fieldPhase1 = wrap(phase * 0.83);
     this.fieldPhase2 = wrap(phase * 1.37);
@@ -259,6 +264,8 @@ export class MotionEvaluator {
       ripplePhase: this.ripplePhase,
       lightPhase: this.lightPhase,
       particlePhase: this.particlePhase,
+      particleDriftPhase: this.particleDriftPhase,
+      reactivity: this.ambientReactivity.current,
       fieldPhase1: this.fieldPhase1,
       fieldPhase2: this.fieldPhase2,
       fieldTwist1: SURFACE_FLOW.shearAmplitudeA * Math.sin(this.fieldTwistPhase1),
@@ -291,11 +298,21 @@ export class MotionEvaluator {
   /** Drop wall-clock time while no surface is visible; spatial phase is not caught up. */
   pauseClock(): void {
     this.lastMs = undefined;
+    // Resume from current evidence, never from energy held while hidden.
+    this.ambientReactivity.reset();
   }
 
   /** Read-only diagnostic view; the renderer still owns the single reused frame. */
   get currentFrame(): Readonly<MotionFrame> {
     return this.frame;
+  }
+
+  private get envelope(): number {
+    return this.ambientReactivity.current.sustained;
+  }
+
+  private get peak(): number {
+    return this.ambientReactivity.current.onset;
   }
 
   /** Pointer ownership slows material transport without resetting or banking phase. */
@@ -385,8 +402,7 @@ export class MotionEvaluator {
         input.interaction.foreground === "interrupted" && input.interaction.interruptSerial > 0
           ? 1
           : 0;
-      this.envelope = 0;
-      this.peak = 0;
+      this.ambientReactivity.reset();
     } else if (input.interaction.interruptSerial > this.lastInterruptSerial) {
       this.interruption = 1;
       this.lastInterruptSerial = input.interaction.interruptSerial;
@@ -409,15 +425,16 @@ export class MotionEvaluator {
           live(input.audio.input, safeNow, input.audio.input?.transient),
         )
       : 0;
-    const combined = Math.max(outputEnvelope, inputEnvelope * 0.55);
-    const response = ease(combined * settings.audioReactivity);
     const inputResponse = ease(inputEnvelope * settings.audioReactivity);
-    const peakResponse = ease(actualPeak * settings.audioReactivity);
-    const audioTau = this.interruption > 0 ? 0.12 : combined > this.envelope ? 0.06 : 0.18;
-    this.envelope = spatiallyFrozen ? 0 : blend(this.envelope, response, dt, audioTau);
-    this.peak = spatiallyFrozen
-      ? 0
-      : blend(this.peak, peakResponse, dt, peakResponse > this.peak ? 0.025 : 0.18);
+    this.ambientReactivity.update(
+      inputEnvelope,
+      outputEnvelope,
+      actualPeak,
+      settings.audioReactivity,
+      dt,
+      this.interruption > 0,
+      spatiallyFrozen,
+    );
 
     const motion = spatiallyFrozen ? 0 : motionRateScale(settings.motionIntensity);
     const flowTarget = this.pointerHolding ? SURFACE_FLOW.pointerRate : 1;
@@ -436,7 +453,11 @@ export class MotionEvaluator {
       this.breathPhase = wrap(this.breathPhase + (TWO_PI / 8.17) * motion * dt);
       this.ripplePhase = wrap(this.ripplePhase + (0.31 + this.envelope * 0.21) * motion * dt);
       this.lightPhase = wrap(this.lightPhase + 0.086 * speedInfluence * motion * dt);
-      this.particlePhase = wrap(this.particlePhase + 0.18 * speedInfluence * motion * dt);
+      this.particlePhase = wrap(
+        this.particlePhase +
+          0.18 * (1 + this.ambientReactivity.current.particleDrift) * motion * dt,
+      );
+      this.particleDriftPhase = wrap(this.particleDriftPhase + 0.051 * motion * dt);
       this.fieldPhase1 = wrap(this.fieldPhase1 + SURFACE_FLOW.phaseA * surfaceFlowDelta);
       this.fieldPhase2 = wrap(this.fieldPhase2 + SURFACE_FLOW.phaseB * surfaceFlowDelta);
       this.fieldTwistPhase1 = wrap(this.fieldTwistPhase1 + SURFACE_FLOW.shearA * surfaceFlowDelta);
@@ -508,6 +529,7 @@ export class MotionEvaluator {
     this.frame.ripplePhase = this.ripplePhase;
     this.frame.lightPhase = this.lightPhase;
     this.frame.particlePhase = this.particlePhase;
+    this.frame.particleDriftPhase = this.particleDriftPhase;
     this.frame.fieldPhase1 = this.fieldPhase1;
     this.frame.fieldPhase2 = this.fieldPhase2;
     this.frame.fieldTwist1 = SURFACE_FLOW.shearAmplitudeA * Math.sin(this.fieldTwistPhase1);
