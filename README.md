@@ -56,8 +56,8 @@ Sam is an experiment toward that kind of computer: one in which interaction is
 centered on **goals, conversation, context, and dynamically generated
 interfaces**, rather than on manually traversing fixed software structures.
 
-**Status:** **Sam 0.2.2 alpha release candidate.** Windows is the currently
-validated local-provider and native-package path. Full Linux compatibility is
+**Status:** **Sam 0.2.2 alpha published; 0.2.3 under development.** Windows is
+the currently validated local-provider and native development path. Full Linux compatibility is
 deferred to the dedicated 0.3.0 Linux review; the remaining hosted Ubuntu Python-test
 failure is a known non-blocker under the current Windows-first alpha policy.
 Packaging, signing, antivirus review, and final human voice/visual/native acceptance

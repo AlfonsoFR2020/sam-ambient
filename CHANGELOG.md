@@ -2,6 +2,24 @@
 
 ## Unreleased — 0.2.3
 
+Draft owner-facing [release notes](docs/RELEASE_NOTES_0.2.3.md) and the
+[RC1 scope and validation gates](docs/RELEASE_READINESS_0.2.3.md) summarize the
+implemented boundary. Package and runtime versions remain 0.2.2 until deliberate
+RC preparation.
+
+### Audio health and local controls
+
+- Pin committed generations to an exact provider/model route. Typed local
+  controls switch available inference targets atomically or stop speaking;
+  active generation blocks switching, unavailable targets do not silently fall
+  back, and a synthetic typed final-STT control can be consumed before model
+  commitment. Natural-language recognition and named profiles remain deferred.
+- Keep capture, STT, synthesis and playback health separate. Preserve typed
+  conversation and committed answer text through audio failure; retire input or
+  output activity for failed/cancelled operations. Bound pull-based audio buffers
+  and close nested synthesis iterators after early playback failure. These paths
+  have fake-device/service coverage, not physical acceptance.
+
 ### Conversation and voice lifecycle reliability
 
 - Correlate active, candidate and retired turns across text, voice, interruption

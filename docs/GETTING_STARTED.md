@@ -12,7 +12,8 @@ browser/platform refuses, close the stopped page manually. Closing the dedicated
 window also stops Sam; closing a fallback browser tab does not. A second launch
 for the same root reports the existing local UI instead of competing for ports.
 
-Sam 0.2.2 alpha currently runs from source with a local app-window/browser UI.
+Sam 0.2.2 alpha is published; the current development tree contains unreleased
+0.2.3 changes and runs from source with a local app-window/browser UI.
 There is no accepted installer yet. The integrated native shell is release-candidate
 source, not an accepted package. Install prerequisites yourself; Sam downloads no
 models.

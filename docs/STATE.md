@@ -2,6 +2,10 @@
 
 Updated: 2026-09-27
 
+The 0.2.3 implementation boundary and unverified release gates are classified in
+[0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Current package/runtime
+metadata remains 0.2.2 until deliberate RC preparation.
+
 ## MVP status
 
 - v0.2.3 local controls: typed `switch_inference` and `stop_speaking` intents
@@ -40,7 +44,7 @@ Updated: 2026-09-27
   Discovery that began before a turn and finishes during it rejects the swap
   without invalidating the active model. A later idle selection can serve the
   following turn. Configuration has one endpoint per provider setting, not
-  named server/API profiles; voice control interception and real hot switching
+  named server/API profiles; natural-language voice control and real hot switching
   remain future work. Source audit mapped capture/STT/synthesis/playback
   cancellation and gain ownership; no physical audio path was run.
 - v0.2.3 conversation lifecycle keeps `TurnManager` as core state authority and
@@ -437,9 +441,9 @@ Updated: 2026-09-27
   session-resume policy and broader physical voice reliability. The 0.2.2 deterministic
   slice now defines Stop/Mute and current-session transcript behavior without claiming
   physical acoustic acceptance.
-- Full audio-reactive embodiment, a richer diagnostics/status console and the
-  outer membrane remain future work; the first developer visual overlay is only
-  engine-local and introduces no new audio extractor, protocol or DSP.
+- Full physical audio-reactive embodiment and a richer diagnostics/status console
+  remain future work. The current membrane and envelope-driven visual consumer
+  exist; they do not add an audio feature extractor or prove live voice reactivity.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 

@@ -1,9 +1,11 @@
 # Post-0.2 engineering backlog
 
-This is the detailed backlog for work after the Sam 0.2.x alpha. It records
+This is the detailed backlog beyond the frozen 0.2.3 scope. It records
 observed limitations and planned directions without implying acceptance, priority,
 or a commitment to a specific implementation. Milestone-level sequencing remains
-in [Roadmap](ROADMAP.md).
+in [Roadmap](ROADMAP.md). Candidate gates and required integrated checks are in
+[0.2.3 release readiness](RELEASE_READINESS_0.2.3.md); the items below are not
+automatically release blockers.
 
 ## Release-known issues
 
@@ -98,9 +100,10 @@ in [Roadmap](ROADMAP.md).
   streams and TTS playback, including mute during transcription, speech overlap,
   disconnect while output is active, and provider disappearance mid-response.
   Synthetic state tests do not establish acoustic ownership or actual timing.
-- Full audio pass: verify audio-frame ownership and buffer lifetime, queue bounds
-  and backpressure, device loss/recovery, shutdown/reconnect, real STT/TTS timing,
-  and audio-derived visual activity using controlled physical integration later.
+- Full audio pass: extend the established frame-ownership, queue-bound and
+  backpressure guarantees to device loss/recovery, shutdown/reconnect, real
+  STT/TTS timing and audio-derived visual activity using controlled physical
+  integration later.
   Source inspection and fake slow-consumer tests established the current bounded
   pull path, but real PortAudio overflow/underflow frequency, System TTS whole-WAV
   memory cost, and whether metered output tracks emitted sound need measurement.
@@ -115,8 +118,8 @@ in [Roadmap](ROADMAP.md).
 - Add an owner setting for transcript retention during interruption.
 - Physically accept LM Studio automatic model load and ownership-aware eject behavior.
 - Define model/context/VRAM policy.
-- Add named, trusted connection profiles and an atomic inference-target switch
-  contract for server/API profile, provider and model. Keep credentials outside
+- Add named, trusted connection profiles to extend the existing atomic inference
+  target switch from provider/model to profile/provider/model. Keep credentials outside
   route identity and diagnostics. Add natural-language classification and spoken
   acknowledgement at the existing typed final-STT control seam; extend it to
   active-response barge-in only after defining interruption policy. Validate

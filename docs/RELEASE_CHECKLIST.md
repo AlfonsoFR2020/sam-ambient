@@ -1,7 +1,13 @@
 # Release checklist
 
-`0.2.0` and `0.2.1` are published; `0.2.2` is being prepared. Release approval and
-publication remain human-controlled and do not follow automatically from a green branch.
+`0.2.0`, `0.2.1` and `0.2.2` are published; `0.2.3` is unreleased. Release
+approval and publication remain human-controlled and do not follow automatically
+from a green branch.
+
+The [0.2.3 readiness and scope freeze](RELEASE_READINESS_0.2.3.md) defines the
+small RC1 source-candidate gates and distinguishes them from final public-artifact
+approval. Keep the checklist below for release execution; it is not evidence that
+the integrated paths have already passed.
 
 ## Patch-alpha cadence
 
@@ -12,17 +18,18 @@ the public alpha. Do not batch unrelated completed work merely to make a release
 larger, and do not publish a knowingly broken intermediate commit for calendar
 cadence. The unit is a green coherent checkpoint.
 
-The generation-terminality, delivery-handoff and core-interaction reliability commits
-`4e22d16`, `95ed273` and `2d3bd3a` are integrated into `dev` as the focused `0.2.2`
-candidate. Deferred UI, session, visual, language and Linux work must not expand this
-release. Preparation is not publication approval.
+The generation-terminality, delivery-handoff and core-interaction reliability work
+shipped in 0.2.2. The subsequent UI, visual, provider, conversation and audio
+checkpoints are on the unreleased 0.2.3 development line. Preparation is not
+publication approval.
 
-The 0.2.2 alpha is Windows-first. The exact versioned release-preparation commit must
-pass its hosted Windows Quality, package-smoke and Native Package gates after push.
+The patch alpha remains Windows-first. The exact versioned release-preparation
+commit must pass its hosted Windows Quality, package-smoke and Native Package
+gates after push.
 Hosted Ubuntu reaches Python tests but retains a known unresolved failure. That Linux
-issue is explicitly deferred to the dedicated 0.3.0 compatibility review and does
-not block this patch alpha; do not mark the Ubuntu job successful artificially or
-weaken its tests.
+issue is explicitly deferred to the dedicated 0.3.0 compatibility review and
+does not by itself block this Windows-first patch alpha; do not mark the Ubuntu
+job successful artificially or weaken its tests.
 
 ## Future release checklist
 

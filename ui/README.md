@@ -24,5 +24,5 @@ together; the frontend receives production protocol/tool events and sends
 versioned controls, including exact-invocation approval and global capability
 revocation. `?transport=core` selects the bridge manually.
 
-The native Tauri host metadata is intentionally only a scaffold until Rust and
-the target platform build prerequisites are available.
+The integrated Tauri host is development source. Native packaging, signing,
+security-software review and combined acceptance remain release gates.
