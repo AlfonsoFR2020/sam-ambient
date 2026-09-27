@@ -156,6 +156,77 @@ It does not install applications or download models.
 
 ## Voice and providers
 
+### Inference route and future spoken controls
+
+The configured provider/model pair is currently spread across `ProviderSettings`,
+CLI discovery arguments, `SamRuntime.provider`/`_model`, and the selected provider
+adapter. `ProviderSettings.base_url` and `local_compatible_url` identify at most
+one configured endpoint each; there is no named connection/server/API profile
+catalog. The runtime's immutable `CommittedInferenceTarget` is a per-turn snapshot
+of the provider instance, router, model and availability reason. Both text and
+committed voice turns capture it before asynchronous generation. Every model and
+tool round routes explicitly through that snapshot. The selected provider/model
+may change only for later turns. Discovery adopts provider/router/model together
+without yielding; a scan completing during an active turn rejects the new route
+and preserves the current one. A blocked or unavailable explicit selection cannot
+fall back to another provider/model. Startup's existing sole-model auto-selection
+is separate from an explicit switch.
+
+Future routing identity needs `(configured profile id, provider id, model id)`.
+The profile should resolve a preconfigured endpoint and credential reference
+outside conversation text. URLs may be configuration values, but secrets, API
+keys and authorization headers must never be route identity, protocol payload or
+diagnostic data. A trusted atomic switch must validate a complete target against
+its own catalog, then publish accepted, unavailable, ambiguous, discovery-needed
+or failed status. It must not show a newly selected route before the next turn
+can actually use it. A switch requested during generation, STT or speech must
+never mutate a committed generation's route; applying it after the active turn
+or after explicit interruption is a later product policy decision. Current
+selection is blocked while a response is active.
+
+Voice-controlled switching is explicit product direction, alongside other future
+voice-operable controls. Today `VoiceInputPipeline` publishes a provisional STT
+final and `TurnManager` commits the turn before `_start_voice_turn` submits the
+model request. A future trusted local control-intent hook belongs after final STT
+and before ordinary turn commitment/model submission; a recognized control
+utterance must execute through the same typed control boundary and never become
+an ordinary inference prompt. UI/TTS acknowledgement can follow separately.
+Intent classification and spoken acknowledgement are not implemented. Diagnostics
+may record route IDs and switch outcome, never credentials or a full utterance.
+
+### Audio ownership checkpoint
+
+`SamRuntime._voice_loop` creates a `VoiceInputPipeline` for ordinary capture;
+`_monitor_barge_in` independently creates a capture iterator while a response
+is active. `SoundDeviceCapture.frames` opens a PortAudio input stream per iterator,
+binds its cancellation token to abort, yields copied PCM frames, and closes the
+stream in `finally`. The ordinary pipeline owns its STT stream from VAD opening
+through finalization/cancellation; an interruption candidate has its own token,
+turn ID and STT stream. The whisper.cpp stream checks its original token and
+context cancellation ID, stops accepting frames after finalization, bounds its
+audio buffer and cancels the HTTP task on token cancellation. Retired candidate
+finals are checked against current turn/candidate identity before publication.
+
+`_deliver_assistant` owns one generation's speech queue entry, TTS iterator and
+`AudioOutput.play` call. System TTS owns its synthesis subprocess and PCM buffer
+until its iterator finishes or cancels; it kills/waits for subprocesses in
+`finally`. Playback owns a separate PortAudio output stream and closes it on
+completion/failure/cancellation. Generation/cancellation IDs guard delivery
+events and cancellation, while the speech queue/ledger track generated, queued
+and spoken text. These stages have separate resources but synthesis and playback
+share one generation token and run in one delivery task. The source audit found
+no demonstrated late audio callback that can revive a retired turn; device and
+real timing behavior remain unverified.
+
+`audio_settings.input_gain` is applied to `SoundDeviceCapture.set_gain` and read
+per yielded capture frame, so a setting change affects the active stream's next
+frame. `output_gain` is read when each synthesized PCM frame passes through
+`_metered_tts_frames`, before metering and playback, so it affects later frames
+in active playback. Both are bounded to 0–2 and persisted. Neither changes the
+OS device gain. The later full audio pass owns queue/backpressure and PCM buffer
+lifetime, device availability/shutdown/reconnect, audio-derived visual features,
+and real STT/TTS timing; this checkpoint does not validate those paths.
+
 Bounded PCM frames connect sounddevice, WebRTC VAD, the loopback whisper.cpp
 final-STT adapter, the turn state machine, and system TTS. Interruption first
 becomes a candidate. During playback, VAD alone cannot commit it: final candidate

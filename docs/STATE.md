@@ -4,6 +4,16 @@ Updated: 2026-09-27
 
 ## MVP status
 
+- v0.2.3 inference checkpoint: each committed text or voice generation now
+  snapshots its provider instance, router, model eligibility and selected model
+  before asynchronous work. Model streaming uses that explicit provider only;
+  a later selection cannot redirect an existing turn or silently fall back.
+  Discovery that began before a turn and finishes during it rejects the swap
+  without invalidating the active model. A later idle selection can serve the
+  following turn. Configuration has one endpoint per provider setting, not
+  named server/API profiles; voice control interception and real hot switching
+  remain future work. Source audit mapped capture/STT/synthesis/playback
+  cancellation and gain ownership; no physical audio path was run.
 - v0.2.3 conversation lifecycle keeps `TurnManager` as core state authority and
   projects its correlated turn/generation state through one frontend reducer.
   Uncommitted voice STT finals stay provisional; typed input is identified as

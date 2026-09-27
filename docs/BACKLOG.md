@@ -98,6 +98,9 @@ in [Roadmap](ROADMAP.md).
   streams and TTS playback, including mute during transcription, speech overlap,
   disconnect while output is active, and provider disappearance mid-response.
   Synthetic state tests do not establish acoustic ownership or actual timing.
+- Full audio pass: verify audio-frame ownership and buffer lifetime, queue bounds
+  and backpressure, device loss/recovery, shutdown/reconnect, real STT/TTS timing,
+  and audio-derived visual activity using controlled physical integration later.
 
 ## Behavior and settings
 
@@ -109,6 +112,13 @@ in [Roadmap](ROADMAP.md).
 - Add an owner setting for transcript retention during interruption.
 - Physically accept LM Studio automatic model load and ownership-aware eject behavior.
 - Define model/context/VRAM policy.
+- Add named, trusted connection profiles and an atomic inference-target switch
+  contract for server/API profile, provider and model. Keep credentials outside
+  route identity and diagnostics. Add a general local voice-control interception
+  point after final STT and before ordinary turn commitment; classify and
+  acknowledge switches without sending control utterances to the model. Decide
+  whether an active STT/generation/speech turn defers the switch or requires
+  explicit interruption. Validate real provider switch and reconnect timing.
 - Later expose supported per-model system prompt, temperature, context, and generation
   settings through typed provider capabilities rather than universal assumptions.
 

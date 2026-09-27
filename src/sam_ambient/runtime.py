@@ -311,6 +311,16 @@ class ProviderRefresh:
 ProviderRefresher = Callable[[str | None, str | None], Awaitable[ProviderRefresh]]
 
 
+@dataclass(frozen=True, slots=True)
+class CommittedInferenceTarget:
+    """The provider instance, router and model eligibility captured for one turn."""
+
+    provider: LLMProvider = field(repr=False)
+    router: ProviderRouter = field(repr=False)
+    model: str | None
+    unavailable_reason: str | None
+
+
 class _ToolCallAccumulator:
     """Collect OpenAI fragments while accepting complete Ollama calls."""
 
@@ -577,6 +587,11 @@ class SamRuntime:
     def active_generation_id(self) -> str | None:
         return self._active_generation_id
 
+    def _committed_inference_target(self) -> CommittedInferenceTarget:
+        return CommittedInferenceTarget(
+            self.provider, self.router, self._model, self._model_unavailable_reason
+        )
+
     def _default_tools(self) -> ToolRegistry:
         clipboard = TkClipboardAdapter()
         write_tools = (FilesWriteTool(self.paths),) if self.config.workspace_writable else ()
@@ -745,10 +760,9 @@ class SamRuntime:
                 )
                 return
             if not self._active_done.is_set():
-                await result.provider.aclose()
+                if result.provider is not self.provider:
+                    await result.provider.aclose()
                 reason = "A response started during model discovery; wait for it, then Rescan"
-                self._model_unavailable_reason = reason
-                self._model = None
                 await self._publish_provider_status("failed", reason=reason, request_id=request_id)
                 return
             previous = self.provider
@@ -818,6 +832,7 @@ class SamRuntime:
         token = self.cancellations.create()
         terminal = asyncio.Event()
         response_done = asyncio.Event()
+        inference_target = self._committed_inference_target()
         self._active_generation_id = generation_id
         self._active_turn_id = turn_id
         self._active_token = token
@@ -842,6 +857,7 @@ class SamRuntime:
                 turn_manager=turn_manager,
                 started=started,
                 origin_command_id=origin_command_id,
+                inference_target=inference_target,
             )
         )
         self._tasks.add(task)
@@ -867,6 +883,7 @@ class SamRuntime:
         turn_manager: TurnManager | None,
         started: asyncio.Event | None,
         origin_command_id: str | None = None,
+        inference_target: CommittedInferenceTarget,
     ) -> None:
         try:
             if predecessor_done is not None:
@@ -884,6 +901,7 @@ class SamRuntime:
                 turn_manager=turn_manager,
                 started=started,
                 origin_command_id=origin_command_id,
+                inference_target=inference_target,
             )
         except asyncio.CancelledError:
             await self._publish_generation_terminal(
@@ -953,6 +971,7 @@ class SamRuntime:
         turn_manager: TurnManager | None = None,
         started: asyncio.Event | None = None,
         origin_command_id: str | None = None,
+        inference_target: CommittedInferenceTarget,
     ) -> None:
         timing_started = time.monotonic()
         first_model_output = False
@@ -1025,7 +1044,7 @@ class SamRuntime:
             if started is not None:
                 started.set()
             stage = "model"
-            model = await self._select_model(cancellation)
+            model = await self._select_model(cancellation, inference_target)
             history = await self._conversation_context(session_id, turn_id)
             messages = [
                 Message(MessageRole.SYSTEM, _SYSTEM_POLICY),
@@ -1042,12 +1061,13 @@ class SamRuntime:
                 )
                 calls = _ToolCallAccumulator()
                 assistant_parts: list[str] = []
-                async for event in self.router.stream_chat(
+                async for event in inference_target.router.stream_chat(
                     messages,
                     self.tools.provider_schemas(),
                     model=model,
                     cancellation=cancellation,
-                    policy=RoutingPolicy.LOCAL_PREFERRED,
+                    policy=RoutingPolicy.EXPLICIT,
+                    explicit_provider=inference_target.provider.id,
                     allow_cloud=self.config.allow_cloud,
                     contains_private_context=contains_private_context,
                     allow_private_context_to_cloud=False,
@@ -1109,11 +1129,13 @@ class SamRuntime:
                 if (
                     self.state is not None
                     and assistant_text
-                    and self.provider.data_boundary is DataBoundary.LOCAL
+                    and inference_target.provider.data_boundary is DataBoundary.LOCAL
                 ):
                     try:
                         await asyncio.to_thread(
-                            self.state.remember_local_model, self.provider.id, self._model
+                            self.state.remember_local_model,
+                            inference_target.provider.id,
+                            model,
                         )
                     except Exception:
                         log.warning("Could not save optional last-good local model preference")
@@ -1615,6 +1637,7 @@ class SamRuntime:
             self._active_done.clear()
             started = asyncio.Event()
             turn_manager = self.voice_turns
+            inference_target = self._committed_inference_target()
             task = asyncio.create_task(
                 self._run_turn(
                     transcript.text,
@@ -1627,6 +1650,7 @@ class SamRuntime:
                     voice_managed=True,
                     turn_manager=turn_manager,
                     started=started,
+                    inference_target=inference_target,
                 )
             )
             self._tasks.add(task)
@@ -1942,15 +1966,23 @@ class SamRuntime:
                     self.cancellations.discard(candidate_token.cancellation_id)
         return None
 
-    async def _select_model(self, cancellation: CancellationToken) -> str:
-        if self._model_unavailable_reason:
-            raise RuntimeError(self._model_unavailable_reason)
-        if self._model is None:
-            models = await self.provider.list_models(cancellation)
+    async def _select_model(
+        self,
+        cancellation: CancellationToken,
+        target: CommittedInferenceTarget | None = None,
+    ) -> str:
+        target = target or self._committed_inference_target()
+        if target.unavailable_reason:
+            raise RuntimeError(target.unavailable_reason)
+        if target.model is None:
+            models = await target.provider.list_models(cancellation)
             if not models:
-                raise RuntimeError(f"{self.provider.id} has no available model")
-            self._model = models[0].id
-        return self._model
+                raise RuntimeError(f"{target.provider.id} has no available model")
+            model = models[0].id
+            if target.provider is self.provider and self._model is None:
+                self._model = model
+            return model
+        return target.model
 
     async def _publish_generation(
         self,

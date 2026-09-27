@@ -397,3 +397,17 @@ master specification are recorded here.
   text. Do not bind protocol lifecycle directly to
   shader controls. Existing capture endpoint, provider stream and 30-second
   command ACK bounds retain their owners; no arbitrary STT/TTS deadline is added.
+
+## D-027 — Pin committed inference routes and reserve trusted voice control
+
+- **Accepted:** 2026-09-27. Snapshot provider instance, router, selected model
+  and availability when a text or voice generation commits. Use explicit routing
+  for every model/tool round. A scan finishing after a turn starts rejects its
+  new route without clearing the running route. Future selections affect future
+  turns; unavailable selections never silently fall back.
+- Future route identity includes a trusted named connection profile as well as
+  provider and model. The current single-endpoint settings are insufficient for
+  multiple servers or APIs; do not encode credentials in route IDs, diagnostics
+  or spoken text. A future voice-control intent layer intercepts final STT before
+  ordinary turn commitment and uses typed local controls. Active-turn switch
+  timing and spoken acknowledgement remain deferred product behavior.

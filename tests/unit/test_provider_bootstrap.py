@@ -566,10 +566,87 @@ def test_runtime_rescan_never_swaps_provider_during_an_active_turn(tmp_path):
             assert runtime._provider_refresh_task is not None
             await runtime._provider_refresh_task
             assert runtime.provider is initial
-            assert "response started" in (runtime._model_unavailable_reason or "")
+            assert runtime._model_unavailable_reason is None
             selected.aclose.assert_awaited_once()
         finally:
             runtime._active_done.set()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_committed_turn_keeps_its_route_and_following_turn_uses_new_target(tmp_path):
+    class RoutedProvider(ConversationProvider):
+        def __init__(self, provider_id, answer, gate=None):
+            super().__init__()
+            self.id = provider_id
+            self.answer = answer
+            self.gate = gate
+            self.started = asyncio.Event()
+            self.models_used = []
+
+        async def stream_chat(self, messages, tools, *, model, cancellation):
+            self.models_used.append(model)
+            self.started.set()
+            if self.gate is not None:
+                await self.gate.wait()
+            from sam_ambient.core.providers import ModelEvent, ModelEventKind
+
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, self.answer)
+            yield ModelEvent(ModelEventKind.COMPLETED)
+
+    async def scenario():
+        release_scan = asyncio.Event()
+        release_turn = asyncio.Event()
+        first = RoutedProvider("ollama", "answer A", release_turn)
+        second = RoutedProvider("lm-studio", "answer B")
+
+        async def refresh(_provider, _model):
+            await release_scan.wait()
+            return ProviderRefresh(second, "model-B", "owner selection")
+
+        runtime = SamRuntime(
+            first,
+            RuntimeConfig(tmp_path, port=0, model="model-A"),
+            provider_refresher=refresh,
+        )
+        try:
+            # Discovery may start while idle, then finish after a turn commits.
+            await runtime._refresh_providers("lm-studio", "model-B", False)
+            runtime.submit_user_message("first")
+            release_scan.set()
+            await runtime._provider_refresh_task
+            await asyncio.wait_for(first.started.wait(), 2)
+            assert runtime.provider is first
+            assert runtime._model == "model-A"
+            assert runtime._model_unavailable_reason is None
+            assert first.models_used == ["model-A"]
+            release_turn.set()
+            await asyncio.wait_for(runtime._active_done.wait(), 2)
+
+            await runtime._refresh_providers("lm-studio", "model-B", False)
+            await runtime._provider_refresh_task
+            assert runtime.provider is second
+            runtime.submit_user_message("second")
+            await asyncio.wait_for(runtime._active_done.wait(), 2)
+            assert second.models_used == ["model-B"]
+        finally:
+            release_turn.set()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_committed_route_snapshot_does_not_follow_mutable_runtime_selection(tmp_path):
+    async def scenario():
+        provider = ConversationProvider()
+        runtime = SamRuntime(provider, RuntimeConfig(tmp_path, model="model-A"))
+        try:
+            committed = runtime._committed_inference_target()
+            runtime._model = "model-B"
+            assert await runtime._select_model(CancellationToken(), committed) == "model-A"
+            assert await runtime._select_model(CancellationToken()) == "model-B"
+        finally:
             await runtime.close()
 
     asyncio.run(scenario())

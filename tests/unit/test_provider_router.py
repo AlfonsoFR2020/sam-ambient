@@ -165,3 +165,19 @@ def test_explicit_cloud_provider_still_respects_cloud_permission() -> None:
             policy=RoutingPolicy.EXPLICIT,
             explicit_provider="cloud",
         )
+
+
+def test_explicit_unavailable_target_does_not_fall_back_to_another_provider() -> None:
+    selected = FakeProvider("selected", DataBoundary.LOCAL, healthy=False)
+    other = FakeProvider("other", DataBoundary.LOCAL)
+    router = ProviderRouter(registry_with(selected, other))
+
+    with pytest.raises(ProviderUnavailable):
+        collect(
+            router,
+            policy=RoutingPolicy.EXPLICIT,
+            explicit_provider="selected",
+        )
+
+    assert other.health_calls == 0
+    assert other.stream_calls == 0
