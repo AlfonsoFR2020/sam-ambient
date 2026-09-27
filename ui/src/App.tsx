@@ -824,7 +824,7 @@ export default function App() {
                 onSubmit={(event) => {
                   event.preventDefault();
                   const text = textRequest.trim();
-                  if (!text || state.connection !== "connected") return;
+                  if (!text || state.connection !== "connected" || !state.model) return;
                   applyAction({ type: "user_message.submit", text });
                   setTextRequest("");
                 }}
@@ -842,8 +842,17 @@ export default function App() {
                   />
                   <button
                     type="submit"
-                    title="Send this text request to Sam."
-                    disabled={!textRequest.trim() || pending || state.connection !== "connected"}
+                    title={
+                      state.model
+                        ? "Send this text request to Sam."
+                        : "Select an available conversational model first."
+                    }
+                    disabled={
+                      !textRequest.trim() ||
+                      pending ||
+                      state.connection !== "connected" ||
+                      !state.model
+                    }
                   >
                     Send
                   </button>
@@ -879,7 +888,12 @@ export default function App() {
               </ControlButton>
               <ControlButton
                 help="Stop the current spoken response without shutting down Sam."
-                disabled={state.connection !== "connected"}
+                disabled={
+                  state.connection !== "connected" ||
+                  !["SPEAKING", "INTERRUPTION_CANDIDATE", "RECOVERING"].includes(
+                    state.conversationalState,
+                  )
+                }
                 onClick={() => applyAction({ type: "stop_speaking" })}
               >
                 Stop speaking

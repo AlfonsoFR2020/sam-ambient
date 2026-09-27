@@ -513,6 +513,7 @@ class SamRuntime:
             reason=config.capability_reason,
         )
         self._active_generation_id: str | None = None
+        self._active_turn_id: str | None = None
         self._active_token: CancellationToken | None = None
         self._active_terminal: asyncio.Event | None = None
         self._active_response_done: asyncio.Event | None = None
@@ -630,7 +631,11 @@ class SamRuntime:
         await self.events.close()
 
     async def _submit_from_control(self, text: str, command: ControlCommand) -> None:
-        self.submit_user_message(text, session_id=command.session_id or self.session_id)
+        self.submit_user_message(
+            text,
+            session_id=command.session_id or self.session_id,
+            origin_command_id=command.command_id,
+        )
 
     async def _request_shutdown(self, command: ControlCommand) -> None:
         if command.session_id != self.session_id:
@@ -788,7 +793,13 @@ class SamRuntime:
             )
         )
 
-    def submit_user_message(self, text: str, *, session_id: str | None = None) -> str:
+    def submit_user_message(
+        self,
+        text: str,
+        *,
+        session_id: str | None = None,
+        origin_command_id: str | None = None,
+    ) -> str:
         if self._closed:
             raise RuntimeError("runtime is closed")
         normalized = text.strip()
@@ -808,6 +819,7 @@ class SamRuntime:
         terminal = asyncio.Event()
         response_done = asyncio.Event()
         self._active_generation_id = generation_id
+        self._active_turn_id = turn_id
         self._active_token = token
         self._active_terminal = terminal
         self._active_response_done = response_done
@@ -829,6 +841,7 @@ class SamRuntime:
                 predecessor_done=predecessor_done,
                 turn_manager=turn_manager,
                 started=started,
+                origin_command_id=origin_command_id,
             )
         )
         self._tasks.add(task)
@@ -853,6 +866,7 @@ class SamRuntime:
         predecessor_done: asyncio.Event | None,
         turn_manager: TurnManager | None,
         started: asyncio.Event | None,
+        origin_command_id: str | None = None,
     ) -> None:
         try:
             if predecessor_done is not None:
@@ -869,6 +883,7 @@ class SamRuntime:
                 response_done=response_done,
                 turn_manager=turn_manager,
                 started=started,
+                origin_command_id=origin_command_id,
             )
         except asyncio.CancelledError:
             await self._publish_generation_terminal(
@@ -881,10 +896,12 @@ class SamRuntime:
                 payload={
                     "reason": cancellation.reason or "cancelled",
                     "outcome": self._cancellation_outcome(cancellation.reason),
+                    **({"command_id": origin_command_id} if origin_command_id else {}),
                 },
             )
             if self._active_generation_id == generation_id:
                 self._active_generation_id = None
+                self._active_turn_id = None
                 self._active_token = None
                 self._active_terminal = None
                 self._active_response_done = None
@@ -935,9 +952,11 @@ class SamRuntime:
         voice_managed: bool = False,
         turn_manager: TurnManager | None = None,
         started: asyncio.Event | None = None,
+        origin_command_id: str | None = None,
     ) -> None:
         timing_started = time.monotonic()
         first_model_output = False
+        stage = "turn"
         manager = turn_manager or (self.voice_turns if voice_managed else None)
         try:
             cancellation.raise_if_cancelled()
@@ -952,12 +971,21 @@ class SamRuntime:
                 )
             if manager is not None:
                 if manager.state is VoiceState.IDLE:
+                    accepted = manager.accept_text_turn(
+                        self._next_event_ms(),
+                        turn_id=turn_id,
+                        cancellation_id=cancellation.cancellation_id,
+                        text=text,
+                    )
                     await self._publish_all(
-                        manager.accept_text_turn(
-                            self._next_event_ms(),
-                            turn_id=turn_id,
-                            cancellation_id=cancellation.cancellation_id,
-                            text=text,
+                        tuple(
+                            replace(
+                                event,
+                                payload={**event.payload, "command_id": origin_command_id},
+                            )
+                            if origin_command_id and event.type == EventType.TRANSCRIPT_FINAL
+                            else event
+                            for event in accepted
                         )
                     )
                 await self._publish_all(
@@ -974,7 +1002,12 @@ class SamRuntime:
                     session_id=session_id,
                     turn_id=turn_id,
                     cancellation_id=cancellation.cancellation_id,
-                    payload={"role": "user", "text": text},
+                    payload={
+                        "role": "user",
+                        "text": text,
+                        "source": "text",
+                        **({"command_id": origin_command_id} if origin_command_id else {}),
+                    },
                 )
                 await self._publish_generation(
                     EventType.VOICE_STATE_CHANGED,
@@ -991,6 +1024,7 @@ class SamRuntime:
             )
             if started is not None:
                 started.set()
+            stage = "model"
             model = await self._select_model(cancellation)
             history = await self._conversation_context(session_id, turn_id)
             messages = [
@@ -1129,6 +1163,7 @@ class SamRuntime:
                     cancellation_id=cancellation.cancellation_id,
                     payload={"role": "assistant", "text": assistant_text},
                 )
+                stage = "tts"
                 await self._deliver_assistant(
                     assistant_text,
                     session_id=session_id,
@@ -1153,6 +1188,7 @@ class SamRuntime:
                 payload={
                     "reason": cancellation.reason or "cancelled",
                     "outcome": self._cancellation_outcome(cancellation.reason),
+                    **({"command_id": origin_command_id} if origin_command_id else {}),
                 },
             )
             if (
@@ -1181,16 +1217,53 @@ class SamRuntime:
                 )
         except Exception as error:
             log.exception("Turn failed (%s): %s", type(error).__name__, str(error) or "no detail")
-            if manager is not None and manager.state not in {
+            if stage == "tts" and terminal.is_set():
+                await self.events.publish(
+                    ProtocolEvent(
+                        type=EventType.TTS_FAILED,
+                        monotonic_ms=self._next_event_ms(),
+                        session_id=session_id,
+                        turn_id=turn_id,
+                        generation_id=generation_id,
+                        cancellation_id=cancellation.cancellation_id,
+                        payload={
+                            "reason": str(error)[:500] or type(error).__name__,
+                            "status": "failed",
+                        },
+                    )
+                )
+                if manager is not None and manager.state not in {
+                    VoiceState.ERROR,
+                    VoiceState.OFFLINE,
+                }:
+                    await self._publish_all(
+                        tuple(
+                            event
+                            for event in manager.on_component_error(
+                                self._next_event_ms(),
+                                component="tts",
+                                reason=str(error)[:500] or type(error).__name__,
+                                generation_id=generation_id,
+                            )
+                            if event.type != EventType.COMPONENT_ERROR
+                        )
+                    )
+            elif manager is not None and manager.state not in {
                 VoiceState.ERROR,
                 VoiceState.OFFLINE,
             }:
+                failures = manager.on_component_error(
+                    self._next_event_ms(),
+                    component=stage,
+                    reason=str(error)[:500] or type(error).__name__,
+                    generation_id=generation_id,
+                )
                 await self._publish_all(
-                    manager.on_component_error(
-                        self._next_event_ms(),
-                        component="runtime",
-                        reason=str(error)[:500] or type(error).__name__,
-                        generation_id=generation_id,
+                    tuple(
+                        replace(event, payload={**event.payload, "command_id": origin_command_id})
+                        if origin_command_id and event.type == EventType.COMPONENT_ERROR
+                        else event
+                        for event in failures
                     ),
                     terminal=terminal,
                 )
@@ -1203,9 +1276,10 @@ class SamRuntime:
                     turn_id=turn_id,
                     cancellation_id=cancellation.cancellation_id,
                     payload={
-                        "component": "runtime",
+                        "component": stage,
                         "error": str(error)[:500],
                         "outcome": self._error_outcome(error),
+                        **({"command_id": origin_command_id} if origin_command_id else {}),
                     },
                 )
         finally:
@@ -1213,6 +1287,7 @@ class SamRuntime:
                 self.speech_queue.cancel_generation(generation_id, self._next_event_ms())
             if self._active_generation_id == generation_id:
                 self._active_generation_id = None
+                self._active_turn_id = None
                 self._active_token = None
                 self._active_terminal = None
                 self._active_response_done = None
@@ -1533,6 +1608,7 @@ class SamRuntime:
             terminal = asyncio.Event()
             response_done = asyncio.Event()
             self._active_generation_id = generation_id
+            self._active_turn_id = turn_id
             self._active_token = token
             self._active_terminal = terminal
             self._active_response_done = response_done
@@ -2064,12 +2140,31 @@ class SamRuntime:
 
     def _ready_event(self) -> ProtocolEvent:
         authority = self.capability_authority.snapshot
+        voice_state = self.voice_turns.state if self.voice is not None else VoiceState.IDLE
+        voice_is_current = self._active_generation_id is None or (
+            self.voice_turns.turn_id == self._active_turn_id
+        )
+        if self._active_generation_id is not None and self.voice is None:
+            ready_state = (
+                VoiceState.SPEAKING
+                if self._active_playback_generation_id == self._active_generation_id
+                else VoiceState.THINKING
+            )
+        elif self._active_generation_id is not None and not voice_is_current:
+            ready_state = VoiceState.COMMITTING
+        else:
+            ready_state = voice_state
+        active_state = ready_state not in {VoiceState.IDLE, VoiceState.ERROR, VoiceState.OFFLINE}
         return ProtocolEvent(
             type=EventType.SYSTEM_READY,
             monotonic_ms=self._next_event_ms(),
             session_id=self.session_id,
+            turn_id=(self._active_turn_id or self.voice_turns.turn_id) if active_state else None,
+            generation_id=(self._active_generation_id or self.voice_turns.generation_id)
+            if active_state
+            else None,
             payload={
-                "state": self.voice_turns.state.value if self.voice else "IDLE",
+                "state": ready_state.value,
                 "sam_version": __version__,
                 "microphone_enabled": self.controls.microphone_enabled,
                 "tts_output_enabled": self.controls.tts_output_enabled,

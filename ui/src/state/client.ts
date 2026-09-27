@@ -120,6 +120,7 @@ export class ProtocolClient {
       if (
         !this.running ||
         epoch !== this.epoch ||
+        !this.state.pendingCommandIds.includes(command.command_id) ||
         (discoveryCommand && this.state.providerDiscovery.requestId !== command.command_id)
       )
         return;
@@ -230,10 +231,16 @@ export class ProtocolClient {
         event.payload.request_id === this.state.providerDiscovery.requestId
           ? event.payload.request_id
           : undefined;
-      if (terminalDiscoveryId) {
-        this.commandTimeouts.get(terminalDiscoveryId)?.();
-        this.commandTimeouts.delete(terminalDiscoveryId);
-      }
+      const terminalTurnId =
+        ((event.type === "transcript.final" &&
+          event.payload.role === "user" &&
+          event.payload.candidate !== true) ||
+          event.type === "model.cancelled" ||
+          event.type === "component.error") &&
+        typeof event.payload.command_id === "string" &&
+        this.state.pendingCommandIds.includes(event.payload.command_id)
+          ? event.payload.command_id
+          : undefined;
       if (event.type === "control.acknowledged" || event.type === "control.rejected") {
         const id = event.payload.command_id;
         if (typeof id === "string") {
@@ -242,13 +249,17 @@ export class ProtocolClient {
         }
       }
       const reduced = reduceProtocolEvent(this.state, event);
+      const terminalCommandId =
+        reduced !== this.state ? (terminalDiscoveryId ?? terminalTurnId) : undefined;
+      if (terminalCommandId) {
+        this.commandTimeouts.get(terminalCommandId)?.();
+        this.commandTimeouts.delete(terminalCommandId);
+      }
       this.setState(
-        terminalDiscoveryId && reduced !== this.state
+        terminalCommandId
           ? {
               ...reduced,
-              pendingCommandIds: reduced.pendingCommandIds.filter(
-                (id) => id !== terminalDiscoveryId,
-              ),
+              pendingCommandIds: reduced.pendingCommandIds.filter((id) => id !== terminalCommandId),
             }
           : reduced,
       );

@@ -2,6 +2,22 @@
 
 ## Unreleased — 0.2.3
 
+### Conversation and voice lifecycle reliability
+
+- Correlate active, candidate and retired turns across text, voice, interruption
+  and reconnect; reject late STT/model/TTS events from obsolete work. Reconnect
+  snapshots report the active core turn and generation.
+- Keep final voice recognition provisional until turn commitment. Cancelled
+  capture publishes a terminal state and clears provisional text; capture
+  health can degrade without stopping a healthy model or spoken reply. A later
+  synthesis/playback failure now reports `tts.failed` without losing the
+  committed answer or rewriting model completion.
+- Let correlated text-turn events retire pending commands before a late ACK,
+  and ignore late rejection after acceptance. Disable new text submission
+  without an active model and show stage identity in diagnostics. Synthetic
+  core and fake-transport regressions cover the changes; physical audio and
+  real provider timing are still open.
+
 ### Provider and connection reliability
 
 - Correlate Rescan/model-select discovery events to the initiating command and

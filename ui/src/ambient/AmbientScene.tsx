@@ -74,6 +74,14 @@ export function AmbientScene({
       changes.push(`startup ${prior.startupLifecycle} → ${state.startupLifecycle}`);
     if (prior.conversationalState !== state.conversationalState)
       changes.push(`semantic state ${prior.conversationalState} → ${state.conversationalState}`);
+    if (prior.turnId !== state.turnId && state.turnId)
+      changes.push(`turn ${state.turnId.slice(0, 8)} active`);
+    if (prior.generationId !== state.generationId && state.generationId)
+      changes.push(`generation ${state.generationId.slice(0, 8)} active`);
+    if (state.transcript.length > prior.transcript.length) {
+      for (const entry of state.transcript.slice(prior.transcript.length))
+        changes.push(`${entry.role} turn committed`);
+    }
     if (prior.provider !== state.provider || prior.model !== state.model)
       changes.push(`provider/model ${state.provider ?? "none"} / ${state.model ?? "none"}`);
     if (prior.sttStatus !== state.sttStatus)

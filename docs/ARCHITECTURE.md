@@ -53,6 +53,40 @@ catalog and selection data are last-known only, and a new `system.ready` is the
 authoritative reconnect snapshot. Command acknowledgements have a bounded wait,
 while a terminal discovery event can itself release the command's pending UI state.
 
+`TurnManager` is the core authority for voice lifecycle transitions. A text turn
+is committed by the runtime (through `accept_text_turn` when voice is active);
+an uncommitted voice turn enters through
+capture, VAD and STT, then both use the same model generation, delivery ledger,
+cancellation token and speech path. Voice STT `transcript.final` is evidence,
+not commitment: only `turn.committed` adds the user utterance to the committed
+UI transcript. Typed `transcript.final` carries `source=text` and may commit at
+acceptance. The frontend reducer is a single correlated projection of core
+state, not a second independent conversation controller. It keeps a tentative
+candidate ID separate from the active turn, retires superseded/terminal IDs,
+and rejects late turn/generation events. An input pipeline that stops before
+commit publishes `stt.cancelled` and IDLE; this is idempotent and does not
+cancel an already committed model response. Capture health is reported apart
+from generation failure, so speech input loss cannot make a healthy output
+turn disappear. Model completion and speech delivery have separate terminal
+outcomes: a later synthesis/playback exception emits `tts.failed`, preserving
+the committed text and the model's completed result.
+
+Connection epochs reject callbacks from old sockets. A fresh `system.ready`
+snapshot carries the core's current turn/generation IDs when a turn is active;
+the frontend reattaches only that identity. Core text commands echo their
+originating command ID on acceptance or pre-acceptance terminal events. A
+correlated lifecycle event can release the pending UI command before its ACK;
+late ACK/rejection cannot reopen it. Rescan changes availability for future
+turns but never silently replaces the model already chosen for an active
+generation. The UI disables new text submission when no model is active.
+
+Capture endpoint waits are owned by `TurnManager`/`VoiceInputPipeline`, including
+the bounded candidate-duration path. Provider adapters own model stream and
+first-useful-content deadlines; the frontend owns a 30-second command ACK
+bound. There is no new universal STT/TTS/playback deadline in this pass.
+Deterministic tests prove state and correlation behavior; physical devices,
+actual provider timing, and real speech latency remain integration gates.
+
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. `dev` implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded

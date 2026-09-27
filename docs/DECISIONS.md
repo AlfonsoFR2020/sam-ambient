@@ -374,3 +374,26 @@ master specification are recorded here.
   stale active model presentation, startup-only failure blocking later success,
   and command pending state waiting unnecessarily for an acknowledgement after
   discovery had finished. Real provider timing still needs integrated validation.
+
+## D-026 — Keep core turn authority and correlate the frontend projection
+
+- **Accepted:** 2026-09-27. Keep `TurnManager` as the authoritative voice state
+  machine. Text acceptance and committed voice transcripts converge before
+  model generation; the frontend reducer projects the same lifecycle using
+  current, tentative candidate, and bounded retired turn/generation identities.
+  A candidate cannot replace the active identity until confirmed. Completed or
+  cancelled capture returns to IDLE; `transcript.final` from voice remains
+  provisional until `turn.committed`, while typed input is tagged `source=text`.
+- Input cancellation publishes one STT cancellation and IDLE transition without
+  touching a committed response. Terminal turns retire their identities, and
+  reconnect reattaches only IDs named by the core's `system.ready` snapshot.
+  Core text acceptance/early terminal events echo the initiating command ID so
+  the pending UI command can finish before a late acknowledgement. Command and
+  connection IDs remain separate from turn/generation/cancellation IDs.
+- Keep stage failures recoverable. `component.health` for capture changes speech
+  input status without changing a live generation; model/runtime failure
+  terminalizes the affected turn. A post-model synthesis/playback failure emits
+  `tts.failed` as a separate delivery terminal and retains committed answer
+  text. Do not bind protocol lifecycle directly to
+  shader controls. Existing capture endpoint, provider stream and 30-second
+  command ACK bounds retain their owners; no arbitrary STT/TTS deadline is added.

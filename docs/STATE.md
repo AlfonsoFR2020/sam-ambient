@@ -1,9 +1,22 @@
 # Sam implementation state
 
-Updated: 2026-09-26
+Updated: 2026-09-27
 
 ## MVP status
 
+- v0.2.3 conversation lifecycle keeps `TurnManager` as core state authority and
+  projects its correlated turn/generation state through one frontend reducer.
+  Uncommitted voice STT finals stay provisional; typed input is identified as
+  text and both paths converge on the same model/delivery turn. Capture stop
+  emits one `stt.cancelled` and returns to IDLE. Superseded, failed, completed,
+  disconnected and restarted turns retire their IDs, so late callbacks cannot
+  revive them; `system.ready` names the active turn on reconnect. Text command
+  origin IDs let accepted/terminal turn events retire pending UI controls before
+  a late acknowledgement. Capture health is separate from model/TTS state;
+  synthesis/playback failure emits `tts.failed` after model completion without
+  replacing the model's terminal result or deleting committed answer text.
+  Synthetic core and fake-transport tests cover these transitions; real core,
+  physical speech, provider timing and audio playback remain unverified here.
 - v0.2.3 provider discovery now has an explicit frontend operation state and
   command/connection correlation. Rescan and model selection carry the originating
   command id through core discovery events; older scans and prior-connection events

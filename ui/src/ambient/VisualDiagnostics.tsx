@@ -54,6 +54,16 @@ export function VisualDiagnostics({
           </dd>
           <dt>Semantic state</dt>
           <dd>{state.conversationalState}</dd>
+          <dt>Active turn</dt>
+          <dd>{known(state.turnId)}</dd>
+          <dt>Active generation</dt>
+          <dd>{known(state.generationId)}</dd>
+          {state.candidateTurnId && (
+            <>
+              <dt>Candidate turn</dt>
+              <dd>{state.candidateTurnId}</dd>
+            </>
+          )}
           <dt>Provider</dt>
           <dd>
             {known(state.provider)}
@@ -92,6 +102,12 @@ export function VisualDiagnostics({
           )}
           <dt>Speech recognition</dt>
           <dd>{known(state.sttStatus)}</dd>
+          <dt>Speech input health</dt>
+          <dd>
+            {state.voiceInputHealth
+              ? `${state.voiceInputHealth.status}${state.voiceInputHealth.retrying ? " (retrying)" : ""}${state.voiceInputHealth.reason ? ` · ${state.voiceInputHealth.reason}` : ""}`
+              : "Not reported"}
+          </dd>
           <dt>Speech synthesis</dt>
           <dd>{known(state.ttsBackend)}</dd>
           <dt>Microphone</dt>

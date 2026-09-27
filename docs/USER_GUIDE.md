@@ -35,14 +35,20 @@ requirements only. End users will not need them merely to run a packaged Sam bui
 ## Conversation and status
 
 Open **Controls** for text input and settings. Type into **Text request** and
-press Send. Recent committed turns survive reconnects/restarts. Transcript is
-optional; provisional text differs from committed text and interrupted assistant
+press Send once the local service reports an active conversational model. Send
+stays unavailable while the service/model is unavailable; a current response
+is not silently redirected to a different model during Rescan. Recent committed
+turns survive reconnects/restarts. Transcript is
+optional; final speech recognition remains provisional until Sam commits the
+user turn. Interrupted assistant
 content is marked rather than pretending all generated text was heard.
 
 The discreet state label distinguishes Listening, Transcribing, Thinking and
 Speaking. Microphone/Voice controls mute input/output. System-default devices
 are used; voice requires the external speech dependencies described in Getting
-started. Real speaker-mode recognition and interruption reliability remain under
+started. Cancelling capture returns the listening state to idle; a speech-input
+failure can be retried from **Conversation → Retry speech input** while an
+already-running text response remains available. Real speaker-mode recognition and interruption reliability remain under
 validation. Text mode remains useful when voice is unavailable.
 
 Speech follows the assistant response language where there is enough text to
@@ -105,7 +111,8 @@ normal `--ui-mode browser` tab does not stop Sam.
 
 - **Microphone** controls listening; text input remains available while muted.
 - **Voice** controls future spoken replies; text responses remain visible.
-- **Stop speaking** cancels only queued/current speech and playback.
+- **Stop speaking** is available during current speech and cancels only
+  queued/current speech and playback.
 - **Emergency stop** cancels current model, tools, queued speech and playback.
 - **Disable all capabilities** revokes computer-action authority and pending
   approvals, preventing new tool execution. The model cannot restore authority.
@@ -154,7 +161,8 @@ the current Controls/dialog surface or exits fullscreen, never Sam. Reload does
 not restart Sam or its model provider.
 
 **Controls → Diagnostics** opens a scrollable status panel with the current core
-connection, reported provider/model/STT/TTS/microphone state, renderer, quality,
+connection, reported provider/model/STT/TTS/microphone state, speech-input health,
+active turn/generation identity, renderer, quality,
 frame estimate, visual phases, audio envelopes and recent events. The overlay has
 a Close button and closes when Controls opens. Ctrl+Alt+V is an
 optional desktop shortcut. Missing readings are shown as unreported; this panel

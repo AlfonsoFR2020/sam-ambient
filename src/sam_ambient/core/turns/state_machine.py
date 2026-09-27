@@ -83,6 +83,7 @@ _ALLOWED_TRANSITIONS: dict[VoiceState, frozenset[VoiceState]] = {
     ),
     VoiceState.USER_SPEAKING: frozenset(
         {
+            VoiceState.IDLE,
             VoiceState.LISTENING,
             VoiceState.ENDPOINT_CANDIDATE,
             VoiceState.ERROR,
@@ -90,7 +91,13 @@ _ALLOWED_TRANSITIONS: dict[VoiceState, frozenset[VoiceState]] = {
         }
     ),
     VoiceState.ENDPOINT_CANDIDATE: frozenset(
-        {VoiceState.USER_SPEAKING, VoiceState.COMMITTING, VoiceState.ERROR, VoiceState.OFFLINE}
+        {
+            VoiceState.IDLE,
+            VoiceState.USER_SPEAKING,
+            VoiceState.COMMITTING,
+            VoiceState.ERROR,
+            VoiceState.OFFLINE,
+        }
     ),
     VoiceState.COMMITTING: frozenset({VoiceState.THINKING, VoiceState.ERROR, VoiceState.OFFLINE}),
     VoiceState.THINKING: frozenset(
@@ -247,9 +254,29 @@ class TurnManager:
             self._event(
                 EventType.TRANSCRIPT_FINAL,
                 at_ms,
-                {"role": "user", "text": normalized, "confidence": 1.0},
+                {"role": "user", "text": normalized, "confidence": 1.0, "source": "text"},
             ),
         )
+
+    def cancel_input(
+        self, at_ms: int, reason: str = "input_cancelled"
+    ) -> tuple[ProtocolEvent, ...]:
+        """Terminalize an uncommitted capture without affecting a model response."""
+
+        self._check_time(at_ms)
+        if self.state not in {
+            VoiceState.LISTENING,
+            VoiceState.USER_SPEAKING,
+            VoiceState.ENDPOINT_CANDIDATE,
+        }:
+            return ()
+        cancelled = self._event(
+            EventType.STT_CANCELLED,
+            at_ms,
+            {"reason": reason, "status": "cancelled"},
+        )
+        self._reset_observation()
+        return (cancelled, self._transition(VoiceState.IDLE, at_ms, reason))
 
     def on_vad(self, at_ms: int, speech_probability: float) -> tuple[ProtocolEvent, ...]:
         self._check_time(at_ms)

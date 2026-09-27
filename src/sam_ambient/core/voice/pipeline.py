@@ -245,6 +245,7 @@ class VoiceInputPipeline:
         final_transcript: Transcript | None = None
         last_partial: Transcript | None = None
         audio_frames = 0
+        last_frame_ms: int | None = None
         listening_started = False
         frame_stream = self._capture.frames(cancellation)
         # Retain only 200 ms before VAD opens STT, so initial consonants aren't clipped.
@@ -252,6 +253,7 @@ class VoiceInputPipeline:
         evidence = SpeechEvidence()
         try:
             async for frame in frame_stream:
+                last_frame_ms = frame.monotonic_ms
                 if not listening_started:
                     await self._publish_all(
                         self._turn_manager.start_listening(
@@ -403,11 +405,20 @@ class VoiceInputPipeline:
                 if close_frames is not None:
                     await close_frames()
             finally:
-                if stt_stream is not None and final_transcript is None:
-                    await stt_stream.cancel(
-                        cancellation.cancellation_id,
-                        "voice_pipeline_stopped",
-                    )
+                try:
+                    if stt_stream is not None and final_transcript is None:
+                        await stt_stream.cancel(
+                            cancellation.cancellation_id,
+                            "voice_pipeline_stopped",
+                        )
+                finally:
+                    if last_frame_ms is not None:
+                        await self._publish_all(
+                            self._turn_manager.cancel_input(
+                                last_frame_ms,
+                                cancellation.reason or "voice_pipeline_stopped",
+                            )
+                        )
         raise VoicePipelineEnded("audio input ended before a user turn was committed")
 
     def _should_finalize(self, at_ms: int, candidate_since_ms: int | None) -> bool:

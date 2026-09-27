@@ -54,16 +54,58 @@ const withCommittedTranscript = (
   return { ...state, provisionalTranscript: null, transcript };
 };
 
-const isStaleGeneration = (state: UiState, event: ProtocolEvent): boolean =>
-  Boolean(
+const RETIRED_ID_LIMIT = 32;
+
+const retireId = (ids: readonly string[], id?: string): readonly string[] =>
+  id && !ids.includes(id) ? [...ids, id].slice(-RETIRED_ID_LIMIT) : ids;
+
+const isConversationEvent = (type: string): boolean =>
+  type.startsWith("voice.") ||
+  type.startsWith("transcript.") ||
+  type.startsWith("stt.") ||
+  type.startsWith("model.") ||
+  type.startsWith("tts.") ||
+  type.startsWith("tool.") ||
+  type === "turn.committed" ||
+  type === "component.error";
+
+const isCandidateEvent = (event: ProtocolEvent): boolean =>
+  event.payload.candidate === true ||
+  (event.type === "voice.state_changed" &&
+    ["INTERRUPTION_CANDIDATE", "RECOVERING"].includes(String(event.payload.to)) &&
+    !event.generation_id) ||
+  (event.type === "stt.cancelled" && !event.generation_id);
+
+const startsTurn = (event: ProtocolEvent): boolean =>
+  (event.type === "voice.state_changed" &&
+    ["LISTENING", "USER_SPEAKING", "COMMITTING", "THINKING"].includes(String(event.payload.to))) ||
+  event.type === "turn.committed" ||
+  (event.type === "transcript.final" &&
+    (event.payload.role === "user" ||
+      (event.payload.role === "assistant" && !event.generation_id)) &&
+    event.payload.candidate !== true);
+
+const isStaleConversationEvent = (state: UiState, event: ProtocolEvent): boolean => {
+  if (!isConversationEvent(event.type)) return false;
+  if (
     state.generationId &&
-      event.generation_id &&
-      event.generation_id !== state.generationId &&
-      ((event.type.startsWith("model.") && event.type !== "model.cancelled") ||
-        event.type.startsWith("tts.") ||
-        event.type.startsWith("tool.") ||
-        (event.type === "transcript.final" && event.payload.role === "assistant")),
-  );
+    (event.type.startsWith("model.") || event.type.startsWith("tts.")) &&
+    !event.generation_id
+  )
+    return true;
+  if (event.turn_id && state.retiredTurnIds.includes(event.turn_id)) return true;
+  if (
+    event.generation_id &&
+    state.retiredGenerationIds.includes(event.generation_id) &&
+    !(event.type === "tts.cancelled" && event.turn_id === state.turnId)
+  )
+    return true;
+  if (isCandidateEvent(event)) return false;
+  if (event.turn_id && state.turnId && event.turn_id !== state.turnId) return !startsTurn(event);
+  if (event.generation_id && state.generationId && event.generation_id !== state.generationId)
+    return !startsTurn(event);
+  return false;
+};
 
 const isToolEvent = (type: string): type is ToolEventType =>
   (TOOL_EVENT_TYPES as readonly string[]).includes(type);
@@ -280,6 +322,13 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
           ? state.priorConversationalState
           : state.conversationalState,
       conversationalState: "OFFLINE",
+      voiceInputHealth: undefined,
+      provisionalTranscript: null,
+      candidateTurnId: undefined,
+      retiredTurnIds: retireId(state.retiredTurnIds, state.turnId),
+      retiredGenerationIds: retireId(state.retiredGenerationIds, state.generationId),
+      turnId: undefined,
+      generationId: undefined,
       metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
       pendingCommandIds: [],
       pendingToolApproval: null,
@@ -306,7 +355,16 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
   ) {
     return state;
   }
-  if (isStaleGeneration(state, event)) return state;
+  if (isStaleConversationEvent(state, event)) return state;
+  if (event.type === "voice.state_changed" && !isConversationalState(event.payload.to))
+    return state;
+  if (
+    (event.type === "control.acknowledged" || event.type === "control.rejected") &&
+    event.payload.command_type === "control.user_message.submit" &&
+    typeof event.payload.command_id === "string" &&
+    !state.pendingCommandIds.includes(event.payload.command_id)
+  )
+    return state;
   if (
     event.type === "system.stopping" ||
     (event.type === "control.acknowledged" && event.payload.application_stopping === true)
@@ -314,22 +372,54 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     return { ...withConnection(state, "offline"), applicationStopped: true };
   }
 
-  const carriesConversationCorrelation =
-    !event.type.startsWith("control.") && event.type !== "capability.authority_changed";
-  const startsNewGeneration = Boolean(
-    carriesConversationCorrelation &&
-      event.generation_id &&
-      event.generation_id !== state.generationId,
+  const conversationEvent = isConversationEvent(event.type);
+  const candidateEvent = conversationEvent && isCandidateEvent(event);
+  const newTurn = Boolean(
+    conversationEvent &&
+      !candidateEvent &&
+      event.turn_id &&
+      event.turn_id !== state.turnId &&
+      startsTurn(event),
   );
+  const newGeneration = Boolean(
+    conversationEvent &&
+      !candidateEvent &&
+      event.generation_id &&
+      event.generation_id !== state.generationId &&
+      startsTurn(event),
+  );
+  const startsNewGeneration = newTurn || newGeneration;
 
   let next: UiState = {
     ...state,
     sessionId: event.session_id ?? state.sessionId,
-    turnId: carriesConversationCorrelation ? (event.turn_id ?? state.turnId) : state.turnId,
-    generationId: carriesConversationCorrelation
-      ? (event.generation_id ?? state.generationId)
-      : state.generationId,
-    ...(startsNewGeneration ? { latestToolActivity: null, pendingToolApproval: null } : {}),
+    turnId: conversationEvent && !candidateEvent ? (event.turn_id ?? state.turnId) : state.turnId,
+    generationId:
+      conversationEvent && !candidateEvent
+        ? newTurn
+          ? event.generation_id
+          : (event.generation_id ?? state.generationId)
+        : state.generationId,
+    candidateTurnId:
+      event.type === "stt.cancelled" || newTurn
+        ? undefined
+        : candidateEvent
+          ? (event.turn_id ?? state.candidateTurnId)
+          : state.candidateTurnId,
+    retiredTurnIds: newTurn ? retireId(state.retiredTurnIds, state.turnId) : state.retiredTurnIds,
+    retiredGenerationIds: startsNewGeneration
+      ? retireId(state.retiredGenerationIds, state.generationId)
+      : state.retiredGenerationIds,
+    ...(startsNewGeneration
+      ? {
+          latestToolActivity: null,
+          pendingToolApproval: null,
+          provisionalTranscript:
+            state.candidateTurnId === event.turn_id && state.provisionalTranscript?.role === "user"
+              ? state.provisionalTranscript
+              : null,
+        }
+      : {}),
     lastMonotonicByType: {
       ...state.lastMonotonicByType,
       [event.type]: event.monotonic_ms,
@@ -338,6 +428,9 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
 
   if (event.type === "system.ready") {
     const readyState = isConversationalState(event.payload.state) ? event.payload.state : "IDLE";
+    const readyActive = !["IDLE", "ERROR", "OFFLINE"].includes(readyState);
+    const readyTurnId = readyActive ? event.turn_id : undefined;
+    const readyGenerationId = readyActive ? event.generation_id : undefined;
     const readyCatalog = providerCatalog(event.payload.provider_catalog);
     const readyModel = boundedText(event.payload.model);
     const readyPendingProvider = boundedText(event.payload.pending_provider);
@@ -376,6 +469,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       pendingModel: readyPendingModel,
       selectionReason: boundedText(event.payload.selection_reason, 500),
       sttStatus: boundedText(event.payload.stt_status, 500),
+      voiceInputHealth: startsNewSession ? undefined : next.voiceInputHealth,
       ttsBackend: boundedText(event.payload.tts_backend, 80),
       ttsSelection: speechSelection(event.payload.tts_selection),
       providerCatalog: readyCatalog,
@@ -409,6 +503,26 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       lifecycleSettings:
         lifecycleSettings(event.payload.lifecycle_settings) ?? next.lifecycleSettings,
       conversationalState: readyState,
+      turnId: readyTurnId,
+      generationId: readyGenerationId,
+      candidateTurnId: undefined,
+      retiredTurnIds: (startsNewSession
+        ? []
+        : retireId(
+            state.retiredTurnIds,
+            state.turnId && state.turnId !== readyTurnId ? state.turnId : undefined,
+          )
+      ).filter((id) => id !== readyTurnId),
+      retiredGenerationIds: (startsNewSession
+        ? []
+        : retireId(
+            state.retiredGenerationIds,
+            state.generationId && state.generationId !== readyGenerationId
+              ? state.generationId
+              : undefined,
+          )
+      ).filter((id) => id !== readyGenerationId),
+      provisionalTranscript: null,
       microphoneEnabled:
         typeof event.payload.microphone_enabled === "boolean"
           ? event.payload.microphone_enabled
@@ -424,9 +538,6 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ...(startsNewSession
         ? {
             sessionId: event.session_id,
-            turnId: undefined,
-            generationId: undefined,
-            provisionalTranscript: null,
             lastMonotonicByType: { [event.type]: event.monotonic_ms },
             metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
             latestToolActivity: null,
@@ -436,7 +547,22 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         : {}),
     };
   }
-  if (event.type === "provider.discovery") {
+  if (event.type === "component.health" && event.payload.component === "voice_input") {
+    const status = event.payload.state;
+    if (status !== "healthy" && status !== "degraded") return state;
+    const reason = boundedText(event.payload.reason, 500);
+    const priorHealthReason = next.voiceInputHealth?.reason;
+    next = {
+      ...next,
+      voiceInputHealth: { status, reason, retrying: event.payload.retrying === true },
+      diagnosticReason:
+        status === "degraded"
+          ? `Speech input: ${reason ?? "capture unavailable"}`
+          : priorHealthReason && next.diagnosticReason === `Speech input: ${priorHealthReason}`
+            ? undefined
+            : next.diagnosticReason,
+    };
+  } else if (event.type === "provider.discovery") {
     const phase = boundedText(event.payload.state, 40);
     const requestId = boundedText(event.payload.request_id, 120);
     if (next.providerDiscovery.requestId && requestId !== next.providerDiscovery.requestId)
@@ -548,6 +674,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
   } else if (event.type === "update.state_changed") {
     next = { ...next, updateActivity: updateFrom(event) ?? next.updateActivity };
   } else if (event.type === "voice.state_changed" && isConversationalState(event.payload.to)) {
+    const terminal = ["IDLE", "ERROR", "OFFLINE"].includes(event.payload.to);
     next = {
       ...next,
       priorConversationalState: next.conversationalState,
@@ -556,6 +683,19 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
           ? "COMMITTING"
           : event.payload.to,
       diagnosticReason: event.payload.to === "LISTENING" ? undefined : next.diagnosticReason,
+      turnId: terminal ? undefined : next.turnId,
+      generationId: terminal ? undefined : next.generationId,
+      candidateTurnId: terminal ? undefined : next.candidateTurnId,
+      retiredTurnIds: terminal ? retireId(next.retiredTurnIds, next.turnId) : next.retiredTurnIds,
+      retiredGenerationIds: terminal
+        ? retireId(next.retiredGenerationIds, next.generationId)
+        : next.retiredGenerationIds,
+      provisionalTranscript: terminal ? null : next.provisionalTranscript,
+      metrics: terminal
+        ? { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 }
+        : next.metrics,
+      latestToolActivity: terminal ? null : next.latestToolActivity,
+      pendingToolApproval: terminal ? null : next.pendingToolApproval,
     };
   } else if (event.type === "voice.level") {
     next = {
@@ -590,7 +730,12 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
   } else if (event.type === "transcript.final") {
     const text = transcriptText(event);
     const role = transcriptRole(event.payload.role);
-    if (text && role && event.payload.candidate === true) {
+    const provisionalVoiceText =
+      role === "user" &&
+      !event.generation_id &&
+      event.payload.source !== "text" &&
+      !event.payload.command_id;
+    if (text && role && (event.payload.candidate === true || provisionalVoiceText)) {
       next = {
         ...next,
         provisionalTranscript: { role, text, monotonicMs: event.monotonic_ms },
@@ -603,6 +748,22 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
   } else if (event.type === "turn.committed") {
     const text = transcriptText(event);
     if (text) next = withCommittedTranscript(next, event, "user", text);
+  } else if (event.type === "tts.failed") {
+    next = {
+      ...next,
+      priorConversationalState: next.conversationalState,
+      conversationalState: "ERROR",
+      provisionalTranscript: null,
+      metrics: { ...next.metrics, playbackEnvelope: 0 },
+      retiredTurnIds: retireId(next.retiredTurnIds, next.turnId),
+      retiredGenerationIds: retireId(next.retiredGenerationIds, next.generationId),
+      turnId: undefined,
+      generationId: undefined,
+      candidateTurnId: undefined,
+      latestToolActivity: null,
+      pendingToolApproval: null,
+      diagnosticReason: `Speech output failed: ${boundedText(event.payload.reason, 500) ?? "playback unavailable"}`,
+    };
   } else if (event.type === "tts.cancelled") {
     const transcript = [...next.transcript];
     let index = -1;
@@ -651,11 +812,20 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       : { ...next, provisionalTranscript: null };
   } else if (event.type === "model.cancelled") {
     const superseded = event.payload.outcome === "superseded";
+    const interrupted = next.conversationalState === "INTERRUPTED";
     next = {
       ...next,
       priorConversationalState: next.conversationalState,
-      conversationalState: "IDLE",
+      conversationalState: interrupted ? "INTERRUPTED" : "IDLE",
       provisionalTranscript: null,
+      retiredGenerationIds: retireId(next.retiredGenerationIds, event.generation_id),
+      retiredTurnIds: interrupted
+        ? next.retiredTurnIds
+        : retireId(next.retiredTurnIds, next.turnId),
+      turnId: interrupted ? next.turnId : undefined,
+      generationId: interrupted ? next.generationId : undefined,
+      latestToolActivity: null,
+      pendingToolApproval: null,
       diagnosticReason: superseded
         ? "The previous response was superseded by a newer request."
         : (boundedText(event.payload.reason, 500) ?? "The model response was cancelled."),
@@ -736,15 +906,36 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         lifecycleSettings(event.payload.lifecycle_settings) ?? next.lifecycleSettings,
     };
   } else if (event.type === "component.error") {
+    const stage = boundedText(event.payload.component, 80);
+    const stageLabel =
+      stage === "model"
+        ? "Response failed"
+        : stage === "tts"
+          ? "Speech output failed"
+          : stage === "turn"
+            ? "Request failed"
+            : stage === "audio" || stage === "voice_input"
+              ? "Speech input failed"
+              : "A local component failed";
+    const reason =
+      boundedText(event.payload.reason, 500) ??
+      boundedText(event.payload.error, 500) ??
+      "Text controls may remain available.";
+    if (state.turnId && !event.turn_id && !event.generation_id)
+      return { ...next, diagnosticReason: `${stageLabel}: ${reason}` };
     next = {
       ...next,
       priorConversationalState: next.conversationalState,
       conversationalState: "ERROR",
       provisionalTranscript: null,
-      diagnosticReason:
-        boundedText(event.payload.reason, 500) ??
-        boundedText(event.payload.error, 500) ??
-        "A local component failed. Text controls may remain available.",
+      retiredTurnIds: retireId(next.retiredTurnIds, next.turnId),
+      retiredGenerationIds: retireId(next.retiredGenerationIds, next.generationId),
+      turnId: undefined,
+      generationId: undefined,
+      candidateTurnId: undefined,
+      latestToolActivity: null,
+      pendingToolApproval: null,
+      diagnosticReason: `${stageLabel}: ${reason}`,
     };
   }
   return next;

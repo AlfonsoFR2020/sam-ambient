@@ -34,6 +34,7 @@ class EventType(StrEnum):
     TTS_LEVEL = "tts.level"
     TTS_COMPLETED = "tts.completed"
     TTS_CANCELLED = "tts.cancelled"
+    TTS_FAILED = "tts.failed"
     TOOL_REQUESTED = "tool.requested"
     TOOL_AUTHORIZING = "tool.authorizing"
     TOOL_APPROVAL_REQUESTED = "tool.approval_requested"

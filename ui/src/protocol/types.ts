@@ -154,6 +154,7 @@ export interface UiState {
   pendingModel?: string;
   selectionReason?: string;
   sttStatus?: string;
+  voiceInputHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };
   ttsBackend?: string;
   ttsSelection?: string;
   cloudAllowed?: boolean;
@@ -166,6 +167,9 @@ export interface UiState {
   sessionId?: string;
   turnId?: string;
   generationId?: string;
+  candidateTurnId?: string;
+  retiredTurnIds: readonly string[];
+  retiredGenerationIds: readonly string[];
   lastMonotonicByType: Readonly<Record<string, number>>;
   droppedVisualizationEvents: number;
   microphoneEnabled: boolean;
@@ -205,6 +209,8 @@ export const INITIAL_UI_STATE: UiState = {
   metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
   provisionalTranscript: null,
   transcript: [],
+  retiredTurnIds: [],
+  retiredGenerationIds: [],
   lastMonotonicByType: {},
   droppedVisualizationEvents: 0,
   microphoneEnabled: true,

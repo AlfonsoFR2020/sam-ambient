@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 import pytest
 
 from sam_ambient.core.protocol import EventType, ProtocolEvent
-from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
+from sam_ambient.core.turns import CancellationToken, OperationCancelled, TurnManager, VoiceState
 from sam_ambient.core.voice import (
     AudioFormat,
     AudioFrame,
@@ -120,6 +120,47 @@ class FinalOnlyStt:
         return None
 
 
+@pytest.mark.parametrize("cancel_stage", ["listening", "transcribing"])
+def test_cancelled_capture_returns_to_idle_and_cannot_revive(cancel_stage: str) -> None:
+    async def scenario() -> None:
+        audio_format = AudioFormat(sample_rate_hz=1_000)
+        frames = [
+            AudioFrame(audio_format, b"\0" * 40, monotonic_ms=at_ms, sequence=index)
+            for index, at_ms in enumerate((0, 20, 220, 240))
+        ]
+        manager = TurnManager("session", id_factory=iter(("turn",)).__next__)
+        token = CancellationToken("capture-token")
+        stt = FakeStt()
+        events: list[ProtocolEvent] = []
+
+        async def publish(event: ProtocolEvent) -> None:
+            events.append(event)
+            if cancel_stage == "listening" and event.type == EventType.VOICE_STATE_CHANGED:
+                if event.payload["to"] == "LISTENING":
+                    token.cancel("microphone_muted")
+            if cancel_stage == "transcribing" and event.type == EventType.TRANSCRIPT_PARTIAL:
+                token.cancel("microphone_muted")
+
+        pipeline = VoiceInputPipeline(
+            capture=FakeCapture(frames),
+            vad=SequenceVad(),
+            stt=stt,
+            turn_manager=manager,
+            publish=publish,
+        )
+        with pytest.raises(OperationCancelled):
+            await pipeline.run(token)
+        assert manager.state is VoiceState.IDLE
+        assert sum(event.type == EventType.STT_CANCELLED for event in events) == 1
+        assert events[-1].type == EventType.VOICE_STATE_CHANGED
+        assert events[-1].payload["to"] == "IDLE"
+        assert manager.cancel_input(events[-1].monotonic_ms, "again") == ()
+        if cancel_stage == "transcribing":
+            assert stt.stream is not None
+
+    asyncio.run(scenario())
+
+
 def test_voice_input_pipeline_emits_levels_transcript_and_committed_turn() -> None:
     async def scenario() -> None:
         audio_format = AudioFormat(sample_rate_hz=1_000)
@@ -198,12 +239,14 @@ def test_voice_input_pipeline_can_reopen_after_capture_error() -> None:
         with pytest.raises(VoicePipelineEnded):
             await pipeline.run(CancellationToken("retry-cancel"))
 
-        assert manager.state is VoiceState.LISTENING
+        assert manager.state is VoiceState.IDLE
         assert any(
             event.type == EventType.VOICE_STATE_CHANGED
             and event.payload.get("reason") == "listening_started"
             for event in events
         )
+        assert events[-1].type == EventType.VOICE_STATE_CHANGED
+        assert events[-1].payload["to"] == "IDLE"
 
     asyncio.run(scenario())
 

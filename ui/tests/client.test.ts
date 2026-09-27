@@ -204,4 +204,74 @@ describe("protocol client", () => {
     expect(client.getSnapshot().pendingCommandIds).toHaveLength(0);
     client.stop();
   });
+
+  it("retires a text command when its turn event precedes acknowledgement", async () => {
+    const transport = new ControlledTransport();
+    const scheduler = new ManualScheduler();
+    const client = new ProtocolClient(transport, scheduler);
+    client.start();
+    await flushPromises();
+    await client.sendControl({
+      protocol: 1,
+      type: "control.user_message.submit",
+      command_id: "text-command",
+      monotonic_ms: 10,
+      payload: { text: "Hello" },
+    });
+    transport.observers[0]?.onEvent({
+      protocol: 1,
+      type: "transcript.final",
+      monotonic_ms: 11,
+      session_id: "session",
+      turn_id: "turn-1",
+      generation_id: "generation-1",
+      payload: { role: "user", text: "Hello", command_id: "text-command" },
+    });
+    expect(client.getSnapshot().pendingCommandIds).toEqual([]);
+    scheduler.runDelay();
+    expect(client.getSnapshot().protocolError).toBeUndefined();
+    transport.observers[0]?.onEvent({
+      protocol: 1,
+      type: "control.rejected",
+      monotonic_ms: 12,
+      session_id: "session",
+      payload: {
+        command_id: "text-command",
+        command_type: "control.user_message.submit",
+        error: "late acknowledgement",
+      },
+    });
+    expect(client.getSnapshot().protocolError).toBeUndefined();
+    expect(client.getSnapshot().turnId).toBe("turn-1");
+    client.stop();
+  });
+
+  it("retires a cancelled text command before any transcript or acknowledgement", async () => {
+    const transport = new ControlledTransport();
+    const scheduler = new ManualScheduler();
+    const client = new ProtocolClient(transport, scheduler);
+    client.start();
+    await flushPromises();
+    await client.sendControl({
+      protocol: 1,
+      type: "control.user_message.submit",
+      command_id: "cancelled-command",
+      monotonic_ms: 1,
+      payload: { text: "Superseded" },
+    });
+    transport.observers[0]?.onEvent({
+      protocol: 1,
+      type: "model.cancelled",
+      monotonic_ms: 2,
+      session_id: "session",
+      turn_id: "cancelled-turn",
+      generation_id: "cancelled-generation",
+      payload: { reason: "superseded_by_new_user_turn", command_id: "cancelled-command" },
+    });
+    expect(client.getSnapshot().pendingCommandIds).toEqual([]);
+    expect(client.getSnapshot().conversationalState).toBe("IDLE");
+    scheduler.runDelay();
+    expect(client.getSnapshot().protocolError).toBeUndefined();
+    client.stop();
+  });
 });

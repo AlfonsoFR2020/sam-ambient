@@ -122,6 +122,11 @@ describe("protocol state reduction", () => {
       state,
       event("transcript.final", 20, { role: "user", text: "Hello Sam." }),
     );
+    expect(state.provisionalTranscript?.text).toBe("Hello Sam.");
+    state = reduceProtocolEvent(
+      state,
+      event("turn.committed", 21, { role: "user", text: "Hello Sam." }),
+    );
     expect(state.provisionalTranscript).toBeNull();
     expect(state.transcript).toHaveLength(1);
     expect(state.transcript[0]?.text).toBe("Hello Sam.");
@@ -178,11 +183,11 @@ describe("protocol state reduction", () => {
   it("deduplicates a correlated committed transcript without rewriting its content", () => {
     let state = reduceProtocolEvent(
       resetUiState(),
-      event("transcript.final", 20, { role: "user", text: "draft" }, { turn_id: "turn-1" }),
+      event("turn.committed", 20, { role: "user", text: "draft" }, { turn_id: "turn-1" }),
     );
     state = reduceProtocolEvent(
       state,
-      event("transcript.final", 21, { role: "user", text: "final" }, { turn_id: "turn-1" }),
+      event("turn.committed", 21, { role: "user", text: "final" }, { turn_id: "turn-1" }),
     );
     state = reduceProtocolEvent(
       state,
@@ -453,7 +458,7 @@ describe("protocol state reduction", () => {
       state = reduceProtocolEvent(
         state,
         event(
-          "transcript.final",
+          index % 2 ? "transcript.final" : "turn.committed",
           index + 1,
           { role: index % 2 ? "assistant" : "user", text: `message ${index}` },
           { turn_id: `turn-${index}` },

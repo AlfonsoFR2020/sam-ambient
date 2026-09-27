@@ -94,6 +94,10 @@ in [Roadmap](ROADMAP.md).
 - Physically validate the full voice/audio path and useful live voice reactivity
   after material surface, membrane and interaction improvements. Do not consume
   another human beta session for a narrow frontend patch alone.
+- Validate the correlated conversation lifecycle with real capture/STT, provider
+  streams and TTS playback, including mute during transcription, speech overlap,
+  disconnect while output is active, and provider disappearance mid-response.
+  Synthetic state tests do not establish acoustic ownership or actual timing.
 
 ## Behavior and settings
 
