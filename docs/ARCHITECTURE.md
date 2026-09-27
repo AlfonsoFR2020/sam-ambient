@@ -196,6 +196,47 @@ may record route IDs and switch outcome, never credentials or a full utterance.
 
 ### Audio ownership checkpoint
 
+The audio producer/consumer boundary is deliberately pull-based. One
+`SoundDeviceCapture.frames` iterator reads a fixed 20 ms PortAudio block only
+after `VoiceInputPipeline` has finished processing/pushing the preceding block.
+Its 10-frame pre-roll is a bounded 200 ms deque; older pre-roll frames are
+discarded only before a speech candidate opens. Once STT opens, each frame is
+awaited at `push_audio`, so a slow STT consumer stalls capture rather than
+growing a Python frame queue. Real-time PortAudio input may then overflow; the
+adapter raises `AudioInputOverflow` and aborts that utterance, never silently
+submits discontinuous speech. The whisper.cpp adapter copies PCM into one
+per-stream bytearray capped at 120 seconds, clears it on successful finalization
+or cancellation, and caps the HTTP result. This adapter does not stream partial
+STT results yet. `AudioFrame` holds immutable bytes copied from the input
+stream; gain creates a new frame except at unity.
+
+System TTS currently synthesizes one bounded WAV (32 MiB maximum) before
+yielding immutable PCM frames; it is not a live streaming synthesizer. The
+runtime meters and scales one yielded frame at a time, and playback awaits each
+PortAudio write before requesting the next. There is no PCM-frame queue between
+synthesis and playback. Playback failure or cancellation now explicitly closes
+the metering iterator and nested TTS iterator, releasing any retained WAV/PCM
+buffer. PortAudio output underflow is counted and playback continues; cancelled
+output aborts and closes its stream. The separate `BoundedSpeechQueue` holds at
+most eight text chunks, not PCM frames. `enqueue` backpressures; the delivery
+ledger separately caps generations, chunks and generated characters. Cancelling
+a generation removes its queued/in-flight chunks; no old text or PCM is eligible
+for a newer generation. The event bus caps each subscriber at 64 by default,
+coalesces/drops lossy audio level events, and backpressures durable events.
+
+For visual reactivity, the capture pipeline and barge-in monitor measure input
+RMS/peak (and VAD probability) from gained PCM as `voice.level`. The runtime
+measures output RMS/peak from volume-scaled PCM immediately before handing it
+to playback as `tts.level`; it is scheduled output, not proof of sound emitted
+by a physical speaker. These are source-specific protocol events, not a new
+semantic or shader channel. The frontend reducer rejects stale turn/generation
+events; `VisualInputAdapter` carries separate input/output samples, retires
+them on cancellation/failure, and expires them after missing updates or a long
+suspension. It owns freshness, while `AmbientReactivity` owns the visual
+attack/release and bounded modulation. No audio-side visual smoothing was added.
+Physical queue timing, device behavior, acoustic output and waveform feature
+quality remain unverified.
+
 `SamRuntime._voice_loop` creates a `VoiceInputPipeline` for ordinary capture;
 `_monitor_barge_in` independently creates a capture iterator while a response
 is active. `SoundDeviceCapture.frames` opens a PortAudio input stream per iterator,

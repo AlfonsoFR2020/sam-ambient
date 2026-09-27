@@ -411,3 +411,17 @@ master specification are recorded here.
   or spoken text. A future voice-control intent layer intercepts final STT before
   ordinary turn commitment and uses typed local controls. Active-turn switch
   timing and spoken acknowledgement remain deferred product behavior.
+
+## D-028 — Keep audio PCM pull-based and visual activity source-specific
+
+- **Accepted:** 2026-09-27. Keep capture-to-STT and metered synthesis-to-playback
+  as awaited pull paths. Preserve the 10-frame pre-roll, bounded STT utterance,
+  bounded whole-WAV system TTS and eight-chunk text queue rather than adding a
+  second PCM queue. Input overflow fails a discontinuous utterance; output
+  underflow is counted and playback continues. Close nested synthesis iterators
+  when playback stops before consuming all PCM.
+- `voice.level` and `tts.level` remain distinct measured producer signals.
+  The frontend visual adapter retires stale source samples and owns freshness;
+  `AmbientReactivity` alone owns visual smoothing and modulation. No physical
+  device, acoustic timing or audio-driven art-direction claim follows from
+  these deterministic checks.

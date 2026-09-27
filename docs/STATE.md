@@ -4,6 +4,16 @@ Updated: 2026-09-27
 
 ## MVP status
 
+- v0.2.3 audio buffering checkpoint: capture/STT and metered synthesis/playback
+  remain pull-based, with a 10-frame capture pre-roll, a bounded 120-second
+  whisper.cpp utterance buffer, a 32 MiB maximum synthesized WAV, and an
+  eight-chunk backpressured speech queue. PortAudio input overflow fails the
+  utterance instead of silently dropping speech. Delivery now explicitly closes
+  nested synthesis iterators if playback stops early, releasing retained PCM.
+  Existing `voice.level` and `tts.level` remain distinct measured producer
+  signals; visual input retires them on matching terminal/failure state and
+  expires old samples, while AmbientReactivity retains visual smoothing.
+  Fake slow-consumer and lifecycle tests pass; real device timing remains open.
 - v0.2.3 inference checkpoint: each committed text or voice generation now
   snapshots its provider instance, router, model eligibility and selected model
   before asynchronous work. Model streaming uses that explicit provider only;

@@ -130,6 +130,39 @@ def test_blocked_enqueue_cancels_cleanly_and_queue_remains_bounded() -> None:
     asyncio.run(scenario())
 
 
+def test_retired_speech_queue_cannot_feed_a_later_generation() -> None:
+    async def scenario() -> None:
+        ledger = make_ledger()
+        queue = BoundedSpeechQueue(ledger, max_chunks=1)
+        old_token = CancellationToken("cancel-1")
+        await queue.enqueue("generation-1", "old", at_ms=1, cancellation=old_token)
+        blocked = asyncio.create_task(
+            queue.enqueue("generation-1", "blocked", at_ms=2, cancellation=old_token)
+        )
+        await asyncio.sleep(0)
+        assert queue.pending == 1
+        assert not blocked.done()
+
+        old_token.cancel("consumer_disappeared")
+        with pytest.raises(OperationCancelled):
+            await blocked
+        queue.cancel_generation("generation-1", 3)
+        queue.cancel_generation("generation-1", 4)
+        assert queue.pending == 0
+
+        ledger.start_generation(
+            turn_id="turn-2", generation_id="generation-2", cancellation_id="cancel-2"
+        )
+        new_token = CancellationToken("cancel-2")
+        new_chunk = await queue.enqueue("generation-2", "new", at_ms=5, cancellation=new_token)
+        assert await queue.next_chunk(new_token) == new_chunk
+        assert queue.mark_playing(new_chunk, 6)
+        assert queue.mark_spoken(new_chunk, 7)
+        assert queue.pending == 0
+
+    asyncio.run(scenario())
+
+
 def test_stale_delivery_updates_cannot_mutate_authoritative_generation() -> None:
     ledger = make_ledger()
     old = ledger.queue_chunk("generation-1", "old", 1)

@@ -129,7 +129,15 @@ export class VisualInputAdapter {
     }
 
     const voiceStamp = state.lastMonotonicByType["voice.level"];
-    if (state.microphoneEnabled && voiceStamp !== undefined && voiceStamp !== this.voiceStamp) {
+    const inputRetiredAt = state.lastMonotonicByType["stt.cancelled"];
+    const inputRetired =
+      !state.microphoneEnabled ||
+      state.voiceInputHealth?.status === "degraded" ||
+      (inputRetiredAt !== undefined && voiceStamp !== undefined && inputRetiredAt >= voiceStamp);
+    if (inputRetired) {
+      this.input = undefined;
+      this.voiceStamp = voiceStamp;
+    } else if (voiceStamp !== undefined && voiceStamp !== this.voiceStamp) {
       this.voiceStamp = voiceStamp;
       const envelope = unit(state.metrics.rms);
       if (envelope !== undefined) {
@@ -140,7 +148,7 @@ export class VisualInputAdapter {
           activity: unit(state.metrics.speechProbability),
         };
       }
-    } else if (!state.microphoneEnabled) this.input = undefined;
+    }
 
     const interaction = interactionFrom(state, this.interruptSerial);
     const interrupted = state.conversationalState === "INTERRUPTED";
@@ -148,7 +156,16 @@ export class VisualInputAdapter {
     this.wasInterrupted = interrupted;
     const confirmedStop = interrupted || state.applicationStopped || !interaction.speaking;
     const outputStamp = state.lastMonotonicByType["tts.level"];
-    if (confirmedStop || !state.ttsOutputEnabled) {
+    const outputRetiredAt = Math.max(
+      state.lastMonotonicByType["tts.cancelled"] ?? -1,
+      state.lastMonotonicByType["tts.failed"] ?? -1,
+      state.lastMonotonicByType["tts.completed"] ?? -1,
+    );
+    if (
+      confirmedStop ||
+      !state.ttsOutputEnabled ||
+      (outputStamp !== undefined && outputRetiredAt >= outputStamp)
+    ) {
       this.output = undefined;
       this.outputStamp = outputStamp;
     } else if (outputStamp !== undefined && outputStamp !== this.outputStamp) {

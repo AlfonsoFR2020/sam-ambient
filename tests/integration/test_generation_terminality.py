@@ -16,6 +16,7 @@ from sam_ambient.core.providers import (
     ToolSchema,
 )
 from sam_ambient.core.turns import CancellationToken
+from sam_ambient.core.voice import AudioFrame
 from sam_ambient.runtime import RuntimeConfig, RuntimeVoiceAdapters, SamRuntime
 from tests.integration.test_voice_input_pipeline import FakeStt, SequenceVad
 from tests.unit.test_phase9_packaging import _AnswerProvider, _FakeOutput, _FakeTts
@@ -186,6 +187,50 @@ def test_tts_stage_failure_keeps_committed_text_and_reports_stage(tmp_path, fail
             ] == [EventType.MODEL_COMPLETED]
         finally:
             await subscription.close()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_playback_failure_closes_synthesis_iterator_and_retires_pcm(tmp_path) -> None:
+    class HoldingTts(_FakeTts):
+        def __init__(self):
+            self.closed = False
+
+        async def synthesize(self, text, *, voice, language, cancellation):
+            del text, voice, language
+            held_pcm = bytearray(1_000_000)
+            try:
+                for sequence in range(2):
+                    cancellation.raise_if_cancelled()
+                    yield AudioFrame(
+                        self.audio_format, bytes(held_pcm[:40]), sequence * 20, sequence
+                    )
+            finally:
+                held_pcm.clear()
+                self.closed = True
+
+    class FailingAfterFirstFrame(_FakeOutput):
+        async def play(self, frames, cancellation):
+            async for _frame in frames:
+                cancellation.raise_if_cancelled()
+                raise RuntimeError("synthetic output stopped")
+
+    async def scenario() -> None:
+        tts = HoldingTts()
+        runtime = SamRuntime(
+            _AnswerProvider(),
+            RuntimeConfig(tmp_path, port=0, model="fake"),
+            tts=tts,
+            audio_output=FailingAfterFirstFrame(),
+        )
+        try:
+            runtime.submit_user_message("Hello")
+            await asyncio.wait_for(runtime._active_done.wait(), 2)
+            assert tts.closed
+            assert runtime.speech_queue.pending == 0
+            assert runtime.delivery.active_generation_id is None
+        finally:
             await runtime.close()
 
     asyncio.run(scenario())

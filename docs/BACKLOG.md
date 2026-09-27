@@ -101,6 +101,9 @@ in [Roadmap](ROADMAP.md).
 - Full audio pass: verify audio-frame ownership and buffer lifetime, queue bounds
   and backpressure, device loss/recovery, shutdown/reconnect, real STT/TTS timing,
   and audio-derived visual activity using controlled physical integration later.
+  Source inspection and fake slow-consumer tests established the current bounded
+  pull path, but real PortAudio overflow/underflow frequency, System TTS whole-WAV
+  memory cost, and whether metered output tracks emitted sound need measurement.
 
 ## Behavior and settings
 

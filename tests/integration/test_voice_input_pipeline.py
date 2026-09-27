@@ -26,6 +26,79 @@ class FakeCapture:
             yield frame
 
 
+def test_slow_stt_backpressures_capture_without_a_hidden_frame_queue() -> None:
+    class CountingCapture(FakeCapture):
+        def __init__(self, frames):
+            super().__init__(frames)
+            self.produced = 0
+
+        async def frames(self, cancellation):
+            async for frame in super().frames(cancellation):
+                self.produced += 1
+                yield frame
+
+    class SlowStream(FakeSttStream):
+        def __init__(self, context, token, release):
+            super().__init__(context, token)
+            self.entered = asyncio.Event()
+            self.release = release
+
+        async def push_audio(self, frame, cancellation):
+            self.entered.set()
+            await self.release.wait()
+            await super().push_audio(frame, cancellation)
+
+    class SlowStt(FakeStt):
+        def __init__(self, release):
+            super().__init__()
+            self.release = release
+            self.started = asyncio.Event()
+
+        async def start_stream(self, context, cancellation):
+            self.stream = SlowStream(context, cancellation, self.release)
+            self.started.set()
+            return self.stream
+
+    async def scenario() -> None:
+        audio_format = AudioFormat(sample_rate_hz=1_000)
+        frames = [
+            AudioFrame(audio_format, b"\0" * 40, monotonic_ms=index * 20, sequence=index)
+            for index in range(20)
+        ]
+        capture = CountingCapture(frames)
+        release = asyncio.Event()
+        stt = SlowStt(release)
+        token = CancellationToken("slow-stt")
+        pipeline = VoiceInputPipeline(
+            capture=capture,
+            vad=AlwaysSpeechVad(),
+            stt=stt,
+            turn_manager=TurnManager("session"),
+            publish=lambda _event: asyncio.sleep(0),
+        )
+        task = asyncio.create_task(pipeline.run(token))
+        try:
+            async with asyncio.timeout(2):
+                await stt.started.wait()
+                assert stt.stream is not None
+                await stt.stream.entered.wait()
+            produced_while_blocked = capture.produced
+            await asyncio.sleep(0)
+            assert capture.produced == produced_while_blocked
+            assert produced_while_blocked < len(frames)
+            token.cancel("stop")
+            release.set()
+            with pytest.raises(OperationCancelled):
+                await task
+        finally:
+            release.set()
+            if not task.done():
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+
+    asyncio.run(scenario())
+
+
 class SequenceVad:
     def analyze(self, frame: AudioFrame) -> VadResult:
         is_speech = frame.sequence == 1

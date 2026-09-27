@@ -1391,16 +1391,19 @@ class SamRuntime:
                         round((time.monotonic() - tts_started) * 1000),
                         generation_id,
                     )
-                    await self.audio_output.play(
-                        self._metered_tts_frames(
-                            text,
-                            generation_id=generation_id,
-                            session_id=session_id,
-                            turn_id=turn_id,
-                            cancellation=cancellation,
-                        ),
-                        cancellation,
+                    frames = self._metered_tts_frames(
+                        text,
+                        generation_id=generation_id,
+                        session_id=session_id,
+                        turn_id=turn_id,
+                        cancellation=cancellation,
                     )
+                    try:
+                        await self.audio_output.play(frames, cancellation)
+                    finally:
+                        # The producer may hold a whole synthesized PCM buffer.
+                        # A playback adapter that stops early must not retain it.
+                        await frames.aclose()
                     self.speech_queue.mark_spoken(chunk, self._next_event_ms())
                     log.info(
                         "conversation_timing stage=playback_complete elapsed_ms=%d generation=%s",
@@ -1457,29 +1460,36 @@ class SamRuntime:
         self._response_language = language
         log.info("TTS backend=%s requested_language=%s", type(self.tts).__name__, language)
         first_pcm = True
-        async for frame in self.tts.synthesize(
+        synthesized = self.tts.synthesize(
             text,
             voice=self.config.tts_voice,
             language=language,
             cancellation=cancellation,
-        ):
-            if first_pcm:
-                first_pcm = False
-                log.info(
-                    "conversation_timing stage=first_pcm generation=%s",
+        )
+        try:
+            async for frame in synthesized:
+                cancellation.raise_if_cancelled()
+                if first_pcm:
+                    first_pcm = False
+                    log.info(
+                        "conversation_timing stage=first_pcm generation=%s",
+                        generation_id,
+                    )
+                frame = scale_audio_frame(frame, self._audio_settings["output_gain"])
+                rms, peak = normalized_audio_metrics(frame)
+                await self._publish_generation(
+                    EventType.TTS_LEVEL,
                     generation_id,
+                    session_id=session_id,
+                    turn_id=turn_id,
+                    cancellation_id=cancellation.cancellation_id,
+                    payload={"envelope": rms, "peak": peak, "sequence": frame.sequence},
                 )
-            frame = scale_audio_frame(frame, self._audio_settings["output_gain"])
-            rms, peak = normalized_audio_metrics(frame)
-            await self._publish_generation(
-                EventType.TTS_LEVEL,
-                generation_id,
-                session_id=session_id,
-                turn_id=turn_id,
-                cancellation_id=cancellation.cancellation_id,
-                payload={"envelope": rms, "peak": peak, "sequence": frame.sequence},
-            )
-            yield frame
+                yield frame
+        finally:
+            close = getattr(synthesized, "aclose", None)
+            if close is not None:
+                await close()
 
     async def _publish_all(
         self,

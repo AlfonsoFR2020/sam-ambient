@@ -98,4 +98,65 @@ describe("VisualInputV1 adapter", () => {
     );
     expect(input.interaction).toMatchObject({ listening: true, speaking: true, floor: "shared" });
   });
+
+  it("keeps input and output measurements separate and expires both after suspension", () => {
+    const adapter = new VisualInputAdapter();
+    const active = adapter.ingest(
+      speaking({
+        conversationalState: "INTERRUPTION_CANDIDATE",
+        priorConversationalState: "SPEAKING",
+      }),
+      100,
+    );
+    expect(active.audio.input?.envelope).toBe(0.4);
+    expect(active.audio.output?.envelope).toBe(0.8);
+    expect(adapter.snapshot(1_200).audio).toEqual({ input: undefined, output: undefined });
+  });
+
+  it("retires cancelled capture and playback samples before accepting fresh operations", () => {
+    const adapter = new VisualInputAdapter();
+    adapter.ingest(speaking(), 100);
+    const retired = adapter.ingest(
+      speaking({
+        lastMonotonicByType: {
+          "voice.level": 10,
+          "stt.cancelled": 11,
+          "tts.level": 20,
+          "tts.cancelled": 21,
+        },
+      }),
+      110,
+    );
+    expect(retired.audio.input).toBeUndefined();
+    expect(retired.audio.output).toBeUndefined();
+
+    const fresh = adapter.ingest(
+      speaking({
+        lastMonotonicByType: {
+          "voice.level": 12,
+          "stt.cancelled": 11,
+          "tts.level": 22,
+          "tts.cancelled": 21,
+        },
+        metrics: { rms: 0.25, peak: 0.5, speechProbability: 0.6, playbackEnvelope: 0.3 },
+      }),
+      120,
+    );
+    expect(fresh.audio.input?.envelope).toBe(0.25);
+    expect(fresh.audio.output?.envelope).toBe(0.3);
+  });
+
+  it("retires input on capture failure and output on synthesis failure", () => {
+    const adapter = new VisualInputAdapter();
+    adapter.ingest(speaking(), 100);
+    const failed = adapter.ingest(
+      speaking({
+        voiceInputHealth: { status: "degraded", reason: "capture stopped", retrying: false },
+        lastMonotonicByType: { "voice.level": 10, "tts.level": 20, "tts.failed": 21 },
+      }),
+      110,
+    );
+    expect(failed.audio.input).toBeUndefined();
+    expect(failed.audio.output).toBeUndefined();
+  });
 });
