@@ -28,6 +28,7 @@ class VoicePipelineEnded(RuntimeError):
 class VoiceInputResult:
     transcript: Transcript
     audio_frames: int
+    control_consumed: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -217,6 +218,7 @@ class VoiceInputPipeline:
         stt: SpeechToText,
         turn_manager: TurnManager,
         publish: EventPublisher,
+        on_final_transcript: Callable[[Transcript], Awaitable[bool]] | None = None,
         language: str = "auto",
         unknown_confidence: float = 0.5,
     ) -> None:
@@ -229,6 +231,7 @@ class VoiceInputPipeline:
         self._stt = stt
         self._turn_manager = turn_manager
         self._publish = publish
+        self._on_final_transcript = on_final_transcript
         self._language = language
         self._unknown_confidence = unknown_confidence
 
@@ -352,6 +355,8 @@ class VoiceInputPipeline:
                         final_transcript = await stt_stream.finalize(cancellation)
                         if not final_transcript.text:
                             return VoiceInputResult(final_transcript, audio_frames)
+                        if await self._consume_control(final_transcript, frame.monotonic_ms):
+                            return VoiceInputResult(final_transcript, audio_frames, True)
                         if final_transcript != last_partial:
                             await self._publish_transcript(frame.monotonic_ms, final_transcript)
                         duration_events = self._turn_manager.on_maximum_duration(frame.monotonic_ms)
@@ -400,6 +405,8 @@ class VoiceInputPipeline:
                         "conversation_timing stage=stt_final_available stt_ms=%d",
                         round((time.monotonic() - stt_started) * 1000),
                     )
+                    if await self._consume_control(final_transcript, frame.monotonic_ms):
+                        return VoiceInputResult(final_transcript, audio_frames, True)
                     if final_transcript != last_partial:
                         await self._publish_transcript(frame.monotonic_ms, final_transcript)
                         last_partial = final_transcript
@@ -438,6 +445,14 @@ class VoiceInputPipeline:
         if candidate_since_ms is None:
             return False
         return at_ms - candidate_since_ms >= self._turn_manager.endpoint_threshold_ms
+
+    async def _consume_control(self, transcript: Transcript, at_ms: int) -> bool:
+        if not transcript.is_final or self._on_final_transcript is None:
+            return False
+        if not await self._on_final_transcript(transcript):
+            return False
+        await self._publish_all(self._turn_manager.cancel_input(at_ms, "local_control_consumed"))
+        return True
 
     async def _publish_transcript(self, at_ms: int, transcript: Transcript) -> None:
         confidence = (

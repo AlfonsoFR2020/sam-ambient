@@ -4,6 +4,16 @@ Updated: 2026-09-27
 
 ## MVP status
 
+- v0.2.3 local controls: typed `switch_inference` and `stop_speaking` intents
+  share core execution and explicit outcomes. UI model selection starts without
+  holding the command dispatcher during discovery; its final outcome is reported
+  separately. Explicit failed/unavailable switches preserve a valid current
+  route, while active responses block switches. Ordinary final STT has an
+  optional typed-control hook before turn commitment: synthetic recognized
+  controls are consumed locally, and other transcripts retain the model path.
+  Existing Stop speaking cancellation remains idempotent. Phrase recognition,
+  active barge-in control interception, named connection profiles and physical
+  provider switching remain deferred.
 - v0.2.3 audio reliability: core now reports separate operational health for
   microphone capture, STT, synthesis and playback through `component.health`.
   Successful later operations clear only their own degraded status. Capture/STT

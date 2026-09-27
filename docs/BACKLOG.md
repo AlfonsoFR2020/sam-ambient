@@ -117,11 +117,11 @@ in [Roadmap](ROADMAP.md).
 - Define model/context/VRAM policy.
 - Add named, trusted connection profiles and an atomic inference-target switch
   contract for server/API profile, provider and model. Keep credentials outside
-  route identity and diagnostics. Add a general local voice-control interception
-  point after final STT and before ordinary turn commitment; classify and
-  acknowledge switches without sending control utterances to the model. Decide
-  whether an active STT/generation/speech turn defers the switch or requires
-  explicit interruption. Validate real provider switch and reconnect timing.
+  route identity and diagnostics. Add natural-language classification and spoken
+  acknowledgement at the existing typed final-STT control seam; extend it to
+  active-response barge-in only after defining interruption policy. Validate
+  real provider switch and reconnect timing. Current ordinary switches block
+  while a response is active and have no deferred-switch queue.
 - Later expose supported per-model system prompt, temperature, context, and generation
   settings through typed provider capabilities rather than universal assumptions.
 

@@ -179,20 +179,29 @@ keys and authorization headers must never be route identity, protocol payload or
 diagnostic data. A trusted atomic switch must validate a complete target against
 its own catalog, then publish accepted, unavailable, ambiguous, discovery-needed
 or failed status. It must not show a newly selected route before the next turn
-can actually use it. A switch requested during generation, STT or speech must
-never mutate a committed generation's route; applying it after the active turn
-or after explicit interruption is a later product policy decision. Current
-selection is blocked while a response is active.
+can actually use it. An ordinary switch requested during generation or speech
+is blocked and never mutates a committed generation's route. A recognized
+control from ordinary STT can execute before model commitment. Active-response
+barge-in control policy is deferred.
 
 Voice-controlled switching is explicit product direction, alongside other future
-voice-operable controls. Today `VoiceInputPipeline` publishes a provisional STT
-final and `TurnManager` commits the turn before `_start_voice_turn` submits the
-model request. A future trusted local control-intent hook belongs after final STT
-and before ordinary turn commitment/model submission; a recognized control
-utterance must execute through the same typed control boundary and never become
-an ordinary inference prompt. UI/TTS acknowledgement can follow separately.
-Intent classification and spoken acknowledgement are not implemented. Diagnostics
-may record route IDs and switch outcome, never credentials or a full utterance.
+voice-operable controls. Core now has a small typed `LocalControlIntent` and
+`LocalControlResult` boundary for exact provider/model selection and Stop speaking.
+The UI's existing control commands enter this boundary. A model-selection command
+acknowledges that discovery started without holding the command dispatcher; the
+terminal `provider.discovery` and `local.control` events report the final result.
+An active response blocks selection. Explicit unavailable or failed selections
+keep the previous valid provider/model, and a returned provider/model that does
+not match the exact request is rejected. Provider, router and model are adopted
+together before any later turn can snapshot them; no silent fallback occurs.
+The ordinary `VoiceInputPipeline` has an optional synchronous typed recognizer
+injected by trusted core code. After final STT and before `turn.committed`, it
+executes recognized controls locally and retires the uncommitted input; other
+transcripts follow the existing commitment path. Tests use synthetic typed
+intents, not phrase parsing. The separate active-response barge-in path has no
+control interception yet. Natural-language recognition, spoken acknowledgement
+and real provider switching remain deferred. Bounded diagnostics record kind,
+outcome and route IDs without credentials or the full utterance.
 
 ### Audio ownership checkpoint
 

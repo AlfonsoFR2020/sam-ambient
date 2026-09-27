@@ -19,6 +19,20 @@ const event = (
 });
 
 describe("conversation identity projection", () => {
+  it("records a typed local-control outcome without adopting a conversation turn", () => {
+    const state = reduceProtocolEvent(
+      resetUiState(),
+      event("local.control", 1, {
+        kind: "switch_inference",
+        outcome: "blocked",
+        provider: null,
+        model: null,
+      }),
+    );
+    expect(state.lastLocalControl).toMatchObject({ kind: "switch_inference", outcome: "blocked" });
+    expect(state.turnId).toBeUndefined();
+    expect(state.transcript).toHaveLength(0);
+  });
   it("converges synthetic voice capture and typed requests on one response lifecycle", () => {
     const voiceEvents = [
       event("voice.state_changed", 1, { to: "LISTENING" }, "voice"),

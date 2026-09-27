@@ -47,6 +47,7 @@ class EventType(StrEnum):
     UPDATE_STATE_CHANGED = "update.state_changed"
     CONTROL_ACKNOWLEDGED = "control.acknowledged"
     CONTROL_REJECTED = "control.rejected"
+    LOCAL_CONTROL = "local.control"
 
 
 class ControlCommandType(StrEnum):

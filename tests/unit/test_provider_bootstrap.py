@@ -429,6 +429,7 @@ def test_runtime_rescan_hot_adopts_ready_local_provider(tmp_path):
                     },
                 )
             )
+            assert event.payload["outcome"] == "started"
             assert event.payload["provider_refresh_started"] is True
             assert runtime._provider_refresh_task is not None
             await runtime._provider_refresh_task

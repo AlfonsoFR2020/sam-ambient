@@ -409,8 +409,8 @@ master specification are recorded here.
   provider and model. The current single-endpoint settings are insufficient for
   multiple servers or APIs; do not encode credentials in route IDs, diagnostics
   or spoken text. A future voice-control intent layer intercepts final STT before
-  ordinary turn commitment and uses typed local controls. Active-turn switch
-  timing and spoken acknowledgement remain deferred product behavior.
+  ordinary turn commitment and uses typed local controls. D-029 establishes the
+  active-turn block policy; spoken acknowledgement remains deferred.
 
 ## D-028 — Keep audio PCM pull-based and visual activity source-specific
 
@@ -425,3 +425,21 @@ master specification are recorded here.
   `AmbientReactivity` alone owns visual smoothing and modulation. No physical
   device, acoustic timing or audio-driven art-direction claim follows from
   these deterministic checks.
+
+## D-029 — Share typed local controls across UI and future voice input
+
+- **Accepted:** 2026-09-27. Represent exact inference switching and Stop speaking
+  as typed, non-conversational intents with explicit outcomes. Reuse the existing
+  owner control dispatcher and playback cancellation rather than making a voice
+  specific routing path. UI selection acknowledges initiation immediately;
+  terminal discovery and bounded local-control events report its outcome.
+- Block a route switch while generation/delivery is active. A failed explicit
+  selection preserves a valid current route; exact provider/model mismatch is
+  unavailable, never an implicit fallback. Adopt provider/router/model together
+  for future turns, while each committed turn retains its own snapshot.
+- Intercept ordinary final STT through an optional trusted typed recognizer
+  before turn commitment. A consumed control retires the provisional input and
+  cannot become model prompt text. Natural-language classification, active
+  barge-in control handling, spoken acknowledgement and named connection
+  profiles remain separate work. Future profile IDs may extend route identity;
+  credentials never enter intents, route IDs or diagnostic events.

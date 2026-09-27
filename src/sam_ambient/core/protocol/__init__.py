@@ -6,6 +6,12 @@ from sam_ambient.core.protocol.control import (
     ControlDispatcher,
     CoreControlBindings,
 )
+from sam_ambient.core.protocol.local_control import (
+    LocalControlIntent,
+    LocalControlKind,
+    LocalControlOutcome,
+    LocalControlResult,
+)
 from sam_ambient.core.protocol.models import (
     LOSSY_EVENT_TYPES,
     PROTOCOL_VERSION,
@@ -27,6 +33,10 @@ __all__ = [
     "EventBus",
     "EventSubscription",
     "EventType",
+    "LocalControlIntent",
+    "LocalControlKind",
+    "LocalControlOutcome",
+    "LocalControlResult",
     "ProtocolError",
     "ProtocolEvent",
     "SubscriptionClosed",

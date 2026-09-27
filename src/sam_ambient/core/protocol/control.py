@@ -9,6 +9,12 @@ from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 
+from sam_ambient.core.protocol.local_control import (
+    LocalControlIntent,
+    LocalControlKind,
+    LocalControlOutcome,
+    LocalControlResult,
+)
 from sam_ambient.core.protocol.models import (
     ControlCommand,
     ControlCommandType,
@@ -32,6 +38,7 @@ RefreshProviders = Callable[[str | None, str | None, bool, str], Awaitable[Mappi
 SetVisualSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
 SetAudioSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
 SetLifecycleSettings = Callable[[Mapping[str, object]], Awaitable[Mapping[str, object]]]
+ExecuteLocalControl = Callable[[LocalControlIntent, str | None], Awaitable[LocalControlResult]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,6 +55,7 @@ class CoreControlBindings:
     set_visual_settings: SetVisualSettings | None = None
     set_audio_settings: SetAudioSettings | None = None
     set_lifecycle_settings: SetLifecycleSettings | None = None
+    execute_local_control: ExecuteLocalControl | None = None
 
 
 class ControlDispatcher:
@@ -102,6 +110,11 @@ class ControlDispatcher:
             self.tts_output_enabled = enabled
             payload["tts_output_enabled"] = enabled
         elif command_type is ControlCommandType.STOP_SPEAKING:
+            if self._bindings.execute_local_control is not None:
+                result = await self._bindings.execute_local_control(
+                    LocalControlIntent(LocalControlKind.STOP_SPEAKING), command.command_id
+                )
+                return self._local_result(command, result)
             targets = frozenset({CancellationTarget.TTS_QUEUE, CancellationTarget.PLAYBACK})
             await self._bindings.cancel_active(targets, "ui_stop_speaking")
             payload["requested_targets"] = sorted(target.value for target in targets)
@@ -134,7 +147,10 @@ class ControlDispatcher:
                 raise RuntimeError("global capability revocation is unavailable")
             payload.update(await self._bindings.revoke_capabilities("ui_global_capability_revoke"))
         elif command_type in {ControlCommandType.PROVIDERS_RESCAN, ControlCommandType.MODEL_SELECT}:
-            if self._bindings.refresh_providers is None:
+            if self._bindings.refresh_providers is None and (
+                command_type is ControlCommandType.PROVIDERS_RESCAN
+                or self._bindings.execute_local_control is None
+            ):
                 raise RuntimeError("Provider discovery is unavailable")
             provider = command.payload.get("provider")
             model = command.payload.get("model")
@@ -151,6 +167,18 @@ class ControlDispatcher:
                 provider is None or model is None
             ):
                 raise ValueError("Model selection requires provider and model")
+            if (
+                command_type is ControlCommandType.MODEL_SELECT
+                and self._bindings.execute_local_control is not None
+            ):
+                result = await self._bindings.execute_local_control(
+                    LocalControlIntent(
+                        LocalControlKind.SWITCH_INFERENCE, provider, model, remember
+                    ),
+                    command.command_id,
+                )
+                return self._local_result(command, result)
+            assert self._bindings.refresh_providers is not None
             payload.update(
                 await self._bindings.refresh_providers(
                     provider, model, remember, command.command_id
@@ -183,6 +211,32 @@ class ControlDispatcher:
             await self._bindings.request_shutdown(command)
             payload["application_stopping"] = True
         return self._event(EventType.CONTROL_ACKNOWLEDGED, command, payload)
+
+    def _local_result(self, command: ControlCommand, result: LocalControlResult) -> ProtocolEvent:
+        return self._event(
+            EventType.CONTROL_ACKNOWLEDGED
+            if result.outcome in {LocalControlOutcome.SUCCESS, LocalControlOutcome.STARTED}
+            else EventType.CONTROL_REJECTED,
+            command,
+            {
+                "status": result.outcome.value,
+                "outcome": result.outcome.value,
+                "reason": result.reason,
+                "provider": result.provider_id,
+                "model": result.model_id,
+                **(
+                    {"provider_refresh_started": True}
+                    if result.outcome is LocalControlOutcome.STARTED
+                    else {}
+                ),
+                **(
+                    {"error": result.reason}
+                    if result.outcome
+                    not in {LocalControlOutcome.SUCCESS, LocalControlOutcome.STARTED}
+                    else {}
+                ),
+            },
+        )
 
     def _event(
         self,

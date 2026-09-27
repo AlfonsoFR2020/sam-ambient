@@ -31,6 +31,10 @@ from sam_ambient.core.protocol import (
     CoreControlBindings,
     EventBus,
     EventType,
+    LocalControlIntent,
+    LocalControlKind,
+    LocalControlOutcome,
+    LocalControlResult,
     ProtocolEvent,
 )
 from sam_ambient.core.providers import (
@@ -467,11 +471,13 @@ class SamRuntime:
         tts: TextToSpeech | None = None,
         audio_output: AudioOutput | None = None,
         provider_refresher: ProviderRefresher | None = None,
+        local_control_recognizer: Callable[[Transcript], LocalControlIntent | None] | None = None,
     ) -> None:
         if (tts is None) != (audio_output is None):
             raise ValueError("TTS and audio output must be configured together")
         self.provider = provider
         self._provider_refresher = provider_refresher
+        self._local_control_recognizer = local_control_recognizer
         self._provider_refresh_lock = asyncio.Lock()
         self._provider_catalog: tuple[Mapping[str, object], ...] = ()
         self._pending_provider = config.startup_provider
@@ -588,6 +594,7 @@ class SamRuntime:
                 set_visual_settings=self._set_visual_settings,
                 set_audio_settings=self._set_audio_settings,
                 set_lifecycle_settings=self._set_lifecycle_settings,
+                execute_local_control=self.execute_local_control,
             ),
             clock_ms=self._next_event_ms,
         )
@@ -736,9 +743,116 @@ class SamRuntime:
         task.add_done_callback(self._tasks.discard)
         return {"provider_refresh_started": True}
 
+    async def execute_local_control(
+        self, intent: LocalControlIntent, request_id: str | None = None
+    ) -> LocalControlResult:
+        if (
+            not isinstance(intent.kind, LocalControlKind)
+            or (intent.provider_id is not None and not isinstance(intent.provider_id, str))
+            or (intent.model_id is not None and not isinstance(intent.model_id, str))
+            or not isinstance(intent.remember, bool)
+        ):
+            result = LocalControlResult(LocalControlOutcome.INVALID, "Invalid local control")
+        elif intent.kind is LocalControlKind.STOP_SPEAKING:
+            if intent.provider_id is not None or intent.model_id is not None or intent.remember:
+                result = LocalControlResult(
+                    LocalControlOutcome.INVALID, "Stop speaking takes no route"
+                )
+            else:
+                try:
+                    await self._cancel_active(
+                        frozenset({CancellationTarget.TTS_QUEUE, CancellationTarget.PLAYBACK}),
+                        "ui_stop_speaking",
+                    )
+                except Exception as error:
+                    log.warning("Stop speaking failed (%s)", type(error).__name__)
+                    result = LocalControlResult(LocalControlOutcome.FAILED, "Could not stop speech")
+                else:
+                    result = LocalControlResult(LocalControlOutcome.SUCCESS, "Speech stopped")
+        elif intent.kind is LocalControlKind.SWITCH_INFERENCE:
+            provider_id, model_id = intent.provider_id, intent.model_id
+            if not provider_id or not model_id:
+                result = LocalControlResult(
+                    LocalControlOutcome.AMBIGUOUS, "Specify an exact provider and model"
+                )
+            elif not provider_id.strip() or not model_id.strip():
+                result = LocalControlResult(
+                    LocalControlOutcome.INVALID, "Route IDs must be non-blank"
+                )
+            elif not self._active_done.is_set():
+                result = LocalControlResult(
+                    LocalControlOutcome.BLOCKED, "Wait for the active response before switching"
+                )
+            elif self._provider_refresher is None:
+                result = LocalControlResult(
+                    LocalControlOutcome.UNAVAILABLE, "Provider discovery is unavailable"
+                )
+            else:
+                try:
+                    await self._refresh_providers(
+                        provider_id, model_id, intent.remember, request_id
+                    )
+                    task = self._provider_refresh_task
+                    assert task is not None
+                    if request_id is not None:
+                        report = asyncio.create_task(
+                            self._report_local_switch(intent, task, request_id)
+                        )
+                        self._tasks.add(report)
+                        report.add_done_callback(self._tasks.discard)
+                        return LocalControlResult(
+                            LocalControlOutcome.STARTED, "Route switch started"
+                        )
+                    result = await task
+                except asyncio.CancelledError:
+                    result = LocalControlResult(
+                        LocalControlOutcome.FAILED, "Route switch superseded by newer discovery"
+                    )
+                except Exception as error:
+                    log.warning("Local route switch failed (%s)", type(error).__name__)
+                    result = LocalControlResult(LocalControlOutcome.FAILED, "Route switch failed")
+        else:
+            result = LocalControlResult(LocalControlOutcome.INVALID, "Unknown local control")
+        await self._publish_local_control(intent, result, request_id)
+        return result
+
+    async def _report_local_switch(
+        self, intent: LocalControlIntent, task: asyncio.Task[LocalControlResult], request_id: str
+    ) -> None:
+        try:
+            result = await task
+        except asyncio.CancelledError:
+            result = LocalControlResult(
+                LocalControlOutcome.FAILED, "Route switch superseded by newer discovery"
+            )
+        except Exception as error:
+            log.warning("Route switch report failed (%s)", type(error).__name__)
+            result = LocalControlResult(LocalControlOutcome.FAILED, "Route switch failed")
+        await self._publish_local_control(intent, result, request_id)
+
+    async def _publish_local_control(
+        self, intent: LocalControlIntent, result: LocalControlResult, request_id: str | None
+    ) -> None:
+        await self.events.publish(
+            ProtocolEvent(
+                type=EventType.LOCAL_CONTROL,
+                monotonic_ms=self._next_event_ms(),
+                session_id=self.session_id,
+                payload={
+                    "kind": intent.kind.value
+                    if isinstance(intent.kind, LocalControlKind)
+                    else "invalid",
+                    "outcome": result.outcome.value,
+                    "provider": result.provider_id or intent.provider_id,
+                    "model": result.model_id or intent.model_id,
+                    **({"request_id": request_id} if request_id else {}),
+                },
+            )
+        )
+
     async def _perform_provider_refresh(
         self, provider_id: str | None, model: str | None, remember: bool, request_id: str | None
-    ) -> None:
+    ) -> LocalControlResult:
         async with self._provider_refresh_lock:
             target_provider = provider_id or self.config.startup_provider
             target_model = model or self.config.startup_model
@@ -761,52 +875,95 @@ class SamRuntime:
                     f"Local provider refresh failed ({type(error).__name__}); "
                     "retry or choose another model"
                 )
-                self._model_unavailable_reason = reason
-                self._model = None
-                log.exception("Provider refresh failed: %s", error)
-                await self._publish_provider_status("failed", reason=reason, request_id=request_id)
-                return
-            self._provider_catalog = result.catalog
-            self._provider_selection_reason = result.reason
-            if result.provider is None or result.model is None:
+                if provider_id is None:
+                    self._model_unavailable_reason = reason
+                    self._model = None
+                log.warning("Provider refresh failed (%s)", type(error).__name__)
+                await self._publish_provider_status(
+                    "failed",
+                    reason=reason,
+                    request_id=request_id,
+                    preserve_current=provider_id is not None,
+                )
+                return LocalControlResult(LocalControlOutcome.FAILED, reason)
+            unavailable = (
+                result.provider is None
+                or result.model is None
+                or (provider_id is not None and result.provider.id != provider_id)
+                or (model is not None and result.model != model)
+            )
+            if unavailable:
+                reason = (
+                    "Requested provider/model is unavailable"
+                    if provider_id is not None
+                    else result.reason
+                )
                 if result.provider is not None and result.provider is not self.provider:
                     await result.provider.aclose()
-                self._model = None
-                self._model_unavailable_reason = result.reason
+                if provider_id is None:
+                    self._provider_catalog = result.catalog
+                    self._model = None
+                    self._model_unavailable_reason = reason
                 await self._publish_provider_status(
-                    "blocked", reason=result.reason, request_id=request_id
+                    "blocked",
+                    reason=reason,
+                    request_id=request_id,
+                    preserve_current=provider_id is not None,
                 )
-                return
+                return LocalControlResult(LocalControlOutcome.UNAVAILABLE, reason)
             if not self._active_done.is_set():
                 if result.provider is not self.provider:
                     await result.provider.aclose()
                 reason = "A response started during model discovery; wait for it, then Rescan"
-                await self._publish_provider_status("failed", reason=reason, request_id=request_id)
-                return
+                await self._publish_provider_status(
+                    "failed",
+                    reason=reason,
+                    request_id=request_id,
+                    preserve_current=provider_id is not None,
+                )
+                return LocalControlResult(LocalControlOutcome.BLOCKED, reason)
             previous = self.provider
             registry = ProviderRegistry()
             registry.register(result.provider)
-            self.provider = result.provider
-            self.providers = registry
-            self.router = ProviderRouter(registry)
-            self._model = result.model
-            self._model_unavailable_reason = None
             if (
                 remember
                 and self.state is not None
                 and result.provider.data_boundary is DataBoundary.LOCAL
             ):
-                await asyncio.to_thread(
-                    self.state.remember_local_model, result.provider.id, result.model
-                )
-            if previous is not result.provider:
-                await previous.aclose()
+                try:
+                    self.state.remember_local_model(result.provider.id, result.model)
+                except Exception:
+                    if previous is not result.provider:
+                        await result.provider.aclose()
+                    reason = "Could not save the selected model"
+                    await self._publish_provider_status(
+                        "failed",
+                        reason=reason,
+                        request_id=request_id,
+                        preserve_current=provider_id is not None,
+                    )
+                    return LocalControlResult(LocalControlOutcome.FAILED, reason)
+            self.provider = result.provider
+            self.providers = registry
+            self.router = ProviderRouter(registry)
+            self._model = result.model
+            self._provider_catalog = result.catalog
+            self._provider_selection_reason = result.reason
+            self._model_unavailable_reason = None
             await self._publish_provider_status(
                 "ready",
                 provider=result.provider.id,
                 model=result.model,
                 reason=result.reason,
                 request_id=request_id,
+            )
+            if previous is not result.provider:
+                try:
+                    await previous.aclose()
+                except Exception:
+                    log.warning("Previous provider cleanup failed after route switch")
+            return LocalControlResult(
+                LocalControlOutcome.SUCCESS, result.reason, result.provider.id, result.model
             )
 
     async def _publish_provider_status(self, state: str, **payload: object) -> None:
@@ -1566,11 +1723,14 @@ class SamRuntime:
                 stt=self.voice.stt,
                 turn_manager=self.voice_turns,
                 publish=self.events.publish,
+                on_final_transcript=self._consume_voice_control,
                 language=self.config.language,
             )
             try:
                 result = await pipeline.run(token)
                 self._voice_restart_failures = 0
+                if result.control_consumed:
+                    continue
                 if not result.transcript.text:
                     continue
                 response = await self._start_voice_turn(result.transcript, token)
@@ -1604,6 +1764,15 @@ class SamRuntime:
                 self._voice_listen_token = None
                 if self._active_token is not token:
                     self.cancellations.discard(token.cancellation_id)
+
+    async def _consume_voice_control(self, transcript: Transcript) -> bool:
+        if self._local_control_recognizer is None:
+            return False
+        intent = self._local_control_recognizer(transcript)
+        if intent is None:
+            return False
+        await self.execute_local_control(intent)
+        return True
 
     async def _capture_health(
         self, reason: str, *, retrying: bool = False, at_ms: int | None = None

@@ -108,6 +108,41 @@ function mounted(state: UiState): string {
 }
 
 describe("provider discovery lifecycle", () => {
+  it("keeps a valid route after an unavailable explicit switch", async () => {
+    const { client, transport } = await harness();
+    await client.sendControl({
+      ...command("switch-b", "control.model.select"),
+      payload: { provider: "ollama", model: "missing", remember: false },
+    });
+    transport.emit("provider.discovery", 2, {
+      state: "loading_model",
+      request_id: "switch-b",
+      catalog: catalog(),
+      provider: "ollama",
+      model: "missing",
+    });
+    transport.emit("provider.discovery", 3, {
+      state: "blocked",
+      request_id: "switch-b",
+      catalog: catalog(),
+      reason: "Requested provider/model is unavailable",
+      preserve_current: true,
+    });
+    transport.emit("control.rejected", 4, {
+      command_id: "switch-b",
+      command_type: "control.model.select",
+      outcome: "unavailable",
+      error: "Requested provider/model is unavailable",
+    });
+    expect(client.getSnapshot()).toMatchObject({
+      provider: "lm-studio",
+      model: "gemma",
+      providerDiscovery: { status: "failed" },
+    });
+    expect(client.getSnapshot().providerCatalog[0]?.models).toEqual(["gemma"]);
+    expect(mounted(client.getSnapshot())).toContain("Sam startup");
+    client.stop();
+  });
   it("keeps a successful scan and the startup UI mounted", async () => {
     const { client, transport } = await harness();
     await client.sendControl(command("scan-1"));

@@ -1001,6 +1001,14 @@ def test_stop_speaking_preserves_answer_and_allows_future_playback(tmp_path):
                     session_id=runtime.session_id,
                 )
             )
+            await runtime.controls.dispatch(
+                ControlCommand(
+                    type=ControlCommandType.STOP_SPEAKING,
+                    command_id="stop-again",
+                    monotonic_ms=runtime._next_event_ms(),
+                    session_id=runtime.session_id,
+                )
+            )
             await runtime._active_done.wait()
             second_generation = runtime.submit_user_message("second request")
             await runtime._active_done.wait()

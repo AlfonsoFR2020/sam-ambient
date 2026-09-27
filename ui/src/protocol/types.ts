@@ -153,6 +153,12 @@ export interface UiState {
   pendingProvider?: string;
   pendingModel?: string;
   selectionReason?: string;
+  lastLocalControl?: {
+    kind: "switch_inference" | "stop_speaking";
+    outcome: "started" | "success" | "unavailable" | "ambiguous" | "blocked" | "invalid" | "failed";
+    provider?: string;
+    model?: string;
+  };
   sttStatus?: string;
   voiceInputHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };
   sttHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };

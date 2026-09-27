@@ -78,6 +78,13 @@ export function AmbientScene({
       changes.push(`turn ${state.turnId.slice(0, 8)} active`);
     if (prior.generationId !== state.generationId && state.generationId)
       changes.push(`generation ${state.generationId.slice(0, 8)} active`);
+    if (prior.lastLocalControl !== state.lastLocalControl && state.lastLocalControl)
+      changes.push(
+        `local control ${state.lastLocalControl.kind} ${state.lastLocalControl.outcome}` +
+          (state.lastLocalControl.provider && state.lastLocalControl.model
+            ? ` · ${state.lastLocalControl.provider} / ${state.lastLocalControl.model}`
+            : ""),
+      );
     if (state.transcript.length > prior.transcript.length) {
       for (const entry of state.transcript.slice(prior.transcript.length))
         changes.push(`${entry.role} turn committed`);

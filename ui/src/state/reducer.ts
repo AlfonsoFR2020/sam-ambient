@@ -323,6 +323,7 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
           : state.conversationalState,
       conversationalState: "OFFLINE",
       voiceInputHealth: undefined,
+      lastLocalControl: undefined,
       sttHealth: undefined,
       synthesisHealth: undefined,
       playbackHealth: undefined,
@@ -473,6 +474,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       selectionReason: boundedText(event.payload.selection_reason, 500),
       sttStatus: boundedText(event.payload.stt_status, 500),
       voiceInputHealth: startsNewSession ? undefined : next.voiceInputHealth,
+      lastLocalControl: startsNewSession ? undefined : next.lastLocalControl,
       sttHealth: startsNewSession ? undefined : next.sttHealth,
       synthesisHealth: startsNewSession ? undefined : next.synthesisHealth,
       playbackHealth: startsNewSession ? undefined : next.playbackHealth,
@@ -553,7 +555,34 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         : {}),
     };
   }
-  if (event.type === "component.health") {
+  if (event.type === "local.control") {
+    const kind = event.payload.kind;
+    const outcome = event.payload.outcome;
+    const requestId = boundedText(event.payload.request_id, 120);
+    if (
+      kind === "switch_inference" &&
+      requestId &&
+      next.providerDiscovery.requestId &&
+      requestId !== next.providerDiscovery.requestId
+    )
+      return state;
+    if (
+      (kind !== "switch_inference" && kind !== "stop_speaking") ||
+      !["started", "success", "unavailable", "ambiguous", "blocked", "invalid", "failed"].includes(
+        String(outcome),
+      )
+    )
+      return state;
+    next = {
+      ...next,
+      lastLocalControl: {
+        kind,
+        outcome: outcome as NonNullable<UiState["lastLocalControl"]>["outcome"],
+        provider: boundedText(event.payload.provider, 80),
+        model: boundedText(event.payload.model, 256),
+      },
+    };
+  } else if (event.type === "component.health") {
     const healthTargets = {
       voice_input: { key: "voiceInputHealth", label: "Microphone capture" },
       stt: { key: "sttHealth", label: "Speech recognition" },
@@ -602,6 +631,8 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     const model = boundedText(event.payload.model, 256);
     const reason = boundedText(event.payload.reason, 500);
     const inProgress = phase === "scanning" || phase === "loading_model";
+    const preserveCurrent =
+      event.payload.preserve_current === true && !!next.provider && !!next.model;
     const discoveryStatus = inProgress
       ? "scanning"
       : phase === "failed"
@@ -611,33 +642,39 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
           ? "available"
           : "empty";
     const startupLifecycle =
-      phase === "ready"
+      preserveCurrent && !inProgress
         ? "ready_transition"
-        : phase === "loading_model"
-          ? "loading_model"
-          : phase === "scanning"
-            ? "scanning"
-            : phase === "blocked" &&
-                catalog.reduce((count, item) => count + item.installedModels.length, 0) > 1
-              ? "waiting_for_model_choice"
-              : "blocked";
+        : phase === "ready"
+          ? "ready_transition"
+          : phase === "loading_model"
+            ? "loading_model"
+            : phase === "scanning"
+              ? "scanning"
+              : phase === "blocked" &&
+                  catalog.reduce((count, item) => count + item.installedModels.length, 0) > 1
+                ? "waiting_for_model_choice"
+                : "blocked";
     next = {
       ...next,
       provider:
-        phase === "ready"
-          ? provider
-          : phase === "blocked" || phase === "failed"
-            ? undefined
-            : next.provider,
+        preserveCurrent && phase !== "ready"
+          ? next.provider
+          : phase === "ready"
+            ? provider
+            : phase === "blocked" || phase === "failed"
+              ? undefined
+              : next.provider,
       model:
-        phase === "ready"
-          ? model
-          : phase === "blocked" || phase === "failed"
-            ? undefined
-            : next.model,
+        preserveCurrent && phase !== "ready"
+          ? next.model
+          : phase === "ready"
+            ? model
+            : phase === "blocked" || phase === "failed"
+              ? undefined
+              : next.model,
       pendingProvider: phase === "loading_model" ? provider : undefined,
       pendingModel: phase === "loading_model" ? model : undefined,
-      selectionReason: reason ?? next.selectionReason,
+      selectionReason: preserveCurrent ? next.selectionReason : (reason ?? next.selectionReason),
       diagnosticReason: phase === "ready" ? undefined : (reason ?? next.diagnosticReason),
       providerCatalog: inProgress || phase === "failed" ? next.providerCatalog : catalog,
       providerDiscovery: { status: discoveryStatus, requestId, reason },
