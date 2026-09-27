@@ -159,4 +159,17 @@ describe("VisualInputV1 adapter", () => {
     expect(failed.audio.input).toBeUndefined();
     expect(failed.audio.output).toBeUndefined();
   });
+
+  it("retires measured input on STT failure without retiring output", () => {
+    const adapter = new VisualInputAdapter();
+    adapter.ingest(speaking(), 100);
+    const failed = adapter.ingest(
+      speaking({
+        sttHealth: { status: "degraded", reason: "recognizer stopped", retrying: false },
+      }),
+      110,
+    );
+    expect(failed.audio.input).toBeUndefined();
+    expect(failed.audio.output?.envelope).toBe(0.8);
+  });
 });

@@ -196,6 +196,24 @@ may record route IDs and switch outcome, never credentials or a full utterance.
 
 ### Audio ownership checkpoint
 
+Core owns operational audio health at the operation that observes it. Capture
+reports `voice_input` on the first frame or capture failure; STT reports `stt`
+after stream creation or on a typed recognition failure; synthesis reports
+`synthesis` on first PCM or producer failure; output reports `playback` after
+playback or on consumer failure. Each `component.health` update changes only
+that subsystem's frontend health fact. Configured STT/TTS backend names and
+microphone/output enable switches remain separate from attempted-operation
+health; an unattempted path is not claimed healthy. The frontend projects these
+facts into status and bounded diagnostics without inferring another subsystem's
+health. Failure retires the matching input/output activity source. Capture/STT
+failure does not change model eligibility, while synthesis/playback failure
+preserves committed answer text and ends only delivery with `tts.failed`.
+Recoverable capture retries remain bounded; a terminal input failure can be
+restarted by enabling the microphone again. A later successful operation clears
+its own degraded health. This behavior is covered with fake failures; real
+device absence, permissions, service startup, output loss and recovery timing
+still require physical integration validation.
+
 The audio producer/consumer boundary is deliberately pull-based. One
 `SoundDeviceCapture.frames` iterator reads a fixed 20 ms PortAudio block only
 after `VoiceInputPipeline` has finished processing/pushing the preceding block.
@@ -278,8 +296,8 @@ generated, queued, and spoken chunks. Real hardware AEC remains future work.
 Each interruption candidate owns one STT stream. Finalization removes that stream
 from the capture path before awaiting its result; final/rejected/cancelled streams
 cannot receive further frames. Confirmations pass through the interruption controller
-before event publication. Capture availability is reported as `component.health`
-for `voice_input`, independently of model/TTS state. Input failure disposes only
+before event publication. Capture, STT, synthesis and playback operational health
+use distinct `component.health` identities, independently of model state. Input failure disposes only
 tentative candidates; it cannot force a healthy response's playback OFFLINE.
 
 TTS keeps the existing `synthesize(text, voice, language, cancellation)` PCM-frame

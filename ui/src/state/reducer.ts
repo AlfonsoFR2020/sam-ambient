@@ -323,6 +323,9 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
           : state.conversationalState,
       conversationalState: "OFFLINE",
       voiceInputHealth: undefined,
+      sttHealth: undefined,
+      synthesisHealth: undefined,
+      playbackHealth: undefined,
       provisionalTranscript: null,
       candidateTurnId: undefined,
       retiredTurnIds: retireId(state.retiredTurnIds, state.turnId),
@@ -470,6 +473,9 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       selectionReason: boundedText(event.payload.selection_reason, 500),
       sttStatus: boundedText(event.payload.stt_status, 500),
       voiceInputHealth: startsNewSession ? undefined : next.voiceInputHealth,
+      sttHealth: startsNewSession ? undefined : next.sttHealth,
+      synthesisHealth: startsNewSession ? undefined : next.synthesisHealth,
+      playbackHealth: startsNewSession ? undefined : next.playbackHealth,
       ttsBackend: boundedText(event.payload.tts_backend, 80),
       ttsSelection: speechSelection(event.payload.tts_selection),
       providerCatalog: readyCatalog,
@@ -547,18 +553,28 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         : {}),
     };
   }
-  if (event.type === "component.health" && event.payload.component === "voice_input") {
+  if (event.type === "component.health") {
+    const healthTargets = {
+      voice_input: { key: "voiceInputHealth", label: "Microphone capture" },
+      stt: { key: "sttHealth", label: "Speech recognition" },
+      synthesis: { key: "synthesisHealth", label: "Speech synthesis" },
+      playback: { key: "playbackHealth", label: "Audio output" },
+    } as const;
+    const component = event.payload.component;
+    if (typeof component !== "string" || !(component in healthTargets)) return state;
+    const target = healthTargets[component as keyof typeof healthTargets];
     const status = event.payload.state;
     if (status !== "healthy" && status !== "degraded") return state;
     const reason = boundedText(event.payload.reason, 500);
-    const priorHealthReason = next.voiceInputHealth?.reason;
+    const priorHealthReason = next[target.key]?.reason;
+    const prefix = `${target.label}: `;
     next = {
       ...next,
-      voiceInputHealth: { status, reason, retrying: event.payload.retrying === true },
+      [target.key]: { status, reason, retrying: event.payload.retrying === true },
       diagnosticReason:
         status === "degraded"
-          ? `Speech input: ${reason ?? "capture unavailable"}`
-          : priorHealthReason && next.diagnosticReason === `Speech input: ${priorHealthReason}`
+          ? `${prefix}${reason ?? "unavailable"}`
+          : priorHealthReason && next.diagnosticReason === `${prefix}${priorHealthReason}`
             ? undefined
             : next.diagnosticReason,
     };

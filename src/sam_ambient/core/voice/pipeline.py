@@ -308,6 +308,19 @@ class VoiceInputPipeline:
                         language=self._language,
                     )
                     stt_stream = await self._stt.start_stream(context, cancellation)
+                    await self._publish(
+                        ProtocolEvent(
+                            type=EventType.COMPONENT_HEALTH,
+                            monotonic_ms=frame.monotonic_ms + 1,
+                            session_id=self._turn_manager.session_id,
+                            payload={
+                                "component": "stt",
+                                "state": "healthy",
+                                "reason": "ready",
+                                "retrying": False,
+                            },
+                        )
+                    )
                     for buffered in pre_roll:
                         await stt_stream.push_audio(buffered, cancellation)
                     pre_roll.clear()

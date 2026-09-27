@@ -88,6 +88,15 @@ export function AmbientScene({
       changes.push(`speech input ${state.sttStatus ?? "unknown"}`);
     if (prior.ttsBackend !== state.ttsBackend)
       changes.push(`spoken output ${state.ttsBackend ?? "unknown"}`);
+    for (const [key, label] of [
+      ["voiceInputHealth", "microphone capture"],
+      ["sttHealth", "speech recognition"],
+      ["synthesisHealth", "speech synthesis"],
+      ["playbackHealth", "audio output"],
+    ] as const) {
+      if (state[key] && prior[key]?.status !== state[key]?.status)
+        changes.push(`${label} ${state[key]?.status}`);
+    }
     if (prior.microphoneEnabled !== state.microphoneEnabled)
       changes.push(`microphone ${state.microphoneEnabled ? "on" : "muted"}`);
     if (prior.ttsOutputEnabled !== state.ttsOutputEnabled)

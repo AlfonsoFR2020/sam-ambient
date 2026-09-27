@@ -155,6 +155,9 @@ export interface UiState {
   selectionReason?: string;
   sttStatus?: string;
   voiceInputHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };
+  sttHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };
+  synthesisHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };
+  playbackHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };
   ttsBackend?: string;
   ttsSelection?: string;
   cloudAllowed?: boolean;

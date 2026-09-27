@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 
+from sam_ambient.adapters.stt.whisper_cpp import SpeechRecognitionUnavailable
 from sam_ambient.core.protocol import EventType, ProtocolEvent
 from sam_ambient.core.turns import CancellationToken, OperationCancelled, TurnManager, VoiceState
 from sam_ambient.core.voice import (
@@ -320,6 +321,63 @@ def test_voice_input_pipeline_can_reopen_after_capture_error() -> None:
         )
         assert events[-1].type == EventType.VOICE_STATE_CHANGED
         assert events[-1].payload["to"] == "IDLE"
+
+    asyncio.run(scenario())
+
+
+def test_stt_failure_after_partial_retires_voice_turn_and_allows_new_capture() -> None:
+    class FailingStream(FakeSttStream):
+        async def partial_transcript(self):
+            if self.pushed >= 3:
+                raise SpeechRecognitionUnavailable("synthetic service stopped")
+            return await super().partial_transcript()
+
+    class FailingStt(FakeStt):
+        async def start_stream(self, context, cancellation):
+            self.stream = FailingStream(context, cancellation)
+            return self.stream
+
+    async def scenario() -> None:
+        audio_format = AudioFormat(sample_rate_hz=1_000)
+        frames = [
+            AudioFrame(audio_format, b"\0" * 40, monotonic_ms=index * 20, sequence=index)
+            for index in range(5)
+        ]
+        manager = TurnManager("session")
+        events: list[ProtocolEvent] = []
+
+        async def publish(event: ProtocolEvent) -> None:
+            events.append(event)
+
+        pipeline = VoiceInputPipeline(
+            capture=FakeCapture(frames),
+            vad=AlwaysSpeechVad(),
+            stt=FailingStt(),
+            turn_manager=manager,
+            publish=publish,
+        )
+        with pytest.raises(SpeechRecognitionUnavailable):
+            await pipeline.run(CancellationToken("first"))
+        health = [event for event in events if event.type == EventType.COMPONENT_HEALTH]
+        assert [(event.payload["component"], event.monotonic_ms) for event in health[:2]] == [
+            ("voice_input", 0),
+            ("stt", 1),
+        ]
+        assert any(event.type == EventType.TRANSCRIPT_PARTIAL for event in events)
+        assert not any(event.type == EventType.TURN_COMMITTED for event in events)
+        assert manager.state is VoiceState.IDLE
+        followup = VoiceInputPipeline(
+            capture=FakeCapture(
+                [AudioFrame(audio_format, b"\0" * 40, monotonic_ms=100, sequence=0)]
+            ),
+            vad=SequenceVad(),
+            stt=FakeStt(),
+            turn_manager=manager,
+            publish=publish,
+        )
+        with pytest.raises(VoicePipelineEnded):
+            await followup.run(CancellationToken("second"))
+        assert manager.state is VoiceState.IDLE
 
     asyncio.run(scenario())
 

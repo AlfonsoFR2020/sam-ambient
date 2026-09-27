@@ -133,6 +133,7 @@ export class VisualInputAdapter {
     const inputRetired =
       !state.microphoneEnabled ||
       state.voiceInputHealth?.status === "degraded" ||
+      state.sttHealth?.status === "degraded" ||
       (inputRetiredAt !== undefined && voiceStamp !== undefined && inputRetiredAt >= voiceStamp);
     if (inputRetired) {
       this.input = undefined;

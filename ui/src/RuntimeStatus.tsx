@@ -26,9 +26,27 @@ export function RuntimeStatus({ state }: { state: UiState }) {
           </>
         )}
         <dt>Speech input</dt>
-        <dd>{state.sttStatus ?? "Waiting for readiness"}</dd>
+        <dd>
+          {state.sttHealth?.status === "degraded"
+            ? state.sttHealth.reason
+            : (state.sttStatus ?? "Waiting for readiness")}
+        </dd>
+        <dt>Microphone</dt>
+        <dd>
+          {state.voiceInputHealth?.status === "degraded"
+            ? state.voiceInputHealth.reason
+            : state.microphoneEnabled
+              ? "Enabled"
+              : "Muted"}
+        </dd>
         <dt>Spoken output</dt>
-        <dd>{state.ttsBackend ?? "Waiting for readiness"}</dd>
+        <dd>
+          {state.synthesisHealth?.status === "degraded"
+            ? state.synthesisHealth.reason
+            : state.playbackHealth?.status === "degraded"
+              ? state.playbackHealth.reason
+              : (state.ttsBackend ?? "Waiting for readiness")}
+        </dd>
         {state.ttsSelection && (
           <>
             <dt>Voice</dt>

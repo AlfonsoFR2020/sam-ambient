@@ -163,6 +163,24 @@ def _voice_failure(error: Exception) -> tuple[str, bool]:
     return "Voice lifecycle error; check development logs", False
 
 
+def _input_failure_component(error: Exception) -> str:
+    if isinstance(
+        error,
+        (
+            SpeechRecognitionProtocolError,
+            SpeechRecognitionUnavailable,
+            SpeechRecognitionTimeout,
+            SpeechAudioLimitExceeded,
+        ),
+    ):
+        return "stt"
+    return "voice_input"
+
+
+class _SynthesisFailure(Exception):
+    """Keep producer failures distinct from failures in the playback consumer."""
+
+
 _VISUAL_CHOICES = {
     "quality": {"auto", "low", "medium", "high"},
     "device_profile": {"auto", "mobile_2020", "low_power", "desktop", "high_end"},
@@ -1399,12 +1417,22 @@ class SamRuntime:
                         cancellation=cancellation,
                     )
                     try:
-                        await self.audio_output.play(frames, cancellation)
+                        try:
+                            await self.audio_output.play(frames, cancellation)
+                        except _SynthesisFailure:
+                            await self._audio_health("synthesis", "Speech synthesis failed")
+                            raise
+                        except (OperationCancelled, asyncio.CancelledError):
+                            raise
+                        except Exception:
+                            await self._audio_health("playback", "Audio output failed")
+                            raise
                     finally:
                         # The producer may hold a whole synthesized PCM buffer.
                         # A playback adapter that stops early must not retain it.
                         await frames.aclose()
                     self.speech_queue.mark_spoken(chunk, self._next_event_ms())
+                    await self._audio_health("playback", "ready")
                     log.info(
                         "conversation_timing stage=playback_complete elapsed_ms=%d generation=%s",
                         round((time.monotonic() - tts_started) * 1000),
@@ -1467,25 +1495,31 @@ class SamRuntime:
             cancellation=cancellation,
         )
         try:
-            async for frame in synthesized:
-                cancellation.raise_if_cancelled()
-                if first_pcm:
-                    first_pcm = False
-                    log.info(
-                        "conversation_timing stage=first_pcm generation=%s",
+            try:
+                async for frame in synthesized:
+                    cancellation.raise_if_cancelled()
+                    if first_pcm:
+                        first_pcm = False
+                        await self._audio_health("synthesis", "ready")
+                        log.info(
+                            "conversation_timing stage=first_pcm generation=%s",
+                            generation_id,
+                        )
+                    frame = scale_audio_frame(frame, self._audio_settings["output_gain"])
+                    rms, peak = normalized_audio_metrics(frame)
+                    await self._publish_generation(
+                        EventType.TTS_LEVEL,
                         generation_id,
+                        session_id=session_id,
+                        turn_id=turn_id,
+                        cancellation_id=cancellation.cancellation_id,
+                        payload={"envelope": rms, "peak": peak, "sequence": frame.sequence},
                     )
-                frame = scale_audio_frame(frame, self._audio_settings["output_gain"])
-                rms, peak = normalized_audio_metrics(frame)
-                await self._publish_generation(
-                    EventType.TTS_LEVEL,
-                    generation_id,
-                    session_id=session_id,
-                    turn_id=turn_id,
-                    cancellation_id=cancellation.cancellation_id,
-                    payload={"envelope": rms, "peak": peak, "sequence": frame.sequence},
-                )
-                yield frame
+                    yield frame
+            except (OperationCancelled, asyncio.CancelledError):
+                raise
+            except Exception as error:
+                raise _SynthesisFailure(str(error)) from error
         finally:
             close = getattr(synthesized, "aclose", None)
             if close is not None:
@@ -1561,7 +1595,7 @@ class SamRuntime:
                     detail,
                     "retrying capture" if retrying else "automatic retries exhausted",
                 )
-                await self._capture_health(detail, retrying=retrying)
+                await self._audio_health(_input_failure_component(error), detail, retrying=retrying)
                 if not retrying:
                     return
                 await asyncio.sleep(0.25 * self._voice_restart_failures)
@@ -1574,15 +1608,19 @@ class SamRuntime:
     async def _capture_health(
         self, reason: str, *, retrying: bool = False, at_ms: int | None = None
     ) -> None:
-        # Capture health is independent of model/TTS eligibility. Do not emit
-        # COMPONENT_ERROR / OFFLINE for a failed input while output remains usable.
+        await self._audio_health("voice_input", reason, retrying=retrying, at_ms=at_ms)
+
+    async def _audio_health(
+        self, component: str, reason: str, *, retrying: bool = False, at_ms: int | None = None
+    ) -> None:
+        # Operational audio health does not change model or text eligibility.
         await self.events.publish(
             ProtocolEvent(
                 type=EventType.COMPONENT_HEALTH,
                 monotonic_ms=self._next_event_ms() if at_ms is None else at_ms,
                 session_id=self.session_id,
                 payload={
-                    "component": "voice_input",
+                    "component": component,
                     "state": "healthy" if reason == "ready" else "degraded",
                     "reason": reason,
                     "retrying": retrying,
@@ -1607,7 +1645,7 @@ class SamRuntime:
                 )
                 self.interruptions.apply(events)
                 await self._publish_all(events)
-                await self._capture_health(reason, retrying=retrying)
+                await self._audio_health(_input_failure_component(error), reason, retrying=retrying)
                 if not retrying:
                     # The response still owns its token and may complete TTS.
                     # Terminal input faults require an explicit re-enable.
@@ -1897,6 +1935,7 @@ class SamRuntime:
                         ),
                         candidate_token,
                     )
+                    await self._audio_health("stt", "ready")
 
                 if candidate_stream is not None and candidate_token is not None:
                     if candidate_token.is_cancelled:

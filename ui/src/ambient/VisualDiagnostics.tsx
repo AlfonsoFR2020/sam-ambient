@@ -108,8 +108,26 @@ export function VisualDiagnostics({
               ? `${state.voiceInputHealth.status}${state.voiceInputHealth.retrying ? " (retrying)" : ""}${state.voiceInputHealth.reason ? ` · ${state.voiceInputHealth.reason}` : ""}`
               : "Not reported"}
           </dd>
+          <dt>STT health</dt>
+          <dd>
+            {state.sttHealth
+              ? `${state.sttHealth.status} · ${state.sttHealth.reason ?? "ready"}`
+              : "Not reported"}
+          </dd>
           <dt>Speech synthesis</dt>
           <dd>{known(state.ttsBackend)}</dd>
+          <dt>Synthesis health</dt>
+          <dd>
+            {state.synthesisHealth
+              ? `${state.synthesisHealth.status} · ${state.synthesisHealth.reason ?? "ready"}`
+              : "Not reported"}
+          </dd>
+          <dt>Playback health</dt>
+          <dd>
+            {state.playbackHealth
+              ? `${state.playbackHealth.status} · ${state.playbackHealth.reason ?? "ready"}`
+              : "Not reported"}
+          </dd>
           <dt>Microphone</dt>
           <dd>{state.microphoneEnabled ? "Enabled" : "Muted"}</dd>
           <dt>Spoken replies</dt>

@@ -201,6 +201,43 @@ describe("conversation identity projection", () => {
     expect(state.conversationalState).toBe("THINKING");
   });
 
+  it("keeps capture, recognition, synthesis and playback health independent", () => {
+    let state = resetUiState();
+    for (const [index, [component, reason]] of [
+      ["voice_input", "input missing"],
+      ["stt", "recognizer missing"],
+      ["synthesis", "voice missing"],
+      ["playback", "output missing"],
+    ].entries()) {
+      state = reduceProtocolEvent(
+        state,
+        event("component.health", index + 1, {
+          component,
+          state: "degraded",
+          reason,
+          retrying: false,
+        }),
+      );
+    }
+    expect(state.voiceInputHealth?.reason).toBe("input missing");
+    expect(state.sttHealth?.reason).toBe("recognizer missing");
+    expect(state.synthesisHealth?.reason).toBe("voice missing");
+    expect(state.playbackHealth?.reason).toBe("output missing");
+    state = reduceProtocolEvent(
+      state,
+      event("component.health", 5, {
+        component: "stt",
+        state: "healthy",
+        reason: "ready",
+        retrying: false,
+      }),
+    );
+    expect(state.sttHealth?.status).toBe("healthy");
+    expect(state.voiceInputHealth?.status).toBe("degraded");
+    expect(state.synthesisHealth?.status).toBe("degraded");
+    expect(state.playbackHealth?.status).toBe("degraded");
+  });
+
   it("recovers after a speech-output failure and ignores its late completion", () => {
     let state = reduceProtocolEvent(
       resetUiState(),

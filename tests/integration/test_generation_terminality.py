@@ -179,12 +179,46 @@ def test_tts_stage_failure_keeps_committed_text_and_reports_stage(tmp_path, fail
             assert failure.payload["status"] == "failed"
             assert "synthetic" in failure.payload["reason"]
             assert failure.generation_id == generation_id
+            health = [
+                event
+                for event in observed
+                if event.type == EventType.COMPONENT_HEALTH
+                and event.payload.get("state") == "degraded"
+            ]
+            assert [event.payload["component"] for event in health] == [failure_stage]
             assert [
                 event.type
                 for event in observed
                 if event.type
                 in {EventType.MODEL_COMPLETED, EventType.MODEL_CANCELLED, EventType.COMPONENT_ERROR}
             ] == [EventType.MODEL_COMPLETED]
+        finally:
+            await subscription.close()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_unconfigured_speech_still_completes_text_answer(tmp_path) -> None:
+    async def scenario() -> None:
+        runtime = SamRuntime(_AnswerProvider(), RuntimeConfig(tmp_path, port=0, model="fake"))
+        subscription = await runtime.events.subscribe()
+        try:
+            generation_id = runtime.submit_user_message("typed request")
+            observed: list[ProtocolEvent] = []
+            async with asyncio.timeout(2):
+                while not any(event.type == EventType.TTS_COMPLETED for event in observed):
+                    observed.append(await subscription.get())
+            assert any(
+                event.type == EventType.MODEL_COMPLETED and event.generation_id == generation_id
+                for event in observed
+            )
+            assert any(
+                event.type == EventType.TRANSCRIPT_FINAL
+                and event.payload.get("role") == "assistant"
+                for event in observed
+            )
+            assert not any(event.type == EventType.TTS_FAILED for event in observed)
         finally:
             await subscription.close()
             await runtime.close()
@@ -224,13 +258,83 @@ def test_playback_failure_closes_synthesis_iterator_and_retires_pcm(tmp_path) ->
             tts=tts,
             audio_output=FailingAfterFirstFrame(),
         )
+        subscription = await runtime.events.subscribe()
         try:
             runtime.submit_user_message("Hello")
             await asyncio.wait_for(runtime._active_done.wait(), 2)
+            observed: list[ProtocolEvent] = []
+            async with asyncio.timeout(2):
+                while not any(event.type == EventType.TTS_FAILED for event in observed):
+                    observed.append(await subscription.get())
+            assert [
+                (event.payload["component"], event.payload["state"])
+                for event in observed
+                if event.type == EventType.COMPONENT_HEALTH
+            ] == [("synthesis", "healthy"), ("playback", "degraded")]
             assert tts.closed
             assert runtime.speech_queue.pending == 0
             assert runtime.delivery.active_generation_id is None
         finally:
+            await subscription.close()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("failure_stage", ["synthesis", "playback"])
+def test_speech_failure_does_not_poison_later_text_delivery(tmp_path, failure_stage) -> None:
+    class RecoveringTts(_FakeTts):
+        def __init__(self) -> None:
+            self.fail = failure_stage == "synthesis"
+
+        async def synthesize(self, text, *, voice, language, cancellation):
+            if self.fail:
+                self.fail = False
+                raise RuntimeError("synthetic synthesis unavailable")
+            async for frame in super().synthesize(
+                text, voice=voice, language=language, cancellation=cancellation
+            ):
+                yield frame
+
+    class RecoveringOutput(_FakeOutput):
+        def __init__(self) -> None:
+            super().__init__()
+            self.fail = failure_stage == "playback"
+
+        async def play(self, frames, cancellation):
+            if self.fail:
+                self.fail = False
+                raise RuntimeError("synthetic playback unavailable")
+            await super().play(frames, cancellation)
+
+    async def scenario() -> None:
+        runtime = SamRuntime(
+            _AnswerProvider(),
+            RuntimeConfig(tmp_path, port=0, model="fake"),
+            tts=RecoveringTts(),
+            audio_output=RecoveringOutput(),
+        )
+        subscription = await runtime.events.subscribe()
+        try:
+            runtime.submit_user_message("first")
+            observed: list[ProtocolEvent] = []
+            async with asyncio.timeout(2):
+                while not any(event.type == EventType.TTS_FAILED for event in observed):
+                    observed.append(await subscription.get())
+            runtime.submit_user_message("second")
+            async with asyncio.timeout(2):
+                while not any(event.type == EventType.TTS_COMPLETED for event in observed):
+                    observed.append(await subscription.get())
+            health = [
+                event.payload["state"]
+                for event in observed
+                if event.type == EventType.COMPONENT_HEALTH
+                and event.payload["component"] == failure_stage
+            ]
+            assert health == ["degraded", "healthy"]
+            assert sum(event.type == EventType.MODEL_COMPLETED for event in observed) == 2
+        finally:
+            await subscription.close()
             await runtime.close()
 
     asyncio.run(scenario())

@@ -4,6 +4,15 @@ Updated: 2026-09-27
 
 ## MVP status
 
+- v0.2.3 audio reliability: core now reports separate operational health for
+  microphone capture, STT, synthesis and playback through `component.health`.
+  Successful later operations clear only their own degraded status. Capture/STT
+  failures leave typed conversation eligible; synthesis/playback failures keep
+  the completed model answer as text and terminate speech delivery with
+  `tts.failed`. Frontend status and diagnostics project each health fact
+  separately, and STT failure retires input visual activity. These are
+  deterministic fake-device/service guarantees; physical device and service
+  recovery remain unverified.
 - v0.2.3 audio buffering checkpoint: capture/STT and metered synthesis/playback
   remain pull-based, with a 10-frame capture pre-roll, a bounded 120-second
   whisper.cpp utterance buffer, a 32 MiB maximum synthesized WAV, and an

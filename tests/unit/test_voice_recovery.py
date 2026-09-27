@@ -4,16 +4,19 @@ from types import SimpleNamespace
 import pytest
 
 from sam_ambient import runtime as runtime_module
+from sam_ambient.adapters.audio.sounddevice import AudioDeviceError
 from sam_ambient.adapters.stt.whisper_cpp import (
     SpeechRecognitionProtocolError,
     SpeechRecognitionUnavailable,
 )
+from sam_ambient.core.protocol import EventType
 from sam_ambient.core.voice import AudioFormat, AudioFrame
 from sam_ambient.runtime import (
     RuntimeConfig,
     RuntimeVoiceAdapters,
     SamRuntime,
     _frame_after_protocol_clock,
+    _input_failure_component,
     _voice_failure,
 )
 from tests.unit.test_conversation_context import ConversationProvider
@@ -73,6 +76,7 @@ def test_voice_loop_reopens_capture_after_recoverable_failure(tmp_path, monkeypa
     [
         (SpeechRecognitionProtocolError("closed"), False, "protocol"),
         (SpeechRecognitionUnavailable("down"), False, "service"),
+        (AudioDeviceError("missing microphone"), True, "capture"),
         (OSError("device lost"), True, "capture"),
         (ValueError("bad state"), False, "lifecycle"),
     ],
@@ -81,6 +85,11 @@ def test_voice_failure_classification(error, retry, description):
     reason, recoverable = _voice_failure(error)
     assert recoverable is retry
     assert description in reason.lower()
+    assert _input_failure_component(error) == (
+        "stt"
+        if isinstance(error, (SpeechRecognitionProtocolError, SpeechRecognitionUnavailable))
+        else "voice_input"
+    )
 
 
 def test_transient_capture_retries_are_bounded(tmp_path, monkeypatch):
@@ -105,6 +114,48 @@ def test_transient_capture_retries_are_bounded(tmp_path, monkeypatch):
             assert attempts == 3
             assert runtime.voice_turns.state.value != "OFFLINE"
         finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_stt_unavailability_is_separate_from_capture_and_text_recovers(tmp_path, monkeypatch):
+    attempts = 0
+    resumed = asyncio.Event()
+
+    class FailingThenWaitingPipeline:
+        def __init__(self, **_options):
+            pass
+
+        async def run(self, _token):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise SpeechRecognitionUnavailable("synthetic service absent")
+            resumed.set()
+            await asyncio.Event().wait()
+
+    monkeypatch.setattr(runtime_module, "VoiceInputPipeline", FailingThenWaitingPipeline)
+
+    async def scenario():
+        voice = RuntimeVoiceAdapters(SimpleNamespace(), SimpleNamespace(), ClosableStt())
+        runtime = SamRuntime(ConversationProvider(), RuntimeConfig(tmp_path), voice=voice)
+        subscription = await runtime.events.subscribe()
+        runtime._voice_task = asyncio.create_task(runtime._voice_loop())
+        try:
+            await asyncio.wait_for(runtime._voice_task, 2)
+            health = await asyncio.wait_for(subscription.get(), 2)
+            assert health.type == EventType.COMPONENT_HEALTH
+            assert health.payload["component"] == "stt"
+            assert health.payload["state"] == "degraded"
+            assert runtime.controls.microphone_enabled
+            runtime.submit_user_message("typed input remains usable")
+            await asyncio.wait_for(runtime._active_done.wait(), 2)
+            await runtime._set_microphone(True)
+            await asyncio.wait_for(resumed.wait(), 2)
+            assert attempts == 2
+        finally:
+            await subscription.close()
             await runtime.close()
 
     asyncio.run(scenario())
