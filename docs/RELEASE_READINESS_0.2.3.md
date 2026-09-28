@@ -4,6 +4,24 @@ Status at `d8cff412` (2026-09-27): **implementation candidate, not RC1**. This i
 source and documentation audit, not integrated acceptance. The 0.2.3 changes are
 unreleased; package and runtime version fields still consistently report 0.2.2.
 
+## Real provider/text smoke attempt — 2026-09-28
+
+On clean `dev` at `20269404`, no configured real provider was reachable, so the
+integration session stopped before launching Sam. Neither the user nor workspace
+`sam.toml` exists, and no `SAM_*` environment override was set. The installed
+LM Studio CLI reported its server stopped; probing its default loopback model
+endpoint (`127.0.0.1:1234`) and Ollama's (`127.0.0.1:11434`) found neither
+reachable. An LM Studio inventory command attempted to wake its daemon and
+timed out; it did not establish a serving model. LM Studio processes created by
+that command were stopped after confirming none were running beforehand. No
+provider/model identity could be exercised. Startup discovery, Rescan, exact
+switching, text generation and frontend/core reconnect therefore remain
+**unvalidated**, with no pass or product defect inferred from this unavailable
+environment. No Sam runtime,
+model, audio or native application was launched, and no endpoint or credential
+configuration was changed. Repeat this bounded smoke when an existing local
+provider and model are available; all other release gates remain open.
+
 ## Frozen release scope
 
 0.2.3 contains the frontend startup, Controls, renderer recovery and diagnostics
