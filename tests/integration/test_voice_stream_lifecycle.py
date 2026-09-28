@@ -294,6 +294,38 @@ class CompletionRaceCapture:
             self.closed = True
 
 
+class CandidateOutlivesPlaybackCapture:
+    def __init__(self, runtime, *, end_before_final=False, replace_owner=False):
+        self.runtime = runtime
+        self.end_before_final = end_before_final
+        self.replace_owner = replace_owner
+
+    async def frames(self, cancellation):
+        for delta, speech in ((20, 1), (200, 1)):
+            cancellation.raise_if_cancelled()
+            at_ms = self.runtime._last_event_ms + delta
+            yield AudioFrame(
+                AudioFormat(sample_rate_hz=1_000), bytes([speech, 0]) * 20, at_ms, at_ms // 20
+            )
+        assert self.runtime.voice_turns.state is VoiceState.INTERRUPTION_CANDIDATE
+        await self.runtime._publish_all(
+            self.runtime.voice_turns.on_tts_completed(
+                self.runtime._next_event_ms(), generation_id="generation-1"
+            )
+        )
+        # The response task's finally block clears this mutable pointer before
+        # the microphone candidate receives its final STT result.
+        self.runtime._active_generation_id = None
+        if self.replace_owner:
+            self.runtime.voice_turns = TurnManager(self.runtime.session_id)
+        if self.end_before_final:
+            return
+        for delta in (20, 400, 1200):
+            cancellation.raise_if_cancelled()
+            at_ms = self.runtime._last_event_ms + delta
+            yield AudioFrame(AudioFormat(sample_rate_hz=1_000), b"\0\0" * 20, at_ms, at_ms // 20)
+
+
 def test_monitor_tears_down_when_tts_completion_reaches_idle_before_response_task(tmp_path):
     async def scenario():
         generation_id = "generation-completion-race"
@@ -789,6 +821,85 @@ def test_playback_echo_is_explicitly_rejected_without_false_user_turn(tmp_path):
             assert not any(event.type == EventType.TURN_COMMITTED for event in observed[1:])
         finally:
             output.release_first.set()
+            await runtime.close()
+            await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+@pytest.mark.parametrize(
+    "candidate,expected_commit,end_before_final,replace_owner",
+    [
+        ("The answer is forty two and here is why.", False, False, False),
+        ("Please stop and tell me the weather.", True, False, False),
+        ("The answer is forty two and here is why.", False, True, False),
+        ("The answer is forty two and here is why.", False, False, True),
+    ],
+)
+def test_candidate_stays_provisional_when_playback_finishes_before_stt_final(
+    tmp_path, candidate, expected_commit, end_before_final, replace_owner
+):
+    async def scenario():
+        spoken = "The answer is forty two and here is why."
+        capture = CandidateOutlivesPlaybackCapture(
+            None, end_before_final=end_before_final, replace_owner=replace_owner
+        )
+        events = EventBus()
+        subscription = await events.subscribe(max_queue=128)
+        runtime = SamRuntime(
+            ConversationProvider(),
+            RuntimeConfig(tmp_path, port=0),
+            events=events,
+            voice=RuntimeVoiceAdapters(capture, SignalVad(), SequencedStt([(candidate, None)])),
+        )
+        capture.runtime = runtime
+        manager = TurnManager(runtime.session_id)
+        base = runtime._next_event_ms()
+        manager.start_listening(base, turn_id="turn-1", cancellation_id="cancel-1")
+        manager.on_vad(base + 100, 1)
+        manager.on_transcript(base + 300, "Explain this.", is_final=True, confidence=0.9)
+        manager.on_vad(base + 500, 0)
+        manager.on_time(base + 850)
+        manager.on_model_started(
+            base + 851, generation_id="generation-1", cancellation_id="cancel-1"
+        )
+        manager.on_model_completed(base + 852, generation_id="generation-1")
+        manager.on_tts_started(base + 853, generation_id="generation-1")
+        runtime._last_event_ms = base + 853
+        runtime.voice_turns = manager
+        runtime.delivery.start_generation(
+            turn_id="turn-1", generation_id="generation-1", cancellation_id="cancel-1"
+        )
+        runtime.delivery.record_generated("generation-1", spoken)
+        runtime._active_generation_id = "generation-1"
+        response = asyncio.create_task(asyncio.Event().wait())
+        try:
+            committed = await runtime._monitor_response_capture(response)
+            assert (committed is not None) is expected_commit
+            observed = []
+            while subscription.pending:
+                observed.append(await subscription.get())
+            assert any(event.type is EventType.TTS_COMPLETED for event in observed)
+            assert sum(event.type is EventType.TURN_COMMITTED for event in observed) == int(
+                expected_commit
+            )
+            if expected_commit:
+                assert committed is not None and committed[0].text == candidate
+            else:
+                assert manager.state is VoiceState.IDLE
+                assert any(
+                    event.type is EventType.STT_CANCELLED
+                    and event.payload.get("reason")
+                    == (
+                        "barge_in_monitor_stopped"
+                        if end_before_final or replace_owner
+                        else "playback_echo"
+                    )
+                    for event in observed
+                )
+        finally:
+            response.cancel()
+            await asyncio.gather(response, return_exceptions=True)
             await runtime.close()
             await subscription.close()
 

@@ -1885,6 +1885,11 @@ class SamRuntime:
         assert self.voice is not None
         if response.done():
             return None
+
+        # This monitor owns one delivery. A candidate may finish after playback
+        # and after the mutable active-generation pointer has been cleared.
+        turn_manager = self.voice_turns
+        playback_generation_id = turn_manager.generation_id
         monitor = CancellationToken()
         frame_stream = self.voice.capture.frames(monitor)
         candidate_stream = None
@@ -1894,12 +1899,14 @@ class SamRuntime:
         capture_ready = False
         controller = BargeInController(
             vad=self.voice.vad,
-            turn_manager=self.voice_turns,
+            turn_manager=turn_manager,
             interruptions=self.interruptions,
             publish=self._publish_event,
         )
         try:
             async for frame in frame_stream:
+                if self.voice_turns is not turn_manager:
+                    return None
                 if not capture_ready:
                     capture_ready = True
                     await self._capture_health("ready", at_ms=frame.monotonic_ms)
@@ -1914,7 +1921,7 @@ class SamRuntime:
                 # TTS completion advances the authoritative turn state before the
                 # response task unwinds. Do not require task completion to stop
                 # capture once that state has reached a terminal boundary.
-                if self.voice_turns.state in {
+                if turn_manager.state in {
                     VoiceState.IDLE,
                     VoiceState.ERROR,
                     VoiceState.OFFLINE,
@@ -1923,7 +1930,7 @@ class SamRuntime:
                 if final_transcript is not None and candidate_token is not None:
                     # A final result is immutable. Wait out any remaining endpoint
                     # interval without extending it with new capture frames.
-                    events = self.voice_turns.on_time(frame.monotonic_ms)
+                    events = turn_manager.on_time(frame.monotonic_ms)
                     await self._publish_all(events)
                     if any(event.type == EventType.TURN_COMMITTED for event in events):
                         return final_transcript, candidate_token
@@ -1943,9 +1950,12 @@ class SamRuntime:
                     except BaseException:
                         await finalizing.cancel(candidate_token.cancellation_id, "finalize_failed")
                         raise
+                    if self.voice_turns is not turn_manager:
+                        await finalizing.cancel(candidate_token.cancellation_id, "stale_final")
+                        return None
                     if (
                         candidate_token.is_cancelled
-                        or self.voice_turns.state
+                        or turn_manager.state
                         not in {
                             VoiceState.INTERRUPTION_CANDIDATE,
                             VoiceState.RECOVERING,
@@ -1954,8 +1964,8 @@ class SamRuntime:
                         }
                         or candidate_token.cancellation_id
                         not in {
-                            self.voice_turns.candidate_cancellation_id,
-                            self.voice_turns.cancellation_id,
+                            turn_manager.candidate_cancellation_id,
+                            turn_manager.cancellation_id,
                         }
                     ):
                         await finalizing.cancel(candidate_token.cancellation_id, "stale_final")
@@ -1964,8 +1974,8 @@ class SamRuntime:
                         final_transcript = None
                         continue
                     snapshot = (
-                        self.delivery.snapshot(self._active_generation_id)
-                        if self._active_generation_id
+                        self.delivery.snapshot(playback_generation_id)
+                        if playback_generation_id
                         else None
                     )
                     screened_text, rejection_reason = (
@@ -1974,7 +1984,7 @@ class SamRuntime:
                         else (" ".join(final_transcript.text.split()), None)
                     )
                     if rejection_reason is not None:
-                        events = self.voice_turns.reject_interruption(
+                        events = turn_manager.reject_interruption(
                             self._next_event_ms(), rejection_reason
                         )
                         self.interruptions.apply(events)
@@ -1987,7 +1997,7 @@ class SamRuntime:
                     final_transcript = Transcript(
                         screened_text or "", True, final_transcript.confidence
                     )
-                    tentative = self.voice_turns.state in {
+                    tentative = turn_manager.state in {
                         VoiceState.INTERRUPTION_CANDIDATE,
                         VoiceState.RECOVERING,
                     }
@@ -2000,18 +2010,18 @@ class SamRuntime:
                             )
                         else:
                             await self._publish_all(
-                                self.voice_turns.on_transcript(
+                                turn_manager.on_transcript(
                                     self._next_event_ms(),
                                     final_transcript.text,
                                     is_final=True,
                                     confidence=final_transcript.confidence,
                                 )
                             )
-                    if self.voice_turns.state in {
+                    if turn_manager.state in {
                         VoiceState.INTERRUPTION_CANDIDATE,
                         VoiceState.RECOVERING,
                     }:
-                        events = self.voice_turns.reject_interruption(
+                        events = turn_manager.reject_interruption(
                             self._next_event_ms(), "candidate_not_credible"
                         )
                         self.interruptions.apply(events)
@@ -2025,33 +2035,31 @@ class SamRuntime:
                     else:
                         # Consume the final before a later audio frame can reopen
                         # the endpoint. Finalization already observed endpoint silence.
-                        events = self.voice_turns.on_time(self._next_event_ms())
+                        events = turn_manager.on_time(self._next_event_ms())
                         await self._publish_all(events)
                         if any(event.type == EventType.TURN_COMMITTED for event in events):
                             return final_transcript, candidate_token
                     continue
-                if self.voice_turns.state in {
+                if turn_manager.state in {
                     VoiceState.THINKING,
                     VoiceState.SPEAKING,
                     VoiceState.INTERRUPTION_CANDIDATE,
                     VoiceState.RECOVERING,
                 }:
                     result_events = (await controller.process_audio_frame(frame)).events
-                elif self.voice_turns.state in {
+                elif turn_manager.state in {
                     VoiceState.USER_SPEAKING,
                     VoiceState.ENDPOINT_CANDIDATE,
                 }:
                     vad = self.voice.vad.analyze(frame)
-                    result_events = self.voice_turns.on_vad(
-                        frame.monotonic_ms, vad.speech_probability
-                    )
-                    result_events += self.voice_turns.on_time(frame.monotonic_ms)
+                    result_events = turn_manager.on_vad(frame.monotonic_ms, vad.speech_probability)
+                    result_events += turn_manager.on_time(frame.monotonic_ms)
                     await self._publish_all(result_events)
                 elif response.done():
                     return None
                 else:
                     raise RuntimeError(
-                        f"voice monitor entered unexpected state {self.voice_turns.state}"
+                        f"voice monitor entered unexpected state {turn_manager.state}"
                     )
                 speech_probability = next(
                     (
@@ -2067,9 +2075,9 @@ class SamRuntime:
                         type=EventType.VOICE_LEVEL,
                         monotonic_ms=frame.monotonic_ms,
                         session_id=self.session_id,
-                        turn_id=self.voice_turns.turn_id,
-                        generation_id=self.voice_turns.generation_id,
-                        cancellation_id=self.voice_turns.cancellation_id,
+                        turn_id=turn_manager.turn_id,
+                        generation_id=turn_manager.generation_id,
+                        cancellation_id=turn_manager.cancellation_id,
                         payload={
                             "level": rms,
                             "rms": rms,
@@ -2085,13 +2093,12 @@ class SamRuntime:
                     return final_transcript, candidate_token
 
                 if (
-                    self.voice_turns.state
-                    in {VoiceState.INTERRUPTION_CANDIDATE, VoiceState.RECOVERING}
+                    turn_manager.state in {VoiceState.INTERRUPTION_CANDIDATE, VoiceState.RECOVERING}
                     and candidate_stream is None
                     and candidate_token is None
                 ):
-                    cancellation_id = self.voice_turns.candidate_cancellation_id
-                    turn_id = self.voice_turns.candidate_turn_id
+                    cancellation_id = turn_manager.candidate_cancellation_id
+                    turn_id = turn_manager.candidate_turn_id
                     if cancellation_id is None or turn_id is None:
                         raise RuntimeError("interruption candidate has no correlation identity")
                     candidate_token = self.cancellations.get_or_create(cancellation_id)
@@ -2122,8 +2129,8 @@ class SamRuntime:
                     partial = await candidate_stream.partial_transcript()
                     if partial is not None:
                         snapshot = (
-                            self.delivery.snapshot(self._active_generation_id)
-                            if self._active_generation_id
+                            self.delivery.snapshot(playback_generation_id)
+                            if playback_generation_id
                             else None
                         )
                         screened_text, rejection_reason = (
@@ -2139,7 +2146,7 @@ class SamRuntime:
                         partial = Transcript(
                             screened_text or "", partial.is_final, partial.confidence
                         )
-                        if self.voice_turns.state in {
+                        if turn_manager.state in {
                             VoiceState.INTERRUPTION_CANDIDATE,
                             VoiceState.RECOVERING,
                         }:
@@ -2150,7 +2157,7 @@ class SamRuntime:
                             )
                         else:
                             await self._publish_all(
-                                self.voice_turns.on_transcript(
+                                turn_manager.on_transcript(
                                     frame.monotonic_ms,
                                     partial.text,
                                     is_final=partial.is_final,
@@ -2159,7 +2166,7 @@ class SamRuntime:
                             )
 
                 if (
-                    self.voice_turns.state
+                    turn_manager.state
                     in {
                         VoiceState.ENDPOINT_CANDIDATE,
                         VoiceState.RECOVERING,
@@ -2175,7 +2182,16 @@ class SamRuntime:
                 await close_frames()
             monitor.cancel("barge_in_monitor_stopped")
             if candidate_token is not None:
-                if self.voice_turns.state is not VoiceState.COMMITTING:
+                if turn_manager.state is not VoiceState.COMMITTING:
+                    if turn_manager.state in {
+                        VoiceState.INTERRUPTION_CANDIDATE,
+                        VoiceState.RECOVERING,
+                    }:
+                        events = turn_manager.reject_interruption(
+                            self._next_event_ms(), "barge_in_monitor_stopped"
+                        )
+                        self.interruptions.apply(events)
+                        await self._publish_all(events)
                     if candidate_stream is not None:
                         await candidate_stream.cancel(
                             candidate_token.cancellation_id, "barge_in_monitor_stopped"

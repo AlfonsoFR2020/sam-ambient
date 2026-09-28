@@ -87,6 +87,20 @@ bound. There is no new universal STT/TTS/playback deadline in this pass.
 Deterministic tests prove state and correlation behavior; physical devices,
 actual provider timing, and real speech latency remain integration gates.
 
+Post-0.2.3 physical beta exposed a playback/listening ownership gap. Playback
+PCM is available after output gain, and capture PCM is available before VAD/STT,
+but independent PortAudio streams do not supply aligned render/capture timing
+or AEC. The current text-reference echo guard cannot make a prompt acoustic
+human-origin decision. On `dev`, TTS completion no longer promotes an
+unverified candidate, and a candidate monitor retains its playback generation
+for later text-reference screening after the active pointer clears. Rejection
+after playback returns to IDLE; monitor teardown retires unresolved candidates
+against the monitor's original turn manager. These are safety/identity
+corrections, not
+acoustic source separation. The proposed audio boundary and remaining
+candidate rules are in [post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md).
+No acoustic processor or early barge-in claim is implemented yet.
+
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. `dev` implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded

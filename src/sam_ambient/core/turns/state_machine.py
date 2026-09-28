@@ -453,7 +453,7 @@ class TurnManager:
         elif self.state is VoiceState.RECOVERING:
             recovery_ms = self._elapsed_since(self._recovery_started_ms, at_ms)
             if recovery_ms >= self.config.false_interrupt_recovery_ms:
-                target = self._candidate_origin_state or VoiceState.SPEAKING
+                target = self._candidate_return_state()
                 cancelled = self._candidate_stt_cancelled_event(
                     at_ms,
                     "false_interruption",
@@ -577,7 +577,8 @@ class TurnManager:
         self._model_active = False
         completed = self._event(EventType.TTS_COMPLETED, at_ms, {})
         if self.state is VoiceState.INTERRUPTION_CANDIDATE:
-            return (completed, *self._promote_candidate_after_tts(at_ms))
+            # Playback ending does not prove that microphone speech is human.
+            return (completed,)
         if self.state is VoiceState.RECOVERING:
             candidate_cancelled = self._candidate_stt_cancelled_event(
                 at_ms,
@@ -643,7 +644,7 @@ class TurnManager:
         self._check_time(at_ms)
         if self.state not in {VoiceState.INTERRUPTION_CANDIDATE, VoiceState.RECOVERING}:
             return ()
-        target = self._candidate_origin_state or VoiceState.SPEAKING
+        target = self._candidate_return_state()
         cancelled = self._candidate_stt_cancelled_event(at_ms, reason)
         self._clear_interruption_candidate()
         recovered = self._transition(target, at_ms, reason)
@@ -774,29 +775,9 @@ class TurnManager:
             )
         return tuple(events)
 
-    def _promote_candidate_after_tts(self, at_ms: int) -> tuple[ProtocolEvent, ...]:
-        candidate_speech_started_ms = self._interruption_speech_started_ms
-        candidate_speech_ms = self._interruption_speech_accumulated_ms
-        candidate_text = self._candidate_transcript
-        candidate_final = self._candidate_transcript_final
-        candidate_confidence = self._candidate_transcript_confidence
-        self.turn_id = self._candidate_turn_id or self._id_factory()
-        self.cancellation_id = self._candidate_cancellation_id or self._id_factory()
-        self.generation_id = None
-        self._reset_observation()
-        self.transcript = candidate_text
-        self.transcript_final = candidate_final
-        self.transcript_confidence = candidate_confidence
-        self._vad_active = True
-        self._speech_started_ms = candidate_speech_started_ms
-        self._speech_accumulated_ms = candidate_speech_ms
-        return (
-            self._transition(
-                VoiceState.USER_SPEAKING,
-                at_ms,
-                "assistant_finished_during_candidate",
-            ),
-        )
+    def _candidate_return_state(self) -> VoiceState:
+        origin = self._candidate_origin_state or VoiceState.SPEAKING
+        return VoiceState.IDLE if origin is VoiceState.SPEAKING and not self._tts_active else origin
 
     def _clear_interruption_candidate(self) -> None:
         self._candidate_turn_id = None

@@ -443,3 +443,20 @@ master specification are recorded here.
   barge-in control handling, spoken acknowledgement and named connection
   profiles remain separate work. Future profile IDs may extend route identity;
   credentials never enter intents, route IDs or diagnostic events.
+
+## D-030 — Keep playback-time speech provisional until its owner is checked
+
+- **Accepted:** 2026-09-28. Completing TTS does not by itself promote an open
+  interruption candidate to user speech. The capture monitor retains its
+  playback generation for late transcript screening and retires an unresolved
+  candidate when its own capture lifetime ends or a newer turn takes ownership.
+  Rejection after playback returns to IDLE; an accepted final continues through
+  the existing turn commitment path.
+- **Reason:** The published 0.2.3 physical beta exposed Sam-output text in YOU
+  history. A deterministic reproduction showed that TTS completion could
+  promote an unverified candidate, after which mutable active-generation
+  cleanup could remove its echo reference. The safety repair fixes that handoff
+  without altering already committed assistant text.
+- **Limit:** Text screening is only a fallback. No VAD-only early barge-in is
+  enabled until an audio-reference/AEC boundary can distinguish human speech
+  from speaker bleed. This decision does not claim physical acoustic acceptance.

@@ -256,16 +256,19 @@ def test_08_brief_pause_inside_interruption_preserves_candidate() -> None:
     assert manager.turn_id == "candidate-turn-1"
 
 
-def test_09_user_starts_speaking_exactly_as_tts_finishes() -> None:
+def test_09_candidate_remains_provisional_when_tts_finishes() -> None:
     manager = make_manager()
     begin_speaking(manager)
     manager.on_vad(900, 0.9)
 
     events = manager.on_tts_completed(900, generation_id="generation-1")
 
+    assert manager.state is VoiceState.INTERRUPTION_CANDIDATE
+    assert manager.candidate_turn_id == "candidate-turn-1"
+    assert all(event.type != EventType.TTS_CANCELLED for event in events)
+    manager.on_transcript(901, "Please wait", is_final=True, confidence=0.9)
     assert manager.state is VoiceState.USER_SPEAKING
     assert manager.turn_id == "candidate-turn-1"
-    assert all(event.type != EventType.TTS_CANCELLED for event in events)
 
 
 def test_10_model_finishes_exactly_as_interruption_is_confirmed() -> None:

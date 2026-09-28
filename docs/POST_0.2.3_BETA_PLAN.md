@@ -57,10 +57,75 @@ Repair in this order:
    assistant text when playback stops. Render assistant formatting as prose,
    rather than displaying literal Markdown markers or appending status to text.
 
-The P0 implementation is not complete. The source-discrimination and possible
-provider/generation interaction need a focused high-reasoning continuation
-before changing live barge-in semantics. A single bounded physical follow-up
-should come only after deterministic overlap and terminality regressions pass.
+### Acoustic-ownership feasibility checkpoint (2026-09-28)
+
+Source inspection confirms that Sam can retain a reference to the **PCM it
+sends** to playback. System Speech generates bounded 16 kHz mono PCM16 WAV;
+`_metered_tts_frames` applies output gain and yields 20 ms PCM frames to
+`SoundDeviceOutput`. `SoundDeviceCapture` independently reads 20 ms, 16 kHz
+mono PCM16 frames and applies microphone gain before VAD/STT. The two PortAudio
+streams have no shared sample clock, render/capture timestamp, loopback stream,
+or acoustic echo canceller in the current stack. eSpeak output may be 22.05 kHz.
+`webrtcvad-wheels` supplies VAD only. The output reference is therefore the
+intended render data, not a measured signal from the actual speaker/microphone
+path.
+
+The physical mixture is microphone = unknown, delayed, filtered speaker echo
++ human speech + noise. Simple amplitude comparison, raw correlation, or
+single-delay subtraction cannot distinguish that mixture robustly when device
+latency, room response, speaker distortion, and microphone gain vary. In
+particular, residual echo after imperfect subtraction can falsely satisfy a
+one-second VAD rule. Transcript matching remains a useful secondary safeguard
+but arrives too late to guarantee prompt barge-in. A deterministic repeat of
+the state-machine reproduction still confirms the promotion defect above;
+there is no evidence yet that a small pure-Python classifier would work on the
+real Windows audio path.
+
+The smallest viable options are:
+
+1. **Recommended:** add a bounded, replaceable render-reference/near-end audio
+   processing boundary and evaluate a mature native AEC/double-talk processor
+   (for example [WebRTC Audio Processing](https://webrtc.googlesource.com/src/+/1fce3f8e55a5a416b0436adfff61b627f4033a98/modules/audio_processing/include/audio_processing.h)). Feed the actual post-gain playback
+   PCM as the reverse stream and capture PCM as the near-end stream; align,
+   resample, and reset by playback/candidate identity. This is the most portable
+   path to early human-origin evidence, but adds native DSP/build/licensing
+   work and requires physical-device validation.
+2. Use supported [Windows capture-endpoint AEC](https://learn.microsoft.com/en-us/windows/win32/coreaudio/wasapi) where available. It may exploit
+   platform render-reference integration, but requires a Windows-specific
+   adapter, capability detection, and a fallback because endpoint support is
+   not universal. The current `sounddevice` adapter exposes no such contract.
+3. Keep the present text-confirmed policy as a conservative fallback. It can
+   avoid VAD-only self-interruption but cannot meet the one-second barge-in
+   target. The candidate-promotion/reference defects have been corrected on
+   `dev`; text alone still cannot establish acoustic source ownership.
+
+The bounded safety repair on `dev` now keeps a playback-time candidate
+provisional when TTS completes and pins the monitor to that delivery's
+generation for subsequent text-reference screening. Rejected candidates
+return to IDLE after playback; a novel finalized candidate can still become a
+normal user turn. The regression reproduces the old echo commitment by ending
+playback before STT finalization and clearing the mutable active-generation
+pointer; it now rejects the echo while accepting a distinct utterance. An
+unresolved candidate also retires if its monitor stops, including when a newer
+turn replaces that monitor's lifecycle owner. This is **not** acoustic source
+separation, and text screening can still accept a
+misrecognized echo that does not resemble the generated text. No claim of
+prompt or physically reliable barge-in follows from these tests.
+
+Before enabling early interruption, establish signal-level echo-only,
+double-talk, and post-playback fixtures plus a bounded real-device check. A
+candidate should carry its playback reference through cancellation and final
+STT independently of the mutable active-generation pointer. Promotion must
+require independent-speech evidence or another explicit validated path;
+echo and expired candidates must retire. Preserve capture pre-roll and the
+complete assistant answer when cancelling only playback.
+
+The broader no-response/stall observation remains separate: source inspection
+does not establish that the acoustic candidate defect stranded a provider
+stream or later typed turn. Correlated beta turn/generation/stream events are
+required before attributing that failure. A single bounded physical follow-up
+should occur only after deterministic acoustic ownership and lifecycle
+regressions pass.
 
 ## 2. Voice and embodiment after conversation integrity
 
