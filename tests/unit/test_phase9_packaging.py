@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
+import time
 from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
 
@@ -255,16 +256,22 @@ def test_runtime_streams_model_through_real_tts_boundary_and_persists_turn(
 
 
 class _InterruptCapture:
+    def __init__(self, base_ms: int) -> None:
+        self.base_ms = base_ms
+
     async def frames(self, cancellation):
         audio_format = AudioFormat(sample_rate_hz=1_000)
-        for sequence, at_ms in enumerate((1_400, 1_600, 1_700, 1_720, 2_820)):
+        for sequence, offset_ms in enumerate((1_400, 1_600, 1_700, 1_720, 2_820)):
             cancellation.raise_if_cancelled()
-            yield AudioFrame(audio_format, b"\0\0" * 20, at_ms, sequence)
+            yield AudioFrame(audio_format, b"\0\0" * 20, self.base_ms + offset_ms, sequence)
 
 
 class _InterruptVad:
+    def __init__(self, base_ms: int) -> None:
+        self.base_ms = base_ms
+
     def analyze(self, frame: AudioFrame) -> VadResult:
-        speech = frame.monotonic_ms < 1_720
+        speech = frame.monotonic_ms - self.base_ms < 1_720
         return VadResult(speech, 1.0 if speech else 0.0)
 
 
@@ -301,21 +308,24 @@ def test_composed_voice_monitor_confirms_barge_in_and_commits_fresh_turn(
     tmp_path: Path,
 ) -> None:
     async def scenario() -> None:
+        base_ms = time.monotonic_ns() // 1_000_000
         events = EventBus()
         subscription = await events.subscribe(max_queue=64)
         runtime = SamRuntime(
             _AnswerProvider(),
             RuntimeConfig(tmp_path, port=0),
             events=events,
-            voice=RuntimeVoiceAdapters(_InterruptCapture(), _InterruptVad(), _InterruptStt()),
+            voice=RuntimeVoiceAdapters(
+                _InterruptCapture(base_ms), _InterruptVad(base_ms), _InterruptStt()
+            ),
         )
         manager = runtime.voice_turns
-        manager.start_listening(0, turn_id="old-turn", cancellation_id="old-cancel")
-        manager.on_vad(10, 1.0)
-        manager.on_vad(210, 1.0)
-        manager.on_vad(220, 0.0)
-        manager.on_time(1_320)
-        manager.on_model_started(1_330, generation_id="old-generation")
+        manager.start_listening(base_ms, turn_id="old-turn", cancellation_id="old-cancel")
+        manager.on_vad(base_ms + 10, 1.0)
+        manager.on_vad(base_ms + 210, 1.0)
+        manager.on_vad(base_ms + 220, 0.0)
+        manager.on_time(base_ms + 1_320)
+        manager.on_model_started(base_ms + 1_330, generation_id="old-generation")
         old_token = runtime.cancellations.create("old-cancel")
         runtime.delivery.start_generation(
             turn_id="old-turn",
@@ -324,11 +334,10 @@ def test_composed_voice_monitor_confirms_barge_in_and_commits_fresh_turn(
         )
         runtime._active_generation_id = "old-generation"
         runtime._active_token = old_token
-
         response = asyncio.create_task(old_token.wait())
-        committed = await runtime._monitor_barge_in(response)
-        await response
+        committed = await asyncio.wait_for(runtime._monitor_barge_in(response), 2)
         assert committed is not None
+        await asyncio.wait_for(response, 2)
         transcript, candidate_token = committed
         assert transcript.text == "Please stop and listen."
         assert old_token.is_cancelled

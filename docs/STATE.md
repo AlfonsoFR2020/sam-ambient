@@ -1,10 +1,10 @@
 # Sam implementation state
 
-Updated: 2026-09-27
+Updated: 2026-09-28
 
-The 0.2.3 implementation boundary and unverified release gates are classified in
-[0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Current package/runtime
-metadata remains 0.2.2 until deliberate RC preparation.
+The 0.2.3 implementation boundary and accepted validation limits are classified
+in [0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Package/runtime
+metadata now reports 0.2.3 for release preparation.
 
 ## MVP status
 

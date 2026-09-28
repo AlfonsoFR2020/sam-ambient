@@ -4,10 +4,9 @@
 approval and publication remain human-controlled and do not follow automatically
 from a green branch.
 
-The [0.2.3 readiness and scope freeze](RELEASE_READINESS_0.2.3.md) defines the
-small RC1 source-candidate gates and distinguishes them from final public-artifact
-approval. Keep the checklist below for release execution; it is not evidence that
-the integrated paths have already passed.
+The [0.2.3 readiness and scope freeze](RELEASE_READINESS_0.2.3.md) records the
+accepted integrated-validation limits and the remaining build/publication gates.
+Keep the checklist below for release execution; an unrun physical path is not a pass.
 
 ## Patch-alpha cadence
 
@@ -38,9 +37,9 @@ job successful artificially or weaken its tests.
 - [ ] Intended feature branches have passed acceptance and are merged.
 - [ ] Full release regression passes: Python/frontend tests, lint, formatting,
   TypeScript, Vite, Cargo, version consistency, package metadata, and artifact-content gates.
-- [ ] Physical voice and combined visual/native-shell acceptance match the intended
-  alpha scope. This remains required for release approval, but does not block
-  metadata and documentation preparation.
+- [ ] Release notes accurately disclose unvalidated physical voice, real-provider,
+  reconnect and representative visual/native behavior under the accepted 0.2.3
+  alpha scope; no such path is represented as tested.
 - [ ] Public documentation and `THIRD_PARTY.md` describe the merged tree.
 - [ ] Include the architecture infographic if accurate for this release; update or
   regenerate it after material architecture changes, or label a historical snapshot

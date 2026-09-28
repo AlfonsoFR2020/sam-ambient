@@ -1,11 +1,9 @@
 # Changelog
 
-## Unreleased — 0.2.3
+## 0.2.3 (alpha) — Release candidate
 
-Draft owner-facing [release notes](docs/RELEASE_NOTES_0.2.3.md) and the
-[RC1 scope and validation gates](docs/RELEASE_READINESS_0.2.3.md) summarize the
-implemented boundary. Package and runtime versions remain 0.2.2 until deliberate
-RC preparation.
+[Release notes](docs/RELEASE_NOTES_0.2.3.md) summarize the shipped scope and
+accepted validation limits. Source, frontend and native metadata report 0.2.3.
 
 ### Audio health and local controls
 

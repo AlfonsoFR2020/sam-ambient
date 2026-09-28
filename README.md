@@ -56,22 +56,23 @@ Sam is an experiment toward that kind of computer: one in which interaction is
 centered on **goals, conversation, context, and dynamically generated
 interfaces**, rather than on manually traversing fixed software structures.
 
-**Status:** **Sam 0.2.2 alpha published; 0.2.3 under development.** Windows is
+**Status:** **Sam 0.2.3 alpha release candidate.** Windows is
 the currently validated local-provider and native development path. Full Linux compatibility is
 deferred to the dedicated 0.3.0 Linux review; the remaining hosted Ubuntu Python-test
 failure is a known non-blocker under the current Windows-first alpha policy.
-Packaging, signing, antivirus review, and final human voice/visual/native acceptance
-remain human release gates. Text interaction is the recommended, most reliable
-0.2.2 alpha mode; voice input remains experimental.
+Signing and antivirus review remain public-installer gates. The release notes
+state the accepted real-provider, physical-voice and visual validation limits.
+Text interaction is the recommended, most reliable
+0.2.3 alpha mode; voice input remains experimental.
 The development line opens an isolated Sam app window with installed Edge/Chrome/
 Chromium. Use `uv run sam-ambient --ui-mode browser` for normal-browser/debug mode;
 if no supported app browser is found, the default browser remains the fallback.
 Starting the same Sam root twice reports the existing local UI instead of creating
 competing runtimes. Closing the dedicated window gracefully stops Sam.
-The integrated, unreleased Tauri 2 shell provides the same ambient UI in a native
+The integrated Tauri 2 shell provides the same ambient UI in a native
 window and starts a self-contained Python companion through a fixed resource
-boundary. It remains development-only until native packaging, signing, antivirus,
-and human acceptance gates are completed.
+boundary. A public installer still requires packaging, signing and antivirus
+review.
 On `dev`, speech follows detected response language using installed Windows voices
 with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
 speech service or additional voice installation is performed automatically.
@@ -232,7 +233,7 @@ Frontend development requires Node 22.12+ and pnpm (the version is pinned in
 ```sh
 # Linux/macOS; use scripts/package.ps1 on Windows
 scripts/package.sh
-uv tool install ./dist/sam_ambient-0.2.2-py3-none-any.whl
+uv tool install ./dist/sam_ambient-0.2.3-py3-none-any.whl
 sam-ambient --root /path/to/workspace
 ```
 

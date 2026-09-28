@@ -1,8 +1,9 @@
 # Sam 0.2.3 release readiness and scope freeze
 
-Status at `d8cff412` (2026-09-27): **implementation candidate, not RC1**. This is a
-source and documentation audit, not integrated acceptance. The 0.2.3 changes are
-unreleased; package and runtime version fields still consistently report 0.2.2.
+Release preparation (2026-09-28): v0.2.3 scope is frozen. Source, frontend and
+native metadata advance together to 0.2.3. The owner accepts the known
+real-provider, physical-audio and broader visual-validation limits for this
+Windows-first alpha candidate. Do not reopen those paths solely to release.
 
 ## Real provider/text smoke attempt — 2026-09-28
 
@@ -19,8 +20,8 @@ switching, text generation and frontend/core reconnect therefore remain
 **unvalidated**, with no pass or product defect inferred from this unavailable
 environment. No Sam runtime,
 model, audio or native application was launched, and no endpoint or credential
-configuration was changed. Repeat this bounded smoke when an existing local
-provider and model are available; all other release gates remain open.
+configuration was changed. This is an accepted validation limit, not a passed
+integration smoke or evidence of a product defect.
 
 ## Frozen release scope
 
@@ -45,41 +46,23 @@ source-specific audio levels are not proof of useful physical voice reactivity.
 
 | Class | Current disposition |
 | --- | --- |
-| Release blocker | No reproducible source defect is confirmed by this audit. Any crash, lost committed answer, silent inference fallback, obsolete-turn revival, or unusable claimed text/voice path found by the required smoke becomes a blocker and must be fixed before release. |
-| Release validation required | Current-commit regression/static gates, Python/TypeScript protocol compatibility, real Windows provider discovery/selection/text generation and failure recovery, one physical capture→STT→answer→TTS→playback path with interruption, reconnect timing, combined native/visual acceptance, and guarded package/security gates. The unverified historical Rescan black screen warrants specific real-provider attention. |
+| Release blocker | No reproducible source defect is confirmed at freeze. A failure in existing automated release checks or the normal build must be resolved. No known black-screen, committed-text-loss or silent-route-substitution defect is being waived. |
+| Accepted validation limits | Real provider discovery/selection/generation, physical capture/STT/TTS/playback, acoustic interruption, real reconnect timing and representative GPU perception were not revalidated for this candidate. The historical real Rescan black-screen report remains unconfirmed by the deterministic regressions. Document these limits without claiming a pass. |
 | Post-0.2.3 | Named connection profiles and natural-language/spoken control, wider audio/device and model choices, stronger physical reactivity, surface/palette/membrane/lighting/particle art refinement, richer diagnostics, session-resume policy, and the dedicated Linux 0.3.0 review. Preserve these in [Backlog](BACKLOG.md). |
 | Speculative / obsolete | A new 0.2.3 peel implementation and an entirely absent audio-reactivity foundation are superseded claims: the membrane patches and bounded envelope consumer exist. Physical quality remains unaccepted. The old assertion that 0.2.2 is still being prepared is stale. |
 
-## Integrated validation sequence
+## Release preparation gates
 
-| Path | Before RC1 source candidate | Between RC1 and final approval |
-| --- | --- | --- |
-| LM Studio/Ollama | Exercise one available real local provider for discovery, exact model selection, text generation, Rescan failure/recovery and provider switching if a second provider is available. If Ollama is unavailable, record its path as unvalidated rather than claiming it passed. | Complete any provider path advertised as validated; check service disappearance and model loss with real timing. |
-| Voice/audio | One controlled real microphone/STT/TTS/playback turn, typed text after an audio failure, and a basic interruption smoke. | Broader device-loss/recovery, sustained/noisy speech, acoustic echo, language changes and timing acceptance. Fix release-blocking failures; keep deeper acoustic tuning out of scope. |
-| Reconnect | One controlled core disconnect/reconnect during idle and one pending or active operation, observing stale-event rejection and UI recovery. | Longer-running and device/service-specific reconnect cases. |
-| Native/visual | Verify a Windows native development shell opens and the integrated UI remains usable; review the current Orb/Controls on representative hardware. | Guarded native companion/installer packaging, artifact smoke, signing, AV/reputation and final human visual/voice/native acceptance before any public installer. |
-
-Only a provider actually available for the candidate machine can be exercised at
-RC1. Unsupported/unavailable provider paths must be described accurately in the
-release notes. No test in this audit launched those systems.
-
-## RC1 source-candidate gates
-
-1. Freeze an identified clean `dev` commit; align Python, frontend, Tauri, Cargo and
-   lockfile versions to 0.2.3 in one deliberate preparation change, then pass
-   `scripts/check_release.py`. Do not infer 0.2.3 from changelog headings.
-2. Run the release regression and static gates on that exact commit: Python and
-   frontend tests, Ruff/format, Biome, TypeScript, Rust/Cargo checks and the
-   relevant browser renderer/recovery regressions. Maintain protocol v1
-   compatibility across frontend and core. Record any known Ubuntu exception
-   under the existing Windows-first policy rather than hiding it.
-3. Complete the bounded integrated RC1 smokes above. No known reproducible
-   black screen/crash, lost committed text, silent fallback or stuck voice/control
-   state may remain in a claimed path.
-4. Reconcile the public scope, release notes, package contents and deferred
-   validation with the candidate. RC1 is not publication approval: guarded
-   artifacts, signing/security review and final acceptance remain separate gates
-   in the [release checklist](RELEASE_CHECKLIST.md).
+1. Keep Python, frontend, Tauri, Cargo and the Sam entries in the lockfiles at
+   0.2.3; pass the existing version and package-content checks.
+2. Run the existing automated Python/frontend, TypeScript, Ruff/Biome/format,
+   Rust and focused browser gates that the release process supports. Record the
+   known Ubuntu CI exception under the Windows-first policy.
+3. Build the normal wheel, source distribution, self-contained companion and
+   guarded Windows native candidate without broadening product validation.
+4. Publish no unsigned Windows installer. Signing, antivirus/reputation review,
+   hosted Windows gates after push, tag/release creation and artifact publication
+   remain manual release execution under the [release checklist](RELEASE_CHECKLIST.md).
 
 ## Automated protection already present
 
@@ -92,6 +75,6 @@ release notes. No test in this audit launched those systems.
   plus browser slider, drag, Rescan and WebGL composition specs. They do not prove
   representative GPU cost or human visual acceptance.
 
-The meaningful missing coverage is integrated reality at the listed boundaries,
-not another broad synthetic test framework. Recent per-slice green results do
-not replace a candidate-commit regression run.
+The automated checks protect the implemented contracts; they do not establish
+physical or real-provider acceptance. Those limits are accepted for this
+candidate and stated in the [release notes](RELEASE_NOTES_0.2.3.md).

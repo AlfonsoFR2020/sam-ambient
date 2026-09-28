@@ -1,8 +1,8 @@
-# Sam 0.2.3 alpha release notes — draft
+# Sam 0.2.3 alpha release notes
 
-Sam 0.2.3 is an unreleased Windows-first candidate. These notes describe the
-implemented source, not completed release acceptance. Package metadata remains
-0.2.2 until a versioned RC preparation commit.
+Sam 0.2.3 is a Windows-first alpha release candidate. These notes describe the
+implemented release scope. The candidate does not claim new physical voice or
+real-provider acceptance.
 
 ## Reliability and recovery
 
@@ -40,8 +40,9 @@ implemented source, not completed release acceptance. Package metadata remains
 
 ## Release boundary
 
-The [0.2.3 readiness plan](RELEASE_READINESS_0.2.3.md) lists required integrated
-provider, voice, reconnect and native checks. Named server/API profiles,
-natural-language spoken controls, full audio embodiment and major additional
-visual art direction are outside this release. No public installer or final
-hardware/provider acceptance is claimed by this draft.
+Broader real-provider switching, device and speech-service recovery, acoustic
+interruption, representative GPU behavior and reconnect timing remain unvalidated
+in this candidate. Named server/API profiles, natural-language spoken controls,
+full audio embodiment and major additional visual art direction are outside this
+release. A public Windows installer requires the repository's signing and
+security review before publication.
