@@ -1,5 +1,11 @@
 # Post-0.2 engineering backlog
 
+The published 0.2.3 human beta and dependency-aware post-release order are in
+[Post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md). Its conversation
+ownership, barge-in, generation retirement, and history-integrity cluster is
+the current P0. The following older items remain directions, not evidence that
+the physical beta passed them.
+
 This is the detailed backlog beyond the frozen 0.2.3 scope. It records
 observed limitations and planned directions without implying acceptance, priority,
 or a commitment to a specific implementation. Milestone-level sequencing remains

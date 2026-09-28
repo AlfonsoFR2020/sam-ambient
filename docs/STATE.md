@@ -2,6 +2,16 @@
 
 Updated: 2026-09-28
 
+Post-release physical beta exposed an unresolved conversation-integrity defect:
+an unverified microphone candidate can be promoted when TTS completes, after
+which its final transcript may bypass the playback-echo reference and commit as
+human input. During playback, sustained VAD alone intentionally cannot stop
+TTS because the current stack lacks an acoustic source-discrimination signal;
+human interruption was correspondingly slow in the beta. Later typed-turn stall
+was observed but has not been attributed to a specific generation/stream defect.
+See [post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md). This does not modify
+the released 0.2.3 implementation or establish physical repair acceptance.
+
 The 0.2.3 implementation boundary and accepted validation limits are classified
 in [0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Package/runtime
 metadata now reports 0.2.3 for release preparation.
