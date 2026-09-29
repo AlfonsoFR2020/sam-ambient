@@ -15,8 +15,8 @@ from sam_ambient.core.providers import (
     ProviderTimeout,
     ToolSchema,
 )
-from sam_ambient.core.turns import CancellationToken
-from sam_ambient.core.voice import AudioFrame
+from sam_ambient.core.turns import CancellationToken, OperationCancelled, TurnManager, VoiceState
+from sam_ambient.core.voice import AudioFrame, Transcript
 from sam_ambient.runtime import RuntimeConfig, RuntimeVoiceAdapters, SamRuntime
 from tests.integration.test_voice_input_pipeline import FakeStt, SequenceVad
 from tests.unit.test_phase9_packaging import _AnswerProvider, _FakeOutput, _FakeTts
@@ -60,6 +60,191 @@ class SupersessionProvider(LLMProvider):
         cancellation.raise_if_cancelled()
         yield ModelEvent(ModelEventKind.TEXT_DELTA, "replacement answer")
         yield ModelEvent(ModelEventKind.COMPLETED)
+
+
+class StubbornFirstProvider(SupersessionProvider):
+    """A stream that does not finish just because its caller cancels it."""
+
+    async def stream_chat(
+        self,
+        messages: Sequence[Message],
+        tools: Sequence[ToolSchema],
+        *,
+        model: str,
+        cancellation: CancellationToken,
+    ) -> AsyncIterator[ModelEvent]:
+        del messages, tools, model
+        self.requests += 1
+        if self.requests == 1:
+            self.first_started.set()
+            try:
+                await self.release_first.wait()
+            except asyncio.CancelledError:
+                await self.release_first.wait()
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, "late first answer")
+        else:
+            cancellation.raise_if_cancelled()
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, "fresh typed answer")
+        yield ModelEvent(ModelEventKind.COMPLETED)
+
+
+@pytest.mark.parametrize("voice_enabled", [False, True])
+def test_typed_control_recovers_after_successive_supersessions_with_open_stream(
+    tmp_path, voice_enabled: bool
+) -> None:
+    class EmptyCapture:
+        async def frames(self, cancellation):
+            del cancellation
+            if False:
+                yield None
+
+    async def scenario() -> None:
+        provider = StubbornFirstProvider()
+        voice = (
+            RuntimeVoiceAdapters(EmptyCapture(), SequenceVad(), FakeStt())
+            if voice_enabled
+            else None
+        )
+        runtime = SamRuntime(
+            provider, RuntimeConfig(tmp_path, port=0, model="test-model"), voice=voice
+        )
+        subscription = await runtime.events.subscribe()
+        try:
+            first = runtime.submit_user_message("voice-like first turn")
+            await asyncio.wait_for(provider.first_started.wait(), 1)
+            if voice_enabled:
+                runtime.voice_turns.on_vad(runtime._next_event_ms(), 1.0)
+                assert runtime.voice_turns.state.value == "INTERRUPTION_CANDIDATE"
+            first_task = runtime._active_response_task
+            assert first_task is not None
+            second = runtime.submit_user_message("superseded replacement")
+            command = ControlCommand(
+                type=ControlCommandType.USER_MESSAGE_SUBMIT,
+                command_id="typed-recovery-command",
+                monotonic_ms=1,
+                session_id=runtime.session_id,
+                payload={"text": "typed recovery"},
+            )
+            ack = await runtime.controls.dispatch(command)
+            assert ack.type == EventType.CONTROL_ACKNOWLEDGED
+            third = runtime.active_generation_id
+            assert third not in {None, first, second}
+
+            observed: list[ProtocolEvent] = []
+            async with asyncio.timeout(1):
+                while not any(
+                    event.type == EventType.MODEL_COMPLETED and event.generation_id == third
+                    for event in observed
+                ):
+                    observed.append(await subscription.get())
+            assert provider.requests == 2
+            assert any(
+                event.type == EventType.TRANSCRIPT_FINAL
+                and event.payload.get("command_id") == command.command_id
+                and event.payload.get("text") == "typed recovery"
+                for event in observed
+            )
+            assert any(
+                event.type == EventType.MODEL_CANCELLED and event.generation_id == first
+                for event in observed
+            )
+            assert any(
+                event.type == EventType.MODEL_CANCELLED and event.generation_id == second
+                for event in observed
+            )
+            provider.release_first.set()
+            await asyncio.wait_for(asyncio.gather(first_task, return_exceptions=True), 1)
+            while subscription.pending:
+                observed.append(await subscription.get())
+            assert (
+                sum(
+                    event.type == EventType.MODEL_CANCELLED and event.generation_id == first
+                    for event in observed
+                )
+                == 1
+            )
+            assert not any(
+                event.generation_id == first
+                and event.type in {EventType.MODEL_DELTA, EventType.MODEL_COMPLETED}
+                for event in observed
+            )
+            assert runtime.active_generation_id is None
+        finally:
+            provider.release_first.set()
+            await subscription.close()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_late_voice_handoff_cannot_reclaim_generation_after_typed_turn(tmp_path) -> None:
+    async def scenario() -> None:
+        provider = StubbornFirstProvider()
+        runtime = SamRuntime(provider, RuntimeConfig(tmp_path, port=0, model="test-model"))
+        subscription = await runtime.events.subscribe()
+        handoff_entered = asyncio.Event()
+        release_handoff = asyncio.Event()
+        original_retire = runtime._retire_predecessor
+
+        async def gated_retire(owner):
+            if owner is not None and not handoff_entered.is_set():
+                handoff_entered.set()
+                await release_handoff.wait()
+            await original_retire(owner)
+
+        runtime._retire_predecessor = gated_retire
+        try:
+            runtime.submit_user_message("first model request")
+            await asyncio.wait_for(provider.first_started.wait(), 1)
+            manager = TurnManager(runtime.session_id)
+            manager.start_listening(0)
+            manager.on_vad(10, 1.0)
+            manager.on_vad(210, 1.0)
+            manager.on_transcript(220, "voice replacement", is_final=True, confidence=0.99)
+            manager.on_vad(230, 0.0)
+            manager.on_time(1_330)
+            assert manager.state is VoiceState.COMMITTING
+            runtime.voice_turns = manager
+            assert manager.cancellation_id is not None
+            voice_token = runtime.cancellations.create(manager.cancellation_id)
+            voice_handoff = asyncio.create_task(
+                runtime._start_voice_turn(Transcript("voice replacement", True, 0.99), voice_token)
+            )
+            await asyncio.wait_for(handoff_entered.wait(), 1)
+
+            command = ControlCommand(
+                type=ControlCommandType.USER_MESSAGE_SUBMIT,
+                command_id="typed-during-handoff",
+                monotonic_ms=1,
+                session_id=runtime.session_id,
+                payload={"text": "typed recovery"},
+            )
+            assert (await runtime.controls.dispatch(command)).type == EventType.CONTROL_ACKNOWLEDGED
+            typed_generation = runtime.active_generation_id
+            observed: list[ProtocolEvent] = []
+            async with asyncio.timeout(1):
+                while not any(
+                    event.type == EventType.MODEL_COMPLETED
+                    and event.generation_id == typed_generation
+                    for event in observed
+                ):
+                    observed.append(await subscription.get())
+            release_handoff.set()
+            with pytest.raises(OperationCancelled):
+                await voice_handoff
+            assert provider.requests == 2
+            assert runtime.active_generation_id is None
+            assert not any(
+                event.type == EventType.MODEL_DELTA and event.turn_id == manager.turn_id
+                for event in observed
+            )
+        finally:
+            release_handoff.set()
+            provider.release_first.set()
+            await subscription.close()
+            await runtime.close()
+
+    asyncio.run(scenario())
 
 
 def test_ready_snapshot_identifies_active_text_turn_for_reconnect(tmp_path) -> None:

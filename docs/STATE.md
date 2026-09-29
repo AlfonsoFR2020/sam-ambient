@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-28
+Updated: 2026-09-29
 
 Post-release physical beta exposed a conversation-integrity defect: an
 unverified microphone candidate could be promoted when TTS completed, then
@@ -11,8 +11,18 @@ Unresolved candidates retire when their monitor stops. Focused deterministic
 lifecycle tests cover echo rejection and novel speech after playback. During
 playback, sustained VAD alone still cannot stop TTS because the stack lacks
 acoustic source discrimination; human interruption was
-correspondingly slow in the beta. A later typed-turn stall was observed but
-has not been attributed to a specific generation/stream defect. See
+correspondingly slow in the beta. A deterministic text/voice-managed sequence
+now reproduces one stall path: a superseded provider stream that has not
+finished held the next typed generation behind its `response_done`. The runtime
+now requests cancellation, retires that generation's model/delivery ownership
+before admitting its successor, and rejects late output; a typed turn can
+complete even if the old adapter remains open. An older voice handoff also
+checks its generation epoch after asynchronous retirement, so it cannot reclaim
+authority after a newer typed request. A stale terminal event
+releases its frontend pending command without changing current conversation
+state, and pending Controls no longer disable typed submission. This is a
+source-backed recovery guarantee, not proof that this exact path caused the
+physical beta's eventual no-response state. See
 [post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md). This does not modify the
 released 0.2.3 implementation or establish physical repair acceptance.
 Further inspection confirmed post-gain playback PCM and capture PCM are both

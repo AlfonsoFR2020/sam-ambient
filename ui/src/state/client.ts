@@ -237,6 +237,7 @@ export class ProtocolClient {
           event.payload.candidate !== true) ||
           event.type === "model.cancelled" ||
           event.type === "component.error") &&
+        (!event.session_id || !this.state.sessionId || event.session_id === this.state.sessionId) &&
         typeof event.payload.command_id === "string" &&
         this.state.pendingCommandIds.includes(event.payload.command_id)
           ? event.payload.command_id
@@ -249,8 +250,9 @@ export class ProtocolClient {
         }
       }
       const reduced = reduceProtocolEvent(this.state, event);
-      const terminalCommandId =
-        reduced !== this.state ? (terminalDiscoveryId ?? terminalTurnId) : undefined;
+      // A superseded turn's event is stale for conversation display, but it
+      // still retires the command that submitted that turn.
+      const terminalCommandId = terminalDiscoveryId ?? terminalTurnId;
       if (terminalCommandId) {
         this.commandTimeouts.get(terminalCommandId)?.();
         this.commandTimeouts.delete(terminalCommandId);

@@ -274,4 +274,53 @@ describe("protocol client", () => {
     expect(client.getSnapshot().protocolError).toBeUndefined();
     client.stop();
   });
+
+  it("releases a superseded command even when its terminal is stale for the current turn", async () => {
+    const transport = new ControlledTransport();
+    const scheduler = new ManualScheduler();
+    const client = new ProtocolClient(transport, scheduler);
+    client.start();
+    await flushPromises();
+    await client.sendControl({
+      protocol: 1,
+      type: "control.user_message.submit",
+      command_id: "first-command",
+      monotonic_ms: 1,
+      payload: { text: "First" },
+    });
+    await client.sendControl({
+      protocol: 1,
+      type: "control.user_message.submit",
+      command_id: "second-command",
+      monotonic_ms: 2,
+      payload: { text: "Second" },
+    });
+    transport.observers[0]?.onEvent({
+      protocol: 1,
+      type: "transcript.final",
+      monotonic_ms: 3,
+      session_id: "session",
+      turn_id: "second-turn",
+      generation_id: "second-generation",
+      payload: { role: "user", text: "Second", command_id: "second-command" },
+    });
+    expect(client.getSnapshot().pendingCommandIds).toEqual(["first-command"]);
+    transport.observers[0]?.onEvent({
+      protocol: 1,
+      type: "model.cancelled",
+      monotonic_ms: 4,
+      session_id: "session",
+      turn_id: "first-turn",
+      generation_id: "first-generation",
+      payload: {
+        reason: "superseded_by_new_user_turn",
+        command_id: "first-command",
+      },
+    });
+    expect(client.getSnapshot().turnId).toBe("second-turn");
+    expect(client.getSnapshot().pendingCommandIds).toEqual([]);
+    scheduler.runDelay();
+    expect(client.getSnapshot().protocolError).toBeUndefined();
+    client.stop();
+  });
 });

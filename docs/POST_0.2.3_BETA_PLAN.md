@@ -45,13 +45,12 @@ Repair in this order:
    synthetic signals. Do not substitute a VAD timer or transcript similarity
    threshold for source discrimination. Keep a conservative behavior if
    acoustic ownership is uncertain.
-3. Correlate the physical run's turn/generation/cancellation IDs and provider
-   stream terminals, especially `59f… → a81…`, `aeeb… → f7b…`, and
-   `c5c… → 273f…`. Absence of `model_complete` alone is not failure: cancelled
-   and superseded work is valid. Verify that every predecessor sets its
-   `response_done` and releases any stream or pending command, so a later typed
-   request proceeds when the provider is usable. Add consecutive-supersession
-   and typed-recovery regressions for any defect actually found.
+3. Keep generation terminality and typed recovery protected. The source-backed
+   stall path and repair are recorded below. Correlate the physical run's
+   turn/generation/cancellation IDs and provider stream terminals, especially
+   `59f… → a81…`, `aeeb… → f7b…`, and `c5c… → 273f…`, before attributing the
+   whole physical no-response episode. Absence of `model_complete` alone is not
+   failure: cancelled and superseded work is valid.
 4. Keep provisional STT out of committed YOU history. Keep message role,
    interruption status, and delivery status as metadata; preserve full generated
    assistant text when playback stops. Render assistant formatting as prose,
@@ -120,12 +119,39 @@ require independent-speech evidence or another explicit validated path;
 echo and expired candidates must retire. Preserve capture pre-roll and the
 complete assistant answer when cancelling only playback.
 
-The broader no-response/stall observation remains separate: source inspection
-does not establish that the acoustic candidate defect stranded a provider
-stream or later typed turn. Correlated beta turn/generation/stream events are
-required before attributing that failure. A single bounded physical follow-up
-should occur only after deterministic acoustic ownership and lifecycle
-regressions pass.
+### Conversation terminality checkpoint (2026-09-29)
+
+A deterministic A → B → typed C sequence reproduced a no-response path: if
+generation A's provider stream did not unwind on token cancellation, B and C
+remained behind A's unbounded `response_done` wait. The runtime had already
+made C its active generation and acknowledged its text command, yet C never
+reached model execution. A matching voice-managed variant retained an old
+`INTERRUPTION_CANDIDATE` and exhibited the same risk. The repair requests
+task/token cancellation, publishes one terminal for the predecessor, retires
+its speech queue and logical ownership, and lets C execute without waiting for
+the old adapter. Late A output cannot commit an answer or replace C's state.
+An additional voice-handoff race let a committed voice turn resume after its
+retirement await and claim active generation ownership after a newer typed
+request. A monotonic generation epoch now rejects that stale handoff; the
+controlled overlap regression dispatches and completes typed input first.
+The HTTP stream adapter already binds token cancellation to its task and closes
+the stream on unwind; a non-cooperative adapter may still run in the background
+until it returns, but it no longer holds the conversation gate.
+
+A second concrete frontend gate was independent: a late old-turn terminal could
+be discarded as stale by the conversation reducer before it released the
+corresponding pending command. Moreover, any pending Control disabled the Send
+button. Command retirement now follows correlation even when the event is stale
+for display, and a pending Control no longer blocks a valid typed request.
+The existing 30-second acknowledgement bound remains a diagnostics/failure
+bound, not a condition for text recovery.
+
+These synthetic regressions establish a viable typed recovery path after
+successive supersessions; they do not identify which provider/voice/UI gate
+caused the five-minute physical beta to stop responding. The captured excerpt
+does not contain enough correlated terminal and command evidence to assign that
+specific incident. Acoustic source separation and approximately-one-second
+barge-in remain deferred and are unaffected by this checkpoint.
 
 ## 2. Voice and embodiment after conversation integrity
 

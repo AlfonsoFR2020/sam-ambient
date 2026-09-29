@@ -848,10 +848,7 @@ export default function App() {
                         : "Select an available conversational model first."
                     }
                     disabled={
-                      !textRequest.trim() ||
-                      pending ||
-                      state.connection !== "connected" ||
-                      !state.model
+                      !textRequest.trim() || state.connection !== "connected" || !state.model
                     }
                   >
                     Send

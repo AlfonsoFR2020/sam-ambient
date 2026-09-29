@@ -460,3 +460,24 @@ master specification are recorded here.
 - **Limit:** Text screening is only a fallback. No VAD-only early barge-in is
   enabled until an audio-reference/AEC boundary can distinguish human speech
   from speaker bleed. This decision does not claim physical acoustic acceptance.
+
+## D-031 — Retire superseded conversation ownership before waiting for adapters
+
+- **Accepted:** 2026-09-29. A new text or committed voice generation cancels its
+  predecessor's token and running task, then terminalizes its model and speech
+  ownership before starting the successor. It does not wait without a bound
+  for a provider stream or playback adapter to return. Late work retains its
+  old identity and cannot publish current model output or clear the successor.
+  A committed voice handoff checks a monotonic generation epoch after its
+  retirement await, so intervening typed input keeps authority.
+- **Reason:** A deterministic A → B → typed C sequence proved that the former
+  `response_done` handoff could keep C from reaching the provider while A's
+  cancelled stream stayed open. A pending frontend command also remained when
+  its old terminal was correctly ignored as stale conversation state. Command
+  correlation now retires it independently, and unrelated pending Controls do
+  not disable typed recovery.
+- **Limit:** Core-owned state and queues retire promptly; a non-cooperative
+  external adapter may still occupy its own task until it returns. The existing
+  HTTP transport requests cancellation and closes its stream on unwind. This
+  source-backed repair does not prove the exact cause of the physical beta's
+  late no-response episode or change acoustic barge-in policy.

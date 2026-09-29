@@ -76,9 +76,27 @@ snapshot carries the core's current turn/generation IDs when a turn is active;
 the frontend reattaches only that identity. Core text commands echo their
 originating command ID on acceptance or pre-acceptance terminal events. A
 correlated lifecycle event can release the pending UI command before its ACK;
-late ACK/rejection cannot reopen it. Rescan changes availability for future
+even a terminal event discarded as stale for conversation display releases its
+own pending command. Late ACK/rejection cannot reopen it. Pending Controls do
+not gate a fresh typed request while the core connection and model route remain
+available. Rescan changes availability for future
 turns but never silently replaces the model already chosen for an active
 generation. The UI disables new text submission when no model is active.
+
+On supersession, `SamRuntime` captures the predecessor's generation, turn,
+cancellation, terminal, delivery and command identities. It cancels the token
+and running task, retires the model terminal and queued speech, then admits the
+successor without waiting for a provider or playback adapter to finish. A
+pre-start queued generation observes its cancelled token so its terminal path
+still runs. The old task may finish later, but its token and generation checks
+discard late model output and cannot clear the new generation's active state.
+Committed voice handoff checks a monotonic generation epoch after its await;
+if typed input arrived meanwhile, the older handoff cannot reclaim authority.
+`response_done` signals released conversation ownership; an adapter that
+ignores cancellation may still have a detached request until it returns. The
+HTTP transport itself binds token cancellation to the request task and closes
+its response stream on unwind. Generation and speech-delivery completion remain
+separate so interrupted playback does not delete committed assistant text.
 
 Capture endpoint waits are owned by `TurnManager`/`VoiceInputPipeline`, including
 the bounded candidate-duration path. Provider adapters own model stream and

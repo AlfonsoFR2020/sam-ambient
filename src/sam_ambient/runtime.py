@@ -343,6 +343,21 @@ class CommittedInferenceTarget:
     unavailable_reason: str | None
 
 
+@dataclass(frozen=True, slots=True)
+class _GenerationOwner:
+    """Identity needed to retire a predecessor without awaiting its adapter."""
+
+    generation_id: str
+    turn_id: str
+    session_id: str
+    token: CancellationToken
+    terminal: asyncio.Event
+    response_done: asyncio.Event
+    started: asyncio.Event
+    task: asyncio.Task[None]
+    origin_command_id: str | None
+
+
 class _ToolCallAccumulator:
     """Collect OpenAI fragments while accepting complete Ollama calls."""
 
@@ -551,6 +566,11 @@ class SamRuntime:
         self._active_token: CancellationToken | None = None
         self._active_terminal: asyncio.Event | None = None
         self._active_response_done: asyncio.Event | None = None
+        self._active_started: asyncio.Event | None = None
+        self._active_response_task: asyncio.Task[None] | None = None
+        self._active_session_id: str | None = None
+        self._active_origin_command_id: str | None = None
+        self._generation_epoch = 0
         self._active_playback_generation_id: str | None = None
         self._generation_handoff_lock = asyncio.Lock()
         self._terminal_publish_lock = asyncio.Lock()
@@ -676,6 +696,67 @@ class SamRuntime:
             session_id=command.session_id or self.session_id,
             origin_command_id=command.command_id,
         )
+
+    def _active_generation_owner(self) -> _GenerationOwner | None:
+        if (
+            self._active_generation_id is None
+            or self._active_turn_id is None
+            or self._active_token is None
+            or self._active_terminal is None
+            or self._active_response_done is None
+            or self._active_started is None
+            or self._active_response_task is None
+        ):
+            return None
+        return _GenerationOwner(
+            self._active_generation_id,
+            self._active_turn_id,
+            self._active_session_id or self.session_id,
+            self._active_token,
+            self._active_terminal,
+            self._active_response_done,
+            self._active_started,
+            self._active_response_task,
+            self._active_origin_command_id,
+        )
+
+    @staticmethod
+    def _cancel_predecessor(owner: _GenerationOwner | None) -> None:
+        if owner is None:
+            return
+        owner.token.cancel("superseded_by_new_user_turn")
+        # A task cancelled before its first instruction never reaches its
+        # terminal/finally path. A queued turn will observe its token itself.
+        if owner.started.is_set() and not owner.task.done() and not owner.task.cancelling():
+            owner.task.cancel()
+
+    async def _retire_predecessor(self, owner: _GenerationOwner | None) -> None:
+        if owner is None:
+            return
+        if self._active_playback_generation_id == owner.generation_id:
+            await self._cancel_active_playback("superseded_by_new_user_turn")
+        self.speech_queue.cancel_generation(owner.generation_id, self._next_event_ms())
+        published = await self._publish_generation_terminal(
+            EventType.MODEL_CANCELLED,
+            owner.generation_id,
+            terminal=owner.terminal,
+            session_id=owner.session_id,
+            turn_id=owner.turn_id,
+            cancellation_id=owner.token.cancellation_id,
+            payload={
+                "reason": owner.token.reason or "superseded_by_new_user_turn",
+                "outcome": self._cancellation_outcome(owner.token.reason),
+                **({"command_id": owner.origin_command_id} if owner.origin_command_id else {}),
+            },
+        )
+        owner.response_done.set()
+        if not owner.started.is_set():
+            self.cancellations.discard(owner.token.cancellation_id)
+        if published:
+            log.info(
+                "conversation_generation_retired generation=%s reason=superseded",
+                owner.generation_id,
+            )
 
     async def _request_shutdown(self, command: ControlCommand) -> None:
         if command.session_id != self.session_id:
@@ -996,9 +1077,8 @@ class SamRuntime:
             raise ValueError("user message must be non-blank")
         if len(normalized) > 4_000:
             raise ValueError("user message exceeds 4000 characters")
-        predecessor_done = self._active_response_done
-        if self._active_token is not None:
-            self._active_token.cancel("superseded_by_new_user_turn")
+        predecessor = self._active_generation_owner()
+        self._cancel_predecessor(predecessor)
         voice_managed = self.voice is not None and self.controls.microphone_enabled
         if voice_managed and self._voice_listen_token is not None:
             self._voice_listen_token.cancel("text_response_started")
@@ -1008,6 +1088,7 @@ class SamRuntime:
         terminal = asyncio.Event()
         response_done = asyncio.Event()
         inference_target = self._committed_inference_target()
+        self._generation_epoch += 1
         self._active_generation_id = generation_id
         self._active_turn_id = turn_id
         self._active_token = token
@@ -1015,7 +1096,7 @@ class SamRuntime:
         self._active_response_done = response_done
         self._active_done.clear()
         turn_manager = TurnManager(self.session_id) if voice_managed else None
-        started = asyncio.Event() if voice_managed else None
+        started = asyncio.Event()
         if turn_manager is not None:
             self._voice_monitor_owner = turn_manager
             self._voice_ordinary_capture_enabled.clear()
@@ -1028,7 +1109,7 @@ class SamRuntime:
                 cancellation=token,
                 terminal=terminal,
                 response_done=response_done,
-                predecessor_done=predecessor_done,
+                predecessor=predecessor,
                 turn_manager=turn_manager,
                 started=started,
                 origin_command_id=origin_command_id,
@@ -1037,8 +1118,12 @@ class SamRuntime:
         )
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
-        if turn_manager is not None and started is not None:
-            task.add_done_callback(lambda _: started.set())
+        self._active_response_task = task
+        self._active_started = started
+        self._active_session_id = session_id or self.session_id
+        self._active_origin_command_id = origin_command_id
+        task.add_done_callback(lambda _: started.set())
+        if turn_manager is not None:
             monitor = asyncio.create_task(self._monitor_text_response(task, started, turn_manager))
             self._tasks.add(monitor)
             monitor.add_done_callback(self._tasks.discard)
@@ -1054,15 +1139,15 @@ class SamRuntime:
         cancellation: CancellationToken,
         terminal: asyncio.Event,
         response_done: asyncio.Event,
-        predecessor_done: asyncio.Event | None,
+        predecessor: _GenerationOwner | None,
         turn_manager: TurnManager | None,
-        started: asyncio.Event | None,
+        started: asyncio.Event,
         origin_command_id: str | None = None,
         inference_target: CommittedInferenceTarget,
     ) -> None:
         try:
-            if predecessor_done is not None:
-                await predecessor_done.wait()
+            await self._retire_predecessor(predecessor)
+            cancellation.raise_if_cancelled()
             if turn_manager is not None:
                 self.voice_turns = turn_manager
             await self._run_turn(
@@ -1092,12 +1177,33 @@ class SamRuntime:
                     **({"command_id": origin_command_id} if origin_command_id else {}),
                 },
             )
-            if self._active_generation_id == generation_id:
+        except Exception as error:
+            log.exception("Turn handoff failed (%s)", type(error).__name__)
+            await self._publish_generation_terminal(
+                EventType.COMPONENT_ERROR,
+                generation_id,
+                terminal=terminal,
+                session_id=session_id,
+                turn_id=turn_id,
+                cancellation_id=cancellation.cancellation_id,
+                payload={
+                    "component": "turn",
+                    "error": str(error)[:500],
+                    "outcome": self._error_outcome(error),
+                    **({"command_id": origin_command_id} if origin_command_id else {}),
+                },
+            )
+        finally:
+            if self._active_generation_id == generation_id and not response_done.is_set():
                 self._active_generation_id = None
                 self._active_turn_id = None
                 self._active_token = None
                 self._active_terminal = None
                 self._active_response_done = None
+                self._active_started = None
+                self._active_response_task = None
+                self._active_session_id = None
+                self._active_origin_command_id = None
                 self._active_done.set()
             self.cancellations.discard(cancellation.cancellation_id)
             response_done.set()
@@ -1268,6 +1374,7 @@ class SamRuntime:
                         )
                     elif event.kind is ModelEventKind.TOOL_CALL:
                         calls.add(event.payload)
+                cancellation.raise_if_cancelled()
                 if calls:
                     if tool_round >= self.config.max_tool_rounds:
                         raise RuntimeError("model exceeded the bounded tool round limit")
@@ -1413,6 +1520,8 @@ class SamRuntime:
                     )
                 )
         except Exception as error:
+            if cancellation.is_cancelled and self._active_generation_id != generation_id:
+                return
             log.exception("Turn failed (%s): %s", type(error).__name__, str(error) or "no detail")
             if stage == "tts" and terminal.is_set():
                 await self.events.publish(
@@ -1488,6 +1597,10 @@ class SamRuntime:
                 self._active_token = None
                 self._active_terminal = None
                 self._active_response_done = None
+                self._active_started = None
+                self._active_response_task = None
+                self._active_session_id = None
+                self._active_origin_command_id = None
                 self._active_done.set()
             self.cancellations.discard(cancellation.cancellation_id)
             response_done.set()
@@ -1831,21 +1944,29 @@ class SamRuntime:
         token: CancellationToken,
     ) -> asyncio.Task[None]:
         async with self._generation_handoff_lock:
-            turn_id = self.voice_turns.turn_id
-            if turn_id is None or self.voice_turns.state is not VoiceState.COMMITTING:
+            turn_manager = self.voice_turns
+            turn_id = turn_manager.turn_id
+            if turn_id is None or turn_manager.state is not VoiceState.COMMITTING:
                 raise RuntimeError("voice turn must be committed before model execution")
 
-            predecessor_id = self._active_generation_id
-            predecessor_token = self._active_token
-            predecessor_done = self._active_response_done
-            if predecessor_id is not None and predecessor_token is not None:
-                predecessor_token.cancel("superseded_by_new_user_turn")
-                if predecessor_done is not None:
-                    await predecessor_done.wait()
+            handoff_epoch = self._generation_epoch
+            predecessor = self._active_generation_owner()
+            self._cancel_predecessor(predecessor)
+            await self._retire_predecessor(predecessor)
+            if (
+                handoff_epoch != self._generation_epoch
+                or self.voice_turns is not turn_manager
+                or token.is_cancelled
+            ):
+                token.cancel("superseded_by_new_user_turn")
+                self.cancellations.discard(token.cancellation_id)
+                raise OperationCancelled(token.cancellation_id, token.reason or "superseded")
 
             generation_id = str(uuid4())
             terminal = asyncio.Event()
             response_done = asyncio.Event()
+            inference_target = self._committed_inference_target()
+            self._generation_epoch += 1
             self._active_generation_id = generation_id
             self._active_turn_id = turn_id
             self._active_token = token
@@ -1853,8 +1974,6 @@ class SamRuntime:
             self._active_response_done = response_done
             self._active_done.clear()
             started = asyncio.Event()
-            turn_manager = self.voice_turns
-            inference_target = self._committed_inference_target()
             task = asyncio.create_task(
                 self._run_turn(
                     transcript.text,
@@ -1873,6 +1992,10 @@ class SamRuntime:
             self._tasks.add(task)
             task.add_done_callback(self._tasks.discard)
             task.add_done_callback(lambda _: started.set())
+            self._active_response_task = task
+            self._active_started = started
+            self._active_session_id = self.session_id
+            self._active_origin_command_id = None
             # SQLite commit may yield before model-start transition. Do not start the
             # microphone monitor against COMMITTING or an uninitialized delivery ledger.
             await started.wait()
