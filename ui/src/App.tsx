@@ -12,6 +12,7 @@ import {
 } from "react";
 import { AmbientScene } from "./ambient/AmbientScene";
 import { toAmbientVisualModel } from "./ambient/model";
+import { exitCleanupSummary } from "./controls/exit";
 import {
   applyLocalPreference,
   type ControlAction,
@@ -533,10 +534,10 @@ export default function App() {
     DEFAULT_VISUAL_ENGINE_SETTINGS,
   );
   const [audioSettings, setAudioSettings] = useState({ inputGain: 1, outputGain: 1 });
-  const [lifecycleSettings, setLifecycleSettings] = useState({
-    modelOnExit: "keep" as "keep" | "unload_if_sam_loaded",
-    providerOnExit: "keep" as "keep" | "stop_if_sam_started",
-  });
+  const lifecycleSettings = state.lifecycleSettings ?? {
+    modelOnExit: "keep" as const,
+    providerOnExit: "keep" as const,
+  };
   const [controlsOpen, setControlsOpen] = useState(false);
   const [controlsTab, setControlsTab] = useState<
     "conversation" | "appearance" | "device" | "system" | "diagnostics"
@@ -568,10 +569,6 @@ export default function App() {
   useEffect(() => {
     if (state.audioSettings) setAudioSettings(state.audioSettings);
   }, [state.audioSettings]);
-
-  useEffect(() => {
-    if (state.lifecycleSettings) setLifecycleSettings(state.lifecycleSettings);
-  }, [state.lifecycleSettings]);
 
   useEffect(() => {
     const next = runtimeStatus.label ?? visual.label;
@@ -760,6 +757,7 @@ export default function App() {
         )}
       <QuitDialog
         open={quitConfirmation && !state.applicationStopped && !quitRequested}
+        exitSummary={exitCleanupSummary(state, lifecycleSettings)}
         onCancel={() => setQuitConfirmation(false)}
         onConfirm={() => {
           setQuitConfirmation(false);
@@ -1138,39 +1136,44 @@ export default function App() {
                 <span>Model when Sam quits</span>
                 <select
                   value={lifecycleSettings.modelOnExit}
+                  disabled={state.connection !== "connected" || state.pendingCommandIds.length > 0}
                   title="Unload only a model Sam loaded during this application session. Restart keeps it available."
                   onChange={(event) => {
                     const modelOnExit = event.currentTarget
                       .value as typeof lifecycleSettings.modelOnExit;
                     const settings = { ...lifecycleSettings, modelOnExit };
-                    setLifecycleSettings(settings);
                     applyAction({ type: "lifecycle_settings.set", ...settings });
                   }}
                 >
                   <option value="keep">Keep loaded</option>
-                  <option value="unload_if_sam_loaded">Unload if Sam loaded it (LM Studio)</option>
+                  <option value="unload_if_sam_loaded">
+                    Unload only if Sam loaded it (LM Studio)
+                  </option>
                 </select>
               </label>
               <label className="visual-setting">
                 <span>Local AI service when Sam quits</span>
                 <select
                   value={lifecycleSettings.providerOnExit}
+                  disabled={state.connection !== "connected" || state.pendingCommandIds.length > 0}
                   title="Stop a local AI service only when Sam started it. Existing and shared services are left running."
                   onChange={(event) => {
                     const providerOnExit = event.currentTarget
                       .value as typeof lifecycleSettings.providerOnExit;
                     const settings = { ...lifecycleSettings, providerOnExit };
-                    setLifecycleSettings(settings);
                     applyAction({ type: "lifecycle_settings.set", ...settings });
                   }}
                 >
                   <option value="keep">Keep running</option>
-                  <option value="stop_if_sam_started">Stop if Sam started it</option>
+                  <option value="stop_if_sam_started">Stop only if Sam started it</option>
                 </select>
               </label>
               <small>
                 These choices apply to Quit. Restart keeps local AI resources available.
               </small>
+              {exitCleanupSummary(state, lifecycleSettings) && (
+                <small>{exitCleanupSummary(state, lifecycleSettings)}</small>
+              )}
               <ControlButton
                 help="Reload only the Sam interface and reconnect to the running core. Models and managed components are not restarted. Ctrl+R."
                 onClick={() => window.location.reload()}

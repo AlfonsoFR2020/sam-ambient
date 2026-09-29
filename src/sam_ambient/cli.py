@@ -28,6 +28,7 @@ from sam_ambient.adapters.local_discovery import (
     CleanupPolicy,
     Discovery,
     LifecycleIntent,
+    cleanup_discoveries,
     discover_local,
     provider_for,
 )
@@ -667,16 +668,13 @@ async def run_runtime(args: argparse.Namespace) -> int:
         )
         return 0
     finally:
-        cleanup = await asyncio.gather(
-            *(
-                item.aclose(intent=lifecycle_intent, policy=lifecycle_policy)
-                for item in discoveries
-            ),
-            return_exceptions=True,
-        )
-        for result in cleanup:
-            if isinstance(result, BaseException):
-                log.warning("Provider cleanup failed without blocking shutdown: %s", result)
+        try:
+            async with asyncio.timeout(18):
+                await cleanup_discoveries(
+                    discoveries, intent=lifecycle_intent, policy=lifecycle_policy
+                )
+        except Exception as error:
+            log.warning("Provider cleanup failed without blocking shutdown: %s", error)
         if (
             lifecycle_intent is LifecycleIntent.QUIT
             and ownership_store is not None

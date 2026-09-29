@@ -187,7 +187,11 @@ barge-in remain deferred and are unaffected by this checkpoint.
 - Reconcile model-eject/server-close settings with ownership of a provider
   already running before Sam. The session visibly shut down Sam core/STT but
   did not show LM Studio unloading or closing despite selected options.
-  Labels and actual policy must agree.
+  The service and model were pre-existing, so the established conditional
+  policy correctly left them alone. Controls and Quit now state that outcome
+  before exit, cleanup reports skips, and multiple discovery snapshots are
+  cleaned once in unload-before-stop order. Physical LM Studio cleanup remains
+  unverified; no permission to stop reused providers was added.
 - Make startup obvious without a repository command. Retain the longer-term
   Sam console, browser capability, Options, named profiles, natural-language
   controls, persistent memory, installer signing, and theme directions as

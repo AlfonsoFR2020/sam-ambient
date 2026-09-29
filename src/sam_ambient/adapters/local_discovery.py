@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import shutil
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from enum import StrEnum
 from ipaddress import ip_address
 from pathlib import Path
@@ -191,6 +191,7 @@ class Discovery:
     owned_processes: list[asyncio.subprocess.Process] = field(default_factory=list, repr=False)
     pending_provider: str | None = None
     pending_model: str | None = None
+    _closed: bool = field(default=False, repr=False)
 
     async def aclose(
         self,
@@ -204,6 +205,9 @@ class Discovery:
         reconstructed from persisted PIDs or current external state.
         """
         policy = policy or CleanupPolicy()
+        if self._closed:
+            return ()
+        self._closed = True
         results: list[CleanupResult] = []
         if intent is not LifecycleIntent.QUIT:
             log.info("Provider cleanup skipped: lifecycle reason=%s", intent)
@@ -211,9 +215,23 @@ class Discovery:
             return tuple(results)
 
         if policy.model_on_exit == "unload_if_sam_loaded":
+            if self.selected and not self.selected.models_loaded_by_sam:
+                results.append(
+                    CleanupResult(
+                        "model",
+                        self.selected.id,
+                        CleanupStatus.SKIPPED,
+                        "selected model was not loaded by Sam",
+                    )
+                )
             for service in self.services:
                 for model in tuple(service.models_loaded_by_sam):
-                    result = await unload_owned_model(service, model)
+                    try:
+                        result = await unload_owned_model(service, model)
+                    except Exception as error:
+                        result = CleanupResult(
+                            "model", service.id, CleanupStatus.FAILED, type(error).__name__
+                        )
                     results.append(result)
                     log.info(
                         "Model cleanup provider=%s model=%s status=%s detail=%s",
@@ -224,14 +242,38 @@ class Discovery:
                     )
                 service.models_loaded_by_sam.clear()
         if policy.provider_on_exit == "stop_if_sam_started":
+            if self.selected and not self.selected.started_by_sam:
+                results.append(
+                    CleanupResult(
+                        "provider",
+                        self.selected.id,
+                        CleanupStatus.SKIPPED,
+                        "service was already running before Sam",
+                    )
+                )
             for service in self.services:
                 if not service.started_by_sam:
                     continue
-                result = await stop_owned_service(service, self.owned_processes)
+                try:
+                    result = await stop_owned_service(service, self.owned_processes)
+                except Exception as error:
+                    result = CleanupResult(
+                        "provider", service.id, CleanupStatus.FAILED, type(error).__name__
+                    )
                 results.append(result)
                 log.info(
                     "Provider cleanup provider=%s status=%s detail=%s",
                     service.id,
+                    result.status,
+                    result.detail,
+                )
+                service.started_by_sam = False
+        for result in results:
+            if result.status is CleanupStatus.SKIPPED:
+                log.info(
+                    "Exit cleanup resource=%s provider=%s status=%s detail=%s",
+                    result.resource,
+                    result.provider,
                     result.status,
                     result.detail,
                 )
@@ -246,6 +288,11 @@ class Discovery:
                     for key, value in asdict(service).items()
                     if key != "models_loaded_by_sam"
                 }
+                | {
+                    "selected_model_loaded_by_sam": bool(
+                        service is self.selected and self.model in service.models_loaded_by_sam
+                    )
+                }
                 for service in self.services
             ],
             "selection": {
@@ -256,6 +303,62 @@ class Discovery:
                 "pending_model": self.pending_model,
             },
         }
+
+
+async def cleanup_discoveries(
+    discoveries: list[Discovery], *, intent: LifecycleIntent, policy: CleanupPolicy
+) -> tuple[CleanupResult, ...]:
+    """Apply one ordered exit policy across refresh snapshots of the same services."""
+    if not discoveries:
+        return ()
+    if intent is not LifecycleIntent.QUIT:
+        for snapshot in discoveries:
+            await snapshot.aclose(intent=intent, policy=policy)
+        return ()
+    log.info(
+        "Exit cleanup requested model_policy=%s provider_policy=%s",
+        policy.model_on_exit,
+        policy.provider_on_exit,
+    )
+    services: dict[tuple[str, str], LocalService] = {}
+    owned_processes: list[asyncio.subprocess.Process] = []
+    for snapshot in discoveries:
+        if snapshot._closed:
+            continue
+        for service in snapshot.services:
+            key = (service.id, service.endpoint)
+            previous = services.get(key)
+            services[key] = replace(
+                service,
+                started_by_sam=service.started_by_sam or bool(previous and previous.started_by_sam),
+                models_loaded_by_sam=list(
+                    dict.fromkeys(
+                        [
+                            *(previous.models_loaded_by_sam if previous else []),
+                            *service.models_loaded_by_sam,
+                        ]
+                    )
+                ),
+            )
+        for process in snapshot.owned_processes:
+            if not any(process is existing for existing in owned_processes):
+                owned_processes.append(process)
+    latest = discoveries[-1]
+    selected = (
+        services.get((latest.selected.id, latest.selected.endpoint)) if latest.selected else None
+    )
+    merged = Discovery(
+        list(services.values()), selected, latest.model, "exit cleanup", owned_processes
+    )
+    try:
+        return await merged.aclose(intent=intent, policy=policy)
+    finally:
+        for snapshot in discoveries:
+            snapshot._closed = True
+            snapshot.owned_processes.clear()
+            for service in snapshot.services:
+                service.models_loaded_by_sam.clear()
+                service.started_by_sam = False
 
 
 def _ids(rows: object, key: str) -> list[str]:
@@ -400,7 +503,7 @@ async def unload_owned_model(service: LocalService, model: str) -> CleanupResult
             "model", service.id, CleanupStatus.UNSUPPORTED, "adapter has no safe unload operation"
         )
     try:
-        await _local_command((service.executable, "unload", model, "--yes"), timeout_s=8)
+        await _local_command((service.executable, "unload", model), timeout_s=8)
     except (OSError, RuntimeError, TimeoutError) as error:
         return CleanupResult("model", service.id, CleanupStatus.FAILED, type(error).__name__)
     return CleanupResult("model", service.id, CleanupStatus.SUCCEEDED, "unloaded")

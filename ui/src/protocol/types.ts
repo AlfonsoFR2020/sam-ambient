@@ -135,6 +135,8 @@ export interface ProviderCatalogEntry {
   models: readonly string[];
   installedModels: readonly string[];
   detail: string;
+  startedBySam?: boolean;
+  selectedModelLoadedBySam?: boolean;
 }
 
 export interface ProviderDiscoveryState {

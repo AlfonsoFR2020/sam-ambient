@@ -205,7 +205,9 @@ uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000
   not restart Sam or the provider.
 - **Quit Sam** confirms and stops the application. Provider/model exit preferences
   default to **Keep**. Opt-in cleanup can affect only a service Sam started or an
-  LM Studio model Sam loaded during the current application lifetime.
+  LM Studio model Sam loaded during the current application lifetime. Controls and
+  Quit confirmation explain when the current resources were reused and will stay
+  running; these choices do not authorize stopping a pre-existing LM Studio service.
 - **Microphone sensitivity** and **Output volume** are Sam input/output gains from
   0-200%; they do not change Windows mixer levels.
 - **Display** contains quality, performance profile, reduced motion, visual

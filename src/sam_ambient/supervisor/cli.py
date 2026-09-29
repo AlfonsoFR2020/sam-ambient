@@ -183,7 +183,8 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
             "sam-core",
             _trusted_core_command(args, root),
             root,
-            restart=RestartPolicy(startup_timeout_s=90),  # Bounded provider/model + STT bootstrap.
+            # Exit may spend 2 s retiring tasks, then 8 s each on model unload and service stop.
+            restart=RestartPolicy(startup_timeout_s=90, shutdown_timeout_s=24),
         )
     ]
     if not args.no_ui:

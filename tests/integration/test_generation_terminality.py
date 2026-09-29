@@ -88,6 +88,29 @@ class StubbornFirstProvider(SupersessionProvider):
         yield ModelEvent(ModelEventKind.COMPLETED)
 
 
+def test_shutdown_retires_active_generation_without_waiting_for_stubborn_provider(
+    tmp_path, monkeypatch
+) -> None:
+    from sam_ambient import runtime as runtime_module
+
+    monkeypatch.setattr(runtime_module, "_SHUTDOWN_TASK_GRACE_S", 0.02)
+
+    async def scenario() -> None:
+        provider = StubbornFirstProvider()
+        runtime = SamRuntime(provider, RuntimeConfig(tmp_path, port=0, model="test-model"))
+        runtime.submit_user_message("start a response")
+        await asyncio.wait_for(provider.first_started.wait(), 1)
+        token = runtime._active_token
+        assert token is not None
+        await asyncio.wait_for(runtime.close(), 1)
+        assert token.is_cancelled
+        provider.release_first.set()
+        await asyncio.wait_for(asyncio.gather(*runtime._tasks, return_exceptions=True), 1)
+        await runtime.close()  # Repeated close is harmless.
+
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("voice_enabled", [False, True])
 def test_typed_control_recovers_after_successive_supersessions_with_open_stream(
     tmp_path, voice_enabled: bool

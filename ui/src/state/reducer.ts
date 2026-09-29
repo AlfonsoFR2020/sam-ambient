@@ -135,6 +135,11 @@ const providerCatalog = (value: unknown): ProviderCatalogEntry[] =>
             models: stringList(row.models),
             installedModels: stringList(row.installed_models ?? row.available_models),
             detail: boundedText(row.detail, 500) ?? "unavailable",
+            startedBySam: typeof row.started_by_sam === "boolean" ? row.started_by_sam : undefined,
+            selectedModelLoadedBySam:
+              typeof row.selected_model_loaded_by_sam === "boolean"
+                ? row.selected_model_loaded_by_sam
+                : undefined,
           },
         ];
       })

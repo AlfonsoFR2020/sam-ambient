@@ -262,7 +262,7 @@ def test_quit_cleanup_uses_independent_service_and_model_ownership(monkeypatch):
             intent=discovery.LifecycleIntent.QUIT,
             policy=discovery.CleanupPolicy("unload_if_sam_loaded", "keep"),
         )
-        assert commands == [(("lms", "unload", "sam-model", "--yes"), {"timeout_s": 8})]
+        assert commands == [(("lms", "unload", "sam-model"), {"timeout_s": 8})]
         assert results[0].status is discovery.CleanupStatus.SUCCEEDED
 
         commands.clear()
@@ -280,6 +280,141 @@ def test_quit_cleanup_uses_independent_service_and_model_ownership(monkeypatch):
             policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
         )
         assert [item[0][1] for item in commands] == ["unload", "server"]
+
+    asyncio.run(scenario())
+
+
+def test_reused_lm_studio_exit_preferences_report_skips_without_touching_service(monkeypatch):
+    command = AsyncMock()
+    monkeypatch.setattr(discovery, "_local_command", command)
+
+    async def scenario():
+        service = discovery.LocalService(
+            "lm-studio", discovery.LM_STUDIO_URL, "lms", True, ["already-loaded"]
+        )
+        item = discovery.Discovery([service], service, "already-loaded", "reused")
+        assert item.to_dict()["providers"][0]["selected_model_loaded_by_sam"] is False
+        assert (
+            await discovery.cleanup_discoveries(
+                [item], intent=discovery.LifecycleIntent.QUIT, policy=discovery.CleanupPolicy()
+            )
+            == ()
+        )
+        command.assert_not_awaited()
+
+        service = discovery.LocalService(
+            "lm-studio", discovery.LM_STUDIO_URL, "lms", True, ["already-loaded"]
+        )
+        item = discovery.Discovery([service], service, "already-loaded", "reused")
+        results = await discovery.cleanup_discoveries(
+            [item],
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+        )
+        assert [(result.resource, result.status) for result in results] == [
+            ("model", discovery.CleanupStatus.SKIPPED),
+            ("provider", discovery.CleanupStatus.SKIPPED),
+        ]
+        assert all(
+            "Sam" in result.detail or "already running" in result.detail for result in results
+        )
+        assert (
+            await discovery.cleanup_discoveries(
+                [item],
+                intent=discovery.LifecycleIntent.QUIT,
+                policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+            )
+            == ()
+        )
+        command.assert_not_awaited()
+
+    asyncio.run(scenario())
+
+
+def test_rescan_snapshots_cleanup_once_with_unload_before_stop_and_failure_isolated(monkeypatch):
+    commands: list[tuple[str, ...]] = []
+
+    async def command(argv, **_options):
+        commands.append(argv)
+
+    async def probe(service):
+        service.running = True
+        service.models = ["sam-loaded"]
+
+    monkeypatch.setattr(discovery, "_local_command", command)
+    monkeypatch.setattr(discovery, "probe_service", probe)
+
+    async def scenario():
+        first = discovery.LocalService(
+            "lm-studio",
+            discovery.LM_STUDIO_URL,
+            "lms",
+            True,
+            ["sam-loaded"],
+            started_by_sam=True,
+            models_loaded_by_sam=["sam-loaded"],
+        )
+        refreshed = discovery.LocalService(
+            "lm-studio",
+            discovery.LM_STUDIO_URL,
+            "lms",
+            True,
+            ["sam-loaded"],
+            started_by_sam=True,
+            models_loaded_by_sam=["sam-loaded"],
+        )
+        snapshots = [
+            discovery.Discovery([first], first, "sam-loaded", "start"),
+            discovery.Discovery([refreshed], refreshed, "sam-loaded", "refresh"),
+        ]
+        assert snapshots[-1].to_dict()["providers"][0]["selected_model_loaded_by_sam"]
+        results = await discovery.cleanup_discoveries(
+            snapshots,
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+        )
+        assert [argv[1:3] for argv in commands] == [("unload", "sam-loaded"), ("server", "stop")]
+        assert [result.status for result in results] == [
+            discovery.CleanupStatus.SUCCEEDED,
+            discovery.CleanupStatus.SUCCEEDED,
+        ]
+        assert (
+            await discovery.cleanup_discoveries(
+                snapshots,
+                intent=discovery.LifecycleIntent.QUIT,
+                policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+            )
+            == ()
+        )
+        assert len(commands) == 2
+
+        commands.clear()
+
+        async def fail_unload(argv, **_options):
+            commands.append(argv)
+            if argv[1] == "unload":
+                raise RuntimeError("fake failure")
+
+        monkeypatch.setattr(discovery, "_local_command", fail_unload)
+        service = discovery.LocalService(
+            "lm-studio",
+            discovery.LM_STUDIO_URL,
+            "lms",
+            True,
+            ["sam-loaded"],
+            started_by_sam=True,
+            models_loaded_by_sam=["sam-loaded"],
+        )
+        results = await discovery.cleanup_discoveries(
+            [discovery.Discovery([service], service, "sam-loaded", "started")],
+            intent=discovery.LifecycleIntent.QUIT,
+            policy=discovery.CleanupPolicy("unload_if_sam_loaded", "stop_if_sam_started"),
+        )
+        assert [result.status for result in results] == [
+            discovery.CleanupStatus.FAILED,
+            discovery.CleanupStatus.SUCCEEDED,
+        ]
+        assert [argv[1] for argv in commands] == ["unload", "server"]
 
     asyncio.run(scenario())
 

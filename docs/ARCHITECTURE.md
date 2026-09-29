@@ -381,6 +381,17 @@ random application-lifetime identity; the same SQLite record is inert for a late
 Graceful Quit defaults to keeping both. An explicit owner preference may first unload
 a Sam-loaded LM Studio model through bounded structured `lms` argv, then stop a
 service only when Sam started it.
+Selecting either conditional preference does not grant authority over a provider
+or model already running before Sam. The current service/model eligibility is
+reported in Controls and Quit confirmation. Cleanup merges discovery snapshots,
+unloads each Sam-loaded model at most once, then stops each Sam-started service
+at most once. Results distinguish success, unsupported, failure and ownership
+skips; cleanup failure never blocks Sam exit. LM Studio uses `lms unload MODEL`
+and `lms server stop`; the latter stops serving, not the desktop app.
+Core retirement gives non-cooperative response tasks a two-second grace period
+before detaching them; token cancellation and stale-generation guards still
+prevent late output from claiming a new turn. Exit cleanup has an 18-second
+overall bound inside the supervisor's 24-second core-stop window.
 Ollama has no model-unload claim in this layer; compatible/remote providers report
 unsupported. Restart, Emergency Stop, rescans, and future launches do not acquire or
 apply exit-cleanup authority. Cleanup failures are logged and cannot block shutdown.

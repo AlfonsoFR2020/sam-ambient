@@ -149,9 +149,16 @@ graceful Quit. Both defaults are **Keep**. **Unload if Sam loaded it** applies o
 to a model Sam successfully loaded during the current runtime scope and only where
 the provider exposes a safe unload operation (currently LM Studio). **Stop if Sam
 started it** applies only to a local service Sam successfully started. Existing,
-shared, rescanned, remote, and merely selected resources are left alone. These are
+shared, remote, and merely selected resources are left alone; rescanning does not
+discard Sam's ownership of a resource it started or loaded. These are
 best-effort bounded Quit actions: Restart and Emergency Stop never trigger them, and
 a hard process crash cannot guarantee cleanup.
+Controls and the Quit confirmation show whether the selected service/model is
+eligible right now. If LM Studio and its model were already running when Sam
+arrived, choosing both conditional options still leaves them running; close or
+unload them in LM Studio yourself. Where eligible, Sam requests model unload
+before stopping the service. A failed or unsupported cleanup does not hold Sam
+open. “Stop” targets the LM Studio serving endpoint, not its desktop window.
 
 Keyboard: **Ctrl+M** toggles the microphone outside text fields;
 **Ctrl+Shift+X** performs Emergency stop even while a text field is focused;

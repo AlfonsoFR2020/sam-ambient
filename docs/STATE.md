@@ -38,6 +38,22 @@ escaped text; history scrolls independently and follows new entries only when
 the reader is near the bottom. Richer Markdown and diagnostics overlap/layout
 remain future UI work. Reducer and bounded browser regressions cover this
 presentation; the physical beta has not been repeated.
+Exit cleanup retains the existing owner-only rule: `unload_if_sam_loaded`
+requests bounded LM Studio unload only for a model Sam loaded; `stop_if_sam_started`
+stops only a service Sam started. Reused services/models remain untouched even
+when those conditional options are selected. Controls and Quit now show the
+current eligibility, and cleanup reports ownership skips. Discovery snapshots
+are merged for one unload-before-stop sequence so a Rescan cannot duplicate
+cleanup or stop a service before another snapshot unloads. Failures are bounded
+and do not block exit. This is fake-provider validation, not a physical LM Studio
+shutdown check.
+The exit selectors now display core-confirmed settings rather than an optimistic
+local choice, so a rejected update cannot appear to be the effective Quit policy.
+Shutdown no longer waits without a bound for a provider stream that ignores
+cancellation; the core allows two seconds for task retirement before detaching
+remaining stale tasks. LM Studio unload uses the documented `lms unload MODEL`
+form (no extra confirmation flag). Cleanup has an 18-second overall bound
+inside a 24-second supervised core-stop window.
 
 The 0.2.3 implementation boundary and accepted validation limits are classified
 in [0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Package/runtime

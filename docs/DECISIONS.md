@@ -481,3 +481,19 @@ master specification are recorded here.
   HTTP transport requests cancellation and closes its stream on unwind. This
   source-backed repair does not prove the exact cause of the physical beta's
   late no-response episode or change acoustic barge-in policy.
+
+## D-032 — Make conditional exit cleanup explicit and single-pass
+
+- **Accepted:** 2026-09-29. Keep the established ownership boundary: choosing
+  unload/stop on Quit does not authorize Sam to unload a pre-existing model or
+  stop a reused provider. Show current applicability in Controls and Quit,
+  display only core-confirmed settings, and log explicit skipped, unsupported,
+  failed and successful outcomes.
+- Merge discoveries made during one Sam run before exit cleanup. Retire runtime
+  streams first; unload Sam-loaded models once, then stop Sam-started services
+  once. A failed external operation does not prevent later cleanup or Sam exit.
+  `lms server stop` stops LM Studio serving, not the desktop application.
+  Non-cooperative response tasks receive a two-second retirement grace, and
+  the entire external cleanup receives an 18-second bound within the 24-second
+  supervised core-stop window. Late generation guards still reject output from
+  a detached task.
