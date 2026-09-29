@@ -55,6 +55,11 @@ Repair in this order:
    interruption status, and delivery status as metadata; preserve full generated
    assistant text when playback stops. Render assistant formatting as prose,
    rather than displaying literal Markdown markers or appending status to text.
+   The frontend history now shows only committed entries, keeps a stopped-speech
+   indicator outside answer content, renders common assistant paragraphs,
+   emphasis and lists as escaped React text, and provides an independent
+   scrollbar that follows new entries only while the reader is near the bottom.
+   Richer Markdown remains deferred.
 
 ### Acoustic-ownership feasibility checkpoint (2026-09-28)
 
@@ -175,8 +180,8 @@ barge-in remain deferred and are unaffected by this checkpoint.
   Numerical fixed-pixel change did **not** establish perceptual acceptance.
   Particles were broadly acceptable; find or restore the particle-count
   control after auditing the settings registry and prior UI.
-- Give conversation history its own obvious scrollbar. Place diagnostics so it
-  does not obscure conversation even in fullscreen, then group immediate
+- Place diagnostics so it does not obscure the now independently scrolling
+  conversation history even in fullscreen, then group immediate
   health/state, conversation/provider/audio, renderer/performance, and bounded
   event history by operational value.
 - Reconcile model-eject/server-close settings with ownership of a provider
@@ -187,6 +192,17 @@ barge-in remain deferred and are unaffected by this checkpoint.
   Sam console, browser capability, Options, named profiles, natural-language
   controls, persistent memory, installer signing, and theme directions as
   post-P0 work, not reasons to delay conversation repair.
+
+### Future direction: speaker-attributed conversations
+
+NVIDIA Nemotron 3 Diarization is an open-weight streaming/offline speaker
+diarization model of approximately 100M parameters. It consumes 16 kHz mono
+audio, supports up to eight speakers, and maintains speaker identities across
+streaming chunks using a speaker-cache/FIFO architecture. It may be relevant
+to future multi-person conversations, speaker-attributed transcripts, context
+and memory, and meeting mode. It is **not** Sam's playback self-echo/AEC
+solution, and no integration is proposed now. Runtime, GPU, dependency and
+licensing suitability require evaluation before any future adoption.
 
 ## Validation lesson
 

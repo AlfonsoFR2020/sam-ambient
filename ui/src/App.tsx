@@ -1,8 +1,10 @@
+/** biome-ignore-all lint/a11y/noNoninteractiveTabindex: The conversation history must be keyboard-scrollable. */
 import {
   type ButtonHTMLAttributes,
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -17,6 +19,7 @@ import {
   DEFAULT_VISUAL_PREFERENCES,
 } from "./controls/model";
 import { DemoTransport } from "./demo/scenarios";
+import { MessageContent } from "./MessageContent";
 import { isNativeShell, nativeShellRuntime } from "./native/runtime";
 import type { UiState } from "./protocol/types";
 import { QuitDialog, ShutdownStatus } from "./QuitDialog";
@@ -51,39 +54,42 @@ const chooseTransport = (): ProtocolTransport => {
 function Transcript({ state }: { state: UiState }) {
   const region = useRef<HTMLElement>(null);
   const followNewest = useRef(true);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (region.current && followNewest.current)
       region.current.scrollTop = region.current.scrollHeight;
   });
-  if (!state.transcript.length && !state.provisionalTranscript) return null;
+  if (!state.transcript.length) return null;
   return (
     <section
       ref={region}
       className="transcript"
-      aria-label="Transcript"
+      aria-label="Conversation history"
       aria-live="polite"
+      tabIndex={0}
       onScroll={(event) => {
         const node = event.currentTarget;
-        followNewest.current = node.scrollHeight - node.scrollTop - node.clientHeight < 28;
+        followNewest.current = node.scrollHeight - node.scrollTop - node.clientHeight < 36;
       }}
     >
       {state.transcript.map((entry) => (
-        <p
+        <article
           className={`transcript__line transcript__line--${entry.role}`}
           data-interrupted={entry.interrupted || undefined}
           key={entry.id}
         >
-          <span>{entry.role === "assistant" ? "Sam" : "You"}</span>
-          {entry.text}
-          {entry.interrupted && <em> interrupted</em>}
-        </p>
+          <div className="transcript__meta">
+            <span>{entry.role === "assistant" ? "Sam" : "You"}</span>
+            {entry.role === "assistant" && entry.interrupted && (
+              <small className="transcript__delivery">Speech stopped</small>
+            )}
+          </div>
+          {entry.role === "assistant" ? (
+            <MessageContent text={entry.text} />
+          ) : (
+            <p className="transcript__content transcript__content--user">{entry.text}</p>
+          )}
+        </article>
       ))}
-      {state.provisionalTranscript && (
-        <p className="transcript__line transcript__line--provisional">
-          <span>{state.provisionalTranscript.role === "assistant" ? "Sam" : "You"}</span>
-          {state.provisionalTranscript.text}
-        </p>
-      )}
     </section>
   );
 }

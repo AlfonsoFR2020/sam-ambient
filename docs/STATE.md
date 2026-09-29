@@ -30,6 +30,14 @@ available, but their PortAudio streams lack shared timing and an AEC/double-talk
 signal. A simple amplitude, correlation or VAD-only rule is insufficient for
 safe one-second barge-in; no acoustic processor has been added. The beta plan
 records the bounded integration options and candidate-state rules.
+Conversation history now renders committed typed/voice messages only; an
+uncommitted or rejected candidate remains outside normal history. The full
+assistant answer survives speech interruption, which appears as separate
+delivery metadata. Common assistant paragraphs, emphasis and lists render as
+escaped text; history scrolls independently and follows new entries only when
+the reader is near the bottom. Richer Markdown and diagnostics overlap/layout
+remain future UI work. Reducer and bounded browser regressions cover this
+presentation; the physical beta has not been repeated.
 
 The 0.2.3 implementation boundary and accepted validation limits are classified
 in [0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Package/runtime
