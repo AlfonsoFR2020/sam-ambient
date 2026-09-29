@@ -178,8 +178,10 @@ barge-in remain deferred and are unaffected by this checkpoint.
   predetermined, large regions did not transform organically, high quality
   appeared faceted, and lifted membrane read as faint hard-edged polygons.
   Numerical fixed-pixel change did **not** establish perceptual acceptance.
-  Particles were broadly acceptable; find or restore the particle-count
-  control after auditing the settings registry and prior UI.
+  Particles were broadly acceptable. The particle control was not lost: the
+  persisted `particle_density` setting remained in Appearance and sets the
+  visible share of the 12/24/40 quality-tier WebGL budget. Its visible label
+  now says **Particle amount**, and the tab explains where Quality lives.
 - Place diagnostics so it does not obscure the now independently scrolling
   conversation history even in fullscreen, then group immediate
   health/state, conversation/provider/audio, renderer/performance, and bounded

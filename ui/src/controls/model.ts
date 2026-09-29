@@ -18,6 +18,13 @@ export const DEFAULT_VISUAL_PREFERENCES: VisualPreferences = {
   brightness: 82,
 };
 
+export function shouldOfferSpeechInputRetry(state: UiState): boolean {
+  return (
+    (state.voiceInputHealth?.status === "degraded" && !state.voiceInputHealth.retrying) ||
+    (state.sttHealth?.status === "degraded" && !state.sttHealth.retrying)
+  );
+}
+
 export type ControlAction =
   | { type: "microphone.set"; enabled: boolean }
   | { type: "tts_output.set"; enabled: boolean }

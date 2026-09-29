@@ -128,6 +128,8 @@ normal `--ui-mode browser` tab does not stop Sam.
 
 **Appearance** provides motion, visual intensity, audio reactivity, particle amount,
 reduced motion and fullscreen. **Device** provides quality and performance profile.
+**Particle amount** changes the visible share of particles in WebGL; the resolved
+quality tier caps the budget at 12, 24 or 40. The Canvas fallback has no particles.
 The Motion speed upper range is faster while its default is unchanged. It scales
 several autonomous motions; Sam internally slows surface circulation while you
 drag the Orb and eases it back afterward. There is no separate Surface Flow control yet.

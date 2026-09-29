@@ -40,6 +40,32 @@ test("startup has one status explanation and reports observed facts", async ({ p
   await expect(page.locator(".protocol-error")).toHaveCount(0);
 });
 
+test("Controls tabs retain their settings and particle amount reaches the renderer", async ({
+  page,
+}) => {
+  await openDemo(page);
+  await page.getByRole("button", { name: "Controls" }).click();
+  const controls = page.getByRole("region", { name: "Sam controls" });
+  await expect(controls.getByRole("button", { name: "Conversation" })).toBeVisible();
+  await controls.getByRole("button", { name: "Appearance" }).click();
+  for (const name of ["Visual intensity", "Motion speed", "Audio reactivity", "Particle amount"])
+    await expect(controls.getByRole("slider", { name })).toBeVisible();
+  await expect(controls.getByText("Surface Flow", { exact: true })).toHaveCount(0);
+  await controls.getByRole("slider", { name: "Particle amount" }).press("End");
+  await expect(controls.getByRole("slider", { name: "Particle amount" })).toHaveValue("100");
+  await controls.getByRole("button", { name: "Device" }).click();
+  await expect(controls.getByText("Quality", { exact: true })).toBeVisible();
+  await expect(controls.getByText("Performance profile", { exact: true })).toBeVisible();
+  await controls.getByRole("button", { name: "Conversation" }).click();
+  await expect(controls.getByRole("slider", { name: "Microphone sensitivity" })).toBeVisible();
+  await expect(controls.getByRole("slider", { name: "Output volume" })).toBeVisible();
+  await controls.getByRole("button", { name: "System" }).click();
+  await expect(controls.getByText("Model when Sam quits")).toBeVisible();
+  await expect(controls.getByRole("button", { name: "Rescan providers/models" })).toBeVisible();
+  await openDiagnostics(page);
+  await expect(page.getByText(/1\.00 density/)).toBeVisible();
+});
+
 test("fullscreen microphone and output sliders keep the interface and record control events", async ({
   page,
 }) => {

@@ -3,6 +3,7 @@ import {
   applyLocalPreference,
   commandForAction,
   DEFAULT_VISUAL_PREFERENCES,
+  shouldOfferSpeechInputRetry,
 } from "../src/controls/model";
 import {
   createControlCommand,
@@ -11,11 +12,31 @@ import {
   serializeControlCommand,
 } from "../src/protocol/commands";
 import { INITIAL_UI_STATE } from "../src/protocol/types";
+import { reduceProtocolEvent, resetUiState } from "../src/state/reducer";
 import { DEFAULT_VISUAL_ENGINE_SETTINGS } from "../src/visual-engine/types";
 
 const runtime = { nowMs: () => 123, nextId: () => "command-1" };
 
 describe("control command protocol", () => {
+  it("keeps speech-input retry visible after an unrelated diagnostic replaces its reason", () => {
+    const health = (component: string, state: "degraded" | "healthy", at: number) => ({
+      protocol: 1 as const,
+      type: "component.health",
+      monotonic_ms: at,
+      session_id: "controls-health",
+      payload: { component, state, reason: state === "healthy" ? "ready" : "unavailable" },
+    });
+    const failedInput = reduceProtocolEvent(resetUiState(), health("stt", "degraded", 1));
+    const laterOutputFailure = reduceProtocolEvent(failedInput, health("synthesis", "degraded", 2));
+    expect(laterOutputFailure.diagnosticReason).toContain("Speech synthesis");
+    expect(shouldOfferSpeechInputRetry(laterOutputFailure)).toBe(true);
+    expect(
+      shouldOfferSpeechInputRetry(
+        reduceProtocolEvent(laterOutputFailure, health("stt", "healthy", 3)),
+      ),
+    ).toBe(false);
+  });
+
   it("serializes quit as a direct session-bound control with no tool authority", () => {
     const command = commandForAction(
       { type: "application.quit" },

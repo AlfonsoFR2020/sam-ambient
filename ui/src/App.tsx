@@ -18,6 +18,7 @@ import {
   type ControlAction,
   commandForAction,
   DEFAULT_VISUAL_PREFERENCES,
+  shouldOfferSpeechInputRetry,
 } from "./controls/model";
 import { DemoTransport } from "./demo/scenarios";
 import { MessageContent } from "./MessageContent";
@@ -869,7 +870,7 @@ export default function App() {
               >
                 Microphone {state.microphoneEnabled ? "on" : "muted"}
               </ControlButton>
-              {/(speech|microphone)/i.test(state.diagnosticReason ?? "") && (
+              {shouldOfferSpeechInputRetry(state) && (
                 <ControlButton
                   help="Retry the system-default microphone and local speech-recognition stream."
                   disabled={pending || state.connection !== "connected"}
@@ -1054,6 +1055,9 @@ export default function App() {
           {controlsTab === "appearance" && (
             <section className="controls__group" aria-label="Visual motion and material">
               <h2>Visual behavior</h2>
+              <p className="controls__description">
+                Particle amount is here. Device → Quality limits how many can appear.
+              </p>
               <label className="visual-setting">
                 <span>Visual intensity</span>
                 <input
@@ -1097,10 +1101,10 @@ export default function App() {
                 />
               </label>
               <label className="visual-setting">
-                <span>Particles</span>
+                <span>Particle amount</span>
                 <input
                   aria-label="Particle amount"
-                  title="Changes the visible share of sparse orbiting particles in discrete steps."
+                  title="Changes the visible share of the quality-tier particle budget in WebGL. The Canvas fallback has no particles."
                   type="range"
                   min="0"
                   max="100"

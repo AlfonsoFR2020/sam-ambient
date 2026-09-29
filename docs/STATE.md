@@ -49,6 +49,17 @@ and do not block exit. This is fake-provider validation, not a physical LM Studi
 shutdown check.
 The exit selectors now display core-confirmed settings rather than an optimistic
 local choice, so a rejected update cannot appear to be the effective Quit policy.
+Controls inventory: Conversation contains text, microphone/voice, audio gains and
+transcript; Appearance contains fullscreen, intensity, motion, audio reactivity,
+particle amount and reduced motion; Device contains profile/quality; System
+contains discovery, safety, restart/exit preferences and Quit; Diagnostics opens
+the existing status monitor. The pre-tabbed settings were retained. Particle
+amount was present but hard to find; its label and tab guidance now identify it.
+`particle_density` persists and selects a visible share of the 12/24/40 WebGL
+quality budget; Canvas has no particles. Renderer choice, glow gain and engine
+enable remain internal; Surface Flow and detailed membrane/audio controls remain
+deferred. Speech-input retry now follows explicit degraded health rather than the
+latest diagnostic text, so another error cannot hide recovery.
 Shutdown no longer waits without a bound for a provider stream that ignores
 cancellation; the core allows two seconds for task retirement before detaching
 remaining stale tasks. LM Studio unload uses the documented `lms unload MODEL`
