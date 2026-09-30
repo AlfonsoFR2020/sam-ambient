@@ -21,6 +21,12 @@ attached to the component the supervisor actually monitors.
 
 ## Core and UI
 
+Owner Console capabilities use the shared tool registry/policy/lease/executor;
+manual action admission binds server-created connection identity and replay
+sequence without altering conversation ownership. See [agency contract](AGENCY_CAPABILITIES.md).
+The separate [owned browser](OWNED_BROWSER.md) has no UI owner binding and only
+bounded scripts-disabled public HTTPS inspection. Browser/model content remains data.
+
 The supervisor's `OwnerWindow` uses Playwright's private pipes to launch an installed
 Chromium-family browser with `.sam/owner-ui-profile`, never the owner's browsing
 profile. Main-frame proof bootstrap and authenticated WebSocket connections are

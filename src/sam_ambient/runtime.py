@@ -74,6 +74,7 @@ from sam_ambient.core.tools import (
     ToolStatus,
 )
 from sam_ambient.core.tools.agency import CapabilityKind, OwnerAction, OwnerActions
+from sam_ambient.core.tools.browser import BrowserTool, OwnedBrowser
 from sam_ambient.core.turns import (
     CancellationRegistry,
     CancellationToken,
@@ -558,6 +559,7 @@ class SamRuntime:
                 ),
             )
         )
+        self.owned_browser = OwnedBrowser()
         self.tools = registry or self._default_tools()
         self.approvals = ApprovalBroker()
         self.capability_authority = CapabilityAuthority(
@@ -610,7 +612,14 @@ class SamRuntime:
             self.tool_executor,
             self._owner_action_terminal,
             supported=frozenset(
-                {CapabilityKind.FILES_LIST, CapabilityKind.FILES_READ, CapabilityKind.SYSTEM_INFO}
+                {
+                    CapabilityKind.FILES_LIST,
+                    CapabilityKind.FILES_READ,
+                    CapabilityKind.SYSTEM_INFO,
+                    CapabilityKind.BROWSER_NAVIGATE,
+                    CapabilityKind.BROWSER_READ,
+                    CapabilityKind.BROWSER_CLOSE,
+                }
             ),
         )
         self.controls = ControlDispatcher(
@@ -643,7 +652,7 @@ class SamRuntime:
             on_shutdown=self.shutdown_requested.set,
             owner=owner_session,
             owner_session_id=config.runtime_instance_id,
-            on_owner_disconnect=self.owner_actions.detach,
+            on_owner_disconnect=self._detach_owner,
         )
 
     @property
@@ -665,6 +674,9 @@ class SamRuntime:
                 FilesSearchTool(self.paths),
                 *write_tools,
                 SystemInfoTool(),
+                BrowserTool(self.owned_browser, "browser.navigate"),
+                BrowserTool(self.owned_browser, "browser.read"),
+                BrowserTool(self.owned_browser, "browser.close"),
                 ClipboardReadTool(clipboard),
                 ClipboardWriteTool(clipboard),
                 AppOpenTool(self.paths, PlatformAppOpenAdapter()),
@@ -689,6 +701,7 @@ class SamRuntime:
             return
         self._closed = True
         await self.owner_actions.close()
+        await self.owned_browser.close()
         if self._active_token is not None:
             self._active_token.cancel("runtime_closed")
         if self._voice_listen_token is not None:
@@ -2562,6 +2575,8 @@ class SamRuntime:
         self.owner_actions.start(
             connection, command.command_id, command.payload["sequence"], kind, arguments
         )
+        if kind.startswith("browser."):
+            self.owned_browser.owner_connection = connection.connection_id
 
     async def _cancel_owner_action(
         self, command: ControlCommand, connection: OwnerConnection
@@ -2576,6 +2591,12 @@ class SamRuntime:
         if action is None or action.invocation.generation_id != event.generation_id:
             await self.events.publish(event)
             return
+        if event.type == EventType.TOOL_APPROVAL_REQUESTED and action.connection.active:
+            # An exact typed manual request is an explicit authenticated owner grant.
+            # Model proposals still reach the ordinary approval UI.
+            self.approvals.resolve(
+                ApprovalCorrelation.from_invocation(action.invocation), approved=True
+            )
         statuses = {
             EventType.TOOL_REQUESTED: "queued",
             EventType.TOOL_AUTHORIZING: "queued",
@@ -2610,6 +2631,10 @@ class SamRuntime:
                 type=EventType.CAPABILITY_STATE, monotonic_ms=self._next_event_ms(), payload=payload
             )
         )
+
+    async def _detach_owner(self, connection: OwnerConnection) -> None:
+        await self.owner_actions.detach(connection)
+        await self.owned_browser.close(owner_connection=connection.connection_id)
 
     def _ready_event(self) -> ProtocolEvent:
         authority = self.capability_authority.snapshot

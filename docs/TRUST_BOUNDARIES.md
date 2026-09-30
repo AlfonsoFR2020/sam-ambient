@@ -28,6 +28,11 @@ bounded review; real hostile-local-process testing was not performed.
 
 ## Rules for future console, browser and memory work
 
+The current console/browser slice is specified in [agency capabilities](AGENCY_CAPABILITIES.md)
+and [owned browser](OWNED_BROWSER.md). Page content has no owner bootstrap,
+normal-browser cookies, shell, file chooser or arbitrary-JS action. Browser
+egress pins validated public IPs rather than trusting a URL/DNS precheck alone.
+
 Untrusted pages, retrieved files, model text, transcripts, tool output and stored
 memories must remain **data**, never a direct source of UI control commands or
 capability authority. New browser or terminal actions must enter the same trusted

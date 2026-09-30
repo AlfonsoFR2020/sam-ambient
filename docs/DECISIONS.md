@@ -1,5 +1,15 @@
 # Decision log
 
+## 2026-09-30 — Agency browser is a bounded inspection context
+
+Reuse Playwright already needed for private owner bootstrap, in a separate lazy
+ephemeral context. Initial browser power is navigate/read/close, not clicking or
+form submission. Disable page scripts and constrain network requests to public
+HTTPS and the owner-authorized origin. A small authenticated egress proxy pins
+validated IPs, closes the DNS-rebinding gap, and bounds streams. Exact manual
+requests constitute owner grants; model navigation still requires approval.
+Dynamic/authenticated site support requires a later deliberate policy slice.
+
 ## 2026-09-30 — Owner authority precedes agency
 
 HQ moves secure agency ahead of additional AEC experiments. The rejected AEC

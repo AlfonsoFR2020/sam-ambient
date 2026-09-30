@@ -37,15 +37,17 @@ export function AgencyConsole({
               event.preventDefault();
               void client.executeCapability(
                 capability,
-                capability === "system.info"
+                ["system.info", "browser.read", "browser.close"].includes(capability)
                   ? {}
-                  : {
-                      root: "workspace",
-                      path,
-                      ...(capability === "files.read"
-                        ? { max_bytes: 8_192, max_lines: 200 }
-                        : { max_entries: 100, depth: 0 }),
-                    },
+                  : capability === "browser.navigate"
+                    ? { url: path }
+                    : {
+                        root: "workspace",
+                        path,
+                        ...(capability === "files.read"
+                          ? { max_bytes: 8_192, max_lines: 200 }
+                          : { max_entries: 100, depth: 0 }),
+                      },
               );
             }}
           >
@@ -55,14 +57,17 @@ export function AgencyConsole({
                 <option value="files.list">List directory</option>
                 <option value="files.read">Read text file</option>
                 <option value="system.info">System information</option>
+                <option value="browser.navigate">Open public HTTPS page</option>
+                <option value="browser.read">Read current browser page</option>
+                <option value="browser.close">Close owned browser</option>
               </select>
             </label>
-            {capability !== "system.info" && (
+            {!["system.info", "browser.read", "browser.close"].includes(capability) && (
               <label>
-                Workspace path{" "}
+                {capability === "browser.navigate" ? "Public HTTPS URL" : "Workspace path"}{" "}
                 <input
                   value={path}
-                  maxLength={4096}
+                  maxLength={capability === "browser.navigate" ? 2048 : 4096}
                   onChange={(event) => setPath(event.target.value)}
                 />
               </label>

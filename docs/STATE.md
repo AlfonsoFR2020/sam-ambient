@@ -23,6 +23,14 @@ cancellation. No shell or filesystem write is exposed. A real isolated WebSocket
 with fake inference proves a console read, replay rejection and subsequent typed
 model completion without polluting conversation state.
 
+Agency checkpoint 4 adds isolated, scripts-disabled public-page navigation/read/
+close through the same policy and Console. Owner/manual navigation grants are
+exact; model navigation needs approval. DNS destinations are checked and pinned
+by an authenticated bounded egress proxy. No owner binding, ordinary profile,
+forms, downloads or arbitrary JS is shared with pages. Local browser fixtures
+prove inert page instructions, bounded extraction and cleanup; real external
+site compatibility remains unverified. See [owned browser](OWNED_BROWSER.md).
+
 The optional [Windows AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md) runs but
 fails its declared echo/double-talk separation gate. Its 11 frame/reset/metric
 tests pass; that is not processor acceptance. Runtime AEC/early barge-in remain
