@@ -341,11 +341,19 @@ class OwnedBrowser:
         self._context = self._page = self._origin = None
         try:
             if browser:
-                await browser.close()
+                try:
+                    async with asyncio.timeout(3):
+                        await browser.close()
+                except TimeoutError:
+                    pass  # Driver shutdown below is the owned-process fallback.
         finally:
             try:
                 if driver:
-                    await driver.stop()
+                    try:
+                        async with asyncio.timeout(3):
+                            await driver.stop()
+                    except TimeoutError:
+                        pass  # Host-level process failure is best-effort, never a core hang.
             finally:
                 await self._egress.close()
 

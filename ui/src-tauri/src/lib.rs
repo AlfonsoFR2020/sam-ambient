@@ -32,9 +32,7 @@ fn owner_proof(
     if window.label() != "main"
         || !matches!(
             (url.scheme(), url.host_str(), url.port()),
-            ("tauri", Some("localhost"), None)
-                | ("http", Some("tauri.localhost"), None)
-                | ("http", Some("127.0.0.1"), Some(1420))
+            ("tauri", Some("localhost"), None) | ("http", Some("tauri.localhost"), None)
         )
     {
         return Err("Owner proof unavailable".into());

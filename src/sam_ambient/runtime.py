@@ -704,10 +704,11 @@ class SamRuntime:
         if self._closed:
             return
         self._closed = True
-        await self.owner_actions.close()
-        await self.owned_browser.close()
+        self.capability_authority.revoke("runtime_closed")
+        self.bridge.owner.revoke()
         if self._active_token is not None:
             self._active_token.cancel("runtime_closed")
+        await self.owner_actions.close()
         if self._voice_listen_token is not None:
             self._voice_listen_token.cancel("runtime_closed")
         if self._voice_task is not None:
@@ -722,6 +723,7 @@ class SamRuntime:
             await asyncio.gather(*done, return_exceptions=True)
             if pending:
                 log.warning("Shutdown detached %d non-cooperative runtime task(s)", len(pending))
+        await self.owned_browser.close()
         self._voice_task = None
         if self.voice is not None:
             await self.voice.stt.aclose()

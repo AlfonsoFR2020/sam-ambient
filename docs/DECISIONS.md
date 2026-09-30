@@ -1,5 +1,14 @@
 # Decision log
 
+## 2026-09-30 — Signer-bearing UI uses trusted assets, not HTTP origin alone
+
+Source owner-window routes fulfill only canonical shipped frontend assets over
+the private browser driver, starting on a blank page before signer installation.
+Another service at the UI port cannot supply privileged code. Native proof only
+accepts bundled Tauri origins; HTTP Vite native-dev remains a non-authoritative
+UI surface. Use the source owner window for live development. This deliberate
+fail-closed restriction supersedes the initial dev-HTTP proof allowance.
+
 ## 2026-09-30 — Memory is a future policy-mediated capability
 
 The [memory contract](MEMORY_AUTHORITY_CONTRACT.md) separates durable owner identity,
@@ -538,8 +547,9 @@ master specification are recorded here.
   and a plaintext cloud endpoint can expose a configured API key or conversation
   context. Both paths were allowed by the previous generic adapter boundary.
 - **Limit:** This is credential transport hardening, not authentication of a
-  loopback process. The local UI bridge still relies on loopback plus browser
-  Origin checks under a trusted single-user host; see [trust boundaries](TRUST_BOUNDARIES.md).
+  loopback provider process. The UI protocol exposure was subsequently repaired
+  by Agency Foundation I's owner proof; host memory/code tampering remains outside
+  that boundary. See [trust boundaries](TRUST_BOUNDARIES.md).
 
 ## D-034 — Keep a failed acoustic processor probe outside runtime
 

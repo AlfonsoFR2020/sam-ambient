@@ -45,7 +45,7 @@ export function projectAgencyEvent(
           capability,
           state,
           output: output?.slice(0, 20_000),
-          truncated: event.payload.truncated === true,
+          truncated: event.payload.truncated === true || (output?.length ?? 0) > 20_000,
         }
       : action,
   );

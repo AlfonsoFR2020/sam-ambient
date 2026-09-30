@@ -67,3 +67,23 @@ def test_signer_rejects_non_challenge_data(value):
 )
 def test_owner_bootstrap_is_not_available_to_other_origins(url):
     assert not OwnerWindow._trusted_url(url, "http://127.0.0.1:8766")
+
+
+def test_owner_assets_are_shipped_files_not_arbitrary_local_paths(tmp_path):
+    assets = tmp_path / "static"
+    (assets / "assets").mkdir(parents=True)
+    (assets / "index.html").write_text("trusted", encoding="utf-8")
+    script = assets / "assets" / "app.js"
+    script.write_text("trusted", encoding="utf-8")
+    window = OwnerWindow(tmp_path, OwnerSession(), asset_root=assets)
+    origin = "http://127.0.0.1:8766"
+    assert window._asset_path(origin + "/?shell=app", origin) == assets / "index.html"
+    assert window._asset_path(origin + "/assets/app.js", origin) == script
+    for value in [
+        "/secret.txt",
+        "/assets/../../secret",
+        "/assets/%2e%2e/%2e%2e/secret",
+        "/assets/%00",
+    ]:
+        assert window._asset_path(origin + value, origin) is None
+    assert window._asset_path("https://evil.test/assets/app.js", origin) is None

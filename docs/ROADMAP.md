@@ -1,8 +1,9 @@
 # Sam development plan: post-v0.2.3 toward v0.2.4
 
 **HQ priority change (2026-09-30): secure agency now precedes further AEC.**
-Owner authentication is implemented on development HEAD; typed bounded
-capabilities, useful console/browser slices and model mediation follow it.
+Owner authentication, typed bounded capabilities, read-only console/public-page
+browser slices, model mediation and the adversarial simulator are implemented on
+development HEAD. See [agency evidence](AGENCY_FOUNDATION_I.md).
 The acoustic prototype failed its integration gate and remains a separate voice
 workstream; it is not a prerequisite for agency. Existing numbered voice cards
 below retain their internal dependencies, not the current cross-workstream order.
@@ -14,7 +15,7 @@ The last physical beta preceded the recent dev repairs. Its simultaneous playbac
 
 ## Reconciled baseline
 
-Post-release dev has repaired unsafe promotion of playback-time interruption candidates, pinned the echo-screening generation, retired superseded generations before new typed turns, and protected frontend command correlation. History now presents committed messages with separate delivery metadata and independent scrolling. Provider exit cleanup follows explicit ownership, Controls inventory is intact, and wide-screen diagnostics does not cover conversation. Measured input/output audio maps to distinct bounded Orb responses; high-tier form/membrane and broad pigment evolution were revised. Isolated WebGL cost was measured, not full-app cost. A prepared Windows source checkout has a one-action launcher. The trust review fixed authenticated-provider error-body disclosure and insecure cloud endpoint configuration. The AEC contract and dependency triage are **decisions/evidence only**, not implemented fixes. See [STATE](STATE.md) for exact behavior.
+Post-release dev has repaired unsafe promotion of playback-time interruption candidates, pinned the echo-screening generation, retired superseded generations before new typed turns, and protected frontend command correlation. History now presents committed messages with separate delivery metadata and independent scrolling. Provider exit cleanup follows explicit ownership, Controls inventory is intact, and wide-screen diagnostics does not cover conversation. Measured input/output audio maps to distinct bounded Orb responses; high-tier form/membrane and broad pigment evolution were revised. Isolated WebGL cost was measured, not full-app cost. A prepared Windows source checkout has a one-action launcher. The trust review fixed authenticated-provider error-body disclosure and insecure cloud endpoint configuration. The AEC contract/prototype remains negative evidence, not runtime acoustic processing; Vite 7.3.5 / Vitest 4.1.11 advisory maintenance is complete. See [STATE](STATE.md) for exact behavior.
 
 ## Dependency-aware workstreams
 
@@ -26,9 +27,9 @@ After acoustic separation, diagnose observed Spanish/Portuguese/Greek language d
 
 ### Security and authority
 
-**Current:** loopback WebSocket, Origin filtering, typed commands, bounded protocol, approval-gated tools, epoch revocation, cloud route restrictions and inert rendering of model/transcript text. **Unmet:** a same-user process can forge Origin; the UI command channel lacks owner authentication. That accepted local limit becomes a prerequisite before untrusted browser pages, console content or stronger voice controls. Design capability creation, trusted browser/native bootstrap, handshake, reconnect and revocation first; implement separately. A page must never receive the owner WebSocket capability. Validate with hostile-origin and protocol tests, then bounded runtime checks. See [trust review](TRUST_BOUNDARIES.md).
+**Current:** private-pipe owner bootstrap and fresh mutual connection proofs protect all private core events/commands; typed registry/policy/approval/epoch mediates manual and model actions. Replay, revocation, path and injection fixtures pass. Origin is supplemental, not authority. **Remaining:** host-account memory/code compromise is outside this boundary; powerful mutations need deliberate exact approval and policy. Native launch/bundled Playwright-driver packaging and real-provider tool use remain unverified. Pages never receive the owner signer. See [trust review](TRUST_BOUNDARIES.md) and [agency evidence](AGENCY_FOUNDATION_I.md).
 
-The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate GitHub records. Vite 7.1.5 has high-severity dev-server file-read findings; Vitest 3.2.4 has a critical finding conditioned on a listening Vitest UI server. These are **development-toolchain exposures**, not demonstrated public Windows runtime vulnerabilities. Resolve them in a bounded lockfile maintenance task before widening dev-server/browser use. Pytest 8.4.2, setuptools 82.0.1 and Rust GLib 0.18.5 belong to test/build/Linux-native follow-up. Future API credentials need trusted storage and redaction, never route identity, transcripts or diagnostics.
+The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate GitHub records. Vite 7.1.5 has high-severity dev-server file-read findings; Vitest 3.2.4 has a critical finding conditioned on a listening Vitest UI server. These are **development-toolchain exposures**, not demonstrated public Windows runtime vulnerabilities. Resolved on dev with Vite 7.3.5 and Vitest/mocker 4.1.11 before this agency pass; retain separate deferred advisory work. Pytest 8.4.2, setuptools 82.0.1 and Rust GLib 0.18.5 belong to test/build/Linux-native follow-up. Future API credentials need trusted storage and redaction, never route identity, transcripts or diagnostics.
 
 ### Provider and local-control architecture
 
@@ -40,7 +41,7 @@ The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate 
 
 ### Console, browser and tools
 
-**Current:** policy-mediated approval-gated process/files/MCP stdio and diagnostics. **Unmet:** a useful console and browser capability with isolation, scoped grants, bounded output and auditability. They matter to Sam as a computer interface but can expose host authority to prompt injection. Owner-authenticated control and a narrow capability contract come first; then add one contained ability at a time through the trusted registry/policy/approval/epoch path. A page, model response, retrieved file or tool output remains data, never a control command. Threat-model and contained browser/runtime tests are mandatory. Streamable HTTP MCP, delegation, Linux desktop control and self-maintenance remain conditional later directions.
+**Current:** authenticated owner Console supports bounded workspace list/read/system info; separate public-page browser supports navigate/read/close with scripts disabled and pinned public-IP egress. Structured provider tools share the same policy, exact approvals, result bounds, cancellation and repeated-call limits. The integrated simulator rejects injected commands and proves typed recovery. **Unmet:** practical real-provider tool workflows, explicitly approved bounded mutations and richer browser interactions. They matter to Sam as a computer interface but can expose host authority to prompt injection. Owner-authenticated control and a narrow capability contract come first; then add one contained ability at a time through the trusted registry/policy/approval/epoch path. A page, model response, retrieved file or tool output remains data, never a control command. Threat-model and contained browser/runtime tests are mandatory. Streamable HTTP MCP, delegation, Linux desktop control and self-maintenance remain conditional later directions.
 
 ### Embodiment and interface
 
@@ -52,7 +53,12 @@ The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate 
 
 ## Ordered Codex task cards
 
-These are separate slices, ordered by dependency and risk. **Task 1 is complete on local `dev`**; task 2 is the next open card. Skip a card only when its prerequisite or required environment is unavailable, and record why. The first eight pursue a meaningful integrated voice/visual checkpoint; later cards prepare safe capability expansion. **No card requests human testing now.**
+These cards preserve the voice workstream's internal dependency order. **Task 1
+is complete; cards 9, 10 and 12 are completed by Agency Foundation I.** Card 2
+remains the next acoustic experiment, not HQ's next overall task. Follow the
+current agency milestone/next bounded task below before resuming acoustic work.
+Skip a card only when prerequisites/environment are unavailable and record why.
+No card requests human testing now.
 
 ### 1. Development-toolchain advisory maintenance — complete on dev
 
@@ -126,6 +132,8 @@ fixtures before Task 3. No runtime acoustic or early-barge-in claim is made.
 
 ### 9. Owner-authenticated local control-channel contract
 
+**Completed by Agency Foundation I:** [contract](OWNER_AUTHORITY.md), private bootstrap and connection/restart/revocation tests. The card below records its original scope.
+
 - **Objective / why now:** Define command ownership before more computer agency.
 - **Prerequisites:** [trust model](TRUST_BOUNDARIES.md); task 7 reconnect evidence is useful but not required.
 - **Scope:** Threat model and protocol contract for owner capability, native/browser bootstrap, handshake, reconnect, rotation and revocation. **Non-scope:** browser/console implementation, OS-user isolation claims, credentials in logs/pages.
@@ -133,6 +141,8 @@ fixtures before Task 3. No runtime acoustic or early-barge-in claim is made.
 - **Model / quota:** Sol High; **medium**. **Stop/escalate:** no secret-safe browser bootstrap; split native and browser policies. **Human checkpoint:** no. This makes task 10 implementable.
 
 ### 10. Local command-channel authentication slice
+
+**Completed by Agency Foundation I:** all live private commands/events require a fresh owner proof; source-window fixture and native compile pass. Native physical launch/package remains unvalidated.
 
 - **Objective / why now:** Enforce task 9 without breaking text/voice recovery or startup.
 - **Prerequisites:** Approved task 9 contract.
@@ -150,6 +160,8 @@ fixtures before Task 3. No runtime acoustic or early-barge-in claim is made.
 
 ### 12. Console/browser capability boundary design
 
+**Completed beyond the original design card:** [typed capabilities](AGENCY_CAPABILITIES.md), [owned browser](OWNED_BROWSER.md), [simulator evidence](AGENCY_FOUNDATION_I.md). No arbitrary shell, page scripting or durable memory. [Memory seam](MEMORY_AUTHORITY_CONTRACT.md) is architecture only.
+
 - **Objective / why now:** Choose the first useful computer-facing ability without giving untrusted content owner command authority.
 - **Prerequisites:** Tasks 9–10 and existing trusted tool registry/approval/epoch.
 - **Scope:** One bounded console or browser use case, isolation, grants, output limits, audit and cancellation; specify an implementable first slice. **Non-scope:** full terminal, unrestricted automation, memory retrieval, self-update or natural-language controls.
@@ -158,13 +170,34 @@ fixtures before Task 3. No runtime acoustic or early-barge-in claim is made.
 
 ## Meaningful v0.2.4 integrated checkpoint
 
-**Candidate scope:** acoustic ownership with safe fallback and prompt genuine-speech delivery interruption; no self-echo user commitment; complete assistant text and typed recovery; evidence-based STT language behavior and deliberate multilingual voice policy; real provider/audio/reconnect smoke; revised voice-reactive visual system with representative full-app cost and accessible fallbacks. Current trust boundaries remain intact; any new command surface first needs tasks 9–10. Compatible dependency maintenance may enter if it preserves the build.
+HQ now prioritizes useful secure agency. The candidate may include owner-authenticated
+local authority, typed bounded/cancellable capabilities, read-only Console/public-page
+inspection, structured model mediation, clean conversation history/typed recovery and
+the implemented visual repairs. **AEC is a separate voice workstream, not a release
+prerequisite for these capabilities.** Conservative candidate safety remains required.
 
-**Explicitly later:** named profiles and natural-language switching, console/browser agency, persistent semantic memory, diarization, broad visual redesign, public signed installer, self-update and Linux/mobile expansion. Foundation work may progress independently without turning these into v0.2.4 release gates.
+Before claiming real agency, obtain one separately authorized bounded real-provider
+tool workflow through the owned UI, without broad model/browser exploration. Fake
+protocol/adversarial/model fixtures and isolated browser evidence are green; production
+native driver bundling/launch and real external-site compatibility are not established.
+No new release, package/signing action or immediate human beta is implied.
 
-**Evidence:** deterministic signal/candidate/lifecycle and provider-command tests; Python/TypeScript/lint and relevant browser/visual regressions; a short real Windows speaker/mic double-talk check and provider/text/voice/reconnect check; bounded full-app performance/accessibility evidence; honest device limits. An unsafe processor retains the conservative path instead of being labeled successful.
+**Explicitly later:** prompt acoustic barge-in/AEC integration, STT/persona improvements,
+named profiles/natural-language switching, arbitrary shell, sensitive browser actions,
+persistent semantic memory, diarization, signed public installer and self-update.
+Their specialist contracts and internal voice dependencies above remain valid.
 
-**Next scarce human beta:** only after that integrated candidate is coherent and the owner has capacity. The session should judge whether Sam hears the human rather than itself, stops delivery promptly while keeping the full answer, permits typed recovery, maintains a coherent multilingual persona, and perceptually reads as a living body. Do not request a narrow session now.
+**Next scarce human beta:** only when secure agency has demonstrated useful integrated
+owner workflows, text/voice recovery remains sound, and a separately authorized runtime
+window has checked the relevant paths. It should assess actual usefulness, understandable
+authority/approval, history and visual perception together. Do not request human testing
+now or treat deterministic visual metrics as perceptual acceptance.
+
+**Next bounded Codex task:** validate a representative existing real provider's structured
+tool support through the owner window: one workspace read and one explicitly approved
+public-page inspection, cancellation and final answer. Stop if the provider/environment
+cannot support the protocol; do not download/configure a new model or add features merely
+to pass. This supplies product-value evidence before choosing a bounded mutation slice.
 
 ## HQ quota and execution practice
 

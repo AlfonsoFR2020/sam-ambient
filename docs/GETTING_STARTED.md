@@ -99,7 +99,8 @@ reports that the server or model is unavailable.
 
 ### Native Windows development (unreleased)
 
-The browser path remains supported. Tauri 2 is a thin native window and lifecycle
+The dedicated owner-window path remains supported. Ordinary browser tabs cannot
+authenticate. Tauri 2 is a thin native window and lifecycle
 layer around the same React UI and Python runtime; it does not replace Sam's core.
 Native contributors need Node/pnpm, Rust/Cargo, WebView2, and on Windows the MSVC
 C++ Build Tools plus a Windows SDK:
@@ -110,11 +111,16 @@ pnpm install --frozen-lockfile
 pnpm native:dev
 ```
 
+`native:dev` loads mutable HTTP dev-server code and intentionally cannot obtain
+owner proof. It is a UI-development surface, not a live-core authority path.
+Use `Start Sam.cmd` / the source owner window for authenticated development;
+bundled native origins have the private RPC path (physical packaging unvalidated).
+
 The development shell starts one trusted `sam-supervisor --no-ui` child and uses
 the existing localhost protocol. A second launch focuses the existing window.
 Closing the native window opens Sam's existing Quit confirmation, and acknowledged
-shutdown closes the window. Normal browser and Chromium app-window launch paths
-remain available.
+shutdown closes the window. The source owner app window remains available;
+ordinary browser mode is an unauthenticated debugging surface.
 
 The repository also contains guarded companion and NSIS packaging scripts for
 later release work. They are intentionally outside this source-integration flow;

@@ -2,60 +2,40 @@
 
 Updated: 2026-09-30
 
-Agency checkpoint 8 records a future-only memory authority/provenance contract.
-Durable owner identity, reviewed writes, scoped retrieval and deletion are specified;
-no semantic memory, storage schema, embeddings or retrieval capability is added.
+## Current agency foundation
 
-Agency checkpoint 7 keeps the owner surface restrained: bounded history preserves
-live actions, connection/capacity restrictions are explained, cancellation failures
-are visible, and unconfirmed admission requests cancellation. Late rejection cannot
-replace a terminal result. Conversation history remains independent and untouched.
+- All private core events/commands require fresh connection-bound mutual HMAC proof.
+  A random per-supervisor root travels only over private pipes; ordinary tabs fail
+  closed. Source owner UI uses shipped assets over the private browser channel.
+  Native proof accepts bundled origins, deliberately not HTTP native-dev code.
+- Manual and provider-structured actions share registry/schema/policy/exact approval/
+  epoch leases. Model prose, transcript, webpage and returned data are not authority.
+  Four manual tasks, replay sequences, bounded results and retirement checks apply.
+- Separate Console offers workspace list/read/system info and isolated public-page
+  navigate/read/close. No manual shell/write, page JS, credentials, personal profile,
+  downloads/forms or privileged page binding. Browser DNS is validated then IP-pinned.
+- Console history preserves active actions, has independent scrolling and cancellation;
+  admission failures/replies cannot strand or overwrite terminal state. Model tool
+  rounds/fragments/repeats/results are bounded; exact navigation approval is required.
+- The integrated fixture proves owner → model proposal → approval → local browser →
+  untrusted result → injected-action rejection → final answer. Cancelling the browser
+  releases resources before a fresh typed turn completes. Shutdown revokes/cancels
+  before cleanup. Adversarial and prior conversation/voice regressions stay green.
+- [Memory authority](MEMORY_AUTHORITY_CONTRACT.md) is a future-only contract: durable
+  owner identity, provenance, reviewed writes, scoped retrieval/delete; no new memory.
+- Native physical launch/driver packaging, real-provider tool support and external-site
+  compatibility remain unvalidated. Host memory/code tampering is an OS limitation.
+  No new release or physical/visual acceptance is claimed.
 
-Agency checkpoint 6 hardens retirement races at tool-start publication and command
-lock admission. Adversarial tests cover replay/forgery, policy/schema rejection,
-bounded output, cancellation, Windows junction escape and DNS-pinned proxy egress.
-Content remains inert; same-user memory/code access remains an OS trust limitation.
-
-Agency checkpoint 1: all live core commands and private events now require a
-fresh owner proof. A per-supervisor random root travels only over private pipes;
-the source owner window and native main-window RPC return connection-bound HMACs.
-Ordinary tabs fail closed. See [owner authority](OWNER_AUTHORITY.md). Deterministic
-protocol tests and an isolated real-browser binding fixture pass; native source
-compiles. This is not isolation against host memory/code tampering. HQ now places
-secure agency ahead of further AEC; the negative acoustic result stays recorded.
-
-Agency checkpoint 2 adds owner-bound manual action admission on the existing
-tool registry/policy/lease/executor. Monotonic connection sequences reject replay,
-four-task bounds include unwinding work, disconnect suppresses late output and
-shared results fit 16 KiB. Stale invocations are rejected before execution; task
-cancellation becomes terminal. Console/browser wiring follows this contract.
-See [capability contract](AGENCY_CAPABILITIES.md).
-
-Agency checkpoint 3 wires authenticated owner Console actions through that shared
-executor: workspace list/read and system info, independent bounded output and
-cancellation. No shell or filesystem write is exposed. A real isolated WebSocket
-with fake inference proves a console read, replay rejection and subsequent typed
-model completion without polluting conversation state.
-
-Agency checkpoint 4 adds isolated, scripts-disabled public-page navigation/read/
-close through the same policy and Console. Owner/manual navigation grants are
-exact; model navigation needs approval. DNS destinations are checked and pinned
-by an authenticated bounded egress proxy. No owner binding, ordinary profile,
-forms, downloads or arbitrary JS is shared with pages. Local browser fixtures
-prove inert page instructions, bounded extraction and cleanup; real external
-site compatibility remains unverified. See [owned browser](OWNED_BROWSER.md).
-
-Agency checkpoint 5 reuses provider structured tool calls and external policy,
-adding repeat-action and fragment bounds. Prose/action-looking returned content
-remain inert; exact model navigation still needs owner approval. Deterministic
-model fixtures prove a read executes once, repeat is denied and final answer
-completes. No natural-language control parser or new provider execution is added.
+See [owner authority](OWNER_AUTHORITY.md), [capabilities](AGENCY_CAPABILITIES.md),
+[owned browser](OWNED_BROWSER.md) and [integrated evidence](AGENCY_FOUNDATION_I.md).
+[ROADMAP](ROADMAP.md) now prioritizes secure useful agency ahead of acoustic work.
 
 The optional [Windows AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md) runs but
 fails its declared echo/double-talk separation gate. Its 11 frame/reset/metric
 tests pass; that is not processor acceptance. Runtime AEC/early barge-in remain
-unimplemented and conservative candidate safety remains unchanged. Next work
-must establish pinned upstream APM feasibility and replay the same fixtures.
+unimplemented and conservative candidate safety remains unchanged. Within that
+acoustic workstream, the next experiment must establish pinned upstream APM feasibility and replay the same fixtures.
 
 Post-release physical beta exposed a conversation-integrity defect: an
 unverified microphone candidate could be promoted when TTS completed, then

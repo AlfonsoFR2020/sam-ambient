@@ -47,7 +47,13 @@ owner window fails closed rather than granting an ordinary tab authority.
 
 Mutual MACs prevent a forged local service from obtaining a proof for arbitrary
 commands. Model, transcript and webpage content cannot call the signer through
-their text representation. Trusted UI code is part of the authority boundary:
+their text representation. Source owner page/assets are fulfilled directly from
+the shipped static bundle over the private driver; localhost HTTP cannot supply
+signer-bearing code. The window starts on `about:blank` before binding installation.
+Native proof is restricted to bundled Tauri origins; the mutable Vite HTTP dev
+origin receives no proof. Use the source owner window for live development.
+Native dev remains a UI surface until a trusted-asset bootstrap exists.
+Trusted UI code is part of the authority boundary:
 an XSS or modified Sam bundle would be a compromise, not a permitted content path.
 This is possession authentication, **not OS sandboxing** against a same-account
 process able to read Sam memory, attach a debugger, alter trusted code or hijack

@@ -28,6 +28,15 @@ bounded review; real hostile-local-process testing was not performed.
 
 ## Rules for future console, browser and memory work
 
+The [integrated agency simulator](AGENCY_FOUNDATION_I.md) verifies exact approval
+before model navigation, inert/injected result handling, browser cancellation and
+subsequent typed recovery. Shutdown revokes root/epoch authority before cleanup.
+The [future memory contract](MEMORY_AUTHORITY_CONTRACT.md) grants no current durable
+write capability: provenance and scope do not themselves confer permission.
+Source signer-bearing assets are fulfilled privately from the shipped bundle;
+another HTTP listener cannot impersonate that code. Native HTTP dev origins are
+intentionally non-authoritative; bundled Tauri origins retain proof admission.
+
 The current console/browser slice is specified in [agency capabilities](AGENCY_CAPABILITIES.md)
 and [owned browser](OWNED_BROWSER.md). Page content has no owner bootstrap,
 normal-browser cookies, shell, file chooser or arbitrary-JS action. Browser

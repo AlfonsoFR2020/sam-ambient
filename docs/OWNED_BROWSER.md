@@ -38,6 +38,8 @@ can be injected **only by trusted tests**, never through UI/config/model argumen
 
 The runtime owns one browser service. Operations serialize; cancellation/failure
 retires its page/process/proxy, Close is idempotent and shutdown closes resources.
+Shutdown first revokes authority and cancels work; browser close and driver stop
+each have a three-second cleanup bound. Host/process failure remains best-effort.
 Manual disconnect closes resources only if that connection still owns them;
 old disconnect cleanup must not close a newer owner's page. An already-authorized
 model turn remains generation-scoped under existing cancellation/lease rules.

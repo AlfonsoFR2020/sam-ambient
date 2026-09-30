@@ -5,15 +5,23 @@ from __future__ import annotations
 import asyncio
 import os
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from sam_ambient.core.owner import OwnerAuthorityError, OwnerSession
 from sam_ambient.supervisor.app_window import find_app_browser
 
 
 class OwnerWindow:
-    def __init__(self, root: Path, owner: OwnerSession, *, headless: bool = False) -> None:
+    def __init__(
+        self,
+        root: Path,
+        owner: OwnerSession,
+        *,
+        headless: bool = False,
+        asset_root: Path | None = None,
+    ) -> None:
         self.profile = root / ".sam" / "owner-ui-profile"
+        self.assets = (asset_root or Path(__file__).resolve().parents[1] / "static").resolve()
         self.owner = owner
         self.headless = headless
         self._driver = None
@@ -25,7 +33,7 @@ class OwnerWindow:
         from playwright.async_api import async_playwright
 
         executable = find_app_browser()
-        if executable is None:
+        if executable is None or not (self.assets / "index.html").is_file():
             return False
         self.profile.mkdir(parents=True, exist_ok=True)
         self._driver = await async_playwright().start()
@@ -54,13 +62,16 @@ class OwnerWindow:
                 str(self.profile),
                 executable_path=executable,
                 headless=self.headless,
-                args=["--app=" + url + "/?shell=app"],
+                args=["--app=about:blank"],
                 env=environment,
                 accept_downloads=False,
                 service_workers="block",
             )
             pages = self._context.pages
             self._page = pages[0] if pages else await self._context.new_page()
+            await self._page.goto("about:blank")
+            for other in pages[1:]:
+                await other.close()
             self._page.on("close", lambda: self._closed.set())
 
             async def prove(source, challenge):
@@ -75,10 +86,13 @@ class OwnerWindow:
             await self._context.expose_binding("samOwnerProof", prove)
 
             async def local_only(route):
-                if self._trusted_url(route.request.url, url):
-                    await route.continue_()
-                else:
+                asset = self._asset_path(route.request.url, url)
+                if asset is None or route.request.method != "GET":
                     await route.abort()
+                else:
+                    # Trusted shipped code over the private driver, not a localhost
+                    # service that another process can impersonate or replace.
+                    await route.fulfill(path=str(asset))
 
             await self._context.route("**/*", local_only)
             self._context.on("page", lambda page: asyncio.create_task(page.close()))
@@ -87,6 +101,21 @@ class OwnerWindow:
         except BaseException:
             await self.aclose()
             raise
+
+    def _asset_path(self, value: str, origin: str) -> Path | None:
+        if not self._trusted_url(value, origin):
+            return None
+        try:
+            path = unquote(urlsplit(value).path)
+            relative = "index.html" if path in {"", "/", "/index.html"} else path.lstrip("/")
+            if relative != "index.html" and not relative.startswith("assets/"):
+                return None
+            candidate = (self.assets / relative).resolve(strict=True)
+            if candidate.is_relative_to(self.assets) and candidate.is_file():
+                return candidate
+        except (OSError, ValueError):
+            pass
+        return None
 
     @staticmethod
     def _trusted_url(value: str, origin: str) -> bool:
