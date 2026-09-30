@@ -31,6 +31,12 @@ forms, downloads or arbitrary JS is shared with pages. Local browser fixtures
 prove inert page instructions, bounded extraction and cleanup; real external
 site compatibility remains unverified. See [owned browser](OWNED_BROWSER.md).
 
+Agency checkpoint 5 reuses provider structured tool calls and external policy,
+adding repeat-action and fragment bounds. Prose/action-looking returned content
+remain inert; exact model navigation still needs owner approval. Deterministic
+model fixtures prove a read executes once, repeat is denied and final answer
+completes. No natural-language control parser or new provider execution is added.
+
 The optional [Windows AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md) runs but
 fails its declared echo/double-talk separation gate. Its 11 frame/reset/metric
 tests pass; that is not processor acceptance. Runtime AEC/early barge-in remain

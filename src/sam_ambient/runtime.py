@@ -371,8 +371,12 @@ class _ToolCallAccumulator:
         self._parts: dict[str, _CallParts] = {}
         self._keys_by_index: dict[int, str] = {}
         self._anonymous = 0
+        self._fragment_count = 0
 
     def add(self, payload: Mapping[str, Any]) -> None:
+        self._fragment_count += 1
+        if self._fragment_count > 512:
+            raise ValueError("provider tool proposal exceeds the bounded fragment limit")
         function = payload.get("function")
         if not isinstance(function, Mapping):
             raise ValueError("provider tool call is missing function data")
@@ -1370,6 +1374,7 @@ class SamRuntime:
                 Message(MessageRole.USER, text),
             ]
             contains_private_context = bool(history)
+            proposed_actions: set[tuple[str, str]] = set()
             for tool_round in range(self.config.max_tool_rounds + 1):
                 cancellation.raise_if_cancelled()
                 log.info(
@@ -1428,7 +1433,31 @@ class SamRuntime:
                         generation_id=generation_id,
                         cancellation_id=cancellation.cancellation_id,
                     ):
-                        execution = await self.tool_executor.execute(invocation, cancellation)
+                        signature = (invocation.tool_id, invocation.authority_identity[-1])
+                        if signature in proposed_actions:
+                            execution = ToolExecution(
+                                invocation,
+                                ToolStatus.DENIED,
+                                error="identical action already proposed in this turn",
+                            )
+                            await self._publish_tool_event(
+                                ProtocolEvent(
+                                    type=EventType.TOOL_DENIED,
+                                    monotonic_ms=self._next_event_ms(),
+                                    session_id=session_id,
+                                    turn_id=turn_id,
+                                    generation_id=generation_id,
+                                    tool_call_id=invocation.tool_call_id,
+                                    payload={
+                                        "tool_id": invocation.tool_id,
+                                        "status": "denied",
+                                        "error": execution.error,
+                                    },
+                                )
+                            )
+                        else:
+                            proposed_actions.add(signature)
+                            execution = await self.tool_executor.execute(invocation, cancellation)
                         if execution.status in {ToolStatus.CANCELLED, ToolStatus.STALE}:
                             return
                         messages.append(_tool_result_message(execution))

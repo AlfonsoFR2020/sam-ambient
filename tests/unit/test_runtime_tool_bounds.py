@@ -112,7 +112,7 @@ def test_runtime_executes_no_more_than_configured_tool_rounds(tmp_path) -> None:
         finally:
             await runtime.close()
 
-        assert executions == 2
+        assert executions == 1  # repeat proposals are denied before the round ceiling
         assert provider.calls == 3
 
     asyncio.run(scenario())

@@ -42,3 +42,19 @@ authenticated bridge, not payload identity. Admission returns immediately;
 connection's manual work. Console results scroll independently, render escaped
 text, remain bounded to 64 entries and never become conversation transcript or
 generation state. Opening/closing the surface does not confer or revoke authority.
+
+## Model mediation
+
+Only provider `ModelEventKind.TOOL_CALL` proposals enter the typed accumulator;
+assistant prose, page/file results and transcript text are not parsed as commands.
+Schemas advertise registered tools; policy outside the model decides approval.
+Browser navigation needs exact owner approval, while authorized workspace reads
+use the explicit existing read policy. Results return as `MessageRole.TOOL`, tagged
+`untrusted_data`, not as system policy. The model can continue after a failed/denied
+tool. Malformed proposals fail recoverably; cancellation/staleness retires the turn.
+
+Each turn has at most the configured tool rounds (default four, maximum eight),
+eight proposals per round, 512 fragments per proposal round, 64 KiB argument data
+and 16 KiB per result. An identical capability/argument proposal within a turn is
+denied even if the provider assigns another call ID. This bounds repeated/recursive
+loops without making model output permission. There is no text-envelope parser.
