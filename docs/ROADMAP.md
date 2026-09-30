@@ -56,6 +56,12 @@ These are separate slices, ordered by dependency and risk. **Task 1 is complete 
 
 ### 2. Falsifying AEC processor prototype
 
+**First probe recorded; integration blocked:** the optional Windows AEC3
+extraction binding runs, but fails the declared separation gate. See
+[measurements and reproduction](AEC_PROTOTYPE_2026-09-30.md). Task 2 remains open:
+establish pinned upstream APM adapter/build feasibility and replay the same
+fixtures before Task 3. No runtime acoustic or early-barge-in claim is made.
+
 - **Objective / why now:** Prove or reject the [preferred processing boundary](AEC_DOUBLE_TALK_CONTRACT.md) before changing live conversation.
 - **Prerequisites:** AEC contract; native binding/license/build provenance; task 1 if tooling overlaps.
 - **Scope:** Isolated adapter and short synthetic PCM/delay/resampling fixtures; measure false triggers, near-end onset and package/CPU cost. **Non-scope:** live Sam, production barge-in, UI or STT tuning.

@@ -511,3 +511,17 @@ master specification are recorded here.
 - **Limit:** This is credential transport hardening, not authentication of a
   loopback process. The local UI bridge still relies on loopback plus browser
   Origin checks under a trusted single-user host; see [trust boundaries](TRUST_BOUNDARIES.md).
+
+## D-034 — Keep a failed acoustic processor probe outside runtime
+
+- **Accepted:** 2026-09-30. Evaluate `pywebrtc-audio` 0.2.0 only in an optional
+  `aec-prototype` development group. The narrow 16 kHz/10 ms adapter and synthetic
+  measurements remain separate from Sam's delivery/candidate owners.
+- **Evidence:** [Windows probe](AEC_PROTOTYPE_2026-09-30.md) failed predeclared
+  echo and first-second double-talk gates after measuring/correcting 8 ms fixed
+  processor latency. The small Windows wheel is feasible; this vendored AEC3
+  extraction's separation is not yet sufficient for the intended integration.
+- **Consequence:** retain conservative transcript-gated interruption. Do not
+  lower thresholds, promote candidates from VAD alone or integrate this result.
+  Establish pinned upstream APM adapter feasibility next; fallback alternatives
+  remain as recorded in the contract. Physical acoustic acceptance is unproven.

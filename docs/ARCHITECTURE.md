@@ -119,6 +119,11 @@ acoustic source separation. The proposed audio boundary and remaining
 candidate rules are in [post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md).
 No acoustic processor or early barge-in claim is implemented yet.
 
+An optional [offline AEC3 probe](AEC_PROTOTYPE_2026-09-30.md) now tests fixed
+16 kHz/10 ms capture-render pairs, latency-corrected separation and full reset.
+The selected extraction binding failed the integration gate. It is not imported
+by runtime audio, and no live reference buffer or early-interruption path exists.
+
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. `dev` implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded

@@ -26,6 +26,8 @@ Versions are pinned by `uv.lock` or `ui/pnpm-lock.yaml` where applicable.
 | Microsoft Visual C++ Redistributable runtime | 14.44.35211.0 | Microsoft redistributable terms | https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist | Self-contained CPython/native-extension runtime on Windows | Signed Microsoft redistributable DLLs extracted by cx_Freeze; no build tools included | Preserve the extracted Microsoft license files |
 | pytest | 8.4.2 | MIT | https://github.com/pytest-dev/pytest | Test runner | Development dependency | MIT notice |
 | Ruff | 0.16.5 | MIT | https://github.com/astral-sh/ruff | Lint and formatting | Development dependency | MIT notice |
+| pywebrtc-audio | 0.2.0 | Apache-2.0 wrapper; bundled permissive WebRTC/FFT/Abseil/JsonCpp/rnnoise/PFFFT notices | https://github.com/strands-labs/pywebrtc-audio | Offline AEC3 falsification only | Optional `aec-prototype` development group, not runtime or release contents | Preserve complete wheel LICENSE/NOTICE if later redistributed; see docs/AEC_PROTOTYPE_2026-09-30.md |
+| NumPy | 2.5.3 | BSD-3-Clause plus bundled notices | https://numpy.org/ | Deterministic PCM fixtures required by the prototype binding | Optional prototype dependency only | Preserve full distribution licenses if later bundled |
 | Colorama | 0.4.6 | BSD-3-Clause | https://github.com/tartley/colorama | pytest Windows terminal support | Transitive development dependency | BSD notice |
 | iniconfig | 2.3.0 | MIT | https://github.com/pytest-dev/iniconfig | pytest configuration parsing | Transitive development dependency | MIT notice |
 | packaging | 26.3 | Apache-2.0 OR BSD-2-Clause | https://github.com/pypa/packaging | pytest version/marker handling | Transitive development dependency | License choice notices |

@@ -10,6 +10,13 @@ Native-shell development additionally needs Rust/Cargo and Tauri's platform
 compiler prerequisites. Windows requires WebView2, MSVC C++ Build Tools, and a
 Windows SDK; Visual Studio IDE is not required.
 
+The optional offline AEC experiment uses `uv sync --locked --group aec-prototype`.
+Run `uv run --locked --group aec-prototype python scripts/aec_prototype.py` for
+the separation gate and its focused tests as documented in
+[AEC probe evidence](docs/AEC_PROTOTYPE_2026-09-30.md). The probe currently exits
+1 because separation fails; passing measurement tests do not authorize runtime
+integration. Normal startup does not install or enable this experimental group.
+
 Before submitting a change:
 
 ```sh

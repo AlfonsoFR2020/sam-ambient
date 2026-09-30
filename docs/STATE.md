@@ -2,6 +2,12 @@
 
 Updated: 2026-09-30
 
+The optional [Windows AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md) runs but
+fails its declared echo/double-talk separation gate. Its 11 frame/reset/metric
+tests pass; that is not processor acceptance. Runtime AEC/early barge-in remain
+unimplemented and conservative candidate safety remains unchanged. Next work
+must establish pinned upstream APM feasibility and replay the same fixtures.
+
 Post-release physical beta exposed a conversation-integrity defect: an
 unverified microphone candidate could be promoted when TTS completed, then
 its final transcript could bypass the playback-echo reference and commit as

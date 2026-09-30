@@ -66,6 +66,14 @@ Repair in this order:
 
 ### Acoustic-ownership feasibility checkpoint (2026-09-28)
 
+The subsequent [offline AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md)
+(2026-09-30) runs on Windows but fails the unchanged separation gate. Echo is
+reduced about 17.9 dB and independent near-end speech partly survives; first-second
+double-talk SDR is 4.18 dB against a 6 dB floor after correcting 8 ms processor
+latency. This supports neither early interruption nor a real-room acceptance
+claim. No production candidate, delivery or text-recovery behavior changed.
+The upstream-native feasibility step remains open in the authoritative roadmap.
+
 Source inspection confirms that Sam can retain a reference to the **PCM it
 sends** to playback. System Speech generates bounded 16 kHz mono PCM16 WAV;
 `_metered_tts_frames` applies output gain and yields 20 ms PCM frames to
