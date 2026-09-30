@@ -2,6 +2,10 @@
 
 Updated: 2026-09-30
 
+Agency checkpoint 8 records a future-only memory authority/provenance contract.
+Durable owner identity, reviewed writes, scoped retrieval and deletion are specified;
+no semantic memory, storage schema, embeddings or retrieval capability is added.
+
 Agency checkpoint 7 keeps the owner surface restrained: bounded history preserves
 live actions, connection/capacity restrictions are explained, cancellation failures
 are visible, and unconfirmed admission requests cancellation. Late rejection cannot

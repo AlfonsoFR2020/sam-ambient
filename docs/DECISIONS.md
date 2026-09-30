@@ -1,5 +1,12 @@
 # Decision log
 
+## 2026-09-30 — Memory is a future policy-mediated capability
+
+The [memory contract](MEMORY_AUTHORITY_CONTRACT.md) separates durable owner identity,
+ephemeral authorization, session context, provenance and reviewable writes.
+Page/model/tool output is not trusted durable memory or permission. No persistence,
+retrieval or embedding implementation is introduced in the agency foundation.
+
 ## 2026-09-30 — Agency browser is a bounded inspection context
 
 Reuse Playwright already needed for private owner bootstrap, in a separate lazy

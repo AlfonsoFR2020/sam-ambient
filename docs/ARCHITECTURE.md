@@ -26,6 +26,9 @@ manual action admission binds server-created connection identity and replay
 sequence without altering conversation ownership. See [agency contract](AGENCY_CAPABILITIES.md).
 The separate [owned browser](OWNED_BROWSER.md) has no UI owner binding and only
 bounded scripts-disabled public HTTPS inspection. Browser/model content remains data.
+Future durable memory uses the [memory authority contract](MEMORY_AUTHORITY_CONTRACT.md):
+provenance-labelled scoped data, explicit write policy and bounded retrieval, not
+automatic promotion of model/page/tool output or raw session history.
 
 The supervisor's `OwnerWindow` uses Playwright's private pipes to launch an installed
 Chromium-family browser with `.sam/owner-ui-profile`, never the owner's browsing
