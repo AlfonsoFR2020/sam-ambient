@@ -28,8 +28,10 @@ released 0.2.3 implementation or establish physical repair acceptance.
 Further inspection confirmed post-gain playback PCM and capture PCM are both
 available, but their PortAudio streams lack shared timing and an AEC/double-talk
 signal. A simple amplitude, correlation or VAD-only rule is insufficient for
-safe one-second barge-in; no acoustic processor has been added. The beta plan
-records the bounded integration options and candidate-state rules.
+safe one-second barge-in; no acoustic processor has been added. The
+[AEC feasibility contract](AEC_DOUBLE_TALK_CONTRACT.md) records the preferred
+render-reference boundary and falsifying prototype; it is a decision, not an
+implemented feature. The beta plan retains candidate-state evidence.
 Conversation history now renders committed typed/voice messages only; an
 uncommitted or rejected candidate remains outside normal history. The full
 assistant answer survives speech interruption, which appears as separate

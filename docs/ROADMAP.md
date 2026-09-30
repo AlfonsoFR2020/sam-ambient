@@ -1,119 +1,163 @@
-# Sam roadmap: after published v0.2.3
+# Sam development plan: post-v0.2.3 toward v0.2.4
 
-This is the authoritative priority and dependency plan toward the next alpha.
-[State](STATE.md) records implemented truth; [Backlog](BACKLOG.md) keeps detailed
-options and unresolved observations; [post-v0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md)
-preserves the physical evidence. A green automated check does not establish
-acoustic, device, integrated-provider or human visual acceptance. No calendar
-dates or next-release feature promises are implied here.
+This is the **authoritative execution order**, not a promise that every later capability belongs in v0.2.4. [STATE](STATE.md) records implemented truth; [BACKLOG](BACKLOG.md) retains unresolved items; [ARCHITECTURE](ARCHITECTURE.md) and [DECISIONS](DECISIONS.md) contain current contracts. The [physical beta record](POST_0.2.3_BETA_PLAN.md) remains primary product evidence. Specialist sources: [AEC decision](AEC_DOUBLE_TALK_CONTRACT.md), [trust review](TRUST_BOUNDARIES.md), [dependency triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md), [visual direction](VISUAL_DIRECTION.md) and [isolated performance sample](VISUAL_PERFORMANCE_0.2.3_DEV.md). The [published v0.2.3 release scope](RELEASE_READINESS_0.2.3.md) is historical; this plan changes neither it nor its tag.
 
-## Baseline and decisions already made
+The last physical beta preceded the recent dev repairs. Its simultaneous playback/listening failure and perception of an insufficiently living Orb remain valid observations. Deterministic lifecycle and renderer checks established corrected properties; **they did not establish physical acoustic reliability or human visual acceptance**. No human beta is available now.
 
-Sam v0.2.3 is published. Since then, `dev` has repaired unsafe playback-candidate
-promotion, generation retirement and typed recovery, committed-history rendering
-and scrolling, exit cleanup truth, Controls inventory and diagnostics layout.
-Measured input/output audio now produces bounded, different Orb responses; the
-high-tier form/membrane and broad pigment evolution have source and isolated
-WebGL regressions. One isolated desktop WebGL2 sample found a high-tier median
-GPU draw time around 1.8 ms, not representative full-app or low-power cost.
-The source checkout has a one-action Windows launcher. A targeted security review
-closed authenticated-provider error-body disclosure and insecure cloud endpoint
-configuration. These are implemented checkpoints, **not** a new human beta pass.
+## Reconciled baseline
 
-The physical 0.2.3 session established that conservative text-based echo
-screening cannot give dependable early barge-in; it also found weak visual
-embodiment, a static-looking surface and faint polygonal membrane. Deterministic
-tests found and fixed related ownership and text-recovery defects, but did not
-attribute every late failure in that physical session. Do not erase those
-observations because later tests are green.
+Post-release dev has repaired unsafe promotion of playback-time interruption candidates, pinned the echo-screening generation, retired superseded generations before new typed turns, and protected frontend command correlation. History now presents committed messages with separate delivery metadata and independent scrolling. Provider exit cleanup follows explicit ownership, Controls inventory is intact, and wide-screen diagnostics does not cover conversation. Measured input/output audio maps to distinct bounded Orb responses; high-tier form/membrane and broad pigment evolution were revised. Isolated WebGL cost was measured, not full-app cost. A prepared Windows source checkout has a one-action launcher. The trust review fixed authenticated-provider error-body disclosure and insecure cloud endpoint configuration. The AEC contract and dependency triage are **decisions/evidence only**, not implemented fixes. See [STATE](STATE.md) for exact behavior.
 
-## Immediate / foundation
+## Dependency-aware workstreams
 
-| Work and product reason | Implemented → remaining; prerequisite | Risk, validation and Codex size |
+### Conversation and voice foundation
+
+**Current:** separate bounded capture, STT, synthesis and playback lifetimes; health, cancellation and turn-local route identity; conservative candidate screening and typed recovery after supersession. **Unmet requirement:** Sam cannot acoustically prove human origin during speaker output or reliably stop delivery after roughly one second of genuine overlapping speech. This blocks prompt barge-in and contaminates interpretation of STT errors. The [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) prefers a bounded reverse-render/near-end interface and a WebRTC Audio Processing feasibility prototype. Native binding, format conversion, timing/drift and double-talk are high uncertainty. Split prototype, runtime integration and short physical validation. Synthetic echo/double-talk and lifecycle tests precede real hardware; human beta waits for a larger integrated state.
+
+After acoustic separation, diagnose observed Spanish/Portuguese/Greek language drift and endpoint errors on attributed clips, then define a stable multilingual Sam voice identity. System Speech selected David for English and Helena for Spanish in the beta. STT clips and short real audio establish recognition; physical listening establishes persona. Neither a Whisper model replacement nor a new TTS engine is presumed. Deterministic tests reproduced and fixed stall paths, but the exact five-minute no-response incident remains unproven. Correlated real runs must validate terminality and typed recovery rather than claim retroactive attribution.
+
+### Security and authority
+
+**Current:** loopback WebSocket, Origin filtering, typed commands, bounded protocol, approval-gated tools, epoch revocation, cloud route restrictions and inert rendering of model/transcript text. **Unmet:** a same-user process can forge Origin; the UI command channel lacks owner authentication. That accepted local limit becomes a prerequisite before untrusted browser pages, console content or stronger voice controls. Design capability creation, trusted browser/native bootstrap, handshake, reconnect and revocation first; implement separately. A page must never receive the owner WebSocket capability. Validate with hostile-origin and protocol tests, then bounded runtime checks. See [trust review](TRUST_BOUNDARIES.md).
+
+The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate GitHub records. Vite 7.1.5 has high-severity dev-server file-read findings; Vitest 3.2.4 has a critical finding conditioned on a listening Vitest UI server. These are **development-toolchain exposures**, not demonstrated public Windows runtime vulnerabilities. Resolve them in a bounded lockfile maintenance task before widening dev-server/browser use. Pytest 8.4.2, setuptools 82.0.1 and Rust GLib 0.18.5 belong to test/build/Linux-native follow-up. Future API credentials need trusted storage and redaction, never route identity, transcripts or diagnostics.
+
+### Provider and local-control architecture
+
+**Current:** correlated discovery/Rescan and transport epochs; immutable turn-local provider/model; exact typed switch and Stop speaking; no silent provider fallback; typed post-final-STT control seam. **Unmet:** named server/API profiles, atomic profile + provider + model switching, credential-safe configuration, spoken intent recognition/acknowledgement and real multi-provider recovery. Control-channel ownership and profile semantics precede more privileged spoken controls. Separate profile schema/route work from recognizer and UI. Fake stale-discovery tests precede real provider checks. Do not mutate an active generation's route.
+
+### Memory and intelligence
+
+**Current:** SQLite stores committed conversation text and bounded context; Sam does not claim persistent semantic memory. **Unmet:** owner-defined retention, provenance, review/correction/delete, per-person attribution and cloud-export policy before retrieval/context injection. False or unattributed memories would reduce trust and privacy. A policy/schema task precedes bounded persistence/retrieval slices. Validate provenance, contradictory records, deletion and cloud-off behavior deterministically, then obtain owner acceptance later. Multi-user memory depends on reliable acoustic/turn ownership. NVIDIA Nemotron 3 Diarization (about 100M parameters, 16 kHz mono, up to eight speakers, streaming speaker cache) remains a research option for multi-person attribution, **not AEC**; evaluate runtime/GPU/dependency/license suitability before adoption.
+
+### Console, browser and tools
+
+**Current:** policy-mediated approval-gated process/files/MCP stdio and diagnostics. **Unmet:** a useful console and browser capability with isolation, scoped grants, bounded output and auditability. They matter to Sam as a computer interface but can expose host authority to prompt injection. Owner-authenticated control and a narrow capability contract come first; then add one contained ability at a time through the trusted registry/policy/approval/epoch path. A page, model response, retrieved file or tool output remains data, never a control command. Threat-model and contained browser/runtime tests are mandatory. Streamable HTTP MCP, delegation, Linux desktop control and self-maintenance remain conditional later directions.
+
+### Embodiment and interface
+
+**Current:** autonomous Living Surface, related membrane/lighting/particles, source-specific measured audio response, tiered quality, Canvas/reduced-motion fallback and usable Controls/history/diagnostics. **Unmet:** the *revised* voice response and visual composition have no human perceptual acceptance. The earlier beta found static-feeling pigment, polygonal membrane/form and no useful audio response before the revisions. The isolated desktop high-tier GPU draw was near 1.8 ms; sustained full-app model contention, low-power hardware, native composition and audio latency are unmeasured. A bounded integrated performance/accessibility pass precedes scarce human viewing. Turn specific later observations into art tasks; do not tune blindly. Tests protect bounded motion/fallback/cost, while human acceptance decides whether it feels alive. Themes, wider palette and richer status UI are later.
+
+### Distribution and productization
+
+**Current:** prepared-checkout Windows launch is one action; v0.2.3 wheel/sdist are public; unsigned Windows development installer is withheld. Supervisor/update authority remains distinct from conversation with staged activation/rollback contracts. **Unmet:** signed, reputation-tested, clean-host public Windows installation and owner-controlled update/release. Signing identity and security-software response need owner/security decisions; do not invent a workaround. This blocks a non-developer distribution claim, not the AEC prototype. Split signing prerequisites, clean-host package test and publication. Linux/mobile distribution remain later tracks.
+
+## Ordered Codex task cards
+
+These are separate slices, ordered by dependency and risk. Skip a card only when its prerequisite or required environment is unavailable, and record why. The first eight pursue a meaningful integrated voice/visual checkpoint; later cards prepare safe capability expansion. **No card requests human testing now.**
+
+### 1. Development-toolchain advisory maintenance
+
+- **Objective / why now:** Resolve Vite/Vitest dev-server advisories before more browser/control work.
+- **Prerequisites:** [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md); clean locked toolchain.
+- **Scope:** Compatible fixed dev-package versions, transitive mocker resolution and lockfile/notice review. **Non-scope:** Sam features, arbitrary upgrades, deployed-binary vulnerability claims.
+- **Deliverable / validation:** One coherent dependency commit; locked install, TypeScript, focused frontend/browser tests, Biome and lock diff. No provider/audio runtime.
+- **Model / quota:** Sol Medium; **small**. **Stop/escalate:** if the mocker fix requires disruptive Vitest major migration, separate it and retain a documented test-UI restriction. **Human checkpoint:** no. This prevents toolchain repair from consuming task 2's feasibility budget.
+
+### 2. Falsifying AEC processor prototype
+
+- **Objective / why now:** Prove or reject the [preferred processing boundary](AEC_DOUBLE_TALK_CONTRACT.md) before changing live conversation.
+- **Prerequisites:** AEC contract; native binding/license/build provenance; task 1 if tooling overlaps.
+- **Scope:** Isolated adapter and short synthetic PCM/delay/resampling fixtures; measure false triggers, near-end onset and package/CPU cost. **Non-scope:** live Sam, production barge-in, UI or STT tuning.
+- **Deliverable / validation:** Explicit pass/fail for echo-only, noise, double-talk, playback-end, changing delay and reset, plus 22.05-to-16 kHz conversion and license/build-size record.
+- **Model / quota:** Sol High; **medium**. **Stop/escalate:** no trustworthy Windows binding or excessive native cost; compare SpeexDSP/Windows DSP instead of inventing a subsystem. **Human checkpoint:** no. A falsifiable processor result is necessary before task 3.
+
+### 3. Bounded acoustic ownership and early delivery interruption
+
+- **Objective / why now:** Stop TTS for validated sustained human-origin speech before STT finalizes, while keeping echo provisional and assistant text complete.
+- **Prerequisites:** Task 2 passes, or a documented substitute passes the same fixtures.
+- **Scope:** Bounded post-gain reference, capture alignment/delay, processed VAD/STT, pre-roll, pinned candidate identity and conservative fallback. **Non-scope:** Whisper replacement, voice persona, visual tuning, VAD-only timer or route redesign.
+- **Deliverable / validation:** Generation-scoped audio path; deterministic echo/double-talk, late STT, playback-end, device-reset and typed-recovery regressions; no stale ownership or unbounded buffer.
+- **Model / quota:** Sol High; **large**, with mandatory processor, candidate-handoff and integration checkpoint commits. **Stop/escalate:** false echo-only interruption or unstable delay means keep conservative fallback. **Human checkpoint:** no. This creates task 4's physical testable path.
+
+### 4. Bounded physical acoustic/device validation
+
+- **Objective / why now:** Check whether synthetic ownership holds on actual Windows speakers and microphone before diagnosing recognition.
+- **Prerequisites:** Green task 3 and a separately authorized short real-device window.
+- **Scope:** Purpose-specific playback-only and overlapping-human-speech run; measure onset-to-delivery-stop, STT continuation, reset and typed recovery. **Non-scope:** human beta, tuning marathon, provider feature work.
+- **Deliverable / validation:** Correlated turn/generation/device evidence; minimal regression only for a reproduced defect.
+- **Model / quota:** Sol Medium; High only for a demonstrated race; **medium**. **Stop/escalate:** unavailable hardware or repeated unsafe false interruptions; record inconclusive status. **Human checkpoint:** no. Acoustic attribution must precede task 5.
+
+### 5. STT language and endpoint diagnosis
+
+- **Objective / why now:** Separate real Spanish/Portuguese/Greek classification and endpoint errors from echo/candidate errors.
+- **Prerequisites:** Tasks 3–4, or clean attributed clips with the limitation stated.
+- **Scope:** Multilingual clip matrix, correlated language/endpoint inspection and minimal justified policy fix. **Non-scope:** unproven Whisper upgrade, diarization, audio rewrite.
+- **Deliverable / validation:** Source-backed diagnosis, focused clips/state tests, brief real-language check only if authorized.
+- **Model / quota:** Sol Medium; **medium**. **Stop/escalate:** model capability rather than Sam policy; do not fabricate confidence. **Human checkpoint:** no. Stable language evidence informs task 6.
+
+### 6. Multilingual Sam voice-identity policy
+
+- **Objective / why now:** Avoid surprising male/female persona change when Sam changes language.
+- **Prerequisites:** Task 5 language evidence and installed/licensed voice inventory.
+- **Scope:** Define per-language identity/fallback and make only a supported small selection correction. **Non-scope:** cloud TTS, cloning, new engine, voice marketplace.
+- **Deliverable / validation:** Durable policy and adapter tests; physical listening remains later.
+- **Model / quota:** Sol Medium; **medium**. **Stop/escalate:** no suitable licensed local voices; document the backend decision separately. **Human checkpoint:** later integrated voice acceptance, not this task. This defines the expected speech behavior for task 7.
+
+### 7. Real provider/audio/typed-recovery integration
+
+- **Objective / why now:** Check post-release terminality, exact route and audio-health guarantees against real timing without claiming the old beta incident was fully diagnosed.
+- **Prerequisites:** Tasks 3–6 green or explicitly limited; available pre-existing provider/model and authorized devices.
+- **Scope:** Controlled Rescan/selection, short text/voice turns, interruption, failure recovery, reconnect and ownership-aware cleanup with correlated IDs. **Non-scope:** benchmarking, new provider download/setup, exploratory runtime, human beta.
+- **Deliverable / validation:** Observed provider/device results and limitations; regressions only for reproduced defects.
+- **Model / quota:** Sol Medium; High for a reproduced concurrency defect; **medium**. **Stop/escalate:** no provider/device or committed-text loss/stuck typed turn. **Human checkpoint:** no. This supplies runtime evidence before task 8.
+
+### 8. Integrated visual/performance/accessibility gate
+
+- **Objective / why now:** Establish that the revised speech-responsive body remains bounded and usable with real conversation active.
+- **Prerequisites:** Task 7 stable path; [isolated timing baseline](VISUAL_PERFORMANCE_0.2.3_DEV.md).
+- **Scope:** One bounded full-app Windows cost/latency sample, lower tier if available, reduced motion/Canvas and diagnostics/history coexistence. **Non-scope:** new art direction, brittle FPS threshold, immediate human acceptance.
+- **Deliverable / validation:** GPU/CPU/frame/audio-latency evidence with limitations and fixes only for measured defects; existing interaction/render tests.
+- **Model / quota:** Sol Medium; **medium**. **Stop/escalate:** severe contention or missing timers; report what is actually measurable. **Human checkpoint:** prepares a later scarce integrated session, does not request it. This closes the automated/runtime evidence for a v0.2.4 candidate.
+
+### 9. Owner-authenticated local control-channel contract
+
+- **Objective / why now:** Define command ownership before more computer agency.
+- **Prerequisites:** [trust model](TRUST_BOUNDARIES.md); task 7 reconnect evidence is useful but not required.
+- **Scope:** Threat model and protocol contract for owner capability, native/browser bootstrap, handshake, reconnect, rotation and revocation. **Non-scope:** browser/console implementation, OS-user isolation claims, credentials in logs/pages.
+- **Deliverable / validation:** Reviewed design and fake hostile-origin/process cases, with compatibility plan.
+- **Model / quota:** Sol High; **medium**. **Stop/escalate:** no secret-safe browser bootstrap; split native and browser policies. **Human checkpoint:** no. This makes task 10 implementable.
+
+### 10. Local command-channel authentication slice
+
+- **Objective / why now:** Enforce task 9 without breaking text/voice recovery or startup.
+- **Prerequisites:** Approved task 9 contract.
+- **Scope:** Connection-scoped handshake, bounded failure/revocation and trusted UI bootstrap while retaining Origin/protocol/policy checks. **Non-scope:** user accounts, remote service, OAuth, new tools or page access.
+- **Deliverable / validation:** Protocol, reconnect, stale-capability and startup tests; one bounded browser/native seam check if required.
+- **Model / quota:** Sol High; **large** with mandatory handshake/reconnect checkpoints. **Stop/escalate:** legitimate UI lockout or leak into page context. **Human checkpoint:** no. This precedes tasks 11–12.
+
+### 11. Named inference-profile and atomic route slice
+
+- **Objective / why now:** Enable exact profile + provider + model selection without redirecting active turns or leaking credentials.
+- **Prerequisites:** Task 10 trusted channel and current route-pinning/discovery contract.
+- **Scope:** Typed profile identity/storage boundary, atomic future-turn switch, unavailable/ambiguous outcomes and stale-discovery tests; minimal UI if necessary. **Non-scope:** natural-language recognizer, arbitrary API-key UI, silent fallback, mid-generation migration.
+- **Deliverable / validation:** Typed route slice with fake provider and frontend/core correlation tests, later real switch check.
+- **Model / quota:** Sol Medium, High if credential ownership changes; **medium**. **Stop/escalate:** unresolved secret-store policy. **Human checkpoint:** no. This gives later spoken control a safe target.
+
+### 12. Console/browser capability boundary design
+
+- **Objective / why now:** Choose the first useful computer-facing ability without giving untrusted content owner command authority.
+- **Prerequisites:** Tasks 9–10 and existing trusted tool registry/approval/epoch.
+- **Scope:** One bounded console or browser use case, isolation, grants, output limits, audit and cancellation; specify an implementable first slice. **Non-scope:** full terminal, unrestricted automation, memory retrieval, self-update or natural-language controls.
+- **Deliverable / validation:** Threat-modelled design and deterministic policy/injection tests; broad implementation is a separate task.
+- **Model / quota:** Sol High for cross-origin authority, otherwise Medium; **medium**. **Stop/escalate:** proposed UI must expose owner capability or bypass approval. **Human checkpoint:** no. This starts a later expansion horizon.
+
+## Meaningful v0.2.4 integrated checkpoint
+
+**Candidate scope:** acoustic ownership with safe fallback and prompt genuine-speech delivery interruption; no self-echo user commitment; complete assistant text and typed recovery; evidence-based STT language behavior and deliberate multilingual voice policy; real provider/audio/reconnect smoke; revised voice-reactive visual system with representative full-app cost and accessible fallbacks. Current trust boundaries remain intact; any new command surface first needs tasks 9–10. Compatible dependency maintenance may enter if it preserves the build.
+
+**Explicitly later:** named profiles and natural-language switching, console/browser agency, persistent semantic memory, diarization, broad visual redesign, public signed installer, self-update and Linux/mobile expansion. Foundation work may progress independently without turning these into v0.2.4 release gates.
+
+**Evidence:** deterministic signal/candidate/lifecycle and provider-command tests; Python/TypeScript/lint and relevant browser/visual regressions; a short real Windows speaker/mic double-talk check and provider/text/voice/reconnect check; bounded full-app performance/accessibility evidence; honest device limits. An unsafe processor retains the conservative path instead of being labeled successful.
+
+**Next scarce human beta:** only after that integrated candidate is coherent and the owner has capacity. The session should judge whether Sam hears the human rather than itself, stops delivery promptly while keeping the full answer, permits typed recovery, maintains a coherent multilingual persona, and perceptually reads as a living body. Do not request a narrow session now.
+
+## HQ quota and execution practice
+
+| Task class | Reasoning and runtime default | Quota/checkpoint rule |
 | --- | --- | --- |
-| **Acoustic ownership and prompt barge-in.** Sam must hear a real person over its own speech and stop delivery after roughly one second without committing speaker echo or deleting generated text. | Playback candidate identities and conservative transcript screening are repaired. First select a bounded render-reference/near-end processor using actual PCM formats and latency evidence; then implement double-talk/AEC with fallback. No VAD-only timer. | High native DSP, device alignment and licensing risk. Synthetic echo/double-talk fixtures **and** later real hardware timing are required. Split design/feasibility and implementation into separate High-reasoning tasks. |
-| **STT/language reliability.** Human speech should produce stable, correctly attributed transcripts. | Capture/STT lifetimes, health and bounded buffers exist. Spanish/Portuguese/Greek drift and transcript errors remain observed. Diagnose after acoustic contamination is controlled; tune endpointing/language policy only from correlated evidence. | Model and room variance; deterministic clips then real device/language checks. Good bounded Medium task after the acoustic boundary, perhaps split measurement from tuning. |
-| **Coherent multilingual Sam voice.** Language changes should not unexpectedly change persona. | Response-language selection and system-voice fallback exist; beta selected David for English and Helena for Spanish. Define a deliberate per-language identity/voice policy, then evaluate available local engines without losing fallback. | Voice availability, licensing, latency and subjective identity. Adapter tests plus physical listening. Split policy/inventory from any new TTS adapter; Medium, High only if backend architecture changes. |
-| **Integrated recovery evidence.** Text must remain usable through real provider and audio failures. | Route pinning, Rescan races, audio health, terminality and typed recovery have fake/integration regressions. Real provider switching, disconnect timing, device loss, LM Studio cleanup and the exact five-minute stall remain incompletely attributed. | External software/device state can interfere with the host. Later short, authorized real-provider/device tests with correlated IDs; no repeated exploratory Sam runs or human beta now. Bounded test tasks per boundary. |
-| **Local control-channel security before new agency.** Future browser/console content must not inherit UI authority. | Loopback binding, Origin check, typed commands, tool policy and revocation exist; [trust review](TRUST_BOUNDARIES.md) fixed credential errors. A same-user process can forge Origin; owner authentication is absent. Design an application-lifetime, connection-scoped owner capability before exposing untrusted pages or another user session. | Authentication/lifecycle design can disrupt reconnect and native shell. Threat-model fixtures and protocol tests; High design task, then bounded implementation. Current single-user loopback design is an accepted limit, not a claimed remote service. |
-| **Public Windows distribution.** Users eventually need an accepted installer rather than a checkout. | v0.2.3 wheel/source archive are public; native source/build and an unsigned development installer exist. Authenticode signing, AV/reputation review, clean-host artifact smoke and owner-controlled publication remain. The source launcher is a beta convenience, not an installer. | Signing identity and reputation are owner/security decisions; package/artifact checks on a clean Windows host. Split prerequisite/signing decision from packaging execution. Do not publish unsigned development material. |
+| Tiny/small inventory, docs, compatible lockfile or focused UI | Sol Medium; static/focused tests, browser only for presentation | One coherent commit, no broad suite. Escalate on concrete cross-boundary findings. |
+| Medium bounded adapter, protocol or integration | Sol Medium; fake tests first, purpose-specific browser/real runtime only if scoped | Commit at independently green boundaries; stop before unrelated work. |
+| Large/high-risk DSP timing, turn concurrency or owner authentication | Sol High for demonstrated architecture/race risk; synthetic fixtures before physical runs | Mandatory checkpoint commits and failure/fallback criteria. Do not start near quota exhaustion. |
 
-## Core capability expansion
-
-| Work and product reason | Implemented → remaining; prerequisite | Risk, validation and Codex size |
-| --- | --- | --- |
-| **Named inference connection profiles and trusted voice control.** A user should eventually say “use model X on server Y” without exposing credentials. | Exact typed provider/model switching, route snapshots, no silent fallback and a post-final-STT typed-control seam exist. Add profile + provider + model identity and trusted profile configuration; then bounded natural-language recognition and spoken acknowledgement. Needs acoustic ownership and control-channel policy first. | Ambiguity, stale catalogs, credential privacy, real provider timing. Deterministic route/intent tests then real switch checks. Split profiles, recognizer and spoken UX; Medium for each scoped slice, High for cross-boundary policy. |
-| **Sam console and browser capability.** Conversation should grow into a controlled interface to the computer, not a second unmediated shell. | Approval-gated process/files/MCP stdio and bounded diagnostics exist. A managed console and browser action surface remain future. Start with capability contracts, isolation and owner approval, after local control-channel security. | Prompt injection, host authority, page-origin mixing and output exfiltration. Threat-model tests, contained browser/runtime checks and owner approval. Split into design and narrow capabilities before UI. |
-| **Persistent context and memory.** Useful continuity should be structured and owner-controlled. | SQLite stores committed text; no long-term semantic memory is claimed. Define retention, provenance, review/delete and cloud-export boundaries before retrieval or context injection. | Privacy, stale/false memory and token cost. Deterministic persistence/provenance tests; later owner acceptance. High design first, bounded Medium slices thereafter. |
-| **External capability and model evolution.** Keep Sam provider-neutral and policy-mediated. | Local LM Studio/Ollama/compatible adapters and approval-gated MCP stdio exist. Deskwright Linux, browser backend, PAIR-compatible routing, Streamable HTTP MCP, delegated workers and self-update bootstrap remain conditional directions, not current functionality. | Platform/security/latency variance. Add one backend only after a concrete use case and boundary review; isolate each as its own task. |
-
-## Embodiment and interface evolution
-
-| Work and product reason | Implemented → remaining; prerequisite | Risk, validation and Codex size |
-| --- | --- | --- |
-| **Human-accepted living body.** Sam's surface, membrane and speech response must read as one organism. | Measured voice pulses, form/membrane softening and broader pigment folds are implemented with deterministic tests. The older physical beta did not accept the appearance; no newer human viewing exists. Preserve warm field, pointer ownership, shared membrane tint, tier budgets and autonomous motion. | Numerical pixel or geometry change is not perceptual acceptance. Use fixed fixtures/Orb Lab, WebGL/Canvas/mobile and measured cost before one later integrated human session. Split any observed art defect into bounded tasks; do not tune blindly now. |
-| **Representative performance and accessibility.** Visual richness must yield to model, speech and low-power devices. | Four-draw tiers, governor, Canvas fallback, reduced motion and isolated desktop cost sample exist. Full-app GPU/model contention, low-power hardware, audio latency and mobile layout remain unmeasured. | Driver/device variance; relative cost invariants and later representative runtime measurements, not a brittle fixed FPS CI threshold. Medium measurement task after a meaningful integrated candidate. |
-| **Options and diagnostic product surface.** Status should remain legible as capabilities grow. | Controls tabs/inventory and wide-versus-narrow diagnostics layout are repaired; history and diagnostics scroll separately. Deeper server/model telemetry, physical device detail, mobile access, theme/replaceable visual architecture and a richer Sam status/console surface remain. | UI crowding and fabricated telemetry. Browser/responsive tests plus later human usability review. Split information design from new data transport; Medium bounded tasks. |
-
-## Longer-horizon intelligence and research
-
-Generative UI, agent delegation, Linux desktop control, trusted self-maintenance,
-multi-machine local routing and deeper theme architecture stay behind concrete
-capability policy and product evidence. NVIDIA Nemotron 3 Diarization is a future
-multi-speaker research option (open-weight, about 100M parameters, 16 kHz mono,
-up to eight speakers, streaming speaker cache/FIFO). It is **not** playback AEC.
-Do not integrate it before runtime, GPU, dependency and licensing suitability are
-evaluated. No research note is a committed near-term feature.
-
-## Human acceptance and execution discipline
-
-Human testing is scarce and unavailable now. The next requested session should
-follow a substantial integrated state: acoustic barge-in and text recovery under
-real devices, more stable multilingual input/output, the revised speech-reactive
-Orb and membrane/surface together, and representative performance. The session
-should ask whether Sam hears the human rather than its own speaker, stops speech
-promptly without losing text, recovers typed input, and *perceptually* feels
-alive. Automated lifecycle and renderer checks remain necessary but separate.
-
-Use bounded checkpoint commits and focused validation. Medium reasoning fits a
-well-scoped implementation or audit; use High when concurrency, acoustic source
-ownership or architecture has demonstrated difficulty. Do not begin a large
-slice near quota exhaustion. Separate tool/environment repair time from useful
-reasoning, and never call numerical renderer change human visual acceptance.
-If GPT-6.1 Sol becomes available, compare it empirically with the established
-Sol workflow before changing default task allocation. These are working
-practices, not permanent product architecture.
-
-## Next seven Codex-sized tasks, in dependency order
-
-1. **AEC/double-talk feasibility contract — High.** Choose a replaceable PCM
-   boundary, signal fixtures and licensing/build option. This precedes early
-   interruption because VAD and text matching cannot prove human origin.
-2. **Bounded acoustic ownership implementation — High, conditional on task 1.**
-   Add the chosen processor and fail-safe fallback with deterministic double-talk
-   and candidate-lifecycle tests; split further if native integration is large.
-   This separates speaker bleed before diagnosing STT language errors.
-3. **STT language/endpoint diagnosis — Medium.** Use isolated clips and correlated
-   candidate evidence after echo is separated, so speaker bleed is not mistaken
-   for a Whisper language defect. Stable language evidence precedes a voice
-   persona choice across languages.
-4. **Multilingual voice-identity policy and adapter inventory — Medium.** Follow
-   stable language evidence with a consistent persona target before introducing
-   another speech backend or per-language setting. Define that expected behavior
-   before the real multi-language integration check.
-5. **Focused real provider/audio recovery smoke — Medium.** Exercise exact route,
-   interruption, typed recovery, device/service failure and ownership-aware exit
-   only with a separately authorized, bounded environment; deterministic work
-   from tasks 1–4 identifies what to measure. Close the present interaction
-   reliability question before expanding Sam's computer agency. This is not a
-   human beta request.
-6. **Owner-authenticated local control design — High.** Establish the connection
-   and native/browser lifecycle contract before giving future console or browser
-   content additional authority. It also precedes trusted profile/control growth.
-7. **Named connection-profile contract and first typed slice — Medium.** Extend
-   atomic route identity after task 6's trust boundary, keeping secrets outside
-   protocol and diagnostics; natural-language recognition remains a later slice.
-
-Windows signing/package acceptance and the integrated visual human checkpoint
-remain explicit foundation gates above. They require owner decisions or scarce
-real-world observation, so neither is an unprompted next coding task.
+Separate environment/tooling burn from productive engineering. Record first-pass yield and the cost of corrective follow-up for each checkpoint; use those observations to size later tasks. Do not run Sam, models or browser repeatedly as an exploratory loop. Record automated correctness, representative runtime behavior and scarce human perceptual acceptance as different evidence. When GPT-6.1 Sol appears, calibrate Medium and High empirically against the established Sol workflow rather than assuming benchmark scores predict this account's quota cost. No calendar or numeric future quota promise is inferred here.
