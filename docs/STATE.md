@@ -441,6 +441,12 @@ metadata now reports 0.2.3 for release preparation.
 
 ## Tools and security
 
+- The post-v0.2.3 [trust-boundary review](TRUST_BOUNDARIES.md) found no critical
+  issue in the bounded source audit. Authenticated provider HTTP errors now omit
+  remote body text, and cloud-compatible routes require HTTPS without embedded
+  URL credentials/query data. Loopback WebSocket Origin checks are a browser
+  boundary, not authentication against a hostile same-user process; future
+  browser/console work must address that before sharing core authority.
 - Immutable registry descriptors and trusted policy expose bounded
   `files.list/read/search/write`, `system.info`, clipboard read/write,
   constrained `app.open`, and structured `process.run` with `shell=False`.

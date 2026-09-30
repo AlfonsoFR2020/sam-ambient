@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 import httpx
 import pytest
 
-from sam_ambient.adapters.http import HttpxJsonTransport
+from sam_ambient.adapters.http import HttpStatusError, HttpxJsonTransport
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
 
 
@@ -76,5 +76,50 @@ def test_json_requests_use_bounded_httpx_streaming_reader() -> None:
 
         assert result == {"ok": True}
         await client.aclose()
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_authenticated_provider_error_cannot_reflect_secret_into_exception(
+    streaming: bool,
+) -> None:
+    async def scenario() -> None:
+        secret = "secret-value-never-log"
+
+        async def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                401,
+                json={"error": f"rejected Bearer {secret}"},
+                request=request,
+            )
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        transport = HttpxJsonTransport(client=client)
+        headers = {"Authorization": f"Bearer {secret}"}
+        try:
+            with pytest.raises(HttpStatusError) as raised:
+                if streaming:
+                    async for _line in transport.stream_lines(
+                        "POST",
+                        "https://example.invalid/chat",
+                        body={"stream": True},
+                        headers=headers,
+                        cancellation=CancellationToken("secret-stream"),
+                    ):
+                        pass
+                else:
+                    await transport.request_json(
+                        "GET",
+                        "https://example.invalid/models",
+                        body=None,
+                        headers=headers,
+                        cancellation=CancellationToken("secret-json"),
+                    )
+            assert raised.value.status == 401
+            assert secret not in str(raised.value)
+            assert raised.value.detail == "authenticated provider request failed"
+        finally:
+            await client.aclose()
 
     asyncio.run(scenario())

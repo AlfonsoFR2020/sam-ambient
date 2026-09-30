@@ -7,6 +7,7 @@ import pytest
 
 from sam_ambient.adapters.openai_compatible import OpenAICompatibleProvider
 from sam_ambient.core.providers import (
+    DataBoundary,
     Message,
     MessageRole,
     ModelEventKind,
@@ -52,6 +53,37 @@ class FakeTransport:
         yield f"data: {json.dumps({'choices': [{'delta': {}, 'finish_reason': 'stop'}]})}"
         yield f"data: {json.dumps({'choices': [], 'usage': {'total_tokens': 3}})}"
         yield "data: [DONE]"
+
+
+@pytest.mark.parametrize(
+    "base_url,boundary",
+    [
+        ("http://api.example.invalid/v1", DataBoundary.CLOUD),
+        ("https://user:secret@api.example.invalid/v1", DataBoundary.CLOUD),
+        ("https://api.example.invalid/v1?key=secret", DataBoundary.CLOUD),
+    ],
+)
+def test_compatible_provider_rejects_insecure_credential_routes(
+    base_url: str, boundary: DataBoundary
+) -> None:
+    with pytest.raises(ValueError):
+        OpenAICompatibleProvider(
+            provider_id="compatible",
+            base_url=base_url,
+            api_key="secret-value",
+            data_boundary=boundary,
+            transport=FakeTransport(),
+        )
+
+
+def test_explicit_local_compatible_route_can_use_loopback_http() -> None:
+    provider = OpenAICompatibleProvider(
+        provider_id="compatible",
+        base_url="http://127.0.0.1:1234/v1",
+        data_boundary=DataBoundary.LOCAL,
+        transport=FakeTransport(),
+    )
+    assert provider.base_url == "http://127.0.0.1:1234/v1"
 
 
 def test_compatible_discovery_streaming_and_auth_header() -> None:

@@ -11,6 +11,9 @@ not assume it will remain private forever.
 
 ## Trust boundaries
 
+The current boundary map, findings and requirements for future browser/console
+capabilities are in [Trust boundaries](docs/TRUST_BOUNDARIES.md).
+
 The model proposes tool invocations. Immutable descriptors, filesystem roots,
 approval checks, revocation epochs, and the executor determine whether they run.
 File and clipboard contents are untrusted data, never authority. Approval grants

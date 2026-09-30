@@ -6,6 +6,7 @@ import asyncio
 import json
 from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import Any
+from urllib.parse import urlsplit
 
 from sam_ambient.adapters.http import (
     HttpStatusError,
@@ -45,6 +46,19 @@ class OpenAICompatibleProvider(LLMProvider):
     ) -> None:
         if not provider_id.strip():
             raise ValueError("provider_id must be non-blank")
+        parsed_url = urlsplit(base_url)
+        if (
+            parsed_url.scheme not in {"http", "https"}
+            or not parsed_url.netloc
+            or parsed_url.username
+            or parsed_url.password
+            or parsed_url.query
+            or parsed_url.fragment
+        ):
+            raise ValueError("provider URL must be http(s) without credentials, query or fragment")
+        _ = parsed_url.port  # Reject malformed or out-of-range ports before making requests.
+        if data_boundary is DataBoundary.CLOUD and parsed_url.scheme != "https":
+            raise ValueError("cloud provider URLs must use HTTPS")
         if (
             timeout_s <= 0
             or discovery_timeout_s <= 0

@@ -93,7 +93,7 @@ class HttpxJsonTransport:
         try:
             async with self._client.stream(method, url, **request_options) as response:
                 raw = await self._read_limited(response)
-                self._raise_for_status(response, raw)
+                self._raise_for_status(response, raw, headers)
         except asyncio.CancelledError as error:
             self._raise_if_token_cancelled(cancellation, error)
             raise
@@ -121,7 +121,7 @@ class HttpxJsonTransport:
             async with self._client.stream(method, url, **request_options) as response:
                 if response.status_code >= 400:
                     raw = await self._read_limited(response)
-                    self._raise_for_status(response, raw)
+                    self._raise_for_status(response, raw, headers)
                 async for line in response.aiter_lines():
                     cancellation.raise_if_cancelled()
                     if len(line.encode("utf-8")) > self._max_response_bytes:
@@ -186,9 +186,20 @@ class HttpxJsonTransport:
             ) from error
 
     @classmethod
-    def _raise_for_status(cls, response: httpx.Response, raw: bytes) -> None:
+    def _raise_for_status(
+        cls, response: httpx.Response, raw: bytes, headers: Mapping[str, str] | None
+    ) -> None:
         if response.status_code >= 400:
-            raise HttpStatusError(response.status_code, cls._error_detail(raw))
+            # Remote error bodies are untrusted and can reflect authentication headers.
+            # The exception may reach both diagnostics and the shell log.
+            authenticated = any(
+                name.lower() in {"authorization", "x-api-key", "api-key"}
+                for name in (headers or {})
+            )
+            detail = (
+                "authenticated provider request failed" if authenticated else cls._error_detail(raw)
+            )
+            raise HttpStatusError(response.status_code, detail)
 
     @staticmethod
     def _decode_object(raw: bytes) -> dict[str, Any]:
