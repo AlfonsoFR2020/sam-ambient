@@ -120,14 +120,18 @@ do not treat their presence as package, signing, antivirus, or release acceptanc
 
 ## First launch
 
-From the repository directory:
+On Windows, after preparing the source environment once, double-click
+[`Start Sam.cmd`](../Start%20Sam.cmd) in the checkout. It uses that checkout's
+existing `.venv`, opens the normal supervised Sam, and leaves an error visible
+if launch fails. It never installs or updates dependencies. Prepare the
+environment once from the repository directory:
 
 ```sh
 uv sync --locked
-uv run sam-ambient
 ```
 
-`uv run sam-ambient` is the normal source launch command. The supervisor starts the
+For a terminal/debug session, run `uv run --no-sync sam-ambient` from the
+checkout. The supervisor starts the
 core and static UI. Startup may take several tens of seconds while an installed
 model loads. The browser/app window opens once after UI readiness:
 [http://127.0.0.1:8766](http://127.0.0.1:8766). Closing a fallback browser tab

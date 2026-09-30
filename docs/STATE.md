@@ -380,6 +380,10 @@ metadata now reports 0.2.3 for release preparation.
 
 ## 0.1.2 first-run behavior
 
+- Windows source checkouts now have `Start Sam.cmd`: it changes to its own
+  checkout and runs the existing `.venv` `sam-ambient` entry point, with no
+  install/sync. Missing environment and failed startup remain visible; the
+  supervisor's existing per-root lock handles a second launch.
 - Browser handoff occurs once per supervisor lifetime after core and UI HTTP
   readiness. Browser errors print a manual URL; browser lifetime is independent.
 - Quit Sam / Ctrl+Q uses a focused in-app Confirm quit / Cancel dialog, then a trusted

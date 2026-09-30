@@ -1,7 +1,9 @@
 # Using Sam
 
-Start with [Getting started](GETTING_STARTED.md). Launch from your workspace using
-`uv run sam-ambient`; the browser is only a client, not the application's owner.
+Start with [Getting started](GETTING_STARTED.md). On Windows, double-click
+[`Start Sam.cmd`](../Start%20Sam.cmd) in a prepared checkout. For terminal/debug
+use, run `uv run --no-sync sam-ambient`; the browser is only a client, not the
+application's owner.
 The integrated, unreleased Tauri source provides an owned native window with the
 same React UI and protocol. Closing that window invokes the same in-app Quit
 confirmation; it does not bypass supervisor shutdown or capability revocation.
@@ -18,7 +20,8 @@ release gates; use the supported browser mode rather than bypassing a security a
    chat/instruct model that fits your machine; embedding models cannot answer. If it
    is not already ready, load it and start the localhost server from **Developer**, or
    follow the UI/CLI procedure in [Getting started](GETTING_STARTED.md).
-2. From the Sam checkout run `uv sync --locked`, then `uv run sam-ambient`.
+2. From the Sam checkout run `uv sync --locked` once, then double-click
+   `Start Sam.cmd`. The launcher does not install dependencies.
 3. Let Sam use a valid remembered model or the sole installed conversational model.
    If the startup picker appears, choose a model. Use **Rescan** after changing LM
    Studio. Sam may load an existing model but never downloads one.

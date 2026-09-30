@@ -135,14 +135,16 @@ Node/pnpm is needed only to rebuild the React UI. Rust, Cargo, Tauri, MSVC Build
 Tools, and the Windows SDK are native-shell developer prerequisites; they are not
 end-user requirements for a future packaged Sam installation.
 
-From the checkout:
+On Windows, prepare the source environment once from the checkout, then
+double-click [`Start Sam.cmd`](Start%20Sam.cmd) for ordinary beta use:
 
 ```sh
 uv sync --locked
-uv run sam-ambient
 ```
 
-This is the normal source launch command. On first launch Sam starts the supervisor,
+For terminal/debug use, run `uv run --no-sync sam-ambient` from the checkout.
+The launcher uses the existing environment and never installs dependencies.
+On first launch Sam starts the supervisor,
 core, and static UI, then opens
 **[http://127.0.0.1:8766](http://127.0.0.1:8766)** once the UI is ready. The window
 shows core/model/speech preparation rather than remaining blank. The core bridge
