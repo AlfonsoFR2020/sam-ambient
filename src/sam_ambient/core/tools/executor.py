@@ -254,6 +254,8 @@ class ToolExecutor:
             )
             self.authority.require_valid(lease, invocation)
             cancellation.raise_if_cancelled()
+            if not self._is_current(invocation):
+                return ToolExecution(invocation, ToolStatus.STALE)
             try:
                 async with asyncio.timeout(descriptor.timeout_s):
                     result = await tool.execute(invocation.arguments, cancellation)

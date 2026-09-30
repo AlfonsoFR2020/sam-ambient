@@ -2,6 +2,11 @@
 
 Updated: 2026-09-30
 
+Agency checkpoint 6 hardens retirement races at tool-start publication and command
+lock admission. Adversarial tests cover replay/forgery, policy/schema rejection,
+bounded output, cancellation, Windows junction escape and DNS-pinned proxy egress.
+Content remains inert; same-user memory/code access remains an OS trust limitation.
+
 Agency checkpoint 1: all live core commands and private events now require a
 fresh owner proof. A per-supervisor random root travels only over private pipes;
 the source owner window and native main-window RPC return connection-bound HMACs.

@@ -85,6 +85,12 @@ class ControlDispatcher:
         self, command: ControlCommand, *, owner_connection: OwnerConnection | None = None
     ) -> ProtocolEvent:
         async with self._lock:
+            if owner_connection is not None and not owner_connection.active:
+                return self._event(
+                    EventType.CONTROL_REJECTED,
+                    command,
+                    {"error": "Owner connection retired", "status": "rejected"},
+                )
             key = (
                 f"{owner_connection.connection_id}:{command.command_id}"
                 if owner_connection
@@ -99,7 +105,7 @@ class ControlDispatcher:
                 event = self._event(
                     EventType.CONTROL_REJECTED,
                     command,
-                    {"error": str(error), "status": "rejected"},
+                    {"error": str(error)[:500], "status": "rejected"},
                 )
             self._history[key] = event
             while len(self._history) > self._max_history:

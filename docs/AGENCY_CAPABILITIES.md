@@ -58,3 +58,22 @@ eight proposals per round, 512 fragments per proposal round, 64 KiB argument dat
 and 16 KiB per result. An identical capability/argument proposal within a turn is
 denied even if the provider assigns another call ID. This bounds repeated/recursive
 loops without making model output permission. There is no text-envelope parser.
+
+## Adversarial regression boundary
+
+Tests exercise absent/wrong/stale/replayed connection proofs, Origin rejection,
+revocation, action sequence replay, forged connection identity, additional argument
+fields, unknown actions, path namespaces/traversal and Windows junction escapes.
+Ordinary symlink creation requires privileges unavailable on the current Windows
+test host; that case is skipped explicitly, while the real junction case passes.
+Returned command-like text remains data. Oversized results and rejection errors
+are bounded, consumer cancellation is terminal, and four concurrent manual tasks
+exhaust admission until one retires. Ownership is rechecked after asynchronous
+started-event publication and after waiting for the command dispatcher lock.
+Unauthenticated sockets receive no shutdown broadcast or private event subscription.
+
+Browser tests reject arbitrary script actions and private DNS results. A synthetic
+CONNECT tunnel verifies one DNS lookup followed by a connection to that validated
+literal IP; it makes no external connection. These tests establish protocol and
+policy boundaries, not resistance to a same-user process reading Sam memory or
+altering trusted code, nor a general Chromium/OS sandbox guarantee.

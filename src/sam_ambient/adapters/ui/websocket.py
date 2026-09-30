@@ -59,6 +59,7 @@ class WebSocketCoreBridge:
             raise ValueError("subscription_queue must be positive")
         self.events = events
         self.controls = controls
+        self._authenticated: set[ServerConnection] = set()
         self.host = host
         self.requested_port = port
         self.subscription_queue = subscription_queue
@@ -134,6 +135,7 @@ class WebSocketCoreBridge:
             return
         authenticated_owner = self.owner
         connection = OwnerConnection(authenticated_owner, self.owner_session_id)
+        self._authenticated.add(socket)
         subscription = await self.events.subscribe(max_queue=self.subscription_queue)
         self.connected.set()
         try:
@@ -153,6 +155,7 @@ class WebSocketCoreBridge:
                 except ConnectionClosed:
                     pass
         finally:
+            self._authenticated.discard(socket)
             connection.retire()
             if self.on_owner_disconnect is not None:
                 await self.on_owner_disconnect(connection)
@@ -201,7 +204,7 @@ class WebSocketCoreBridge:
                     await notify(socket, acknowledgement)
                     if self._server is not None:
                         await asyncio.gather(
-                            *(notify(peer, stopping) for peer in self._server.connections)
+                            *(notify(peer, stopping) for peer in tuple(self._authenticated))
                         )
                 finally:
                     # An accepted Quit must survive its requesting tab closing

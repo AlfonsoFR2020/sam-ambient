@@ -277,6 +277,8 @@ class OwnedBrowser:
     async def execute(
         self, kind: str, arguments: Mapping[str, Any], token: CancellationToken
     ) -> ToolResult:
+        if kind not in {"browser.navigate", "browser.read", "browser.close"}:
+            raise ToolError("Browser capability unsupported")
         async with self._lock:
             token.raise_if_cancelled()
             if not token.cancellation_id.startswith("action-"):
