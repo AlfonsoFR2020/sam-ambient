@@ -1,3 +1,57 @@
+.agency-reveal {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 5.5rem;
+  z-index: 8;
+}
+.agency-console {
+  position: fixed;
+  inset: 12% max(1rem, calc((100vw - 680px) / 2));
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid #685954;
+  border-radius: 14px;
+  background: #151314;
+  color: #f3e9db;
+}
+.agency-console header {
+  display: flex;
+  justify-content: space-between;
+}
+.agency-console form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.7rem;
+}
+.agency-console label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.agency-console__output {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+.agency-console__output article {
+  padding: 0.7rem 0;
+  border-top: 1px solid #554844;
+}
+.agency-console__output small {
+  display: block;
+  opacity: 0.65;
+  overflow-wrap: anywhere;
+}
+.agency-console__output pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
 :root {
   color: #f3e9db;
   background: #100d0c;

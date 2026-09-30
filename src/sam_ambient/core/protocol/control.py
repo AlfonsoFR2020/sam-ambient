@@ -9,6 +9,7 @@ from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 
+from sam_ambient.core.owner import OwnerConnection
 from sam_ambient.core.protocol.local_control import (
     LocalControlIntent,
     LocalControlKind,
@@ -56,6 +57,8 @@ class CoreControlBindings:
     set_audio_settings: SetAudioSettings | None = None
     set_lifecycle_settings: SetLifecycleSettings | None = None
     execute_local_control: ExecuteLocalControl | None = None
+    execute_capability: Callable[[ControlCommand, OwnerConnection], Awaitable[None]] | None = None
+    cancel_capability: Callable[[ControlCommand, OwnerConnection], Awaitable[bool]] | None = None
 
 
 class ControlDispatcher:
@@ -78,28 +81,58 @@ class ControlDispatcher:
         self.microphone_enabled = True
         self.tts_output_enabled = True
 
-    async def dispatch(self, command: ControlCommand) -> ProtocolEvent:
+    async def dispatch(
+        self, command: ControlCommand, *, owner_connection: OwnerConnection | None = None
+    ) -> ProtocolEvent:
         async with self._lock:
-            prior = self._history.get(command.command_id)
+            key = (
+                f"{owner_connection.connection_id}:{command.command_id}"
+                if owner_connection
+                else command.command_id
+            )
+            prior = self._history.get(key)
             if prior is not None:
                 return prior
             try:
-                event = await self._apply(command)
+                event = await self._apply(command, owner_connection)
             except Exception as error:
                 event = self._event(
                     EventType.CONTROL_REJECTED,
                     command,
                     {"error": str(error), "status": "rejected"},
                 )
-            self._history[command.command_id] = event
+            self._history[key] = event
             while len(self._history) > self._max_history:
                 self._history.popitem(last=False)
             return event
 
-    async def _apply(self, command: ControlCommand) -> ProtocolEvent:
+    async def _apply(
+        self, command: ControlCommand, owner_connection: OwnerConnection | None = None
+    ) -> ProtocolEvent:
         command_type = ControlCommandType(command.type)
         payload: dict[str, object] = {"status": "applied"}
-        if command_type is ControlCommandType.MICROPHONE_SET:
+        if command_type in {
+            ControlCommandType.CAPABILITY_EXECUTE,
+            ControlCommandType.CAPABILITY_CANCEL,
+        }:
+            if owner_connection is None or not owner_connection.active:
+                raise ValueError("authenticated owner connection required")
+            if command_type is ControlCommandType.CAPABILITY_EXECUTE:
+                if set(command.payload) != {"capability", "arguments", "sequence"}:
+                    raise ValueError("capability request requires exact typed fields")
+                if self._bindings.execute_capability is None:
+                    raise ValueError("capability surface unavailable")
+                await self._bindings.execute_capability(command, owner_connection)
+                payload["request_id"] = command.command_id
+            else:
+                if set(command.payload) != {"request_id"}:
+                    raise ValueError("capability cancellation requires request_id")
+                if self._bindings.cancel_capability is None:
+                    raise ValueError("capability surface unavailable")
+                payload["cancel_requested"] = await self._bindings.cancel_capability(
+                    command, owner_connection
+                )
+        elif command_type is ControlCommandType.MICROPHONE_SET:
             enabled = self._required_bool(command, "enabled")
             await self._bindings.set_microphone_enabled(enabled)
             self.microphone_enabled = enabled

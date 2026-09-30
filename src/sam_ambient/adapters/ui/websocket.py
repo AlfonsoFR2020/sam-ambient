@@ -5,13 +5,13 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import json
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from uuid import uuid4
 
 from websockets.asyncio.server import Server, ServerConnection, serve
 from websockets.exceptions import ConnectionClosed
 
-from sam_ambient.core.owner import OWNER_ACCEPTED, OWNER_AUTHENTICATE, OwnerSession
+from sam_ambient.core.owner import OWNER_ACCEPTED, OWNER_AUTHENTICATE, OwnerConnection, OwnerSession
 from sam_ambient.core.protocol import (
     ControlCommand,
     ControlDispatcher,
@@ -50,6 +50,7 @@ class WebSocketCoreBridge:
         on_shutdown: Callable[[], None] | None = None,
         owner: OwnerSession | None = None,
         owner_session_id: str | None = None,
+        on_owner_disconnect: Callable[[OwnerConnection], Awaitable[None]] | None = None,
     ) -> None:
         self._require_loopback(host)
         if not 0 <= port <= 65_535:
@@ -66,6 +67,7 @@ class WebSocketCoreBridge:
         self.on_shutdown = on_shutdown
         self.owner = owner or OwnerSession()
         self.owner_session_id = owner_session_id or uuid4().hex
+        self.on_owner_disconnect = on_owner_disconnect
         self.connected = asyncio.Event()
         self._server: Server | None = None
 
@@ -131,13 +133,14 @@ class WebSocketCoreBridge:
             await socket.close(1008, "Owner authentication required")
             return
         authenticated_owner = self.owner
+        connection = OwnerConnection(authenticated_owner, self.owner_session_id)
         subscription = await self.events.subscribe(max_queue=self.subscription_queue)
         self.connected.set()
         try:
             if self.ready_event is not None:
                 await socket.send(self.ready_event().to_json())
             producer = asyncio.create_task(self._produce(socket, subscription, authenticated_owner))
-            consumer = asyncio.create_task(self._consume(socket, authenticated_owner))
+            consumer = asyncio.create_task(self._consume(socket, authenticated_owner, connection))
             done, pending = await asyncio.wait(
                 {producer, consumer}, return_when=asyncio.FIRST_COMPLETED
             )
@@ -150,6 +153,9 @@ class WebSocketCoreBridge:
                 except ConnectionClosed:
                     pass
         finally:
+            connection.retire()
+            if self.on_owner_disconnect is not None:
+                await self.on_owner_disconnect(connection)
             await subscription.close()
 
     async def _produce(self, socket: ServerConnection, subscription, owner: OwnerSession) -> None:
@@ -159,7 +165,9 @@ class WebSocketCoreBridge:
                 return
             await socket.send(event.to_json())
 
-    async def _consume(self, socket: ServerConnection, owner: OwnerSession) -> None:
+    async def _consume(
+        self, socket: ServerConnection, owner: OwnerSession, connection: OwnerConnection
+    ) -> None:
         async for raw in socket:
             if owner is not self.owner or not owner.active:
                 await socket.close(1008, "Owner session revoked")
@@ -172,7 +180,7 @@ class WebSocketCoreBridge:
             except ProtocolError as error:
                 await socket.close(1002, str(error)[:120])
                 return
-            acknowledgement = await self.controls.dispatch(command)
+            acknowledgement = await self.controls.dispatch(command, owner_connection=connection)
             if acknowledgement.payload.get("application_stopping") is True:
                 # Deliver the direct-user acknowledgement before shutting down the bridge.
                 stopping = ProtocolEvent(

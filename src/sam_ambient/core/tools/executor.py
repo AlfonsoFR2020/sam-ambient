@@ -198,7 +198,9 @@ class ToolExecutor:
         try:
             if not self._is_current(invocation):
                 return ToolExecution(invocation, ToolStatus.STALE)
-            await self._publish(EventType.TOOL_REQUESTED, invocation, {"tool_id": invocation.tool_id})
+            await self._publish(
+                EventType.TOOL_REQUESTED, invocation, {"tool_id": invocation.tool_id}
+            )
             try:
                 lease = self.authority.issue_lease(invocation)
             except CapabilityRevoked as error:

@@ -10,6 +10,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { AgencyConsole } from "./agency/Console";
 import { AmbientScene } from "./ambient/AmbientScene";
 import { toAmbientVisualModel } from "./ambient/model";
 import { exitCleanupSummary } from "./controls/exit";
@@ -784,6 +785,10 @@ export default function App() {
       )}
       {preferences.transcriptVisible && <Transcript state={state} />}
       <ToolActivity state={state} applyAction={applyAction} />
+      <AgencyConsole
+        client={client}
+        connected={state.connection === "connected" && state.capabilityAuthorityActive}
+      />
       <button
         className="controls-reveal"
         ref={controlsButton}

@@ -1,3 +1,5 @@
+import { type AgencyAction, projectAgencyEvent, TERMINAL_ACTION_STATES } from "../agency/state";
+import { createControlCommand } from "../protocol/commands";
 import { decodeProtocolEvent, ProtocolDecodeError } from "../protocol/decode";
 import {
   type ControlCommand,
@@ -43,6 +45,8 @@ export class ProtocolClient {
   private readonly commandTimeouts = new Map<string, () => void>();
   private running = false;
   private epoch = 0;
+  private agency: readonly AgencyAction[] = [];
+  private agencySequence = 0;
 
   constructor(
     private readonly transport: ProtocolTransport,
@@ -51,6 +55,48 @@ export class ProtocolClient {
   ) {}
 
   getSnapshot = (): UiState => this.state;
+  getAgencySnapshot = (): readonly AgencyAction[] => this.agency;
+
+  async executeCapability(capability: string, args: Record<string, unknown>): Promise<void> {
+    const command = createControlCommand(
+      "control.capability.execute",
+      { capability, arguments: args, sequence: ++this.agencySequence },
+      {},
+    );
+    this.agency = [
+      ...this.agency.slice(-63),
+      { id: command.command_id, capability, state: "queued" },
+    ];
+    for (const listener of this.listeners) listener();
+    try {
+      await this.sendControl(command);
+    } catch (error) {
+      this.agency = this.agency.map((action) =>
+        action.id === command.command_id
+          ? {
+              ...action,
+              state: "failed",
+              output: error instanceof Error ? error.message : "Action unavailable",
+            }
+          : action,
+      );
+      for (const listener of this.listeners) listener();
+    }
+  }
+
+  async cancelCapability(requestId: string): Promise<void> {
+    await this.sendControl(
+      createControlCommand("control.capability.cancel", { request_id: requestId }, {}),
+    );
+  }
+
+  private retireAgency(): void {
+    this.agency = this.agency.map((action) =>
+      TERMINAL_ACTION_STATES.has(action.state)
+        ? action
+        : { ...action, state: "cancelled", output: "Owner connection retired" },
+    );
+  }
 
   subscribe = (listener: Listener): (() => void) => {
     this.listeners.add(listener);
@@ -155,6 +201,7 @@ export class ProtocolClient {
   stop(): void {
     if (!this.running) return;
     this.running = false;
+    this.retireAgency();
     this.epoch += 1;
     this.cancelFrame?.();
     this.cancelReconnect?.();
@@ -198,6 +245,7 @@ export class ProtocolClient {
   private disconnect(epoch: number): void {
     if (epoch !== this.epoch) return;
     this.epoch += 1;
+    this.retireAgency();
     this.clearCommandTimeouts();
     void this.session?.close();
     this.session = undefined;
@@ -222,6 +270,30 @@ export class ProtocolClient {
         error instanceof ProtocolDecodeError ? error.message : "invalid protocol event";
       this.setState({ ...this.state, protocolError: message });
       return;
+    }
+    if (event.type === "capability.state") {
+      this.agency = projectAgencyEvent(this.agency, event);
+      const id = event.payload.request_id;
+      if (typeof id === "string" && TERMINAL_ACTION_STATES.has(String(event.payload.state))) {
+        this.commandTimeouts.get(id)?.();
+        this.commandTimeouts.delete(id);
+        this.setState({
+          ...this.state,
+          pendingCommandIds: this.state.pendingCommandIds.filter((pending) => pending !== id),
+        });
+      } else for (const listener of this.listeners) listener();
+      return;
+    }
+    if (event.type === "control.rejected") {
+      this.agency = this.agency.map((action) =>
+        action.id === event.payload.command_id
+          ? {
+              ...action,
+              state: "denied",
+              output: String(event.payload.error ?? "Request rejected").slice(0, 500),
+            }
+          : action,
+      );
     }
     if (!isVisualizationEvent(event.type)) {
       const terminalDiscoveryId =

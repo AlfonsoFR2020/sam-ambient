@@ -24,7 +24,7 @@ from sam_ambient.adapters.stt.whisper_cpp import (
     SpeechRecognitionUnavailable,
 )
 from sam_ambient.adapters.ui import DEFAULT_UI_BRIDGE_PORT, WebSocketCoreBridge
-from sam_ambient.core.owner import OwnerSession
+from sam_ambient.core.owner import OwnerConnection, OwnerSession
 from sam_ambient.core.protocol import (
     CancellationTarget,
     ControlCommand,
@@ -73,6 +73,7 @@ from sam_ambient.core.tools import (
     ToolRegistry,
     ToolStatus,
 )
+from sam_ambient.core.tools.agency import CapabilityKind, OwnerAction, OwnerActions
 from sam_ambient.core.turns import (
     CancellationRegistry,
     CancellationToken,
@@ -598,10 +599,19 @@ class SamRuntime:
             self.tools,
             CapabilityPolicy(allow_external_side_effects=True),
             self.approvals,
-            self.events.publish,
+            self._publish_tool_event,
             is_current=self._is_current_tool,
             clock_ms=self._next_event_ms,
             authority=self.capability_authority,
+        )
+        owner_session = owner_session or OwnerSession()
+        self.owner_actions = OwnerActions(
+            owner_session,
+            self.tool_executor,
+            self._owner_action_terminal,
+            supported=frozenset(
+                {CapabilityKind.FILES_LIST, CapabilityKind.FILES_READ, CapabilityKind.SYSTEM_INFO}
+            ),
         )
         self.controls = ControlDispatcher(
             CoreControlBindings(
@@ -618,6 +628,8 @@ class SamRuntime:
                 set_audio_settings=self._set_audio_settings,
                 set_lifecycle_settings=self._set_lifecycle_settings,
                 execute_local_control=self.execute_local_control,
+                execute_capability=self._execute_owner_action,
+                cancel_capability=self._cancel_owner_action,
             ),
             clock_ms=self._next_event_ms,
         )
@@ -631,6 +643,7 @@ class SamRuntime:
             on_shutdown=self.shutdown_requested.set,
             owner=owner_session,
             owner_session_id=config.runtime_instance_id,
+            on_owner_disconnect=self.owner_actions.detach,
         )
 
     @property
@@ -675,6 +688,7 @@ class SamRuntime:
         if self._closed:
             return
         self._closed = True
+        await self.owner_actions.close()
         if self._active_token is not None:
             self._active_token.cancel("runtime_closed")
         if self._voice_listen_token is not None:
@@ -2532,9 +2546,69 @@ class SamRuntime:
         }
 
     def _is_current_tool(self, invocation: ToolInvocation) -> bool:
+        if invocation.generation_id and invocation.generation_id.startswith("owner-"):
+            return self.owner_actions.is_current(invocation)
         return (
             invocation.generation_id is not None
             and invocation.generation_id == self._active_generation_id
+        )
+
+    async def _execute_owner_action(
+        self, command: ControlCommand, connection: OwnerConnection
+    ) -> None:
+        arguments, kind = command.payload["arguments"], command.payload["capability"]
+        if not isinstance(arguments, dict) or not isinstance(kind, str):
+            raise ValueError("capability arguments must be a typed object")
+        self.owner_actions.start(
+            connection, command.command_id, command.payload["sequence"], kind, arguments
+        )
+
+    async def _cancel_owner_action(
+        self, command: ControlCommand, connection: OwnerConnection
+    ) -> bool:
+        request_id = command.payload["request_id"]
+        if not isinstance(request_id, str) or len(request_id) > 256:
+            raise ValueError("invalid action request identity")
+        return self.owner_actions.cancel(connection, request_id)
+
+    async def _publish_tool_event(self, event: ProtocolEvent) -> None:
+        action = self.owner_actions.active.get(event.tool_call_id) if event.tool_call_id else None
+        if action is None or action.invocation.generation_id != event.generation_id:
+            await self.events.publish(event)
+            return
+        statuses = {
+            EventType.TOOL_REQUESTED: "queued",
+            EventType.TOOL_AUTHORIZING: "queued",
+            EventType.TOOL_STARTED: "running",
+        }
+        if event.type in statuses:
+            await self.events.publish(
+                ProtocolEvent(
+                    type=EventType.CAPABILITY_STATE,
+                    monotonic_ms=self._next_event_ms(),
+                    payload={
+                        "request_id": action.invocation.tool_call_id,
+                        "capability": action.invocation.tool_id,
+                        "state": statuses[event.type],
+                    },
+                )
+            )
+
+    async def _owner_action_terminal(self, action: OwnerAction, execution) -> None:
+        payload = {
+            "request_id": action.invocation.tool_call_id,
+            "capability": action.invocation.tool_id,
+            "state": execution.status,
+            "content_trust": "untrusted_data",
+        }
+        if execution.result is not None:
+            payload.update(result=dict(execution.result.data), truncated=execution.result.truncated)
+        if execution.error:
+            payload["error"] = execution.error
+        await self.events.publish(
+            ProtocolEvent(
+                type=EventType.CAPABILITY_STATE, monotonic_ms=self._next_event_ms(), payload=payload
+            )
         )
 
     def _ready_event(self) -> ProtocolEvent:

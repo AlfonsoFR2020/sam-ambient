@@ -25,3 +25,20 @@ Existing `files.*` uses canonical authorized roots. Existing process actions
 require exact owner approval and are not exposed by the manual agency surface.
 Powerful future mutations require deliberate policy/approval design. Read-only
 capabilities may auto-run only under the existing explicit runtime read policy.
+
+## Console slice
+
+The separate **Console** button offers `files.list`, `files.read` and `system.info`.
+Only the configured `workspace` root is available (canonical containment, Windows
+device/drive/ADS validation, symlink/junction escape rejection). Reads are private
+owner data and may include sensitive project contents; choose the workspace
+deliberately. The UI requests at most 8 KiB / 200 lines for text and 100 directory
+entries. The shared executor imposes its independent 16 KiB result boundary.
+There is no shell, executable selector, filesystem write or Git mutation.
+
+`control.capability.execute/cancel` receives its connection context from the
+authenticated bridge, not payload identity. Admission returns immediately;
+`capability.state` reports queued/running/terminal. Disconnect cancels only that
+connection's manual work. Console results scroll independently, render escaped
+text, remain bounded to 64 entries and never become conversation transcript or
+generation state. Opening/closing the surface does not confer or revoke authority.

@@ -17,6 +17,12 @@ shared results fit 16 KiB. Stale invocations are rejected before execution; task
 cancellation becomes terminal. Console/browser wiring follows this contract.
 See [capability contract](AGENCY_CAPABILITIES.md).
 
+Agency checkpoint 3 wires authenticated owner Console actions through that shared
+executor: workspace list/read and system info, independent bounded output and
+cancellation. No shell or filesystem write is exposed. A real isolated WebSocket
+with fake inference proves a console read, replay rejection and subsequent typed
+model completion without polluting conversation state.
+
 The optional [Windows AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md) runs but
 fails its declared echo/double-talk separation gate. Its 11 frame/reset/metric
 tests pass; that is not processor acceptance. Runtime AEC/early barge-in remain

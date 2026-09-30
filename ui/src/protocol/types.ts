@@ -40,6 +40,8 @@ export const CONTROL_COMMAND_TYPES = [
   "control.tool.approve",
   "control.tool.deny",
   "control.capabilities.revoke_all",
+  "control.capability.execute",
+  "control.capability.cancel",
   "control.providers.rescan",
   "control.model.select",
   "control.visual_settings.set",
