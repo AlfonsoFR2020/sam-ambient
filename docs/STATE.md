@@ -181,6 +181,14 @@ metadata now reports 0.2.3 for release preparation.
   timing remains separate. Extra per-fragment vector math/normalization replaces
   no samples or draws. Deterministic coarse-region tests pass; the human beta's
   static-looking pigment report remains open until later perceptual review.
+- An isolated Windows Chrome/WebGL2 cost sample after the visual checkpoints
+  measured about 0.045/0.179/1.815 ms median GPU draw time at low/medium/high,
+  with high synthetic output/input at 1.864/1.652 ms. A high body-only variant
+  measured 1.399 ms and a current-shader 24-edge membrane variant 2.039 ms.
+  CPU submission timing was quantized near 0.1 ms; the 8 ms browser callback
+  cadence is not Sam's engine FPS. See [visual performance sample](VISUAL_PERFORMANCE_0.2.3_DEV.md).
+  No visual optimization was justified by this single isolated desktop run;
+  integrated load and representative low-power GPU cost remain unverified.
 - v0.2.3 Living Surface uses one deterministic, seamless object-space
   two-shear/two-scale field for the WebGL body and irregular membrane fragments. Broad asymmetric
   shears now deform and carry pigment regions instead of relying mainly on rigid
