@@ -1,5 +1,117 @@
 import { expect, test } from "@playwright/test";
 
+test("measured output pulse expands and illuminates the fixed body", async ({ page }) => {
+  await page.goto("/?transport=demo");
+  const result = await page.evaluate(async () => {
+    const [
+      { INITIAL_UI_STATE },
+      { VisualInputAdapter },
+      { MotionEvaluator },
+      { RENDER_BUDGETS },
+      { DEFAULT_VISUAL_ENGINE_SETTINGS },
+      { WebGLBackend },
+    ] = await Promise.all([
+      import("../../src/protocol/types"),
+      import("../../src/visual-engine/input"),
+      import("../../src/visual-engine/motion"),
+      import("../../src/visual-engine/quality"),
+      import("../../src/visual-engine/types"),
+      import("../../src/visual-engine/webgl"),
+    ]);
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2", { antialias: true, preserveDrawingBuffer: true });
+    if (!gl) throw new Error("WebGL2 is required for the speaking regression");
+    const seed = 0x5a17;
+    const adapter = new VisualInputAdapter();
+    const state = {
+      ...INITIAL_UI_STATE,
+      connection: "connected" as const,
+      provider: "demo",
+      model: "demo",
+      sessionId: "session",
+      generationId: "generation",
+      conversationalState: "SPEAKING" as const,
+      ttsOutputEnabled: true,
+    };
+    const quiet = adapter.ingest(state, 0);
+    const motion = new MotionEvaluator(seed);
+    for (let time = 0; time <= 300; time += 50)
+      motion.evaluate(quiet, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.high);
+    const baseline = {
+      ...motion.currentFrame,
+      reactivity: { ...motion.currentFrame.reactivity },
+    };
+    const active = adapter.ingest(
+      {
+        ...state,
+        lastMonotonicByType: { "tts.level": 350 },
+        metrics: { ...state.metrics, playbackEnvelope: 0.7 },
+      },
+      350,
+    );
+    for (let time = 350; time <= 500; time += 50)
+      motion.evaluate(active, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.high);
+    const pulse = {
+      ...baseline,
+      radius: motion.currentFrame.radius,
+      glow: motion.currentFrame.glow,
+      highlight: motion.currentFrame.highlight,
+      reactivity: { ...motion.currentFrame.reactivity },
+    };
+    let current = baseline;
+    const fixedMotion = { evaluate: () => current } as unknown as InstanceType<
+      typeof MotionEvaluator
+    >;
+    const backend = new WebGLBackend(
+      canvas,
+      gl,
+      { ...RENDER_BUDGETS.high, peels: 0 },
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      seed,
+      fixedMotion,
+    );
+    backend.update(quiet);
+    backend.resize(480, 480, 1);
+    const read = () => {
+      backend.render(0);
+      const pixels = new Uint8Array(480 * 480 * 4);
+      gl.readPixels(0, 0, 480, 480, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      return pixels;
+    };
+    const before = read();
+    current = pulse;
+    const after = read();
+    let beforeArea = 0;
+    let afterArea = 0;
+    let centerLight = 0;
+    let centerCount = 0;
+    for (let y = 80; y < 400; y++) {
+      for (let x = 80; x < 400; x++) {
+        const at = (y * 480 + x) * 4;
+        beforeArea += Number(before[at + 3] > 250);
+        afterArea += Number(after[at + 3] > 250);
+        if (x < 190 || x > 290 || y < 190 || y > 290) continue;
+        centerLight +=
+          (after[at] -
+            before[at] +
+            after[at + 1] -
+            before[at + 1] +
+            after[at + 2] -
+            before[at + 2]) /
+          3;
+        centerCount++;
+      }
+    }
+    const error = gl.getError();
+    backend.dispose();
+    return { areaGain: afterArea - beforeArea, lightGain: centerLight / centerCount, error };
+  });
+  console.info("Fixed-body speaking response:", result);
+  expect(result.error).toBe(0);
+  expect(result.areaGain).toBeGreaterThan(500);
+  expect(result.lightGain).toBeGreaterThan(2);
+});
+
 test("high-tier fixed body and membrane retain measurable lifted coverage", async ({ page }) => {
   await page.goto("/?transport=demo");
   const result = await page.evaluate(async () => {
@@ -124,7 +236,7 @@ test("shared WebGL material visibly changes with fixed Orb orientation and light
       ...motion.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low),
     };
     const early = {
-      ...motion.evaluate(input, 50, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low),
+      ...motion.evaluate(input, 1000 / 60, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low),
     };
     for (let time = 100; time <= 6_000; time += 50)
       motion.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);

@@ -182,6 +182,10 @@ barge-in remain deferred and are unaffected by this checkpoint.
   increased high-tier membrane edge resolution/lift; the body mesh was already
   dense enough for a subpixel ideal-sphere chord at normal desktop size.
   Fixed-camera WebGL confirms rendered membrane coverage, not human acceptance.
+  A following surface checkpoint gives medium pigment a bounded relative fold
+  against broad pigment using existing phases/noise; a coarse-region test now
+  detects changing local color relationships over seconds. The real beta's
+  impression of a predetermined pattern remains the acceptance question.
   Numerical fixed-pixel change did **not** establish perceptual acceptance.
   Particles were broadly acceptable. The particle control was not lost: the
   persisted `particle_density` setting remained in Appearance and sets the

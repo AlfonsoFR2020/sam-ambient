@@ -130,11 +130,23 @@ const simplex3 = (point: Vec3): number => {
 };
 const sample = (direction: Vec3, state: FieldState, seed: number, balance = 0.7) => {
   const q = transport(direction, state);
+  const mediumQ = normalize([
+    q[0] + 0.27 * (state[2] * q[1] * q[2] + state[3] * (q[1] * q[1] - q[2] * q[2])),
+    q[1] + 0.27 * (state[2] * q[2] * q[0] + state[3] * (q[2] * q[2] - q[0] * q[0])),
+    q[2] + 0.27 * (state[2] * q[0] * q[1] + state[3] * (q[0] * q[0] - q[1] * q[1])),
+  ]);
   const [a, b] = createFieldOffsets(seed);
   const noise = (scale: number, offset: readonly number[]) =>
     simplex3([scale * q[0] + offset[0], scale * q[1] + offset[1], scale * q[2] + offset[2]]);
   const broad = Math.min(1, Math.max(0, 0.5 + 0.5 * noise(1.8, a)));
-  const medium = Math.min(1, Math.max(0, 0.5 + 0.5 * noise(3.6, b)));
+  const medium = Math.min(
+    1,
+    Math.max(
+      0,
+      0.5 +
+        0.5 * simplex3([3.6 * mediumQ[0] + b[0], 3.6 * mediumQ[1] + b[1], 3.6 * mediumQ[2] + b[2]]),
+    ),
+  );
   const difference = Math.abs(broad - medium);
   const t = Math.min(1, Math.max(0, (difference - 0.2) / 0.3));
   return {
@@ -283,6 +295,68 @@ describe("living field substrate", () => {
     expect(frameChange / 128).toBeLessThan(0.005);
   });
 
+  it("changes coarse front-hemisphere pigment boundaries, not only individual pixels", () => {
+    const evaluator = new MotionEvaluator(42);
+    const input = new VisualInputAdapter().ingest(
+      { ...INITIAL_UI_STATE, connection: "connected", provider: "demo", model: "demo" },
+      0,
+    );
+    const settings = DEFAULT_VISUAL_ENGINE_SETTINGS;
+    const initial = { ...evaluator.evaluate(input, 0, settings, RENDER_BUDGETS.high) };
+    for (let time = 50; time <= 8_000; time += 50)
+      evaluator.evaluate(input, time, settings, RENDER_BUDGETS.high);
+    const later = { ...evaluator.currentFrame };
+    const stateOf = (frame: typeof initial): FieldState => [
+      frame.fieldPhase1,
+      frame.fieldPhase2,
+      frame.fieldTwist1,
+      frame.fieldTwist2,
+    ];
+    const positions: Vec3[] = [];
+    for (let y = -0.75; y <= 0.75; y += 0.15) {
+      for (let x = -0.75; x <= 0.75; x += 0.15) {
+        if (x * x + y * y > 0.8) continue;
+        positions.push([x, y, Math.sqrt(1 - x * x - y * y)]);
+      }
+    }
+    const territory = (frame: typeof initial) => {
+      const fieldState = stateOf(frame);
+      return positions.map((direction) => {
+        // A local spatial average suppresses fine pixel change. This samples
+        // the broad color relationship, independent of orientation and light.
+        const neighbors: Vec3[] = [
+          direction,
+          normalize(add(direction, [0.04, 0, 0])),
+          normalize(add(direction, [0, 0.04, 0])),
+        ];
+        return (
+          neighbors.reduce(
+            (sum, point) => sum + sample(point, fieldState, 42, frame.paletteBalance).palette,
+            0,
+          ) / neighbors.length
+        );
+      });
+    };
+    const before = territory(initial);
+    const after = territory(later);
+    const nextFrame = { ...evaluator.evaluate(input, 8_050, settings, RENDER_BUDGETS.high) };
+    const adjacent = territory(nextFrame);
+    let territoryChange = 0;
+    let localContrastChange = 0;
+    let adjacentChange = 0;
+    for (let index = 1; index < positions.length; index++) {
+      territoryChange += Math.abs(after[index] - before[index]);
+      localContrastChange += Math.abs(
+        after[index] - after[index - 1] - (before[index] - before[index - 1]),
+      );
+      adjacentChange += Math.abs(adjacent[index] - after[index]);
+    }
+    expect(territoryChange / positions.length).toBeGreaterThan(0.045);
+    expect(localContrastChange / positions.length).toBeGreaterThan(0.025);
+    expect(adjacentChange / positions.length).toBeLessThan(0.004);
+    expect(Math.abs(later.paletteBalance - initial.paletteBalance)).toBeLessThan(0.03);
+  });
+
   it("has no longitude seam and remains continuous at both poles", () => {
     const nearSeam = (angle: number): Vec3 => normalize([Math.cos(angle), 0.3, Math.sin(angle)]);
     expectNear(
@@ -334,7 +408,7 @@ describe("living field substrate", () => {
     }
     expect(ORB_VERTEX).toContain("livingBodyNormal(");
     expect(LIVING_FIELD_GLSL).toContain("simplex3(1.8 * transportedDirection + u_field_offset_a)");
-    expect(LIVING_FIELD_GLSL).toContain("simplex3(3.6 * q + u_field_offset_b)");
+    expect(LIVING_FIELD_GLSL).toContain("simplex3(3.6 * mediumQ + u_field_offset_b)");
   });
 
   it("maps bounded, warm-dominant but non-monochrome pigments over the sphere", () => {

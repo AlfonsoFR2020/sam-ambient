@@ -193,6 +193,17 @@ the replaceable backend: the engine-owned evaluator/phase clock supplies both
 renderers and survives quality changes and context recreation. Hidden/stopped/reduced-motion rules
 freeze spatial phase according to v1; no catch-up work is queued on return.
 
+The post-release surface pass addresses a remaining perceptual weakness: broad
+and medium pigment previously used exactly the same transported direction, so
+their combined boundaries could keep a stable-looking relationship even when
+pixel differences were measurable. Medium pigment now samples a modest
+phase-driven relative fold of that direction; the two shear phases evolve more
+strongly while rigid rotation rates stay unchanged. The body and membrane keep
+one shared field, two mandatory noise samples, seed determinism, pointer-hold
+attenuation and a separate slow palette clock. A coarse front-hemisphere
+contrast metric changes over seconds and stays continuous across a frame; it
+cannot establish human visual acceptance.
+
 Low/`mobile_2020` evaluates the two mandatory noise scales and one light at the
 existing low mesh, DPR and cadence caps. Balanced may add one fine sample and
 the existing medium light/mesh/pixel caps; high may add the second fine sample

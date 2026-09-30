@@ -171,6 +171,16 @@ metadata now reports 0.2.3 for release preparation.
   removes derivative-normal work and adds no noise samples. A fixed-camera
   WebGL comparison confirms a rendered, lifted high-tier membrane without GPU
   error; human perception of soft form remains unverified.
+- Post-v0.2.3 Living Surface checkpoint 3 keeps two field noise samples and the
+  same seed/clock ownership. The medium territory now samples a small bounded
+  fold relative to the broad territory, driven by the existing two shear
+  phases; stronger shear evolution changes their spatial relationship without
+  accelerating rigid field rotation. This permits coarse boundaries to shift
+  shape while frame-to-frame change remains continuous. Body and membrane use
+  the same GLSL field, pointer hold still attenuates the flow clock, and palette
+  timing remains separate. Extra per-fragment vector math/normalization replaces
+  no samples or draws. Deterministic coarse-region tests pass; the human beta's
+  static-looking pigment report remains open until later perceptual review.
 - v0.2.3 Living Surface uses one deterministic, seamless object-space
   two-shear/two-scale field for the WebGL body and irregular membrane fragments. Broad asymmetric
   shears now deform and carry pigment regions instead of relying mainly on rigid

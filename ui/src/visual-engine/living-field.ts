@@ -115,10 +115,16 @@ float sampleBroadDensity(vec3 objectDirection) {
 
 LivingField sampleLivingField(vec3 objectDirection) {
   vec3 q = transportFieldDirection(objectDirection);
+  // Let the medium territories fold relative to the broad current. The same
+  // two noise evaluations remain, but their boundaries can meet and separate
+  // instead of being carried together as one rigid-looking pattern.
+  vec3 foldA = vec3(q.y*q.z, q.z*q.x, q.x*q.y);
+  vec3 foldB = vec3(q.y*q.y-q.z*q.z, q.z*q.z-q.x*q.x, q.x*q.x-q.y*q.y);
+  vec3 mediumQ = normalize(q + .27*(u_field_state.z*foldA + u_field_state.w*foldB));
   LivingField field;
   field.transported = q;
   field.broad = broadDensityAt(q);
-  field.medium = clamp(0.5 + 0.5 * simplex3(3.6 * q + u_field_offset_b), 0.0, 1.0);
+  field.medium = clamp(0.5 + 0.5 * simplex3(3.6 * mediumQ + u_field_offset_b), 0.0, 1.0);
   // A slow contrast clock moves warm-region boundaries locally; it does not tint
   // every pixel together or alter the material transport coordinates.
   field.palette = clamp(0.5 + (mix(field.medium, field.broad, u_palette_balance) - 0.5)
