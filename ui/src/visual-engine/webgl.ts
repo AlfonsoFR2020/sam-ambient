@@ -101,6 +101,7 @@ uniform float u_rephase;
 uniform float u_highlight;
 uniform mat3 u_object_orientation;
 out float v_alpha;
+out float v_radial;
 out float v_lift;
 out float v_highlight;
 out vec3 v_object_direction;
@@ -123,9 +124,14 @@ void main(){
   vec3 position=livingBodyPoint(direction,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
   position+=direction*lift*vec3(1.0,1.06,1.0);
   vec3 world=rotation*position;
-  v_normal=normalize(rotation*vec3(direction.x,direction.y/1.06,direction.z));
+  vec3 lateral=direction-center*dot(center,direction);
+  float slope=1.35*pow(max(0.,1.-radial),.35)
+    *(a_surface.w+u_peel_lift*(.4+.6*u_opening))/.42;
+  vec3 curvedNormal=direction+lateral/max(length(lateral),.0001)*slope;
+  v_normal=normalize(rotation*vec3(curvedNormal.x,curvedNormal.y/1.06,curvedNormal.z));
   v_position=world;
-  v_alpha=a_motion.x*(1.-smoothstep(.80,1.,radial));
+  v_alpha=a_motion.x;
+  v_radial=radial;
   v_lift=attached;
   v_highlight=u_highlight*(.25+.75*attached);
   gl_Position=vec4(world.xy*u_scale,-world.z*.25,1.);
@@ -134,6 +140,7 @@ void main(){
 export const PEEL_FRAGMENT = `#version 300 es
 precision highp float;
 in float v_alpha;
+in float v_radial;
 in float v_lift;
 in vec3 v_object_direction;
 in vec3 v_normal;
@@ -145,20 +152,17 @@ out vec4 color;
 ${LIVING_FIELD_GLSL}
 ${LIVING_MATERIAL_GLSL}
 void main(){
-  float alpha=clamp(v_alpha*(.88+.12*u_emission),0.,1.);
-  if(alpha<.08) discard;
+  float alpha=clamp(v_alpha*(1.-smoothstep(.72,.98,v_radial))*(.88+.12*u_emission),0.,1.);
+  if(alpha<.04) discard;
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
-  vec3 facet=normalize(cross(dFdx(v_position),dFdy(v_position)));
-  if(dot(facet,v_normal)<0.) facet=-facet;
-  vec3 membraneNormal=normalize(mix(v_normal,facet,.68));
-  LivingLight light=livingLight(membraneNormal,v_position);
+  LivingLight light=livingLight(v_normal,v_position);
   float fine=livingSurfaceDetail(field);
   vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
   vec3 linear=pigment.albedo*(.29+light.diffuse*.82+u_intensity*.16)*(1.0+fine)
-    +glintColor*(light.glint*(.50+.22*v_lift+max(fine,0.0)*.20)+v_highlight*.15)
-    +rimColor*light.rim*(.16+.10*v_lift);
+    +glintColor*(light.glint*(.50+.36*v_lift+max(fine,0.0)*.20)+v_highlight*.15)
+    +rimColor*light.rim*(.16+.16*v_lift);
   linear*=mix(0.22,1.15,u_intensity);
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);

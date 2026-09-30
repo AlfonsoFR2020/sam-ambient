@@ -160,6 +160,17 @@ metadata now reports 0.2.3 for release preparation.
   samples release to the autonomous baseline. No protocol, audio producer,
   shader sample, draw, or geometry count changed. Deterministic signals verify
   bounds and relative responses; human perceptual acceptance remains open.
+- Post-v0.2.3 form checkpoint 2 keeps the high-tier body mesh at 96×48: its
+  undeformed sphere chord deviation is below 0.22% of radius. The membrane's
+  former 24-edge tessellation and 68% triangle-facet normal mix were concrete
+  sources of angular fragment silhouettes/shading. High membrane edges now use
+  40 samples, lifted-center range is 0.045–0.065 radius, smoothly interpolated
+  dome normals replace flat facet response, and fragment alpha feathers in the
+  fragment shader. Low/medium budgets and four draws remain unchanged. High
+  membrane geometry grows from 1,168 to 1,936 vertices; the fragment shader
+  removes derivative-normal work and adds no noise samples. A fixed-camera
+  WebGL comparison confirms a rendered, lifted high-tier membrane without GPU
+  error; human perception of soft form remains unverified.
 - v0.2.3 Living Surface uses one deterministic, seamless object-space
   two-shear/two-scale field for the WebGL body and irregular membrane fragments. Broad asymmetric
   shears now deform and carry pigment regions instead of relying mainly on rigid

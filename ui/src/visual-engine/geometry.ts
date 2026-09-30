@@ -25,7 +25,7 @@ export interface PeelDescriptor {
 }
 
 export const PEEL_WIDTH_RANGE = Object.freeze({ minimum: 0.35, maximum: 0.48 });
-export const PEEL_LIFT_RANGE = Object.freeze({ minimum: 0.038, maximum: 0.058 });
+export const PEEL_LIFT_RANGE = Object.freeze({ minimum: 0.045, maximum: 0.065 });
 export const PEEL_EDGE_LIFT = 0.006;
 
 const seeded = (seed: number): (() => number) => {

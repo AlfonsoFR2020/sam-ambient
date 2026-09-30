@@ -1,5 +1,96 @@
 import { expect, test } from "@playwright/test";
 
+test("high-tier fixed body and membrane retain measurable lifted coverage", async ({ page }) => {
+  await page.goto("/?transport=demo");
+  const result = await page.evaluate(async () => {
+    const [
+      { INITIAL_UI_STATE },
+      { VisualInputAdapter },
+      { MotionEvaluator },
+      { RENDER_BUDGETS },
+      { DEFAULT_VISUAL_ENGINE_SETTINGS },
+      { WebGLBackend },
+    ] = await Promise.all([
+      import("../../src/protocol/types"),
+      import("../../src/visual-engine/input"),
+      import("../../src/visual-engine/motion"),
+      import("../../src/visual-engine/quality"),
+      import("../../src/visual-engine/types"),
+      import("../../src/visual-engine/webgl"),
+    ]);
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2", { antialias: true, preserveDrawingBuffer: true });
+    if (!gl) throw new Error("WebGL2 is required for the form regression");
+    const seed = 0x5a17;
+    const input = new VisualInputAdapter().ingest(
+      { ...INITIAL_UI_STATE, connection: "connected", provider: "demo", model: "demo" },
+      0,
+    );
+    const motion = new MotionEvaluator(seed);
+    const frame = {
+      ...motion.evaluate(input, 0, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.high),
+    };
+    const fixedMotion = { evaluate: () => frame } as unknown as InstanceType<
+      typeof MotionEvaluator
+    >;
+    const bare = new WebGLBackend(
+      canvas,
+      gl,
+      { ...RENDER_BUDGETS.high, peels: 0 },
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      seed,
+      fixedMotion,
+    );
+    const composed = new WebGLBackend(
+      canvas,
+      gl,
+      RENDER_BUDGETS.high,
+      DEFAULT_VISUAL_ENGINE_SETTINGS,
+      seed,
+      fixedMotion,
+    );
+    bare.update(input);
+    composed.update(input);
+    bare.resize(600, 600, 1);
+    composed.resize(600, 600, 1);
+    const read = (backend: InstanceType<typeof WebGLBackend>) => {
+      backend.render(0);
+      const pixels = new Uint8Array(600 * 600 * 4);
+      gl.readPixels(0, 0, 600, 600, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      return pixels;
+    };
+    const body = read(bare);
+    const membrane = read(composed);
+    let changed = 0;
+    let outside = 0;
+    let count = 0;
+    for (let y = 70; y < 530; y += 2) {
+      for (let x = 70; x < 530; x += 2) {
+        const at = (y * 600 + x) * 4;
+        if (body[at + 3] > 250) count++;
+        if (body[at + 3] < 10 && membrane[at + 3] > 80) outside++;
+        if (
+          body[at + 3] > 250 &&
+          Math.abs(body[at] - membrane[at]) +
+            Math.abs(body[at + 1] - membrane[at + 1]) +
+            Math.abs(body[at + 2] - membrane[at + 2]) >
+            24
+        )
+          changed++;
+      }
+    }
+    const error = gl.getError();
+    bare.dispose();
+    composed.dispose();
+    return { changed, outside, count, error };
+  });
+  console.info("Fixed high-tier body/membrane comparison:", result);
+  expect(result.error).toBe(0);
+  expect(result.count).toBeGreaterThan(10_000);
+  expect(result.changed).toBeGreaterThan(500);
+  expect(result.outside).toBeGreaterThan(20);
+});
+
 test("shared WebGL material visibly changes with fixed Orb orientation and light", async ({
   page,
 }) => {

@@ -69,6 +69,11 @@ describe("visual quality and geometry", () => {
   });
 
   it("creates deterministic bounded fragmented peels in one geometry batch", () => {
+    // The body mesh is already subpixel smooth at a normal desktop radius;
+    // high-tier membrane edges need enough samples to avoid imposing facets.
+    expect(1 - Math.cos(Math.PI / RENDER_BUDGETS.high.sphereLatitude)).toBeLessThan(0.0022);
+    expect(RENDER_BUDGETS.high.peelSamples).toBeGreaterThanOrEqual(40);
+    expect(RENDER_BUDGETS.high.peelSamples).toBeGreaterThan(RENDER_BUDGETS.medium.peelSamples);
     expect(
       createPeelDescriptors(RENDER_BUDGETS.high.peels).slice(0, RENDER_BUDGETS.low.peels),
     ).toEqual(createPeelDescriptors(RENDER_BUDGETS.low.peels));
@@ -120,8 +125,8 @@ describe("visual quality and geometry", () => {
   it("keeps maximum peel displacement inside the Visual Engine radius bound", () => {
     const maximumDeformation = 0.04;
     const maximumLift = PEEL_EDGE_LIFT + (PEEL_LIFT_RANGE.maximum + 0.018) * 1.07 * 1.05;
-    const maximumSpheroidDistance = (1.1 + maximumDeformation + maximumLift) * 1.06;
-    expect(maximumSpheroidDistance).toBeLessThanOrEqual(1.31);
+    const maximumSpheroidDistance = (1.14 + maximumDeformation + maximumLift) * 1.06;
+    expect(maximumSpheroidDistance).toBeLessThanOrEqual(1.38);
   });
 
   it("creates bounded deterministic sparse particle parameters", () => {

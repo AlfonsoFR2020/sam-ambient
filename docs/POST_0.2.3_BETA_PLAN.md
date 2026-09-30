@@ -178,6 +178,10 @@ barge-in remain deferred and are unaffected by this checkpoint.
 - Revisit the Living Surface as a composition: pigment still seemed
   predetermined, large regions did not transform organically, high quality
   appeared faceted, and lifted membrane read as faint hard-edged polygons.
+  A post-release form checkpoint has softened membrane normals/boundaries and
+  increased high-tier membrane edge resolution/lift; the body mesh was already
+  dense enough for a subpixel ideal-sphere chord at normal desktop size.
+  Fixed-camera WebGL confirms rendered membrane coverage, not human acceptance.
   Numerical fixed-pixel change did **not** establish perceptual acceptance.
   Particles were broadly acceptable. The particle control was not lost: the
   persisted `particle_density` setting remained in Appearance and sets the

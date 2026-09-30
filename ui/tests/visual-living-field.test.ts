@@ -514,6 +514,9 @@ describe("living field substrate", () => {
         expect(fragment).toContain("sampleLivingField(normalize(v_object_direction))");
         expect(fragment).toContain("LivingPigment pigment=livingPigment(field)");
       }
+      expect(PEEL_VERTEX).toContain("curvedNormal");
+      expect(PEEL_FRAGMENT).toContain("smoothstep(.72,.98,v_radial)");
+      expect(PEEL_FRAGMENT).not.toContain("dFdx(v_position)");
       const normalized = fragments.map((source) =>
         source.replace(
           `#define SAM_FINE_OCTAVES ${budget.fineOctaves}`,

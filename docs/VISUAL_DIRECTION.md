@@ -239,9 +239,16 @@ the body at its feathered edge. Near-opaque fragments write depth, reducing
 the crossing order ambiguity of the old translucent ribbons. Curvature-sensitive
 normals and restrained specular response let moving light reveal separation.
 This remains one membrane draw, without per-frame geometry rebuilds, sorting or
-extra field noise. Low/medium/high retain the 6/11/16 fragment and 16/20/24
-perimeter budgets. Geometry is about 1.5 times the former strip vertex count
-and 2.6 times its triangle count; broader coverage can raise fragment cost.
+extra field noise. The physical v0.2.3 beta saw faint hard-edged polygons rather
+than a lifted skin. Source inspection found only 24 high-tier edge samples and a
+68% triangle-face normal contribution in the membrane shader; the 96×48 body
+mesh alone has subpixel chord error at normal desktop size. The post-release
+form pass raises high-tier membrane samples to 40, slightly raises central
+lift, shades with a smooth dome-derived normal and feathers alpha per fragment.
+Low/medium/high keep 6/11/16 fragments and now 16/20/40 perimeter samples.
+High membrane geometry grows from 1,168 to 1,936 vertices; draw count and
+field samples are unchanged. Fixed-camera WebGL coverage and shader checks pass,
+while the human faceting/membrane observation remains open for later acceptance.
 
 The remaining visual question is whether patches read as one loosened outer
 layer rather than individual plates. If not, a connected thin shell with a

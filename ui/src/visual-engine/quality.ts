@@ -56,7 +56,7 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     sphereLongitude: 96,
     sphereLatitude: 48,
     peels: 16,
-    peelSamples: 24,
+    peelSamples: 40,
     particles: 40,
     lights: 3,
     idleFps: 30,
