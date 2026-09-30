@@ -12,7 +12,7 @@ The supervisor contains no LLM/provider logic. Trusted argv specifications launc
 components, whose instance-correlated readiness records distinguish initialization
 from health. Crashes trigger bounded backoff; three failures within 60 seconds
 enter crash-loop handling/safe mode. Capability authority is revoked before
-critical restart. Child stdin carries only a graceful stop request; the core can
+critical restart. Child stdin carries an initial private owner bootstrap and subsequent graceful stop requests; the core can
 relay a direct UI quit over its instance-bound stdout lifecycle channel. Quit is
 not a tool and cannot launch a process or restore authority.
 On Windows the version launcher runs the resolved entry point in its existing
@@ -21,14 +21,13 @@ attached to the component the supervisor actually monitors.
 
 ## Core and UI
 
-The supervisor's small `AppWindow` adapter launches installed Chromium-family
-application mode with structured argv and a separate `.sam/ui-profile`, not the
-owner's browsing profile. Windows shutdown posts WM_CLOSE only to the launched
-process's windows; there is no browser process killing. Linux currently retains
-the stopped window for manual closure. App-window exit requests orderly shutdown
-but is never interpreted as a component crash or restart condition.
-`--ui-mode browser` bypasses this adapter; missing app browsers fall back to the
-default browser. The existing native transport seam remains available for Tauri.
+The supervisor's `OwnerWindow` uses Playwright's private pipes to launch an installed
+Chromium-family browser with `.sam/owner-ui-profile`, never the owner's browsing
+profile. Main-frame proof bootstrap and authenticated WebSocket connections are
+specified in [Owner authority](OWNER_AUTHORITY.md). Closing this context requests
+orderly shutdown, not crash recovery. Ordinary browser/debug tabs have no owner
+proof; unavailable owner windows fail closed. Tauri's bundled main window uses
+private supervisor proof RPC instead; neither frontend receives the root secret.
 An OS-released per-root lock prevents competing supervisors. The dedicated app
 process exiting requests the same idempotent graceful shutdown as Ctrl+C; normal
 browser tabs remain independent because their lifetime is not a reliable signal.

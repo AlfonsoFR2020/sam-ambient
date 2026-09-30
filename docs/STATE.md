@@ -2,6 +2,14 @@
 
 Updated: 2026-09-30
 
+Agency checkpoint 1: all live core commands and private events now require a
+fresh owner proof. A per-supervisor random root travels only over private pipes;
+the source owner window and native main-window RPC return connection-bound HMACs.
+Ordinary tabs fail closed. See [owner authority](OWNER_AUTHORITY.md). Deterministic
+protocol tests and an isolated real-browser binding fixture pass; native source
+compiles. This is not isolation against host memory/code tampering. HQ now places
+secure agency ahead of further AEC; the negative acoustic result stays recorded.
+
 The optional [Windows AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md) runs but
 fails its declared echo/double-talk separation gate. Its 11 frame/reset/metric
 tests pass; that is not processor acceptance. Runtime AEC/early barge-in remain

@@ -24,6 +24,7 @@ from sam_ambient.adapters.stt.whisper_cpp import (
     SpeechRecognitionUnavailable,
 )
 from sam_ambient.adapters.ui import DEFAULT_UI_BRIDGE_PORT, WebSocketCoreBridge
+from sam_ambient.core.owner import OwnerSession
 from sam_ambient.core.protocol import (
     CancellationTarget,
     ControlCommand,
@@ -488,6 +489,7 @@ class SamRuntime:
         audio_output: AudioOutput | None = None,
         provider_refresher: ProviderRefresher | None = None,
         local_control_recognizer: Callable[[Transcript], LocalControlIntent | None] | None = None,
+        owner_session: OwnerSession | None = None,
     ) -> None:
         if (tts is None) != (audio_output is None):
             raise ValueError("TTS and audio output must be configured together")
@@ -627,6 +629,8 @@ class SamRuntime:
             port=config.port,
             ready_event=self._ready_event,
             on_shutdown=self.shutdown_requested.set,
+            owner=owner_session,
+            owner_session_id=config.runtime_instance_id,
         )
 
     @property

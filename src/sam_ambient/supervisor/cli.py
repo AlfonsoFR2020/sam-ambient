@@ -16,6 +16,7 @@ from pathlib import Path
 
 from sam_ambient import __version__
 from sam_ambient.configuration import ConfigurationError, configure_namespace
+from sam_ambient.core.owner import OwnerSession
 from sam_ambient.logging_config import add_logging_arguments, configure_logging
 from sam_ambient.supervisor import (
     ComponentSpec,
@@ -25,6 +26,7 @@ from sam_ambient.supervisor import (
     SupervisorStore,
 )
 from sam_ambient.supervisor.browser import BrowserHandoff
+from sam_ambient.supervisor.owner_native import start_native_owner_channel
 from sam_ambient.supervisor.single_instance import InstanceLock
 
 log = logging.getLogger(__name__)
@@ -57,6 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Dedicated app window (default), or normal browser for debugging",
     )
     parser.add_argument("--no-ui", action="store_true", help="Run only the supervised core")
+    parser.add_argument("--native-owner-channel", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--model", help="Optional local model id")
     parser.add_argument("--base-url", help="Optional Ollama base URL")
     parser.add_argument(
@@ -198,7 +201,10 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
             )
         )
     log.info("Sam %s starting", __version__)
-    browser = BrowserHandoff(args.ui_port, mode=args.ui_mode, root=root)
+    owner_session = OwnerSession()
+    browser = BrowserHandoff(
+        args.ui_port, mode=args.ui_mode, root=root, owner_session=owner_session
+    )
     browser_task = None
 
     def ready(_component_id: str) -> None:
@@ -236,10 +242,19 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
 
     supervisor = Supervisor(
         tuple(components),
-        SubprocessLauncher(request_shutdown=request_shutdown, request_restart=request_restart),
+        SubprocessLauncher(
+            request_shutdown=request_shutdown,
+            request_restart=request_restart,
+            owner_session=owner_session,
+        ),
         store,
         on_ready=ready,
     )
+    if args.native_owner_channel:
+        start_native_owner_channel(
+            owner_session,
+            lambda: supervisor.statuses["sam-core"].instance_id,
+        )
     if not args.no_ui:
         log.info("UI address: http://127.0.0.1:%d", args.ui_port)
     loop = asyncio.get_running_loop()
@@ -259,7 +274,8 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
         if browser_task is not None:
             browser_task.cancel()
             await asyncio.gather(browser_task, return_exceptions=True)
-        browser.close()
+        owner_session.revoke()
+        await browser.aclose()
     return 0
 
 

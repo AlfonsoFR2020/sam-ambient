@@ -21,6 +21,7 @@ from sam_ambient.core.providers import (
 )
 from sam_ambient.core.turns import CancellationToken
 from sam_ambient.runtime import RuntimeConfig, SamRuntime
+from tests.fixtures.owner import authenticate_owner
 
 
 class ToolCallingProvider(LLMProvider):
@@ -142,6 +143,7 @@ def test_ui_to_runtime_provider_tool_policy_event_path_and_global_revoke(
                 subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
                 proxy=None,
             ) as socket:
+                await authenticate_owner(socket, runtime.bridge.owner)
                 ready = ProtocolEvent.from_json(await socket.recv())
                 assert ready.type == EventType.SYSTEM_READY
                 assert ready.payload["capability_authority_active"] is True
@@ -231,6 +233,7 @@ def test_ui_approval_runs_structured_process_through_composed_runtime(tmp_path: 
                 subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
                 proxy=None,
             ) as socket:
+                await authenticate_owner(socket, runtime.bridge.owner)
                 ready = ProtocolEvent.from_json(await socket.recv())
                 await socket.send(
                     ControlCommand(

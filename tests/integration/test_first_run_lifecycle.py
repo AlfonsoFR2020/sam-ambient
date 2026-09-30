@@ -8,6 +8,7 @@ import pytest
 from websockets.asyncio.client import connect
 
 from sam_ambient.adapters.ui.websocket import SAM_PROTOCOL_SUBPROTOCOL
+from sam_ambient.core.owner import OwnerSession
 from sam_ambient.core.protocol import ControlCommand, ControlCommandType
 from sam_ambient.supervisor import (
     ComponentSpec,
@@ -17,6 +18,7 @@ from sam_ambient.supervisor import (
     UpdatableComponent,
     VersionLayout,
 )
+from tests.fixtures.owner import authenticate_owner
 
 
 @pytest.mark.parametrize("packaged", [False, True, "staged"])
@@ -62,8 +64,8 @@ def test_real_core_quit_stops_supervisor_without_restart(tmp_path, packaged):
                 "sam-core",
                 (
                     sys.executable,
-                    "-m",
-                    "sam_ambient.supervisor.component_launcher",
+                    str(fixture),
+                    "--packaged",
                     "--component-root",
                     str(tmp_path / "components/sam-core"),
                     "--",
@@ -81,9 +83,10 @@ def test_real_core_quit_stops_supervisor_without_restart(tmp_path, packaged):
                 tmp_path,
             )
         store = SupervisorStore(tmp_path / "state.db")
+        owner = OwnerSession()
         supervisor = Supervisor(
             (component,),
-            SubprocessLauncher(request_shutdown=quit_app),
+            SubprocessLauncher(request_shutdown=quit_app, owner_session=owner),
             store,
             on_ready=lambda _id: ready.set(),
         )
@@ -96,6 +99,7 @@ def test_real_core_quit_stops_supervisor_without_restart(tmp_path, packaged):
                     origin="http://127.0.0.1:8766",
                     subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
                 ) as socket:
+                    await authenticate_owner(socket, owner)
                     event = json.loads(await socket.recv())
                     await socket.send(
                         ControlCommand(

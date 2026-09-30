@@ -47,6 +47,7 @@ from sam_ambient.adapters.tts import SystemTextToSpeech, TextToSpeechUnavailable
 from sam_ambient.adapters.ui.demo import run_demo_bridge
 from sam_ambient.adapters.vad import WebRtcVoiceActivityDetector
 from sam_ambient.configuration import ConfigurationError, SamSettings, configure_namespace
+from sam_ambient.core.owner import read_owner_bootstrap
 from sam_ambient.core.providers import (
     DataBoundary,
     LLMProvider,
@@ -176,6 +177,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Permit the explicitly configured cloud provider before private tool data exists",
     )
     runtime.add_argument("--runtime-instance-id", help=argparse.SUPPRESS)
+    runtime.add_argument("--owner-bootstrap-stdin", action="store_true", help=argparse.SUPPRESS)
     runtime.add_argument("--application-instance-id", help=argparse.SUPPRESS)
     runtime.add_argument("--capability-epoch", type=int, default=0, help=argparse.SUPPRESS)
     runtime.add_argument("--capabilities-revoked", action="store_true", help=argparse.SUPPRESS)
@@ -701,6 +703,7 @@ async def _serve_runtime(
         nonlocal parent_intent
         parent_intent = LifecycleIntent(value)
 
+    owner_session = read_owner_bootstrap() if args.owner_bootstrap_stdin else None
     stop = parent_stop_event(set_parent_intent) if args.runtime_instance_id else asyncio.Event()
     tts = None
     output = None
@@ -771,6 +774,7 @@ async def _serve_runtime(
         tts=tts,
         audio_output=output,
         provider_refresher=provider_refresher,
+        owner_session=owner_session,
     )
     mcp_clients: list[McpClient] = []
     try:

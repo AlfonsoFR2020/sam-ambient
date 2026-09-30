@@ -65,8 +65,10 @@ state the accepted real-provider, physical-voice and visual validation limits.
 Text interaction is the recommended, most reliable
 0.2.3 alpha mode; voice input remains experimental.
 The development line opens an isolated Sam app window with installed Edge/Chrome/
-Chromium. Use `uv run sam-ambient --ui-mode browser` for normal-browser/debug mode;
-if no supported app browser is found, the default browser remains the fallback.
+Chromium through Playwright's private pipes (no browser download). Only this
+owner window or the native shell can authenticate to the live core; normal
+browser/debug tabs do not receive authority. An unavailable owner window fails
+closed. See [owner authority](docs/OWNER_AUTHORITY.md).
 Starting the same Sam root twice reports the existing local UI instead of creating
 competing runtimes. Closing the dedicated window gracefully stops Sam.
 The integrated Tauri 2 shell provides the same ambient UI in a native

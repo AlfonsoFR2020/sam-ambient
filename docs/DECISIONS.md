@@ -1,5 +1,17 @@
 # Decision log
 
+## 2026-09-30 — Owner authority precedes agency
+
+HQ moves secure agency ahead of additional AEC experiments. The rejected AEC
+prototype remains valid evidence and does not block console/browser foundations.
+Use one ephemeral supervisor root and mutual, connection-specific HMAC proof;
+bootstrap through private process pipes, never URL/settings or a public token
+endpoint. Existing-browser source launch now needs Playwright's private pipe
+binding; native launch uses private supervisor RPC. All private events/commands
+require proof. This deliberately removes live-core control from ordinary debug
+tabs. The boundary is possession authentication, not a same-account OS sandbox.
+See [owner contract](OWNER_AUTHORITY.md); capability policy still governs execution.
+
 Only implementation choices or justified deviations not already fixed by the
 master specification are recorded here.
 

@@ -1,9 +1,11 @@
 # Getting started with Sam
 
 Development builds prefer a dedicated Sam window using installed Edge, Chrome or
-Chromium, after UI readiness while the core continues starting. No browser installation is performed. Use
-`uv run sam-ambient --ui-mode browser` for a normal browser/debug session; app
-browser absence automatically falls back. Sam uses its own ignored `.sam/ui-profile`.
+Chromium via the installed Python Playwright driver, after UI readiness while
+the core continues starting. No browser installation is performed. The ignored
+`.sam/owner-ui-profile` has a private owner-proof binding; ordinary browser/debug
+tabs cannot control the live core. Missing owner-window tooling fails closed.
+Native main-window launch has its own private proof path. See [owner authority](OWNER_AUTHORITY.md).
 The window may initially say **Starting Sam** while the local core checks existing
 providers and prepares speech. This is actual connection state, not a progress
 percentage; readiness or a precise degraded explanation replaces it.

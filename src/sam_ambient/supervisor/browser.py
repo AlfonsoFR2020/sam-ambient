@@ -7,7 +7,9 @@ import webbrowser
 from collections.abc import Callable
 from pathlib import Path
 
+from sam_ambient.core.owner import OwnerSession
 from sam_ambient.supervisor.app_window import AppWindow
+from sam_ambient.supervisor.owner_window import OwnerWindow
 
 log = logging.getLogger(__name__)
 
@@ -39,14 +41,27 @@ class BrowserHandoff:
         opener: Callable[..., bool] = webbrowser.open,
         mode: str = "browser",
         root: Path | None = None,
+        owner_session: OwnerSession | None = None,
     ) -> None:
         self.port = port
         self.opener = opener
         self.attempted = False
-        self.window = AppWindow(root or Path.cwd()) if mode == "app" else None
+        self.window = (
+            OwnerWindow(root or Path.cwd(), owner_session)
+            if mode == "app" and owner_session is not None
+            else AppWindow(root or Path.cwd())
+            if mode == "app"
+            else None
+        )
+
+    async def aclose(self) -> None:
+        if isinstance(self.window, OwnerWindow):
+            await self.window.aclose()
+        else:
+            self.close()
 
     def close(self) -> None:
-        if self.window is not None:
+        if self.window is not None and not isinstance(self.window, OwnerWindow):
             try:
                 self.window.close()
             except OSError:
@@ -63,6 +78,11 @@ class BrowserHandoff:
             return False
         try:
             if self.window is not None:
+                if isinstance(self.window, OwnerWindow):
+                    opened = await self.window.open(url)
+                    if not opened:
+                        log.warning("Owner window unavailable; no browser tab is granted authority")
+                    return opened
                 try:
                     if self.window.open(url):
                         log.info("Sam dedicated window opened (private app profile)")

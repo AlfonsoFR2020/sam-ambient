@@ -14,4 +14,8 @@ async def discovery(_args, *, bootstrap=False):
 
 
 cli.discover_provider = discovery
+if sys.argv[1:2] == ["--packaged"]:
+    from sam_ambient.supervisor.component_launcher import main
+
+    raise SystemExit(main(sys.argv[2:]))
 raise SystemExit(cli.main(["runtime", "--no-voice", "--no-tts", *sys.argv[1:]]))

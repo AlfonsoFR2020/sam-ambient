@@ -14,6 +14,7 @@ from sam_ambient.core.protocol import (
     EventType,
     ProtocolEvent,
 )
+from tests.fixtures.owner import authenticate_owner
 
 
 async def noop_enabled(_enabled: bool) -> None:
@@ -50,6 +51,7 @@ def test_websocket_bridge_streams_events_and_accepts_control_commands() -> None:
                 subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
                 proxy=None,
             ) as socket:
+                await authenticate_owner(socket, bridge.owner)
                 ready = ProtocolEvent.from_json(await socket.recv())
                 assert ready.type == EventType.SYSTEM_READY
 
@@ -93,6 +95,7 @@ def test_websocket_bridge_rejects_protocol_mismatch_and_remote_binding() -> None
                 subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
                 proxy=None,
             ) as socket:
+                await authenticate_owner(socket, bridge.owner)
                 await socket.send(
                     '{"protocol":2,"type":"control.emergency_stop",'
                     '"command_id":"bad","monotonic_ms":0,"payload":{}}'
@@ -130,7 +133,9 @@ def test_websocket_bridge_accepts_tauri_windows_origin() -> None:
                 origin="http://tauri.localhost",
                 subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
                 proxy=None,
-            ):
+            ) as socket:
+                await authenticate_owner(socket, bridge.owner)
+                await bridge.connected.wait()
                 assert bridge.connected.is_set()
         finally:
             await bridge.close()

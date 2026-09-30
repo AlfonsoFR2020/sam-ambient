@@ -1,10 +1,11 @@
 use std::{
     env, fs,
+    io::{BufRead, BufReader, Read, Write},
     path::{Path, PathBuf},
-    process::{Child, Command, Stdio},
+    process::{Child, ChildStdin, Command, Stdio},
     sync::{
         atomic::{AtomicBool, Ordering},
-        Mutex,
+        mpsc, Mutex,
     },
     thread,
     time::{Duration, Instant},
@@ -15,6 +16,67 @@ use tauri::{Emitter, Manager};
 static CLOSE_ALLOWED: AtomicBool = AtomicBool::new(false);
 
 struct SupervisorChild(Mutex<Option<Child>>);
+
+struct OwnerChannel {
+    input: Mutex<ChildStdin>,
+    responses: Mutex<mpsc::Receiver<String>>,
+}
+
+#[tauri::command]
+fn owner_proof(
+    window: tauri::WebviewWindow,
+    channel: tauri::State<OwnerChannel>,
+    challenge: serde_json::Value,
+) -> Result<String, String> {
+    let url = window.url().map_err(|_| "Owner proof unavailable")?;
+    if window.label() != "main"
+        || !matches!(
+            (url.scheme(), url.host_str(), url.port()),
+            ("tauri", Some("localhost"), None)
+                | ("http", Some("tauri.localhost"), None)
+                | ("http", Some("127.0.0.1"), Some(1420))
+        )
+    {
+        return Err("Owner proof unavailable".into());
+    }
+    let id = challenge
+        .get("nonce")
+        .and_then(|v| v.as_str())
+        .filter(|v| v.len() == 64 && v.bytes().all(|b| b.is_ascii_hexdigit()))
+        .ok_or("Owner proof unavailable")?;
+    let request = serde_json::json!({"id": id, "challenge": challenge}).to_string();
+    if request.len() > 1024 {
+        return Err("Owner proof unavailable".into());
+    }
+    let responses = channel
+        .responses
+        .lock()
+        .map_err(|_| "Owner proof unavailable")?;
+    {
+        let mut input = channel
+            .input
+            .lock()
+            .map_err(|_| "Owner proof unavailable")?;
+        writeln!(input, "{request}").map_err(|_| "Owner proof unavailable")?;
+        input.flush().map_err(|_| "Owner proof unavailable")?;
+    }
+    let deadline = Instant::now() + Duration::from_secs(4);
+    while Instant::now() < deadline {
+        let raw = responses
+            .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+            .map_err(|_| "Owner proof unavailable")?;
+        if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
+            if value.get("id").and_then(|v| v.as_str()) == Some(id) {
+                return value
+                    .get("proof")
+                    .and_then(|v| v.as_str())
+                    .map(str::to_owned)
+                    .ok_or("Owner proof unavailable".into());
+            }
+        }
+    }
+    Err("Owner proof unavailable".into())
+}
 
 #[tauri::command]
 fn close_after_shutdown(window: tauri::WebviewWindow) -> Result<(), String> {
@@ -42,6 +104,7 @@ fn launch_supervisor(app: &tauri::AppHandle) -> Result<Child, String> {
             root.to_str()
                 .ok_or("Sam repository path is not valid UTF-8")?,
             "--no-ui",
+            "--native-owner-channel",
         ]);
         command.current_dir(&root);
         command
@@ -69,13 +132,17 @@ fn launch_supervisor(app: &tauri::AppHandle) -> Result<Child, String> {
         fs::create_dir_all(&root)
             .map_err(|error| format!("could not prepare Sam's local data directory: {error}"))?;
         let mut command = Command::new(executable);
-        command.arg("--root").arg(root).arg("--no-ui");
+        command
+            .arg("--root")
+            .arg(root)
+            .arg("--no-ui")
+            .arg("--native-owner-channel");
         command.current_dir(&directory);
         command
     };
     command
-        .stdin(Stdio::null())
-        .stdout(Stdio::inherit())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()
         .map_err(|error| format!("could not start sam-supervisor: {error}"))
@@ -116,9 +183,30 @@ pub fn run() {
     }
 
     let app = builder
-        .invoke_handler(tauri::generate_handler![close_after_shutdown])
+        .invoke_handler(tauri::generate_handler![close_after_shutdown, owner_proof])
         .setup(|app| {
-            let child = launch_supervisor(app.handle()).map_err(std::io::Error::other)?;
+            let mut child = launch_supervisor(app.handle()).map_err(std::io::Error::other)?;
+            let input = child.stdin.take().ok_or("Owner channel missing")?;
+            let output = child.stdout.take().ok_or("Owner channel missing")?;
+            let (sender, responses) = mpsc::sync_channel(8);
+            thread::spawn(move || {
+                let mut reader = BufReader::new(output);
+                loop {
+                    let mut line = String::new();
+                    // Bounded read; malformed/overlong records terminate this private channel.
+                    match reader.by_ref().take(2048).read_line(&mut line) {
+                        Ok(0) | Err(_) => break,
+                        Ok(_) if !line.ends_with('\n') => break,
+                        _ => {
+                            let _ = sender.try_send(line);
+                        }
+                    }
+                }
+            });
+            app.manage(OwnerChannel {
+                input: Mutex::new(input),
+                responses: Mutex::new(responses),
+            });
             app.manage(SupervisorChild(Mutex::new(Some(child))));
             Ok(())
         })

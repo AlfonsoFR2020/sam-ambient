@@ -9,6 +9,7 @@ import signal
 from collections.abc import Callable
 from typing import Protocol
 
+from sam_ambient.core.owner import OwnerSession
 from sam_ambient.supervisor.models import (
     ComponentSpec,
     HealthReport,
@@ -44,13 +45,17 @@ class SubprocessLauncher:
         *,
         request_shutdown: Callable[[], None] | None = None,
         request_restart: Callable[[], None] | None = None,
+        owner_session: OwnerSession | None = None,
     ) -> None:
         self.request_shutdown = request_shutdown
         self.request_restart = request_restart
+        self.owner_session = owner_session
 
     async def launch(self, spec: ComponentSpec, context: LaunchContext) -> ManagedProcess:
         command = list(spec.command)
         if spec.component_id == "sam-core":
+            if self.owner_session is not None:
+                command.append("--owner-bootstrap-stdin")
             command.extend(
                 (
                     "--runtime-instance-id",
@@ -78,6 +83,16 @@ class SubprocessLauncher:
             limit=_MAX_READY_LINE,
             start_new_session=os.name != "nt",
         )
+        if spec.component_id == "sam-core" and self.owner_session is not None:
+            assert process.stdin is not None
+            try:
+                process.stdin.write(self.owner_session.bootstrap_line())
+                await process.stdin.drain()
+            except BaseException:
+                if process.returncode is None:
+                    process.kill()
+                await process.wait()
+                raise
         return SubprocessManagedProcess(
             process,
             instance_id=context.instance_id,

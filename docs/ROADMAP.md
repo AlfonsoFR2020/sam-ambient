@@ -1,5 +1,13 @@
 # Sam development plan: post-v0.2.3 toward v0.2.4
 
+**HQ priority change (2026-09-30): secure agency now precedes further AEC.**
+Owner authentication is implemented on development HEAD; typed bounded
+capabilities, useful console/browser slices and model mediation follow it.
+The acoustic prototype failed its integration gate and remains a separate voice
+workstream; it is not a prerequisite for agency. Existing numbered voice cards
+below retain their internal dependencies, not the current cross-workstream order.
+See [owner authority](OWNER_AUTHORITY.md) for the first agency checkpoint.
+
 This is the **authoritative execution order**, not a promise that every later capability belongs in v0.2.4. [STATE](STATE.md) records implemented truth; [BACKLOG](BACKLOG.md) retains unresolved items; [ARCHITECTURE](ARCHITECTURE.md) and [DECISIONS](DECISIONS.md) contain current contracts. The [physical beta record](POST_0.2.3_BETA_PLAN.md) remains primary product evidence. Specialist sources: [AEC decision](AEC_DOUBLE_TALK_CONTRACT.md), [trust review](TRUST_BOUNDARIES.md), [dependency triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md), [visual direction](VISUAL_DIRECTION.md) and [isolated performance sample](VISUAL_PERFORMANCE_0.2.3_DEV.md). The [published v0.2.3 release scope](RELEASE_READINESS_0.2.3.md) is historical; this plan changes neither it nor its tag.
 
 The last physical beta preceded the recent dev repairs. Its simultaneous playback/listening failure and perception of an insufficiently living Orb remain valid observations. Deterministic lifecycle and renderer checks established corrected properties; **they did not establish physical acoustic reliability or human visual acceptance**. No human beta is available now.

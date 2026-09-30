@@ -23,22 +23,40 @@ class FakeSocket {
     this.readyState = 1;
     this.onopen?.();
   }
+
+  async authenticate(): Promise<void> {
+    this.onmessage?.({
+      data: JSON.stringify({
+        type: "sam.owner.challenge",
+        session: "core",
+        nonce: "a".repeat(64),
+        server_proof: "b".repeat(64),
+      }),
+    });
+    await Promise.resolve();
+    this.onmessage?.({ data: JSON.stringify({ type: "sam.owner.accepted" }) });
+  }
 }
 
 describe("WebSocket core transport", () => {
   it("serializes commands and decodes incoming events on the real transport seam", async () => {
     const socket = new FakeSocket();
     let requestedProtocol = "";
-    const transport = new WebSocketTransport("ws://127.0.0.1:8765", (_url, protocol) => {
-      requestedProtocol = protocol;
-      return socket;
-    });
+    const transport = new WebSocketTransport(
+      "ws://127.0.0.1:8765",
+      (_url, protocol) => {
+        requestedProtocol = protocol;
+        return socket;
+      },
+      async () => "c".repeat(64),
+    );
     const received: unknown[] = [];
     const connection = transport.connect({
       onEvent: (event) => received.push(event),
       onDisconnect() {},
     });
     socket.open();
+    await socket.authenticate();
     const session = await connection;
     const command: ControlCommand = {
       protocol: 1,
@@ -53,7 +71,7 @@ describe("WebSocket core transport", () => {
     });
 
     expect(requestedProtocol).toBe(SAM_PROTOCOL_SUBPROTOCOL);
-    expect(JSON.parse(socket.sent[0] ?? "null")).toEqual(command);
+    expect(JSON.parse(socket.sent[1] ?? "null")).toEqual(command);
     expect(received).toHaveLength(1);
     await session.close();
   });
@@ -65,7 +83,11 @@ describe("WebSocket core transport", () => {
 
   it("does not mistake an observer exception for invalid JSON", async () => {
     const socket = new FakeSocket();
-    const transport = new WebSocketTransport("ws://127.0.0.1:8765", () => socket);
+    const transport = new WebSocketTransport(
+      "ws://127.0.0.1:8765",
+      () => socket,
+      async () => "c".repeat(64),
+    );
     const connection = transport.connect({
       onEvent: () => {
         throw new Error("render observer failed");
@@ -73,8 +95,32 @@ describe("WebSocket core transport", () => {
       onDisconnect() {},
     });
     socket.open();
+    await socket.authenticate();
     await connection;
     expect(() => socket.onmessage?.({ data: '{"protocol":1}' })).toThrow("render observer failed");
     expect(socket.readyState).toBe(1);
+    socket.close();
+  });
+
+  it("rejects an ordinary browser tab without granting a transport session", async () => {
+    const socket = new FakeSocket();
+    const transport = new WebSocketTransport(
+      "ws://127.0.0.1:8765",
+      () => socket,
+      async () => {
+        throw new Error("absent");
+      },
+    );
+    const connection = transport.connect({
+      onEvent: () => {
+        throw new Error("private event leaked");
+      },
+      onDisconnect() {},
+    });
+    const rejected = expect(connection).rejects.toThrow("owner window");
+    socket.open();
+    await socket.authenticate();
+    await rejected;
+    expect(socket.sent).toEqual([]);
   });
 });

@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import json
 from collections.abc import Callable, Sequence
+from uuid import uuid4
 
 from websockets.asyncio.server import Server, ServerConnection, serve
 from websockets.exceptions import ConnectionClosed
 
+from sam_ambient.core.owner import OWNER_ACCEPTED, OWNER_AUTHENTICATE, OwnerSession
 from sam_ambient.core.protocol import (
     ControlCommand,
     ControlDispatcher,
@@ -45,6 +48,8 @@ class WebSocketCoreBridge:
         allowed_origins: Sequence[str] = DEFAULT_ALLOWED_ORIGINS,
         ready_event: Callable[[], ProtocolEvent] | None = None,
         on_shutdown: Callable[[], None] | None = None,
+        owner: OwnerSession | None = None,
+        owner_session_id: str | None = None,
     ) -> None:
         self._require_loopback(host)
         if not 0 <= port <= 65_535:
@@ -59,6 +64,8 @@ class WebSocketCoreBridge:
         self.allowed_origins = tuple(allowed_origins)
         self.ready_event = ready_event
         self.on_shutdown = on_shutdown
+        self.owner = owner or OwnerSession()
+        self.owner_session_id = owner_session_id or uuid4().hex
         self.connected = asyncio.Event()
         self._server: Server | None = None
 
@@ -93,6 +100,7 @@ class WebSocketCoreBridge:
         await self._server.serve_forever()
 
     async def close(self) -> None:
+        self.owner.revoke()
         server, self._server = self._server, None
         if server is None:
             return
@@ -103,13 +111,33 @@ class WebSocketCoreBridge:
         if socket.subprotocol != SAM_PROTOCOL_SUBPROTOCOL:
             await socket.close(1002, "sam.protocol.v1 is required")
             return
+        # Authenticate before state subscription: events include private text and approvals.
+        try:
+            challenge = self.owner.challenge(self.owner_session_id)
+            await socket.send(json.dumps(challenge))
+            async with asyncio.timeout(5):
+                raw = await socket.recv()
+            response = json.loads(raw) if isinstance(raw, str) and len(raw) <= 256 else None
+            if (
+                not isinstance(response, dict)
+                or set(response) != {"type", "proof"}
+                or response["type"] != OWNER_AUTHENTICATE
+                or not self.owner.verify(challenge, response["proof"])
+            ):
+                await socket.close(1008, "Owner authentication required")
+                return
+            await socket.send(json.dumps({"type": OWNER_ACCEPTED}))
+        except (ValueError, TimeoutError, ConnectionClosed, RuntimeError):
+            await socket.close(1008, "Owner authentication required")
+            return
+        authenticated_owner = self.owner
         subscription = await self.events.subscribe(max_queue=self.subscription_queue)
         self.connected.set()
         try:
             if self.ready_event is not None:
                 await socket.send(self.ready_event().to_json())
-            producer = asyncio.create_task(self._produce(socket, subscription))
-            consumer = asyncio.create_task(self._consume(socket))
+            producer = asyncio.create_task(self._produce(socket, subscription, authenticated_owner))
+            consumer = asyncio.create_task(self._consume(socket, authenticated_owner))
             done, pending = await asyncio.wait(
                 {producer, consumer}, return_when=asyncio.FIRST_COMPLETED
             )
@@ -124,12 +152,18 @@ class WebSocketCoreBridge:
         finally:
             await subscription.close()
 
-    async def _produce(self, socket: ServerConnection, subscription) -> None:
+    async def _produce(self, socket: ServerConnection, subscription, owner: OwnerSession) -> None:
         async for event in subscription:
+            if owner is not self.owner or not owner.active:
+                await socket.close(1008, "Owner session revoked")
+                return
             await socket.send(event.to_json())
 
-    async def _consume(self, socket: ServerConnection) -> None:
+    async def _consume(self, socket: ServerConnection, owner: OwnerSession) -> None:
         async for raw in socket:
+            if owner is not self.owner or not owner.active:
+                await socket.close(1008, "Owner session revoked")
+                return
             if not isinstance(raw, str):
                 await socket.close(1003, "binary commands are unsupported")
                 return
