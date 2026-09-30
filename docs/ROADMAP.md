@@ -44,9 +44,9 @@ The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate 
 
 ## Ordered Codex task cards
 
-These are separate slices, ordered by dependency and risk. Skip a card only when its prerequisite or required environment is unavailable, and record why. The first eight pursue a meaningful integrated voice/visual checkpoint; later cards prepare safe capability expansion. **No card requests human testing now.**
+These are separate slices, ordered by dependency and risk. **Task 1 is complete on local `dev`**; task 2 is the next open card. Skip a card only when its prerequisite or required environment is unavailable, and record why. The first eight pursue a meaningful integrated voice/visual checkpoint; later cards prepare safe capability expansion. **No card requests human testing now.**
 
-### 1. Development-toolchain advisory maintenance
+### 1. Development-toolchain advisory maintenance — complete on dev
 
 - **Objective / why now:** Resolve Vite/Vitest dev-server advisories before more browser/control work.
 - **Prerequisites:** [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md); clean locked toolchain.

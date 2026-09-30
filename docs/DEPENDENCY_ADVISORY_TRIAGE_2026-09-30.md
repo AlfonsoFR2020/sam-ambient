@@ -1,6 +1,6 @@
 # Sam dependency advisory triage — 2026-09-30
 
-Read-only inspection of open GitHub Dependabot alerts for `AlfonsoFR2020/sam-ambient`, checked against current `dev` manifests and lockfiles. GitHub's push notice said 20 alerts on the default branch; the API returned **20 records, but several duplicate the same package/advisory across `package.json` and its lockfile**. This is not a count of 20 independent product exposures. No dependencies, advisory states or remote settings were changed. Scope is a source/lockfile triage, not an exploit test or package update.
+The original read-only inspection of open GitHub Dependabot alerts for `AlfonsoFR2020/sam-ambient` was checked against the then-current manifests and lockfiles. GitHub's push notice said 20 alerts on the default branch; the API returned **20 records, but several duplicate the same package/advisory across `package.json` and its lockfile**. This is not a count of 20 independent product exposures. The table below records the **before** state and original classification; the local `dev` resolution is recorded afterward. No remote advisory state or repository setting was changed.
 
 | Package / locked version | GitHub finding and first fixed version | Sam exposure and action |
 | --- | --- | --- |
@@ -10,6 +10,18 @@ Read-only inspection of open GitHub Dependabot alerts for `AlfonsoFR2020/sam-amb
 | `setuptools` **82.0.1** | **Medium** sdist `MANIFEST.in` exclusion bypass via Unicode normalization collision on macOS APFS/HFS+, fixed **83.0.0**. | `uv.lock` shows this is pulled by `cx-freeze` for **packaging/build**, despite GitHub's `runtime` scope label. The cited precondition is macOS filesystem behavior, while Sam is Windows-first. Review during packaging maintenance; no demonstrated Windows product path. |
 | Rust `glib` **0.18.5** in `ui/src-tauri/Cargo.lock` | **Medium** unsound `VariantStrIter`, fixed **0.20.0**. | **Transitive native-shell dependency**, plausibly Linux/GTK only; current Windows release does not exercise GLib. Whether Sam actually invokes the affected iterator is unknown. Raising GLib across minor versions may require upstream Tauri/GTK compatibility work. Track for Linux/native dependency maintenance; inspect target graph and path before calling it a Windows blocker. |
 
-**Priority:** Address Vite and the Vitest UI server advisories in a small development-toolchain maintenance task before opening development servers to untrusted networks or extending CI/test UI usage. Treat the GitHub severity as severity of the underlying advisory, not automatically severity of Sam's deployed product. There is no evidence here of a currently exploitable public v0.2.3 Windows runtime path. Do not silently upgrade: preserve lockfile reproducibility, review release notes/compatibility, then run the existing focused frontend checks. Pytest, setuptools and GLib can be triaged in their respective test/build/platform maintenance work.
+## Local dev resolution — 2026-09-30
+
+| Dependency | Before → after in `ui/package.json` / resolved `ui/pnpm-lock.yaml` | Covered advisory outcome |
+| --- | --- | --- |
+| Direct Vite | **7.1.5 → 7.3.5** | Above every Vite vulnerable range listed above, including the Windows path and UNC findings. `@vitejs/plugin-react` stays **5.0.2**; its Vite 7 peer range already accepts this version. |
+| Direct Vitest | **3.2.4 → 4.1.11** | Above the critical Vitest UI threshold **3.2.6** and the separate mocker-redirect threshold **4.1.11**. The latter required the explicitly authorized Vitest 4 major migration. |
+| Transitive `@vitest/mocker` | **3.2.4 → 4.1.11** through Vitest | Above its documented vulnerable range; no override or direct pin was added. |
+
+The lockfile moved Vite's expected esbuild family **0.25.12 → 0.27.7**, its platform packages and peer-resolution keys. The Vitest change replaced its 3.x internal test graph with 4.1.11 packages and their expected transitive graph. No other direct dependency was changed. The local graph contains one Vite **7.3.5**, one Vitest **4.1.11**, and one mocker **4.1.11**. This establishes resolution against the advisory ranges recorded here; it does **not** mean GitHub alerts on the older default branch have closed or that all repository advisories are gone.
+
+Vitest 4 required **no Sam test, helper, configuration or product-code edits**: the first complete run passed **24 files / 220 tests**. TypeScript and the frontend production Vite build passed; changed-file Biome passed for `ui/package.json`; three bounded Chrome cases passed (startup/UI, committed history, vertical Orb drag). `git diff --check` passed. The build-generated static assets were restored because this checkpoint changes the build toolchain, not the published UI artifact. These are local Windows checks; no real Sam/core/provider/audio system ran.
+
+Pytest, setuptools and GLib remain deliberately deferred as classified above. Treat upstream advisory severity as distinct from Sam product exposure. The current development server remains loopback-bound; do not infer that the published v0.2.3 Windows runtime was remotely vulnerable from these dev-tool findings.
 
 Source: authenticated, read-only GitHub Dependabot alerts API for this repository (open alerts 1–20) on 2026-09-30; local `ui/package.json`, `ui/pnpm-lock.yaml`, `pyproject.toml`, `uv.lock`, `ui/src-tauri/Cargo.lock`.
