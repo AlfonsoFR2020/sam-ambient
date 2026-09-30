@@ -63,6 +63,7 @@ test("Controls tabs retain their settings and particle amount reaches the render
   await expect(controls.getByText("Model when Sam quits")).toBeVisible();
   await expect(controls.getByRole("button", { name: "Rescan providers/models" })).toBeVisible();
   await openDiagnostics(page);
+  await page.getByText("Renderer & motion").click();
   await expect(page.getByText(/1\.00 density/)).toBeVisible();
 });
 
@@ -90,6 +91,7 @@ test("fullscreen microphone and output sliders keep the interface and record con
   expect(outputGain).toBeGreaterThan(1);
   await expect(page.getByRole("region", { name: "Sam controls" })).toBeVisible();
   await openDiagnostics(page);
+  await page.getByText(/^Recent events/).click();
   await expect(page.getByRole("log")).toContainText(
     `control audio gain in/out ${inputGain} / ${outputGain}`,
   );

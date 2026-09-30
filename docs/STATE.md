@@ -35,8 +35,11 @@ uncommitted or rejected candidate remains outside normal history. The full
 assistant answer survives speech interruption, which appears as separate
 delivery metadata. Common assistant paragraphs, emphasis and lists render as
 escaped text; history scrolls independently and follows new entries only when
-the reader is near the bottom. Richer Markdown and diagnostics overlap/layout
-remain future UI work. Reducer and bounded browser regressions cover this
+the reader is near the bottom. Richer Markdown remains future UI work. On wide
+viewports, diagnostics and history now occupy separate left/right regions with
+independent scrolling; narrow viewports retain the bounded overlay. Current
+health and errors lead the monitor, followed by conversation, voice/audio,
+collapsed renderer detail and bounded event history. Reducer and bounded browser regressions cover this
 presentation; the physical beta has not been repeated.
 Exit cleanup retains the existing owner-only rule: `unload_if_sam_loaded`
 requests bounded LM Studio unload only for a model Sam loaded; `stop_if_sam_started`

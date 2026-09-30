@@ -175,9 +175,33 @@ select {
   cursor: pointer;
   font-size: 16px;
 }
-.visual-diagnostics__summary {
-  margin: 5px 0 8px;
-  color: #a9becd;
+.visual-diagnostics__health {
+  margin-top: 7px;
+  padding: 8px;
+  border: 1px solid #9cb7cc33;
+  border-radius: 6px;
+  background: #152431a8;
+}
+.visual-diagnostics__health h2 {
+  margin: 0;
+  color: #dceaf4;
+  font-size: 11px;
+}
+.visual-diagnostics__health-row {
+  display: contents;
+}
+.visual-diagnostics dd[data-degraded] {
+  color: #f0b2a6;
+  font-weight: 600;
+}
+.visual-diagnostics__problems {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-left: 2px solid #db937d;
+  background: #5b292d55;
+}
+.visual-diagnostics__problems p {
+  margin: 4px 0 0;
 }
 .visual-diagnostics details {
   margin-top: 7px;
@@ -492,6 +516,13 @@ select {
   color: #eee1d2;
   text-align: left;
   text-shadow: 0 1px 18px #000;
+}
+
+@media (min-width: 980px) {
+  .sam-shell[data-diagnostics-open] .transcript {
+    right: auto;
+    left: clamp(24px, 5vw, 64px);
+  }
 }
 
 .transcript__line {

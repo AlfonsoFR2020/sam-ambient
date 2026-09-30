@@ -52,6 +52,15 @@ const readyInput = () => {
 };
 
 describe("visual engine lifecycle", () => {
+  it("retains only the latest 64 meaningful diagnostic events", () => {
+    const engine = new VisualEngine();
+    for (let index = 0; index < 80; index++) engine.recordExternalEvent(`event ${index}`);
+    const events = engine.diagnosticSnapshot().events;
+    expect(events).toHaveLength(64);
+    expect(events[0]?.message).toBe("event 16");
+    expect(events.at(-1)?.message).toBe("event 79");
+  });
+
   it("chooses WebGL, Canvas, then static fallback deterministically", () => {
     expect(chooseRendererKind("auto", true, true)).toBe("webgl2");
     expect(chooseRendererKind("canvas2d", true, true)).toBe("canvas2d");

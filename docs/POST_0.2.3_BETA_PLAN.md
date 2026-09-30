@@ -182,10 +182,11 @@ barge-in remain deferred and are unaffected by this checkpoint.
   persisted `particle_density` setting remained in Appearance and sets the
   visible share of the 12/24/40 quality-tier WebGL budget. Its visible label
   now says **Particle amount**, and the tab explains where Quality lives.
-- Place diagnostics so it does not obscure the now independently scrolling
-  conversation history even in fullscreen, then group immediate
-  health/state, conversation/provider/audio, renderer/performance, and bounded
-  event history by operational value.
+- Diagnostics now moves the independently scrolling history to a separate region
+  on wide/fullscreen layouts; narrow windows retain an overlay that closes when
+  Controls opens. Current health and errors appear first, then conversation,
+  voice/audio, renderer/motion and bounded events. Renderer detail and event
+  history are one-click disclosures; deeper future console design remains deferred.
 - Reconcile model-eject/server-close settings with ownership of a provider
   already running before Sam. The session visibly shut down Sam core/STT but
   did not show LM Studio unloading or closing despite selected options.

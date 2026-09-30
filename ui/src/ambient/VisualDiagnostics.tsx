@@ -26,7 +26,15 @@ export function VisualDiagnostics({
   }, [engine]);
   if (!snapshot) return null;
   const q = snapshot.quaternion;
-  const errors = [commandError, state.protocolError, state.diagnosticReason].filter(Boolean);
+  const errors = [...new Set([commandError, state.protocolError, state.diagnosticReason])].filter(
+    (value): value is string => Boolean(value),
+  );
+  const health = [
+    ["Microphone", state.voiceInputHealth],
+    ["Speech recognition", state.sttHealth],
+    ["Speech synthesis", state.synthesisHealth],
+    ["Playback", state.playbackHealth],
+  ] as const;
   return (
     <aside className="visual-diagnostics" aria-label="Sam status and diagnostics">
       <header className="visual-diagnostics__header">
@@ -35,12 +43,45 @@ export function VisualDiagnostics({
           ×
         </button>
       </header>
-      <div className="visual-diagnostics__summary">
-        {state.connection} · {snapshot.renderer} · {snapshot.quality} · ~
-        {fixed(snapshot.approximateFps, 0)} fps
-      </div>
+      <section className="visual-diagnostics__health" aria-label="Current health and state">
+        <h2>Current health &amp; state</h2>
+        <dl>
+          <dt>Core connection</dt>
+          <dd data-degraded={state.connection !== "connected" || undefined}>
+            {state.connection}
+            {state.connection === "connected" && !state.sessionId ? " · awaiting session" : ""}
+          </dd>
+          <dt>Conversation</dt>
+          <dd>{state.conversationalState}</dd>
+          <dt>Provider / model</dt>
+          <dd>
+            {known(state.provider)} / {known(state.model)}
+            {state.connection !== "connected" && state.model ? " (last known)" : ""}
+          </dd>
+          {health.map(([label, item]) => (
+            <div className="visual-diagnostics__health-row" key={label}>
+              <dt>{label}</dt>
+              <dd data-degraded={item?.status === "degraded" || undefined}>
+                {item
+                  ? `${item.status}${item.retrying ? " (retrying)" : ""}${item.reason ? ` · ${item.reason}` : ""}`
+                  : "Not reported"}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {errors.length > 0 && (
+          <div className="visual-diagnostics__problems" role="alert">
+            <strong>Current problem{errors.length > 1 ? "s" : ""}</strong>
+            {errors.map((error) => (
+              <p className="visual-diagnostics__error" key={error}>
+                {error}
+              </p>
+            ))}
+          </div>
+        )}
+      </section>
       <details open>
-        <summary>Core &amp; conversation</summary>
+        <summary>Conversation &amp; inference</summary>
         <dl>
           <dt>Frontend ↔ core</dt>
           <dd>{state.connection}</dd>
@@ -58,6 +99,8 @@ export function VisualDiagnostics({
           <dd>{known(state.turnId)}</dd>
           <dt>Active generation</dt>
           <dd>{known(state.generationId)}</dd>
+          <dt>Pending commands</dt>
+          <dd>{state.pendingCommandIds.length}</dd>
           {state.candidateTurnId && (
             <>
               <dt>Candidate turn</dt>
@@ -100,6 +143,11 @@ export function VisualDiagnostics({
               <dd>{state.pendingModel}</dd>
             </>
           )}
+        </dl>
+      </details>
+      <details open>
+        <summary>Voice &amp; audio</summary>
+        <dl>
           <dt>Speech recognition</dt>
           <dd>{known(state.sttStatus)}</dd>
           <dt>Speech input health</dt>
@@ -148,9 +196,13 @@ export function VisualDiagnostics({
           <dd>{fixed(state.metrics.speechProbability)}</dd>
           <dt>Playback envelope</dt>
           <dd>{fixed(state.metrics.playbackEnvelope)}</dd>
+          <dt>Visual envelope in/out</dt>
+          <dd>
+            {fixed(snapshot.inputEnvelope)} / {fixed(snapshot.outputEnvelope)}
+          </dd>
         </dl>
       </details>
-      <details open>
+      <details>
         <summary>Renderer &amp; motion</summary>
         <dl>
           <dt>Backend</dt>
@@ -204,23 +256,9 @@ export function VisualDiagnostics({
           <dd>
             {fixed(snapshot.flowRate, 3)} rad/s / {fixed(snapshot.peelTravel)}
           </dd>
-          <dt>Envelope in/out</dt>
-          <dd>
-            {fixed(snapshot.inputEnvelope)} / {fixed(snapshot.outputEnvelope)}
-          </dd>
         </dl>
       </details>
-      {errors.length > 0 && (
-        <details open>
-          <summary>Current errors</summary>
-          {errors.map((error) => (
-            <p className="visual-diagnostics__error" key={error}>
-              {error}
-            </p>
-          ))}
-        </details>
-      )}
-      <details open>
+      <details>
         <summary>Recent events ({snapshot.events.length})</summary>
         <div className="visual-diagnostics__events" role="log">
           {snapshot.events.map((event, index) => (

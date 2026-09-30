@@ -172,8 +172,12 @@ not restart Sam or its model provider.
 **Controls → Diagnostics** opens a scrollable status panel with the current core
 connection, reported provider/model/STT/TTS/microphone state, speech-input health,
 active turn/generation identity, renderer, quality,
-frame estimate, visual phases, audio envelopes and recent events. The overlay has
-a Close button and closes when Controls opens. Ctrl+Alt+V is an
+frame estimate, visual phases, audio envelopes and recent events. Current health
+and errors appear first; conversation and voice details follow, with renderer
+details and the bounded event history available in disclosure sections. On wide
+windows the history and diagnostics use separate independently scrolling regions;
+on narrow windows diagnostics remains an overlay. It has a Close button and
+closes when Controls opens. Ctrl+Alt+V is an
 optional desktop shortcut. Missing readings are shown as unreported; this panel
 does not measure server health, model memory or detailed audio spectra. When open,
 meaningful events also appear in the browser/shell console without per-frame logs.
