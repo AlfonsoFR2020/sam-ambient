@@ -3,8 +3,9 @@
 Status: implementation contract. The core renderer, state choreography, direct
 manipulation, persistent visual preferences and bounded measured adaptation have
 landed on `dev`; human visual/native acceptance remains pending.
-Spectral/prosodic mapping and the audio-reactive embodiment direction in section 14
-remain future design work. This document owns renderer, input, motion, quality and
+Measured input/output envelope embodiment has since landed on `dev`; richer
+spectral/prosodic extraction and human acceptance remain future work. This
+document owns renderer, input, motion, quality and
 settings decisions. [Sam Orb visual direction](VISUAL_DIRECTION.md) records the
 post-v0.2.2 artistic aim and alternative geometry; it does not change these
 implementation bounds or voice policy by itself.
@@ -48,11 +49,12 @@ change the Y axis by at most 0.04. The final radial bound in section 5 is mandat
 
 ### Fragmented loxodromic peels
 
-This is the implemented v1 geometry and a valid efficient fallback. The preferred
-future outer-membrane interpretation, including sector masks and candidate cheap
-boundary representations, is described in [Sam Orb visual direction](VISUAL_DIRECTION.md#outer-membrane-and-peels).
-Replacing this geometry or its draw/depth rules requires a measured engineering
-decision; the direction document does not silently supersede this contract.
+This is the original v1 geometry and remains the efficient Canvas fallback and
+comparison baseline. Current WebGL uses seeded curved membrane patches, with
+the implemented change recorded in [Sam Orb visual direction](VISUAL_DIRECTION.md#outer-membrane-and-peels)
+and D-023. The following carrier dimensions and translucent draw rules describe
+the original baseline, not the current WebGL membrane. Any further replacement
+still requires a measured engineering decision.
 
 The loxodromes are invisible mathematical carriers, never complete visible
 ribbons. Render 6/11/16 independent elongated peels at low/medium/high quality,
@@ -98,10 +100,11 @@ one batch afterward with depth test on and depth writes off, using bounded
 premultiplied emissive blending. Back-side fragments disappear behind the orb
 naturally. Do not CPU crop or sort them merely for horizon visibility; a small
 `smoothstep(0.0,0.15,dot(normal,view))` horizon fade may soften entry and exit.
-Human review found that the horizon fade hid the existing ribbons prematurely;
-the current WebGL pass relies on geometric depth occlusion instead. Intersections
-between unsorted translucent ribbons can still show ordering lines; the future
-outer membrane is the preferred structural solution, not per-frame CPU sorting.
+Human review found that the horizon fade hid those ribbons prematurely; the
+original WebGL pass therefore used geometric depth occlusion. Current WebGL
+uses the seeded membrane patches described in the direction document. The
+unsorted-ribbon ordering problem remains a fallback comparison, not a claim
+about the current membrane.
 
 ### Orientation, lights, particles
 
@@ -623,20 +626,23 @@ fallback alone is not human acceptance of the WebGL Living Surface.
 | G | Browser/native fixture, timing, resize and resource regression checks. | Routine/repetitive (low-reasoning) execution; escalate only measured failures. |
 | H | Human visual acceptance and bounded parameter adjustments. | Human judgment; short high-reasoning interpretation, not an automatic pass. |
 
-These A-H rows record the v1 implementation sequence, not the new Orb direction's
-schedule. Use the existing React boundary for later work. The v1 geometry and
-contract choices remain authoritative for current code; the proposed living field,
-outer membrane and wider palette need a separate measured architecture decision
-before implementation, as described in [Visual direction](VISUAL_DIRECTION.md#five-design-stages).
+These A-H rows record the v1 implementation sequence, not a current schedule.
+Use the existing React boundary for later work. The v1 performance/lifecycle
+bounds remain authoritative; the shared Living Surface, WebGL membrane and warm
+palette evolution were subsequently implemented under D-022 and D-023. Their
+human visual acceptance remains open in [Visual direction](VISUAL_DIRECTION.md).
 
 ## 14. Future direction: audio-reactive embodiment and diagnostics
 
-Status: moderately high-priority **future design direction**, not an implementation
+Status: the measured-envelope input/output mapping is implemented; richer
+spectral/prosodic extraction is a **future design direction**, not an implementation
 commitment. This section extends rather than replaces sections 3-5: existing
 independent input/output envelopes, low/mid/high bands, normalized autocorrelation
 shape coefficients, expiry rules, visual bounds and fallbacks remain authoritative.
 Exact mappings, constants, settings, transport fields and feature extraction choices
 below require the separate design checkpoints in section 14.7 before implementation.
+That requirement applies to new features, not to the already landed bounded
+envelope response.
 The [Orb direction](VISUAL_DIRECTION.md#audio-as-a-timely-disturbance) places these
 features in one living surface/membrane system; this section keeps the engineering
 constraints and alternative signal bases.

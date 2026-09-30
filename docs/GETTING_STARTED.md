@@ -12,7 +12,7 @@ browser/platform refuses, close the stopped page manually. Closing the dedicated
 window also stops Sam; closing a fallback browser tab does not. A second launch
 for the same root reports the existing local UI instead of competing for ports.
 
-Sam 0.2.3 alpha is a Windows-first release candidate that runs from source with
+Sam 0.2.3 alpha is a published Windows-first pre-release that runs from source with
 a local app-window/browser UI.
 There is no accepted installer yet. The integrated native shell is release-candidate
 source, not an accepted package. Install prerequisites yourself; Sam downloads no

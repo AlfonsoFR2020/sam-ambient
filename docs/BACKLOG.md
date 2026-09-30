@@ -1,21 +1,22 @@
 # Post-0.2 engineering backlog
 
-The published 0.2.3 human beta and dependency-aware post-release order are in
-[Post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md). Its conversation
-ownership, barge-in, generation retirement, and history-integrity cluster is
-the current P0. The following older items remain directions, not evidence that
-the physical beta passed them.
+The published 0.2.3 human beta is preserved in
+[Post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md). Conversation candidate
+promotion, generation retirement, typed recovery and history integrity now have
+post-release repairs. Acoustic source discrimination and prompt barge-in remain
+open. The dependency-aware priority order is in [Roadmap](ROADMAP.md); older
+items below are directions, not evidence that the physical beta passed them.
 
 This is the detailed backlog beyond the frozen 0.2.3 scope. It records
 observed limitations and planned directions without implying acceptance, priority,
 or a commitment to a specific implementation. Milestone-level sequencing remains
-in [Roadmap](ROADMAP.md). Candidate gates and required integrated checks are in
-[0.2.3 release readiness](RELEASE_READINESS_0.2.3.md); the items below are not
-automatically release blockers.
+in [Roadmap](ROADMAP.md). The published 0.2.3 candidate gates are a historical
+record in [0.2.3 release readiness](RELEASE_READINESS_0.2.3.md); the items below
+are not automatically blockers for a future release.
 
 ## Release-known issues
 
-- Recommend text interaction for the most reliable 0.2.2 alpha experience; voice
+- Recommend text interaction for the most reliable 0.2.3 alpha experience; voice
   input remains experimental.
 - Complete the dedicated Linux compatibility review around 0.3.0. Hosted Ubuntu CI
   currently reaches Python tests but retains an unresolved Linux-only failure; it is
@@ -36,9 +37,10 @@ automatically release blockers.
   translucency and depth still need human visual acceptance; see
   [Visual direction](VISUAL_DIRECTION.md).
 - **Human acceptance of circulation and drag ownership:** the first human beta
-  perceived the older nearly rigid field as static. The new asymmetric shear makes
-  fixed-orientation WebGL material change over seconds, and pointer ownership eases
-  field flow down and back without a phase jump. Verify that the full composition now
+  perceived the older nearly rigid field as static. Asymmetric shear and the
+  post-release bounded medium-pigment fold change coarse color relationships in
+  fixed-orientation WebGL; pointer ownership eases field flow down and back without
+  a phase jump. Verify that the full composition now
   reads as coherent circulation and that drag feels like grasping one object. A
   separate Surface Flow control still needs a clean persisted settings/protocol path
   and bounds around an accepted default. Do not claim Auto without a real signal.
@@ -49,8 +51,9 @@ automatically release blockers.
   the current bounded ovoid/mountain character pending art direction: it comes from
   Y scaling 1.06, field/breath displacement and older audio response terms clamped
   to ±0.04. Tune prominence later rather than flattening it by assumption.
-- **Outer membrane/peels:** evaluate whether seeded curved patches read as one
-  lifted membrane rather than separate plates. Check soft edge depth writes,
+- **Outer membrane/peels:** high-tier edge resolution, normals and lift have
+  been repaired after the beta; evaluate whether the revised seeded patches read
+  as one lifted membrane rather than separate plates. Check soft edge depth writes,
   overlapping fragments, opacity, silhouette and specular balance at low/mobile
   and high tiers; the isolated WebGL check establishes tint alignment, not human
   perception or worst-case alpha ordering. Later activity/audio may increase
@@ -68,26 +71,27 @@ automatically release blockers.
   paths. Explore roughly 5–10× the high-end population only after point-fill,
   overdraw and model-coexistence measurements preserve lightweight tiers.
   Later actual waveform/semantic evidence may add modest XYZ perturbations.
-- **Moderately high priority - audio-reactive embodiment and diagnostics:** complete
-  the strong-model checkpoints in [Visual Engine v1](VISUAL_ENGINE_V1.md#14-future-direction-audio-reactive-embodiment-and-diagnostics)
-  before implementation. Evaluate a bounded feature extractor, independent
-  input/output observability, coherent procedural mappings, diagnostic fixtures and
-  an owner-facing high-level settings concept without weakening v1 geometry, draw,
-  cadence, privacy or fallback constraints.
-  The new visual-only sustained/onset layer is a bounded destination for existing
-  envelopes, not a feature extractor or proof of useful live voice embodiment.
+- **Further audio-reactive embodiment:** measured `tts.level` now gives a fast,
+  bounded speech expansion/light pulse and `voice.level` a quieter receptive
+  response through the existing Audio reactivity control. An audio feature
+  extractor, prosodic mapping beyond the existing envelope, physical timing and
+  human perceptual acceptance remain. Preserve v1 geometry, draw, cadence,
+  privacy and fallback constraints; do not call synthetic modulation live acceptance.
 - Compare a workload-aware quality governor, high-end/demo richness and Orb Lab
   contact sheets using deterministic state/audio fixtures. Protect first-token,
   inference, audio and UI latency; do not treat visual FPS alone as acceptance.
-- Complete human visual acceptance across WebGL2, Canvas, reduced motion, supported
-  window sizes, and `mobile_2020`; particle visibility and the overall Visual Engine
-  appearance remain materially below the alpha target.
-- Continue Controls hierarchy/help review after the tab split. Conversation, visual,
-  device, system and developer paths are distinct, but the ambient rectangle and
-  transcript/Controls coexistence still need layout work. Ensure any mobile route is
-  accessible without a physical keyboard; avoid one giant scrolling panel.
-- Grow the existing diagnostics overlay into a fuller Sam status/console surface
-  when core telemetry is available through a bounded protocol. It now shows the
+- Complete human visual acceptance of the revised speech response, membrane/form
+  and Living Surface across WebGL2, Canvas, reduced motion, supported window sizes
+  and `mobile_2020`. The beta found particles broadly acceptable, but the Orb as a
+  whole was below its intended visual character. Isolated WebGL checks and the
+  desktop cost sample are not that acceptance.
+- Controls inventory, particle-amount labeling and tab wiring have been audited.
+  Remaining layout work concerns mobile access, the ambient rectangle and
+  transcript/Controls coexistence; avoid a keyboard-only route or giant scroll panel.
+- Grow the existing diagnostics monitor into a fuller Sam status/console surface
+  when core telemetry is available through a bounded protocol. Wide layout now
+  separates it from conversation, and current health leads collapsible detail.
+  It shows the
   reported model/provider/STT/TTS/connection/microphone state and existing audio
   envelopes, but has no measured server health, loaded-model memory/latency,
   frequency features or physical audio-device diagnostics. Do not fabricate values,
@@ -97,7 +101,8 @@ automatically release blockers.
 - Consider bounded centre XYZ wandering and later waveform-driven peel/particle
   perturbations only after the relevant input evidence is available. The current
   centre remains fixed and diagnostics label it as such.
-- Tune transcript buffering and scrolling.
+- Long-history buffering/performance remains unmeasured; independent scrolling
+  and near-bottom auto-follow are implemented.
 - Clarify microphone mute/toggle semantics, which appeared confusing or reversed.
 - Physically validate the full voice/audio path and useful live voice reactivity
   after material surface, membrane and interaction improvements. Do not consume

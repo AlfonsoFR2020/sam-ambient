@@ -497,3 +497,17 @@ master specification are recorded here.
   the entire external cleanup receives an 18-second bound within the 24-second
   supervised core-stop window. Late generation guards still reject output from
   a detached task.
+
+## D-033 — Keep authenticated provider errors and cloud routes outside credential logs
+
+- **Accepted:** 2026-09-30. An authenticated provider HTTP failure reports its
+  status with a fixed detail instead of carrying the remote error body into
+  diagnostics or exception logs. OpenAI-compatible cloud routes require HTTPS;
+  URL-embedded credentials, query and fragment are rejected. An explicitly
+  local-compatible route may still use loopback HTTP.
+- **Reason:** A provider can reflect its Authorization value in an error body,
+  and a plaintext cloud endpoint can expose a configured API key or conversation
+  context. Both paths were allowed by the previous generic adapter boundary.
+- **Limit:** This is credential transport hardening, not authentication of a
+  loopback process. The local UI bridge still relies on loopback plus browser
+  Origin checks under a trusted single-user host; see [trust boundaries](TRUST_BOUNDARIES.md).

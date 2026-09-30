@@ -7,6 +7,9 @@ Sam started through the supervisor with the existing LM Studio
 System Speech. Several voice → model → spoken-answer turns succeeded. Vertical
 Orb dragging worked, and Controls tabs, diagnostics, and particles were useful.
 No post-release repair has yet been verified against the physical session.
+The implemented repair status and current dependency order are maintained in
+[Roadmap](ROADMAP.md); this file preserves what the physical run falsified and
+the causal diagnosis, rather than treating every observation as a separate task.
 
 ## 1. P0 — restore conversation ownership before tuning speech quality
 
@@ -204,7 +207,10 @@ barge-in remain deferred and are unaffected by this checkpoint.
   before exit, cleanup reports skips, and multiple discovery snapshots are
   cleaned once in unload-before-stop order. Physical LM Studio cleanup remains
   unverified; no permission to stop reused providers was added.
-- Make startup obvious without a repository command. Retain the longer-term
+- Startup now has `Start Sam.cmd` for a prepared Windows source checkout, using
+  the existing supervisor without installing dependencies. This is not a signed
+  public installer and was not exercised in the original physical beta.
+  Retain the longer-term
   Sam console, browser capability, Options, named profiles, natural-language
   controls, persistent memory, installer signing, and theme directions as
   post-P0 work, not reasons to delay conversation repair.

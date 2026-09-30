@@ -1,12 +1,12 @@
 # Release checklist
 
-`0.2.0`, `0.2.1` and `0.2.2` are published; `0.2.3` is unreleased. Release
-approval and publication remain human-controlled and do not follow automatically
+`0.2.0` through `0.2.3` are published. Release approval and publication remain
+human-controlled and do not follow automatically
 from a green branch.
 
-The [0.2.3 readiness and scope freeze](RELEASE_READINESS_0.2.3.md) records the
-accepted integrated-validation limits and the remaining build/publication gates.
-Keep the checklist below for release execution; an unrun physical path is not a pass.
+The [0.2.3 readiness and scope freeze](RELEASE_READINESS_0.2.3.md) is the
+historical record of that release's accepted validation limits and gates.
+Keep the checklist below for a future release; an unrun physical path is not a pass.
 
 ## Patch-alpha cadence
 
@@ -19,8 +19,8 @@ cadence. The unit is a green coherent checkpoint.
 
 The generation-terminality, delivery-handoff and core-interaction reliability work
 shipped in 0.2.2. The subsequent UI, visual, provider, conversation and audio
-checkpoints are on the unreleased 0.2.3 development line. Preparation is not
-publication approval.
+checkpoints shipped in 0.2.3. Post-release development is on `dev`; preparation
+for a later version is not publication approval.
 
 The patch alpha remains Windows-first. The exact versioned release-preparation
 commit must pass its hosted Windows Quality, package-smoke and Native Package
@@ -38,8 +38,8 @@ job successful artificially or weaken its tests.
 - [ ] Full release regression passes: Python/frontend tests, lint, formatting,
   TypeScript, Vite, Cargo, version consistency, package metadata, and artifact-content gates.
 - [ ] Release notes accurately disclose unvalidated physical voice, real-provider,
-  reconnect and representative visual/native behavior under the accepted 0.2.3
-  alpha scope; no such path is represented as tested.
+  reconnect and representative visual/native behavior under the intended release
+  scope; no such path is represented as tested.
 - [ ] Public documentation and `THIRD_PARTY.md` describe the merged tree.
 - [ ] Include the architecture infographic if accurate for this release; update or
   regenerate it after material architecture changes, or label a historical snapshot

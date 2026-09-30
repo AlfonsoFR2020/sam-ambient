@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-09-29
+Updated: 2026-09-30
 
 Post-release physical beta exposed a conversation-integrity defect: an
 unverified microphone candidate could be promoted when TTS completed, then
@@ -69,9 +69,9 @@ remaining stale tasks. LM Studio unload uses the documented `lms unload MODEL`
 form (no extra confirmation flag). Cleanup has an 18-second overall bound
 inside a 24-second supervised core-stop window.
 
-The 0.2.3 implementation boundary and accepted validation limits are classified
-in [0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Package/runtime
-metadata now reports 0.2.3 for release preparation.
+The published 0.2.3 implementation boundary and accepted validation limits are
+recorded in [0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Current
+post-release priorities are in the [Roadmap](ROADMAP.md).
 
 ## MVP status
 
@@ -557,16 +557,17 @@ metadata now reports 0.2.3 for release preparation.
   session-resume policy and broader physical voice reliability. The 0.2.2 deterministic
   slice now defines Stop/Mute and current-session transcript behavior without claiming
   physical acoustic acceptance.
-- Full physical audio-reactive embodiment and a richer diagnostics/status console
-  remain future work. The current membrane and envelope-driven visual consumer
-  exist; they do not add an audio feature extractor or prove live voice reactivity.
+- The post-release input/output envelope response now maps to distinct bounded
+  Orb motion and light. An audio feature extractor, physical/perceptual acceptance
+  and a richer diagnostics/status console remain future work.
 - Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
   future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
 
 ## Commands
 
 - Bootstrap/test: `scripts/{bootstrap,test}.{ps1,sh}`.
-- End-user MVP: `uv run sam-ambient`.
+- Windows source beta launch: `Start Sam.cmd` after `uv sync --locked` once.
+- Terminal/debug launch: `uv run --no-sync sam-ambient`.
 - Diagnostics: `uv run sam doctor --root .`.
 - Release build: `scripts/package.ps1` or `scripts/package.sh`.
 - Development UI/runtime: `scripts/ui-dev.*` and `scripts/sam-dev.*`.

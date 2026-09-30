@@ -216,8 +216,11 @@ before the shared `B/M` structure; recover only with existing hysteresis. A
 future trusted workload hint may cap optional detail during local model work,
 but frame pacing alone cannot identify prefill or prove spare VRAM. Canvas should
 reuse the palette/phase grammar with a cheaper broad approximation, not CPU
-per-pixel noise. Exact cost and fallback appearance require representative
-desktop and `mobile_2020` measurements before acceptance.
+per-pixel noise. An [isolated Windows desktop WebGL2 sample](VISUAL_PERFORMANCE_0.2.3_DEV.md)
+measured low/medium/high GPU draw medians around 0.045/0.179/1.815 ms after
+the post-release visual changes. Full-app contention, sustained cost, fallback
+appearance and `mobile_2020` still require representative measurement before
+acceptance.
 
 Reserve an engine-local, zero-default `FieldForcing` with six finite `[0,1]`
 components: `inputEnergy`, `outputEnergy`, `lowWave`, `midDrive`, `highDetail`
