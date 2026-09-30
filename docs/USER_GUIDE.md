@@ -2,17 +2,44 @@
 
 Start with [Getting started](GETTING_STARTED.md). On Windows, double-click
 [`Start Sam.cmd`](../Start%20Sam.cmd) in a prepared checkout. For terminal/debug
-use, run `uv run --no-sync sam-ambient`; the browser is only a client, not the
-application's owner.
+use, run `uv run --no-sync sam-ambient`. The dedicated Sam window proves owner
+authority through its private supervisor binding; an ordinary browser tab cannot
+authenticate or read private core state.
 The integrated, unreleased Tauri source provides an owned native window with the
 same React UI and protocol. Closing that window invokes the same in-app Quit
 confirmation; it does not bypass supervisor shutdown or capability revocation.
 Future packaged Windows builds use the bundled Python companion boundary and will
-not require user Python or a checkout. Browser mode remains a supported fallback.
+not require user Python or a checkout. The development owner window uses installed
+Edge/Chrome; ordinary browser mode is an unauthenticated debugging surface.
 Provider/model and speech prerequisites remain external and are reported through
 the existing readiness experience. Native
 packaging, signing, security-software review, and combined human acceptance remain
-release gates; use the supported browser mode rather than bypassing a security alert.
+release gates; do not bypass security alerts to run unsigned native artifacts.
+
+## Owner Console and bounded page inspection (post-v0.2.3 dev)
+
+Open **Console** in the authenticated Sam window. Choose directory listing,
+bounded text-file reading or system information. Paths are relative to Sam's
+configured workspace; absolute paths and escapes are rejected. This surface does
+not run PowerShell, accept executable commands or write files. It displays action
+identity, progress/terminal status, cancellation and independent scrolling output.
+Completed output stays separate from conversation history. At most four actions
+run concurrently; the last 64 entries remain visible without evicting active work.
+
+**Open public HTTPS page** takes an exact public URL. It creates a separate,
+temporary, scripts-disabled browser context: no personal cookies/profile, owner
+binding, downloads, forms, uploads or arbitrary JavaScript. **Read current browser
+page** returns bounded title/URL/text; **Close owned browser** releases its process.
+Private/local addresses and cross-origin redirects are blocked. Script-heavy sites
+may not work. This is page inspection, not a general autonomous browser agent.
+
+Models can propose registered structured tools. Workspace reads use the existing
+owner read policy; model-requested navigation requires exact owner approval. The
+owner's manual navigation action supplies that approval itself. Model prose and
+returned file/web content never grant permission or become executable commands.
+Cancellation stops delivery of retired action results; tool failure does not block
+a new typed conversation. See [capabilities](AGENCY_CAPABILITIES.md) and
+[browser boundaries](OWNED_BROWSER.md) for policy, privacy and output limits.
 
 ## Five-minute Windows path
 

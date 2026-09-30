@@ -58,15 +58,21 @@ export class ProtocolClient {
   getAgencySnapshot = (): readonly AgencyAction[] => this.agency;
 
   async executeCapability(capability: string, args: Record<string, unknown>): Promise<void> {
+    if (this.agency.filter((action) => !TERMINAL_ACTION_STATES.has(action.state)).length >= 4)
+      return;
     const command = createControlCommand(
       "control.capability.execute",
       { capability, arguments: args, sequence: ++this.agencySequence },
       {},
     );
-    this.agency = [
-      ...this.agency.slice(-63),
-      { id: command.command_id, capability, state: "queued" },
-    ];
+    const retained = [...this.agency];
+    if (retained.length >= 64) {
+      const oldestTerminal = retained.findIndex((action) =>
+        TERMINAL_ACTION_STATES.has(action.state),
+      );
+      if (oldestTerminal >= 0) retained.splice(oldestTerminal, 1);
+    }
+    this.agency = [...retained, { id: command.command_id, capability, state: "queued" }];
     for (const listener of this.listeners) listener();
     try {
       await this.sendControl(command);
@@ -85,9 +91,18 @@ export class ProtocolClient {
   }
 
   async cancelCapability(requestId: string): Promise<void> {
-    await this.sendControl(
-      createControlCommand("control.capability.cancel", { request_id: requestId }, {}),
-    );
+    try {
+      await this.sendControl(
+        createControlCommand("control.capability.cancel", { request_id: requestId }, {}),
+      );
+    } catch {
+      this.agency = this.agency.map((action) =>
+        action.id === requestId && !TERMINAL_ACTION_STATES.has(action.state)
+          ? { ...action, output: "Cancellation could not be sent; reconnect or try again." }
+          : action,
+      );
+      for (const listener of this.listeners) listener();
+    }
   }
 
   private retireAgency(): void {
@@ -141,6 +156,18 @@ export class ProtocolClient {
           !this.state.pendingCommandIds.includes(command.command_id)
         )
           return;
+        if (command.type === "control.capability.execute") {
+          this.agency = this.agency.map((action) =>
+            action.id === command.command_id && !TERMINAL_ACTION_STATES.has(action.state)
+              ? {
+                  ...action,
+                  state: "failed",
+                  output: "Action admission was not confirmed; cancellation requested.",
+                }
+              : action,
+          );
+          void this.cancelCapability(command.command_id);
+        }
         this.setState({
           ...this.state,
           pendingCommandIds: this.state.pendingCommandIds.filter((id) => id !== command.command_id),
@@ -285,8 +312,10 @@ export class ProtocolClient {
       return;
     }
     if (event.type === "control.rejected") {
+      const completedAction = this.agency.find((action) => action.id === event.payload.command_id);
+      if (completedAction && TERMINAL_ACTION_STATES.has(completedAction.state)) return;
       this.agency = this.agency.map((action) =>
-        action.id === event.payload.command_id
+        action.id === event.payload.command_id && !TERMINAL_ACTION_STATES.has(action.state)
           ? {
               ...action,
               state: "denied",

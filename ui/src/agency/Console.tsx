@@ -13,6 +13,7 @@ export function AgencyConsole({
   const [open, setOpen] = useState(false);
   const [capability, setCapability] = useState("files.list");
   const [path, setPath] = useState(".");
+  const activeCount = actions.filter((action) => !TERMINAL_ACTION_STATES.has(action.state)).length;
   return (
     <>
       <button
@@ -31,7 +32,13 @@ export function AgencyConsole({
               Close
             </button>
           </header>
-          <p>Owner actions · read-only workspace · returned data is untrusted</p>
+          <p>
+            Owner actions · workspace reads and public-page inspection · returned data is untrusted
+          </p>
+          {!connected && <output>Connect through Sam's owner window to run actions.</output>}
+          {activeCount >= 4 && (
+            <output>Four actions are active. Finish or cancel one to continue.</output>
+          )}
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -72,7 +79,7 @@ export function AgencyConsole({
                 />
               </label>
             )}
-            <button type="submit" disabled={!connected}>
+            <button type="submit" disabled={!connected || activeCount >= 4}>
               Run action
             </button>
           </form>
@@ -84,6 +91,7 @@ export function AgencyConsole({
                 {!TERMINAL_ACTION_STATES.has(action.state) && (
                   <button
                     type="button"
+                    disabled={!connected}
                     onClick={() => {
                       void client.cancelCapability(action.id);
                     }}

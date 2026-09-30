@@ -262,7 +262,8 @@ remain available. Application controls can opt into unloading a model Sam loaded
 stopping a service Sam started during graceful Quit. Existing/shared resources are
 never claimed by discovery, and Restart keeps resources available.
 
-If the browser fails, open the URL manually. If no model is usable, check your
+If the owner window fails, install/use an already supported Edge or Chrome and
+restart Sam. Opening the URL manually does not grant core access. If no model is usable, check your
 runtime's installed chat models and the reported startup failure. If ports are
 occupied, check for an earlier Sam instance. Rescan after correcting or externally
 loading a model; restart Sam only when the reported recovery action requires it.

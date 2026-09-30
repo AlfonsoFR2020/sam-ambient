@@ -2,6 +2,11 @@
 
 Updated: 2026-09-30
 
+Agency checkpoint 7 keeps the owner surface restrained: bounded history preserves
+live actions, connection/capacity restrictions are explained, cancellation failures
+are visible, and unconfirmed admission requests cancellation. Late rejection cannot
+replace a terminal result. Conversation history remains independent and untouched.
+
 Agency checkpoint 6 hardens retirement races at tool-start publication and command
 lock admission. Adversarial tests cover replay/forgery, policy/schema rejection,
 bounded output, cancellation, Windows junction escape and DNS-pinned proxy egress.

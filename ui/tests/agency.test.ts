@@ -27,5 +27,17 @@ describe("owner console projection", () => {
         payload: { ...event.payload, request_id: "other-owner" },
       }),
     ).toBe(start);
+    expect(
+      projectAgencyEvent(start, {
+        ...event,
+        payload: { ...event.payload, state: "execute-shell" },
+      }),
+    ).toBe(start);
+    expect(
+      projectAgencyEvent(start, {
+        ...event,
+        payload: { ...event.payload, capability: "process.run" },
+      }),
+    ).toBe(start);
   });
 });

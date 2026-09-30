@@ -25,7 +25,13 @@ export function projectAgencyEvent(
     return actions;
   const prior = actions.find((action) => action.id === id);
   // Events from another owner connection or retired operations cannot populate this console.
-  if (!prior || TERMINAL_ACTION_STATES.has(prior.state)) return actions;
+  if (
+    !prior ||
+    capability !== prior.capability ||
+    !["queued", "running", ...TERMINAL_ACTION_STATES].includes(state) ||
+    TERMINAL_ACTION_STATES.has(prior.state)
+  )
+    return actions;
   const output =
     event.payload.result !== undefined
       ? JSON.stringify(event.payload.result, null, 2)

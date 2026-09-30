@@ -151,7 +151,7 @@ core, and static UI, then opens
 **[http://127.0.0.1:8766](http://127.0.0.1:8766)** once the UI is ready. The window
 shows core/model/speech preparation rather than remaining blank. The core bridge
 uses localhost port 8765. Closing the dedicated window stops Sam; a normal browser
-fallback can be closed and reopened independently.
+debug tab can be closed independently, but cannot authenticate to private core state.
 
 Native-shell source lives in `ui/src-tauri`. Tauri supplies only the native
 window, application lifecycle, identity, and packaged-resource boundary; React

@@ -66,6 +66,78 @@ const flushPromises = async () => {
 };
 
 describe("protocol client", () => {
+  it("keeps agency terminal results separate and ignores a late rejection", async () => {
+    const transport = new ControlledTransport();
+    const client = new ProtocolClient(transport, new ManualScheduler());
+    client.start();
+    await flushPromises();
+    await client.executeCapability("files.read", { root: "workspace", path: "note.txt" });
+    const id = client.getAgencySnapshot()[0].id;
+    transport.observers[0].onEvent({
+      protocol: 1,
+      type: "capability.state",
+      monotonic_ms: 1,
+      payload: {
+        request_id: id,
+        capability: "files.read",
+        state: "completed",
+        result: { text: "data" },
+      },
+    });
+    expect(client.getSnapshot().pendingCommandIds).toEqual([]);
+    transport.observers[0].onEvent({
+      protocol: 1,
+      type: "control.rejected",
+      monotonic_ms: 2,
+      payload: { command_id: id, error: "late rejection" },
+    });
+    expect(client.getAgencySnapshot()[0].state).toBe("completed");
+    expect(client.getAgencySnapshot()[0].output).toContain("data");
+    expect(client.getSnapshot().protocolError).toBeUndefined();
+    expect(client.getSnapshot().transcript).toHaveLength(0);
+    client.stop();
+  });
+
+  it("bounds console history without evicting a live action", async () => {
+    const transport = new ControlledTransport();
+    const client = new ProtocolClient(transport, new ManualScheduler());
+    client.start();
+    await flushPromises();
+    await client.executeCapability("files.read", { root: "workspace", path: "slow.txt" });
+    const active = client.getAgencySnapshot()[0].id;
+    for (let index = 0; index < 70; index++) {
+      await client.executeCapability("system.info", {});
+      const id = client.getAgencySnapshot().at(-1)?.id;
+      transport.observers[0].onEvent({
+        protocol: 1,
+        type: "capability.state",
+        monotonic_ms: index + 1,
+        payload: { request_id: id, capability: "system.info", state: "completed", result: {} },
+      });
+    }
+    expect(client.getAgencySnapshot()).toHaveLength(64);
+    expect(client.getAgencySnapshot()[0].id).toBe(active);
+    expect(client.getAgencySnapshot()[0].state).toBe("queued");
+    transport.observers[0].onDisconnect();
+    expect(client.getAgencySnapshot()[0].state).toBe("cancelled");
+    client.stop();
+  });
+
+  it("unconfirmed action admission fails recoverably and requests cancellation", async () => {
+    const transport = new ControlledTransport();
+    const scheduler = new ManualScheduler();
+    const client = new ProtocolClient(transport, scheduler);
+    client.start();
+    await flushPromises();
+    await client.executeCapability("system.info", {});
+    scheduler.runDelay();
+    expect(client.getAgencySnapshot()[0].state).toBe("failed");
+    expect(transport.sent).toHaveLength(2);
+    expect(transport.sent[1]).toMatchObject({ type: "control.capability.cancel" });
+    client.stop();
+    await expect(client.cancelCapability("old")).resolves.toBeUndefined();
+  });
+
   it("clears a transient startup connection error after reconnect succeeds", async () => {
     const transport = new FailOnceTransport();
     const scheduler = new ManualScheduler();
