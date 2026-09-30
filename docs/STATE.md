@@ -10,6 +10,13 @@ protocol tests and an isolated real-browser binding fixture pass; native source
 compiles. This is not isolation against host memory/code tampering. HQ now places
 secure agency ahead of further AEC; the negative acoustic result stays recorded.
 
+Agency checkpoint 2 adds owner-bound manual action admission on the existing
+tool registry/policy/lease/executor. Monotonic connection sequences reject replay,
+four-task bounds include unwinding work, disconnect suppresses late output and
+shared results fit 16 KiB. Stale invocations are rejected before execution; task
+cancellation becomes terminal. Console/browser wiring follows this contract.
+See [capability contract](AGENCY_CAPABILITIES.md).
+
 The optional [Windows AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md) runs but
 fails its declared echo/double-talk separation gate. Its 11 frame/reset/metric
 tests pass; that is not processor acceptance. Runtime AEC/early barge-in remain

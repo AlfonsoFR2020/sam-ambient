@@ -103,12 +103,15 @@ class ApprovalCorrelation:
 class ToolExecutorConfig:
     approval_timeout_s: float = 60.0
     max_history: int = 256
+    max_result_bytes: int = 16_384
 
     def __post_init__(self) -> None:
         if self.approval_timeout_s <= 0:
             raise ValueError("approval timeout must be positive")
         if self.max_history < 1:
             raise ValueError("tool history must be positive")
+        if not 1024 <= self.max_result_bytes <= 32_768:
+            raise ValueError("tool result limit must fit the protocol boundary")
 
 
 class ToolExecutor:
@@ -144,6 +147,8 @@ class ToolExecutor:
         invocation: ToolInvocation,
         cancellation: CancellationToken,
     ) -> ToolExecution:
+        if not self._is_current(invocation):
+            return ToolExecution(invocation, ToolStatus.STALE)
         key = _invocation_key(invocation)
         leader = False
         async with self._lock:
@@ -188,10 +193,12 @@ class ToolExecutor:
         remove_callback = cancellation.add_callback(
             lambda _reason: loop.call_soon_threadsafe(current_task.cancel)
         )
-        await self._publish(EventType.TOOL_REQUESTED, invocation, {"tool_id": invocation.tool_id})
         lease: CapabilityLease | None = None
         active_key: InvocationKey | None = None
         try:
+            if not self._is_current(invocation):
+                return ToolExecution(invocation, ToolStatus.STALE)
+            await self._publish(EventType.TOOL_REQUESTED, invocation, {"tool_id": invocation.tool_id})
             try:
                 lease = self.authority.issue_lease(invocation)
             except CapabilityRevoked as error:
@@ -233,6 +240,8 @@ class ToolExecutor:
 
             self.authority.require_valid(lease, invocation)
             cancellation.raise_if_cancelled()
+            if not self._is_current(invocation):
+                return ToolExecution(invocation, ToolStatus.STALE)
             if descriptor.supports_cancellation:
                 active_key = _invocation_key(invocation)
                 self._active_cancellable[active_key] = cancellation
@@ -246,6 +255,7 @@ class ToolExecutor:
             try:
                 async with asyncio.timeout(descriptor.timeout_s):
                     result = await tool.execute(invocation.arguments, cancellation)
+                    result = bound_result(result, self.config.max_result_bytes)
             except TimeoutError:
                 return await self._finish(
                     invocation,
@@ -285,7 +295,8 @@ class ToolExecutor:
             )
         except asyncio.CancelledError:
             if not cancellation.is_cancelled:
-                raise
+                remove_callback()
+                cancellation.cancel("execution_task_cancelled")
             return await self._finish(
                 invocation,
                 ToolStatus.CANCELLED,
@@ -479,3 +490,17 @@ def _approval_summary(invocation: ToolInvocation) -> str:
 
 def _invocation_key(invocation: ToolInvocation) -> InvocationKey:
     return invocation.authority_identity
+
+
+def bound_result(result: ToolResult, limit: int = 16_384) -> ToolResult:
+    encoded = json.dumps(dict(result.data), allow_nan=False).encode("utf-8")
+    if len(encoded) <= limit:
+        return result
+    # Explicit data preview, never another tool request. Reserve JSON escaping overhead.
+    return ToolResult(
+        {
+            "preview": encoded[: limit // 3].decode("utf-8", errors="ignore"),
+            "original_bytes": len(encoded),
+        },
+        truncated=True,
+    )

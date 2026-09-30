@@ -9,6 +9,7 @@ import re
 import secrets
 import sys
 from dataclasses import dataclass, field
+from uuid import uuid4
 
 _HEX = re.compile(r"[0-9a-f]{64}\Z")
 _SESSION = re.compile(r"[a-zA-Z0-9_-]{1,80}\Z")
@@ -108,3 +109,20 @@ def read_owner_bootstrap() -> OwnerSession:
         return OwnerSession(bytes.fromhex(encoded))
     except (ValueError, UnicodeError) as error:
         raise OwnerAuthorityError("Owner bootstrap unavailable") from error
+
+
+@dataclass(slots=True, repr=False)
+class OwnerConnection:
+    """Server-created authority context, never accepted from protocol JSON."""
+
+    owner: OwnerSession
+    session_id: str
+    connection_id: str = field(default_factory=lambda: uuid4().hex)
+    retired: bool = False
+
+    @property
+    def active(self) -> bool:
+        return self.owner.active and not self.retired
+
+    def retire(self) -> None:
+        self.retired = True
