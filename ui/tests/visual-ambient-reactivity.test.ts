@@ -8,6 +8,8 @@ describe("ambient visual reactivity", () => {
     for (let step = 0; step < 50; step++)
       expect(response.update(0, 0, 0, 0.7, 0.05, false, false)).toBe(state);
     expect(state).toEqual({
+      outputPulse: 0,
+      inputPresence: 0,
       sustained: 0,
       onset: 0,
       particleSpread: 0,
@@ -60,5 +62,44 @@ describe("ambient visual reactivity", () => {
     expect(slow.current.sustained).toBeCloseTo(fast.current.sustained, 6);
     expect(slow.current.onset).toBeCloseTo(fast.current.onset, 6);
     expect(slow.current.particleSpread).toBeCloseTo(fast.current.particleSpread, 6);
+    expect(Math.abs(slow.current.outputPulse - fast.current.outputPulse)).toBeLessThan(0.005);
+    expect(slow.current.inputPresence).toBeCloseTo(fast.current.inputPresence, 6);
+  });
+
+  it("separates output emphasis from receptive input at ordinary speech levels", () => {
+    const steady = new AmbientReactivity();
+    const syllables = new AmbientReactivity();
+    const listening = new AmbientReactivity();
+    for (let step = 0; step < 20; step++) {
+      steady.update(0, 0.12, 0, 0.7, 0.02, false, false);
+      syllables.update(0, step < 14 ? 0.12 : 0.65, 0, 0.7, 0.02, false, false);
+      listening.update(0.12, 0, 0.3, 0.7, 0.02, false, false);
+    }
+    expect(steady.current.outputPulse).toBeGreaterThan(0.2);
+    expect(syllables.current.outputPulse).toBeGreaterThan(steady.current.outputPulse + 0.2);
+    expect(listening.current.inputPresence).toBeGreaterThan(0.2);
+    expect(listening.current.outputPulse).toBe(0);
+    expect(steady.current.inputPresence).toBe(0);
+  });
+
+  it("follows syllables, returns after cancellation, and leaves zero strength neutral", () => {
+    const response = new AmbientReactivity();
+    const muted = new AmbientReactivity();
+    const pattern = [0, 0.15, 0.35, 0.1, 0.08, 0.72, 0.18, 0];
+    const pulses: number[] = [];
+    for (const sample of pattern) {
+      for (let frame = 0; frame < 3; frame++) {
+        response.update(0, sample, 0, 0.7, 0.02, false, false);
+        muted.update(0.4, sample, 0.8, 0, 0.02, false, false);
+      }
+      pulses.push(response.current.outputPulse);
+    }
+    expect(pulses[5]).toBeGreaterThan(pulses[2]);
+    expect(pulses[7]).toBeLessThan(pulses[5]);
+    expect(muted.current.outputPulse).toBe(0);
+    expect(muted.current.inputPresence).toBe(0);
+    for (let frame = 0; frame < 30; frame++) response.update(0, 0, 0, 0.7, 0.02, true, false);
+    expect(response.current.outputPulse).toBeLessThan(0.01);
+    expect(response.current.inputPresence).toBe(0);
   });
 });

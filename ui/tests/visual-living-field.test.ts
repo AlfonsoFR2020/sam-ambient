@@ -478,12 +478,34 @@ describe("living field substrate", () => {
         42,
         new MotionEvaluator(42),
       );
-      backend.update(new VisualInputAdapter().ingest(INITIAL_UI_STATE, 0));
+      const adapter = new VisualInputAdapter();
+      backend.update(adapter.ingest(INITIAL_UI_STATE, 0));
       backend.render(0);
       expect(materialIntensity.slice(-2)).toEqual([0.82, 0.82]);
       backend.configure({ ...DEFAULT_VISUAL_ENGINE_SETTINGS, intensity: 0.1 });
       backend.render(50);
       expect(materialIntensity.slice(-2)).toEqual([0.1, 0.1]);
+      backend.update(
+        adapter.ingest(
+          {
+            ...INITIAL_UI_STATE,
+            connection: "connected",
+            provider: "local",
+            model: "chat",
+            sessionId: "session",
+            generationId: "generation",
+            conversationalState: "SPEAKING",
+            ttsOutputEnabled: true,
+            lastMonotonicByType: { "tts.level": 100 },
+            metrics: { ...INITIAL_UI_STATE.metrics, playbackEnvelope: 0.6 },
+          },
+          100,
+        ),
+      );
+      backend.render(100);
+      backend.render(150);
+      expect(materialIntensity.at(-2)).toBeGreaterThan(0.1);
+      expect(materialIntensity.at(-1)).toBe(materialIntensity.at(-2));
       const fragments = shaderSources.filter((source) => source.includes(LIVING_MATERIAL_GLSL));
       expect(shaderSources.filter((source) => source.includes(LIVING_FIELD_GLSL))).toHaveLength(4);
       expect(fragments).toHaveLength(2);
@@ -500,10 +522,10 @@ describe("living field substrate", () => {
       );
       if (baseFragments) expect(normalized).toEqual(baseFragments);
       else baseFragments = normalized;
-      expect(states).toHaveLength(4);
+      expect(states).toHaveLength(8);
       expect(states[0].values).toEqual(states[1].values);
       expect(states[0].program).not.toBe(states[1].program);
-      expect(paletteBalanceUniforms).toHaveLength(4);
+      expect(paletteBalanceUniforms).toHaveLength(8);
       expect(paletteBalanceUniforms[0].value).toBe(paletteBalanceUniforms[1].value);
       expect(paletteBalanceUniforms[2].value).toBe(paletteBalanceUniforms[3].value);
       expect(offsets).toHaveLength(4);
@@ -513,6 +535,14 @@ describe("living field substrate", () => {
       if (baseOffsets) expect(seeded).toEqual(baseOffsets);
       else baseOffsets = seeded;
       expect(draws).toEqual([
+        "indexed",
+        "indexed",
+        "indexed",
+        "array",
+        "indexed",
+        "indexed",
+        "indexed",
+        "array",
         "indexed",
         "indexed",
         "indexed",

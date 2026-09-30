@@ -165,12 +165,13 @@ barge-in remain deferred and are unaffected by this checkpoint.
   assign all transcript errors to Whisper.
 - Keep Sam's voice persona coherent across languages. The session selected
   Microsoft David Desktop for English and Helena Desktop for Spanish.
-- Drive distinct listening and speaking embodiments from the existing input
-  and output activity measurements. Sam's speech should create fast, bounded
-  emphasis-sensitive Orb expansion and illumination pulses with rapid return;
-  listening should respond differently. Preserve autonomous motion underneath.
-  The beta showed nonzero input and playback metrics but essentially no useful
-  visible reaction.
+- The first visual-embodiment checkpoint now maps measured output RMS to a fast,
+  bounded expansion/illumination pulse with an independent slow speech baseline;
+  input RMS drives subtler receptive tension. The existing Audio reactivity
+  control scales both. The beta showed nonzero metrics but essentially no useful
+  visible reaction because ordinary RMS was suppressed by the former response
+  curve and tiny radius/light mapping. Deterministic checks cover the new
+  mapping; physical/perceptual acceptance is still open.
 
 ## 3. Visual, UI, and product work after the P0 repair
 

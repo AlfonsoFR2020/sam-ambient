@@ -307,16 +307,18 @@ Visual diagnostics may expose stale or frozen energy to a human but never acquir
 VAD, STT, interruption or cancellation authority. Section 14 of v1 keeps the
 detailed feature, expiry, privacy and mapping questions for a strong-model pass.
 
-The current renderer-only AmbientReactivity accepts existing input/output
-envelopes and the reported input peak. The input adapter validates, correlates
-and ages source samples; this visual layer alone owns response attack/release
-(sustained 60/180 ms, onset 25/180 ms, interrupted release 120 ms), with a
-50 ms integration cap and a zero neutral state. It exposes normalized sustained
-and onset values and bounded particle perturbations: at most +0.14 Orb units of
-spread, +30% orbit rate, and +26% opacity. Existing body relief, membrane lift
-and glow remain bounded consumers of those same smoothed values. There is no
-new speech/semantic inference or audio extractor. Later input/output waveform,
-frequency and semantic channels require real upstream evidence and timing tests.
+The renderer-only AmbientReactivity accepts existing input/output envelopes and
+the reported input peak. The input adapter validates, correlates and ages source
+samples; this visual layer alone owns response attack/release, with a 50 ms
+integration cap and a zero neutral state. Output RMS receives a compressed
+speech-range mapping, a slow baseline and a fast emphasis pulse (35 ms attack,
+110 ms release). Its pulse expands the body and raises illumination/highlight;
+input RMS has a separate, smaller receptive tension and rim/opening response.
+The existing Audio reactivity control scales both, including an exact zero.
+Sustained/onset still provide bounded particle perturbations: at most +0.14 Orb
+units of spread, +30% orbit rate, and +26% opacity. No new speech/semantic
+inference or audio extractor is involved. Later richer waveform, frequency and
+semantic channels require real upstream evidence and timing tests.
 Suspending the visual clock clears held visual energy; resume uses only fresh
 reported input and does not advance orbital phases for the hidden interval.
 

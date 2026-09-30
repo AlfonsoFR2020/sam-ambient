@@ -150,6 +150,16 @@ metadata now reports 0.2.3 for release preparation.
   unchanged. Input expiry remains in the adapter. Counts, draw budget, quality
   caps and all core/audio protocols are unchanged. Representative GPU cost,
   sparse-field perception and physical voice reactivity remain unverified.
+- Post-v0.2.3 visual embodiment checkpoint 1 maps existing measured `tts.level`
+  and `voice.level` separately. Visual-only AmbientReactivity compresses ordinary
+  speech RMS, tracks a slow output baseline and a fast output emphasis pulse,
+  and gives microphone activity a smaller receptive response. Output pulse
+  expands the body and raises material illumination/highlight; input gently
+  tightens the body and changes its rim/opening. The existing Audio reactivity
+  setting scales both and zero removes audio modulation. Cancellation and stale
+  samples release to the autonomous baseline. No protocol, audio producer,
+  shader sample, draw, or geometry count changed. Deterministic signals verify
+  bounds and relative responses; human perceptual acceptance remains open.
 - v0.2.3 Living Surface uses one deterministic, seamless object-space
   two-shear/two-scale field for the WebGL body and irregular membrane fragments. Broad asymmetric
   shears now deform and carry pigment regions instead of relying mainly on rigid

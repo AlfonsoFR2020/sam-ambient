@@ -425,7 +425,6 @@ export class MotionEvaluator {
           live(input.audio.input, safeNow, input.audio.input?.transient),
         )
       : 0;
-    const inputResponse = ease(inputEnvelope * settings.audioReactivity);
     this.ambientReactivity.update(
       inputEnvelope,
       outputEnvelope,
@@ -435,6 +434,8 @@ export class MotionEvaluator {
       this.interruption > 0,
       spatiallyFrozen,
     );
+    const { outputPulse, inputPresence } = this.ambientReactivity.current;
+    const inputResponse = inputPresence;
 
     const motion = spatiallyFrozen ? 0 : motionRateScale(settings.motionIntensity);
     const flowTarget = this.pointerHolding ? SURFACE_FLOW.pointerRate : 1;
@@ -498,15 +499,16 @@ export class MotionEvaluator {
 
     this.frame.foreground = input.interaction.foreground;
     this.frame.radius = clamp(
-      this.radius + breath + this.envelope * 0.055 - contraction,
+      this.radius + breath + outputPulse * 0.075 - inputPresence * 0.014 - contraction,
       0.92,
-      1.1,
+      1.14,
     );
     const availabilityScale =
       input.interaction.availability === "stopped" ? 0.45 : stationary ? 0.65 : 1;
     const desiredGlow = clamp(
       (this.glow +
-        this.envelope * 0.28 +
+        outputPulse * 0.36 +
+        inputPresence * 0.055 +
         this.peak * 0.1 +
         reasoningCue +
         delegatedCue +
@@ -514,13 +516,16 @@ export class MotionEvaluator {
         settings.intensity *
         availabilityScale,
       0.12,
-      0.85,
+      0.9,
     );
     if (rawDt === 0 || spatiallyFrozen) this.renderedGlow = desiredGlow;
-    else {
-      const maximumChange = 0.8 * dt;
-      this.renderedGlow += clamp(desiredGlow - this.renderedGlow, -maximumChange, maximumChange);
-    }
+    else
+      this.renderedGlow = blend(
+        this.renderedGlow,
+        desiredGlow,
+        dt,
+        desiredGlow > this.renderedGlow ? 0.045 : 0.12,
+      );
     this.frame.glow = this.renderedGlow;
     this.frame.opening = unit(this.opening + listeningOpening + yielding + acknowledgement);
     this.frame.spin = this.spinPhase;
@@ -564,7 +569,7 @@ export class MotionEvaluator {
       : clamp(this.envelope * 0.018 + this.peak * 0.004, 0, 0.022);
     this.frame.highlight = spatiallyFrozen
       ? 0
-      : clamp(this.peak * 0.12 + this.envelope * 0.035, 0, 0.12);
+      : clamp(this.peak * 0.06 + outputPulse * 0.13, 0, 0.15);
     this.frame.rim = clamp(this.rim + inputResponse * 0.12, 0.12, 0.48);
     this.frame.particleExcitation = spatiallyFrozen
       ? 0

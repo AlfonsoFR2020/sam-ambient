@@ -394,13 +394,58 @@ describe("continuous Visual Engine motion", () => {
       audio: { output: { receivedMs: 0, envelope: 1 } },
     });
     expect(frame.radius).toBeGreaterThan(STATE_TARGETS.speaking.radius);
-    expect(frame.radius).toBeLessThanOrEqual(1.1);
-    expect(frame.glow).toBeLessThanOrEqual(0.85);
+    expect(frame.radius).toBeLessThanOrEqual(1.14);
+    expect(frame.glow).toBeLessThanOrEqual(0.9);
     expect(frame.surfaceDeformation).toBeLessThanOrEqual(0.026);
     expect(frame.surfaceRipple).toBeLessThanOrEqual(0.022);
     expect(frame.highlight).toBeLessThanOrEqual(0.12);
     expect(frame.peelLift).toBeLessThanOrEqual(0.018);
     expect(frame.peelWidth).toBeLessThanOrEqual(1.35);
+  });
+
+  it("makes measured output pulse the strong expansion and input a receptive tension", () => {
+    const settings = DEFAULT_VISUAL_ENGINE_SETTINGS;
+    const render = (output: number, input: number, amount = settings.audioReactivity) => {
+      const evaluator = new MotionEvaluator(12);
+      const interaction = visualInput("speaking").interaction;
+      for (let time = 0; time <= 300; time += 20)
+        evaluator.evaluate(
+          visualInput("speaking", {
+            audio: {
+              output: { receivedMs: time, envelope: output },
+              input: { receivedMs: time, envelope: input, peak: input },
+            },
+            interaction: { ...interaction, listening: input > 0 },
+          }),
+          time,
+          { ...settings, audioReactivity: amount },
+          RENDER_BUDGETS.high,
+        );
+      const frame = evaluator.currentFrame;
+      return {
+        radius: frame.radius,
+        glow: frame.glow,
+        highlight: frame.highlight,
+        outputPulse: frame.reactivity.outputPulse,
+        inputPresence: frame.reactivity.inputPresence,
+        spin: frame.spin,
+      };
+    };
+    const silent = render(0, 0);
+    const speaking = render(0.35, 0);
+    const emphasized = render(0.8, 0);
+    const listening = render(0, 0.35);
+    const muted = render(0.8, 0.35, 0);
+    expect(speaking.radius - silent.radius).toBeGreaterThan(0.025);
+    expect(speaking.glow - silent.glow).toBeGreaterThan(0.08);
+    expect(emphasized.radius).toBeGreaterThan(speaking.radius);
+    expect(emphasized.highlight).toBeGreaterThan(speaking.highlight);
+    expect(listening.radius).toBeLessThan(silent.radius);
+    expect(listening.inputPresence).toBeGreaterThan(0);
+    expect(listening.outputPulse).toBe(0);
+    expect(muted.radius).toBeCloseTo(silent.radius, 8);
+    expect(muted.glow).toBeCloseTo(silent.glow, 8);
+    expect(speaking.spin).toBe(silent.spin);
   });
 
   it("combines simultaneous input/output by maximum rather than summing", () => {

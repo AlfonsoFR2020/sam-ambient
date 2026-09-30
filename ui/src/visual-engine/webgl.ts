@@ -662,7 +662,12 @@ export class WebGLBackend implements RendererBackend {
   private setCommonUniforms(uniforms: CommonUniforms, frame: MotionFrame): void {
     const gl = this.gl;
     gl.uniform1f(uniforms.radius, frame.radius);
-    gl.uniform1f(uniforms.intensity, this.settings.intensity);
+    // Keep the user setting as baseline while actual output energy illuminates
+    // both body and membrane. The halo already consumes frame.glow separately.
+    gl.uniform1f(
+      uniforms.intensity,
+      Math.min(1, this.settings.intensity + frame.reactivity.outputPulse * 0.22),
+    );
     gl.uniform2f(uniforms.scale, this.scaleX, this.scaleY);
   }
 
