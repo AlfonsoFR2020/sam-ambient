@@ -56,5 +56,11 @@ antivirus review and trusted Authenticode signing.
 Changes to configuration keys must include validation
 tests and update `config/sam.example.toml` plus the relevant setup/user docs.
 CI validates releases but never publishes them.
+
+Optional offline Windows acoustic experiments require **already installed** C++
+Build Tools/Windows SDK and the existing NumPy fixture environment. The build
+helper installs nothing and writes only ignored `.sam` artifacts. See the
+[filter probe evidence](docs/AEC_WINDOWS_FILTER_PROBE_2026-10-01.md); its negative
+gate must not be mistaken for a runtime feature or production acceptance.
 Use the human-controlled [release checklist](docs/RELEASE_CHECKLIST.md) when
 preparing an alpha; integrated feature source is not release or acceptance approval.

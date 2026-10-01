@@ -143,10 +143,10 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 - Local speech uses PortAudio/WebRTC VAD/whisper.cpp and System.Speech on Windows
   (eSpeak fallback on supported Linux). Raw audio is not persisted; missing speech
   components degrade to text. Physical timing/device recovery is not broadly accepted.
-- The optional lightweight [AEC probe](AEC_PROTOTYPE_2026-09-30.md) failed its declared
-  echo/double-talk gate; passing frame/reset tests is not processor acceptance.
-  Runtime AEC and prompt one-second barge-in remain unimplemented. Its next upstream
-  APM feasibility experiment is separate from agency, not an agency prerequisite.
+- The lightweight [AEC probe](AEC_PROTOTYPE_2026-09-30.md) and optional
+  [Windows filter probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) fail the echo gate.
+  Windows near-end preservation passes; runtime AEC/early barge-in remain absent.
+  Next acoustic step is a separately maintained pinned full upstream APM build/probe.
 
 See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 

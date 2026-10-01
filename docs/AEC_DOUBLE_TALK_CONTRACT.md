@@ -2,6 +2,10 @@
 
 Status: **architecture recommendation, not an implemented AEC feature** (2026-09-30). The [physical beta evidence](POST_0.2.3_BETA_PLAN.md) and current runtime establish the need. This document specifies a falsifiable next step; it does not claim that any processor works on Sam's devices.
 
+Consolidation II [probed Windows filter-mode AEC](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md).
+Near-end preservation passes, echo rejection fails; early barge-in remains absent.
+Full upstream APM has not been measured and needs a separate pinned native build.
+
 The first [offline Windows AEC3 probe](AEC_PROTOTYPE_2026-09-30.md) runs through
 an optional native binding but **fails the declared separation gate**. No runtime
 integration or early barge-in was attempted. Its measured 8 ms signal latency

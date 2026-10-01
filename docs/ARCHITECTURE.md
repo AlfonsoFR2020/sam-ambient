@@ -166,6 +166,11 @@ An optional [offline AEC3 probe](AEC_PROTOTYPE_2026-09-30.md) now tests fixed
 The selected extraction binding failed the integration gate. It is not imported
 by runtime audio, and no live reference buffer or early-interruption path exists.
 
+The [Windows filter-mode probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) uses an
+optional authored C++/COM shim and the installed OS DSP, not PortAudio replacement.
+Its near-end gate passes, but echo reduction fails; it remains outside runtime.
+Full upstream APM requires a separately pinned native build before comparison.
+
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. `dev` implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded

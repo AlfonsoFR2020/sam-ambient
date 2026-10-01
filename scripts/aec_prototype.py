@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from typing import Protocol
 
 import numpy as np
-from pywebrtc_audio import EchoCanceller
 
 RATE = 16_000
 SAMPLES = 160
@@ -36,6 +35,9 @@ class PrototypeAec3:
     """
 
     def __init__(self) -> None:
+        from pywebrtc_audio import EchoCanceller
+
+        self._constructor = EchoCanceller
         self._native = EchoCanceller(sample_rate=RATE, num_channels=1)
 
     def process(self, capture: bytes, render: bytes, *, delay_ms: int) -> bytes:
@@ -51,7 +53,7 @@ class PrototypeAec3:
 
     def reset(self) -> None:
         # Recreate buffers too: upstream reset retains AudioBuffers/resampler history.
-        self._native = EchoCanceller(sample_rate=RATE, num_channels=1)
+        self._native = self._constructor(sample_rate=RATE, num_channels=1)
 
 
 def speech_like(seed: int, seconds: int = 8) -> np.ndarray:
@@ -109,14 +111,14 @@ def reduction_db(before: np.ndarray, after: np.ndarray) -> float:
     return 10 * math.log10((float(before @ before) + 1e-12) / (float(after @ after) + 1e-12))
 
 
-def measure_signal_latency() -> int:
+def measure_signal_latency(processor_factory=PrototypeAec3) -> int:
     """Measurement alignment only, never an acoustic ownership classifier.
 
     Broadband near-only calibration distinguishes fixed processor latency from
     signal loss. Limit the search to 30 ms; this is separate from echo-path delay.
     """
     near = np.random.default_rng(88).normal(0, 0.03, RATE * 3)
-    output, _ = run_frames(PrototypeAec3(), near, np.zeros_like(near), np.zeros(300))
+    output, _ = run_frames(processor_factory(), near, np.zeros_like(near), np.zeros(300))
     desired = near[RATE : 2 * RATE]
     return max(range(481), key=lambda lag: float(output[RATE + lag : 2 * RATE + lag] @ desired))
 
@@ -132,9 +134,9 @@ class Acceptance:
     near_sdr_db: float = 6  # independent signal power >= 4x residual error
 
 
-def evaluate() -> dict[str, object]:
+def evaluate(processor_factory=PrototypeAec3) -> dict[str, object]:
     gate = Acceptance()
-    latency = measure_signal_latency()
+    latency = measure_signal_latency(processor_factory)
     render = speech_like(13)
     near = speech_like(41)
     count = len(render) // SAMPLES
@@ -143,7 +145,7 @@ def evaluate() -> dict[str, object]:
     warm = slice(2 * RATE, None)
     for delay in [0, 40, 80, 160]:
         echo = echo_path(render, delay)
-        output, cost = run_frames(PrototypeAec3(), echo, render, np.full(count, delay))
+        output, cost = run_frames(processor_factory(), echo, render, np.full(count, delay))
         attenuation = reduction_db(echo[warm], output[warm])
         reports.append(
             {
@@ -160,7 +162,7 @@ def evaluate() -> dict[str, object]:
     noise = np.random.default_rng(55).normal(0, 0.001, len(render))
     echo = echo_path(render, 80)
     mixture = echo + noise
-    output, cost = run_frames(PrototypeAec3(), mixture, render, np.full(count, 80))
+    output, cost = run_frames(processor_factory(), mixture, render, np.full(count, 80))
     attenuation = reduction_db(mixture[warm], output[warm])
     reports.append(
         {
@@ -177,7 +179,7 @@ def evaluate() -> dict[str, object]:
         start = round(onset * RATE)
         human[:start] = 0
         mixed = echo_path(far, 80) + human
-        output, cost = run_frames(PrototypeAec3(), mixed, far, np.full(count, 80))
+        output, cost = run_frames(processor_factory(), mixed, far, np.full(count, 80))
         # First second tests prompt preservation, rather than cherry-picking late convergence.
         segment = slice(start, start + RATE)
         desired = human[segment]
@@ -198,7 +200,7 @@ def evaluate() -> dict[str, object]:
     changed[4 * RATE :] = echo_path(render, 100)[4 * RATE :]
     delays = np.full(count, 40)
     delays[400:] = 100
-    output, cost = run_frames(PrototypeAec3(), changed, render, delays)
+    output, cost = run_frames(processor_factory(), changed, render, delays)
     attenuation = reduction_db(changed[6 * RATE :], output[6 * RATE :])
     reports.append(
         {
