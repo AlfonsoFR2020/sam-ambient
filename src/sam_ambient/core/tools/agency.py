@@ -21,6 +21,12 @@ class CapabilityKind(StrEnum):
     BROWSER_NAVIGATE = "browser.navigate"
     BROWSER_READ = "browser.read"
     BROWSER_CLOSE = "browser.close"
+    MEMORY_LIST = "memory.list"
+    MEMORY_GET = "memory.get"
+    MEMORY_CREATE = "memory.create"
+    MEMORY_CORRECT = "memory.correct"
+    MEMORY_APPROVE = "memory.approve"
+    MEMORY_DELETE = "memory.delete"
 
 
 @dataclass(slots=True)

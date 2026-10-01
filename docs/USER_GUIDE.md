@@ -1,5 +1,16 @@
 # Using Sam
 
+## Personal memory (post-v0.2.3 development)
+
+Open **Memory** in Sam's authenticated owner window to deliberately store a fact,
+preference or project context. Inspect its source/review state, correct it, approve
+a proposed claim or permanently delete it. Memory is separate from chat history.
+Use Personal scope across workspaces, or This workspace for project context.
+Stored credentials are prohibited. The plaintext local database is
+`%LOCALAPPDATA%/Sam/memory.sqlite3` on Windows; back it up only according to your
+privacy needs. Deletion removes live content, not external backups/provider copies.
+See [memory semantics and limits](MEMORY_FOUNDATION_I.md).
+
 Start with [Getting started](GETTING_STARTED.md). On Windows, double-click
 [`Start Sam.cmd`](../Start%20Sam.cmd) in a prepared checkout. For terminal/debug
 use, run `uv run --no-sync sam-ambient`. The dedicated Sam window proves owner

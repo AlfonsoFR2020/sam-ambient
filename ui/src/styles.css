@@ -1,3 +1,52 @@
+.memory-reveal {
+  position: fixed;
+  right: 102px;
+  bottom: 18px;
+  z-index: 12;
+}
+.memory-manager {
+  position: fixed;
+  right: 16px;
+  top: 80px;
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100dvh - 150px);
+  overflow-y: auto;
+  padding: 16px;
+  z-index: 25;
+  background: #161412f5;
+  border: 1px solid #756047;
+  border-radius: 12px;
+}
+.memory-manager header,
+.memory-manager__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.memory-manager form,
+.memory-manager label {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.memory-manager textarea {
+  min-height: 90px;
+}
+.memory-manager__records {
+  max-height: 32vh;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  margin: 12px 0;
+}
+.memory-manager article {
+  border-bottom: 1px solid #756047;
+  padding: 10px 0;
+}
+.memory-manager small {
+  display: block;
+  opacity: 0.7;
+}
 .agency-reveal {
   position: fixed;
   right: 1.5rem;

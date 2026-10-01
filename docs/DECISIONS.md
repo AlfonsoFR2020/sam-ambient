@@ -1,5 +1,15 @@
 # Decision log
 
+## 2026-10-01 — Memory management is owner-only shared capability authority
+
+Use a separate app-data SQLite store and stable database principal, not ephemeral
+session identity or chat-log import. Owner CRUD is hidden from model schemas and
+also denied by the executor without a current direct owner action. A narrow
+OWNER_DATA_MUTATION class requires exact authenticated approval and grants no
+general destructive process/file power. Transactions recheck the live token and
+owner before commit. A committed write cannot be retroactively rolled back by
+disconnect; expected revisions and explicit refresh provide recovery.
+
 ## 2026-10-01 — Trusted owner UI receives origin-scoped loopback permission
 
 Chromium blocks loopback WebSockets from privately fulfilled owner assets without

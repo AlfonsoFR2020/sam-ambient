@@ -55,3 +55,36 @@ tests. Runtime/UI, retrieval/context and model proposal admission are later
 checkpoints in this action set, not implied by storage tests.
 
 Synthetic correctness is separate from owner acceptance of recall/privacy.
+
+## Owner management boundary (checkpoint 3)
+
+Normal core startup opens the default app-data store; `sam runtime --memory-db`
+selects an explicit test/development store and `--no-memory` disables it for that
+core session. In-process runtime tests default to no memory unless they provide
+a path; real-core fixtures override the default into a temporary directory.
+
+`memory.list/get/create/correct/approve/delete` use existing owner-authenticated
+capability admission, schema, lease, cancellation and bounded executor. CRUD tools
+are owner-only and excluded from model schemas; guessed model calls are denied
+before policy approval. The storage principal is pinned by the runtime, not supplied
+by a client/model argument. Workspace scope is derived from the canonical root.
+
+An exact direct owner mutation request is its approval; the new narrow
+OWNER_DATA_MUTATION policy does not authorize shell/file destructive actions.
+Deletion has a separate confirmation in the owner UI and an expected revision.
+Memory tools additionally require the live server-owned action/token object before
+database work and before transaction commit. Cancellation rolls back uncommitted
+work; a transaction already committed cannot be undone by a late cancellation or
+lost acknowledgement—refresh reflects the authoritative store.
+
+The **Memory** surface is separate from chat and Console: searchable/filterable,
+eight-record pages, bounded previews, full inspect/correct, provenance/review,
+explicit creation, proposal approval and permanent deletion. React text rendering
+keeps stored markup inert. Both panel and entries scroll. Disconnect clears the
+view/editor; capability results are bounded transient owner-client state, not a
+second durable store. Routine diagnostics do not log contents.
+
+Checkpoint 3 evidence: authenticated real-WebSocket CRUD plus hidden model-tool
+denial; store/executor/action regressions; frontend projection/client tests;
+isolated Chrome memory create/correct/delete/inert text/scroll test; TypeScript,
+Ruff/Biome and packaged frontend asset build. No provider/audio run for this phase.

@@ -5,6 +5,7 @@ export interface AgencyAction {
   capability: string;
   state: string;
   output?: string;
+  result?: Record<string, unknown>;
   truncated?: boolean;
 }
 export const TERMINAL_ACTION_STATES = new Set([
@@ -45,6 +46,13 @@ export function projectAgencyEvent(
           capability,
           state,
           output: output?.slice(0, 20_000),
+          result:
+            event.payload.result &&
+            typeof event.payload.result === "object" &&
+            !Array.isArray(event.payload.result) &&
+            JSON.stringify(event.payload.result).length <= 16_384
+              ? (event.payload.result as Record<string, unknown>)
+              : undefined,
           truncated: event.payload.truncated === true || (output?.length ?? 0) > 20_000,
         }
       : action,

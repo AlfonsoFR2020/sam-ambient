@@ -23,6 +23,7 @@ import {
 } from "./controls/model";
 import { DemoTransport } from "./demo/scenarios";
 import { MessageContent } from "./MessageContent";
+import { MemoryManager } from "./memory/Manager";
 import { isNativeShell, nativeShellRuntime } from "./native/runtime";
 import type { UiState } from "./protocol/types";
 import { QuitDialog, ShutdownStatus } from "./QuitDialog";
@@ -786,6 +787,10 @@ export default function App() {
       {preferences.transcriptVisible && <Transcript state={state} />}
       <ToolActivity state={state} applyAction={applyAction} />
       <AgencyConsole
+        client={client}
+        connected={state.connection === "connected" && state.capabilityAuthorityActive}
+      />
+      <MemoryManager
         client={client}
         connected={state.connection === "connected" && state.capabilityAuthorityActive}
       />

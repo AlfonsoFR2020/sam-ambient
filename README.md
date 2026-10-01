@@ -10,6 +10,10 @@ Sam combines a reactive ambient presence with interruptible conversation and
 approval-controlled computer capabilities. Models and speech engines remain
 replaceable; trusted code owns permissions, recovery, and updates.
 
+Post-v0.2.3 development includes owner-managed local personal memory with source
+and review metadata, correction and deletion in a separate **Memory** surface.
+It is not automatic chat-log retention. See [memory foundation](docs/MEMORY_FOUNDATION_I.md).
+
 Inspired in part by the vision of ambient computing portrayed in *Her*, Sam
 explores an interaction model in which an AI assistant is not merely a chatbot
 inside another application, but a persistent, conversational layer through

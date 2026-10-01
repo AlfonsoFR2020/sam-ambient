@@ -57,7 +57,10 @@ export class ProtocolClient {
   getSnapshot = (): UiState => this.state;
   getAgencySnapshot = (): readonly AgencyAction[] => this.agency;
 
-  async executeCapability(capability: string, args: Record<string, unknown>): Promise<void> {
+  async executeCapability(
+    capability: string,
+    args: Record<string, unknown>,
+  ): Promise<string | undefined> {
     if (this.agency.filter((action) => !TERMINAL_ACTION_STATES.has(action.state)).length >= 4)
       return;
     const command = createControlCommand(
@@ -88,6 +91,7 @@ export class ProtocolClient {
       );
       for (const listener of this.listeners) listener();
     }
+    return command.command_id;
   }
 
   async cancelCapability(requestId: string): Promise<void> {

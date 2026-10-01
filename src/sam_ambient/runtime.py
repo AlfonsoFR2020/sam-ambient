@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import re
@@ -24,6 +25,8 @@ from sam_ambient.adapters.stt.whisper_cpp import (
     SpeechRecognitionUnavailable,
 )
 from sam_ambient.adapters.ui import DEFAULT_UI_BRIDGE_PORT, WebSocketCoreBridge
+from sam_ambient.core.memory import MemoryError, MemoryStore
+from sam_ambient.core.memory.tools import MemoryTool
 from sam_ambient.core.owner import OwnerConnection, OwnerSession
 from sam_ambient.core.protocol import (
     CancellationTarget,
@@ -253,6 +256,7 @@ class RuntimeConfig:
     capabilities_active: bool = True
     capability_reason: str | None = None
     state_db: Path | None = None
+    memory_db: Path | None = None
     tts_voice: str = "default"
     language: str = "auto"
     provider_selection_reason: str = "explicit runtime provider"
@@ -564,7 +568,29 @@ class SamRuntime:
             )
         )
         self.owned_browser = OwnedBrowser()
+        self.memory: MemoryStore | None = None
+        self.memory_error: str | None = None
+        self.memory_workspace_scope = (
+            "workspace:"
+            + hashlib.sha256(str(config.workspace_root).casefold().encode("utf-8")).hexdigest()[:32]
+        )
+        if config.memory_db is not None:
+            try:
+                self.memory = MemoryStore(config.memory_db)
+            except MemoryError as error:
+                self.memory_error = str(error)
+                log.warning("Optional memory store unavailable; text remains usable")
         self.tools = registry or self._default_tools()
+        if config.memory_db is not None:
+            for operation in ("list", "get", "create", "correct", "approve", "delete"):
+                self.tools.register(
+                    MemoryTool(
+                        operation,
+                        self._memory_store,
+                        self._memory_owner_action,
+                        self.memory_workspace_scope,
+                    )
+                )
         self.approvals = ApprovalBroker()
         self.capability_authority = CapabilityAuthority(
             active=config.capabilities_active,
@@ -607,6 +633,7 @@ class SamRuntime:
             self.approvals,
             self._publish_tool_event,
             is_current=self._is_current_tool,
+            is_owner=lambda invocation: self.owner_actions.is_current(invocation),
             clock_ms=self._next_event_ms,
             authority=self.capability_authority,
         )
@@ -623,6 +650,11 @@ class SamRuntime:
                     CapabilityKind.BROWSER_NAVIGATE,
                     CapabilityKind.BROWSER_READ,
                     CapabilityKind.BROWSER_CLOSE,
+                    *(
+                        kind
+                        for kind in CapabilityKind
+                        if kind.value.startswith("memory.") and config.memory_db is not None
+                    ),
                 }
             ),
         )
@@ -2596,6 +2628,18 @@ class SamRuntime:
             invocation.generation_id is not None
             and invocation.generation_id == self._active_generation_id
         )
+
+    def _memory_store(self) -> MemoryStore:
+        if self.memory is None:
+            raise MemoryError(self.memory_error or "Memory is not configured")
+        return self.memory
+
+    def _memory_owner_action(self, token: CancellationToken) -> OwnerAction:
+        for action in tuple(self.owner_actions.active.values()):
+            if action.token is token and action.connection.active and not token.is_cancelled:
+                if self.capability_authority.snapshot.active:
+                    return action
+        raise MemoryError("Memory requires a current authenticated owner action")
 
     async def _execute_owner_action(
         self, command: ControlCommand, connection: OwnerConnection

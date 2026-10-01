@@ -21,6 +21,7 @@ class RiskClass(StrEnum):
     EXTERNAL_SIDE_EFFECT = "EXTERNAL_SIDE_EFFECT"
     PRIVILEGED = "PRIVILEGED"
     DESTRUCTIVE = "DESTRUCTIVE"
+    OWNER_DATA_MUTATION = "OWNER_DATA_MUTATION"
 
 
 class SideEffect(StrEnum):
@@ -63,6 +64,7 @@ class ToolDescriptor:
     supports_cancellation: bool
     timeout_s: float
     side_effect: SideEffect
+    owner_only: bool = False
 
     def __post_init__(self) -> None:
         if not _TOOL_ID.fullmatch(self.id):

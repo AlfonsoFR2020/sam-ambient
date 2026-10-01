@@ -5,8 +5,9 @@ from __future__ import annotations
 import os
 import re
 import sqlite3
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,6 +18,9 @@ MAX_CONTENT = 1200
 KINDS = ("fact", "preference", "project")
 SOURCES = ("owner", "model", "conversation", "tool", "web")
 _WORD = re.compile(r"[^\W_]+", re.UNICODE)
+_GUARD: ContextVar[Callable[[], None]] = ContextVar(
+    "memory_transaction_guard", default=lambda: None
+)
 _SECRET = re.compile(
     r"-----BEGIN [A-Z ]*PRIVATE KEY-----|\b(?:sk|ghp|github_pat)[-_][\w-]{16,}"
     r"|\b(?:password|passwd|api[_ -]?key|auth[_ -]?token|secret)\s*[:=]\s*\S+"
@@ -27,6 +31,15 @@ _SECRET = re.compile(
 
 class MemoryError(ValueError):
     """A sanitized memory failure, safe to report without content or SQL details."""
+
+
+@contextmanager
+def guarded_transaction(check: Callable[[], None]) -> Iterator[None]:
+    handle = _GUARD.set(check)
+    try:
+        yield
+    finally:
+        _GUARD.reset(handle)
 
 
 def default_memory_path() -> Path:
@@ -126,7 +139,9 @@ class MemoryStore:
             db.execute("PRAGMA secure_delete=ON")
             db.execute("PRAGMA foreign_keys=ON")
             with db:
+                _GUARD.get()()
                 yield db
+                _GUARD.get()()
         except sqlite3.Error:
             raise MemoryError(
                 "Memory database unavailable; text conversation remains usable"

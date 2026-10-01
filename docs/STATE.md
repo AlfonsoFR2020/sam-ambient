@@ -6,7 +6,8 @@ Updated: 2026-09-30
 
 - Memory checkpoint 2 adds a separate transactional SQLite store, stable scoped
   principal, provenance/review, revision checks and content-removing correction/
-  deletion. Isolated tests only; runtime/UI/context admission follows separately.
+  deletion. Checkpoint 3 adds authenticated owner-only CRUD and a separate Memory
+  surface. Model CRUD is denied; retrieval/context/proposals follow separately.
   See [memory implementation](MEMORY_FOUNDATION_I.md).
 
 - 2026-10-01: existing LM Studio/Gemma completed one owner-window structured read,

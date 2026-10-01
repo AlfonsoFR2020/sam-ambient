@@ -64,7 +64,11 @@ class ToolRegistry:
         return tuple(tool.descriptor for tool in self._tools.values())
 
     def provider_schemas(self) -> tuple[ToolSchema, ...]:
-        return tuple(descriptor.provider_schema() for descriptor in self.descriptors())
+        return tuple(
+            descriptor.provider_schema()
+            for descriptor in self.descriptors()
+            if not descriptor.owner_only
+        )
 
     def validate(self, tool: ToolHandler, arguments: Mapping[str, Any]) -> None:
         _validate_value(dict(tool.descriptor.input_schema), arguments, "arguments")

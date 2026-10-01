@@ -1,5 +1,10 @@
 # Getting started with Sam
 
+Post-v0.2.3 development starts a separate local memory store in user application
+data, not the checkout. No external database/embedding service is needed. Tests
+use isolated paths. Advanced standalone core runs accept `--memory-db PATH` or
+`--no-memory`; owner management is described in [Using Sam](USER_GUIDE.md).
+
 Development builds prefer a dedicated Sam window using installed Edge, Chrome or
 Chromium via the installed Python Playwright driver, after UI readiness while
 the core continues starting. No browser installation is performed. The ignored

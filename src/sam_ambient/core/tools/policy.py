@@ -51,6 +51,11 @@ class CapabilityPolicy:
                 AuthorizationKind.REQUIRE_APPROVAL,
                 "reversible local write requires owner approval",
             )
+        if descriptor.risk is RiskClass.OWNER_DATA_MUTATION and descriptor.owner_only:
+            return AuthorizationDecision(
+                AuthorizationKind.REQUIRE_APPROVAL,
+                "owner-managed data change requires an exact authenticated owner request",
+            )
         if descriptor.risk is RiskClass.EXTERNAL_SIDE_EFFECT and self.allow_external_side_effects:
             return AuthorizationDecision(
                 AuthorizationKind.REQUIRE_APPROVAL,

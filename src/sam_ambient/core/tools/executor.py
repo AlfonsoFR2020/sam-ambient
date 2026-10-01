@@ -124,6 +124,7 @@ class ToolExecutor:
         *,
         config: ToolExecutorConfig | None = None,
         is_current: CurrentInvocation | None = None,
+        is_owner: CurrentInvocation | None = None,
         clock_ms: Callable[[], int] | None = None,
         authority: CapabilityAuthority | None = None,
     ) -> None:
@@ -133,6 +134,7 @@ class ToolExecutor:
         self.config = config or ToolExecutorConfig()
         self._publish_event = publish
         self._is_current = is_current or (lambda _invocation: True)
+        self._is_owner = is_owner or (lambda _invocation: False)
         self._clock_ms = clock_ms or (lambda: time.monotonic_ns() // 1_000_000)
         self.authority = authority or CapabilityAuthority()
         self._history: OrderedDict[InvocationKey, ToolExecution] = OrderedDict()
@@ -213,6 +215,13 @@ class ToolExecutor:
             tool = self.registry.get(invocation.tool_id)
             self.registry.validate(tool, invocation.arguments)
             descriptor = tool.descriptor
+            if descriptor.owner_only and not self._is_owner(invocation):
+                return await self._finish(
+                    invocation,
+                    ToolStatus.DENIED,
+                    EventType.TOOL_DENIED,
+                    error="Capability requires a current direct owner action",
+                )
             decision = self.policy.authorize(descriptor)
             await self._publish(
                 EventType.TOOL_AUTHORIZING,

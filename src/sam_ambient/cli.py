@@ -47,6 +47,7 @@ from sam_ambient.adapters.tts import SystemTextToSpeech, TextToSpeechUnavailable
 from sam_ambient.adapters.ui.demo import run_demo_bridge
 from sam_ambient.adapters.vad import WebRtcVoiceActivityDetector
 from sam_ambient.configuration import ConfigurationError, SamSettings, configure_namespace
+from sam_ambient.core.memory import default_memory_path
 from sam_ambient.core.owner import read_owner_bootstrap
 from sam_ambient.core.providers import (
     DataBoundary,
@@ -183,6 +184,12 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--capabilities-revoked", action="store_true", help=argparse.SUPPRESS)
     runtime.add_argument("--safe-mode", action="store_true", help=argparse.SUPPRESS)
     runtime.add_argument("--state-db", help=argparse.SUPPRESS)
+    runtime.add_argument(
+        "--memory-db", help="Explicit local memory database (default: user app data)"
+    )
+    runtime.add_argument(
+        "--no-memory", action="store_true", help="Disable durable memory for this core session"
+    )
     runtime.add_argument("--no-voice", action="store_true", help="Disable microphone/VAD/STT")
     runtime.add_argument("--no-tts", action="store_true", help="Disable spoken output")
     runtime.add_argument("--stt-url", default=DEFAULT_WHISPER_CPP_URL)
@@ -765,6 +772,11 @@ async def _serve_runtime(
                 else None
             ),
             state_db=Path(args.state_db) if args.state_db else None,
+            memory_db=None
+            if args.no_memory
+            else Path(args.memory_db)
+            if args.memory_db
+            else default_memory_path(),
             tts_voice=args.tts_voice,
             visual_settings=asdict(configured.visual),
             audio_settings=asdict(configured.audio),
