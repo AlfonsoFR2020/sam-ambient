@@ -221,6 +221,16 @@ async def phase(root, language, clips, *, real=False):
                 "stream_languages": [c.language for c in stt.contexts],
                 "stream_ids_unique": True,
                 "typed_then_voice_recovery": language == "en",
+                "input_levels": [
+                    [
+                        event.monotonic_ms,
+                        event.payload["rms"],
+                        event.payload["peak"],
+                        event.payload["speech_probability"],
+                    ]
+                    for event in records
+                    if event.type is EventType.VOICE_LEVEL
+                ],
             }
     finally:
         await runtime.close()
@@ -271,4 +281,11 @@ if __name__ == "__main__":
             Path(".sam/voice-sequence.json").write_text(
                 json.dumps(result, indent=2), encoding="utf-8"
             )
-        print(json.dumps(result))
+        print(
+            json.dumps(
+                [
+                    {key: value for key, value in report.items() if key != "input_levels"}
+                    for report in result
+                ]
+            )
+        )

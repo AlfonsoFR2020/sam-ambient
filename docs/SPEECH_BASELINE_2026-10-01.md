@@ -119,3 +119,27 @@ The script records bounded non-personal events in ignored `.sam` for the next
 fixed-camera signal-to-render gate. No voice preference schema or UI policy
 changes were required. Same inventory gender does not prove matching timbre,
 cadence or pleasantness; those remain human questions.
+
+## Actual speech → visual gate (checkpoint 7)
+
+`python -m scripts.export_speech_levels` freezes a small, scalar-only fixture from
+the persona and paced-recognition reports: RMS/peak/VAD probability, relative
+timestamps, no PCM/transcripts/owner credentials. First en/es delivery and capture
+windows are downsampled every third measured frame; no synthetic level gain is
+substituted. Reproduction requires running the two opt-in gates first.
+
+One isolated Chrome/WebGL test replays it through the real protocol reducer,
+VisualInputAdapter and MotionEvaluator at default Audio Reactivity, then freezes
+orientation/material clocks to isolate body form/light differences:
+
+| Generated source | Peak output pulse | Quarter-volume pulse | Input presence | Extra body pixels | Mean central light gain |
+| --- | --- | --- | --- | --- | --- |
+| English | 0.5295 | 0.2647 | 0.3033 | 5,035 | 7.99 / 255 |
+| Spanish | 0.4110 | 0.2055 | 0.2672 | 3,905 | 6.18 / 255 |
+
+Input response has zero output pulse; amount zero has zero output modulation;
+expired output settles below 0.000001. Stronger actual envelopes produce larger
+bounded response; WebGL error is zero. Existing input/amount-zero regressions
+remain. No renderer/gain/art-direction change was needed. This joins actual local
+synthesis and capture meters to rendering, but not physical sound/device timing
+or human perceptual acceptance. The checked-in fixture contains measurements only.
