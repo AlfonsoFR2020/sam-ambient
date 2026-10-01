@@ -137,3 +137,20 @@ focused state/context/provider/generation/first-run shutdown tests pass.
 Durable memory already uses per-operation closed connections; no memory features
 or schemas changed. Runtime still revokes authority, retires active work and
 closes speech/browser/bridge/provider resources before configured provider cleanup.
+
+## Composed core-experience simulator
+
+One real runtime/owner WebSocket/voice pipeline/PCM output/state/memory-init path
+now exercises typed → voice → STT failure → typed recovery → Rescan → Quit.
+Only the external provider, capture, recognizer, synthesis and output device are
+synthetic; microphone frames remain continuous and paced, including silence.
+Three complete answers retain clean user/assistant roles. Shutdown is idempotent,
+revokes the owner, closes speech/output tasks, then confirms model unload before
+provider stop through the existing cleanup adapter.
+
+The same emitted core events pass through the actual frontend reducer, Controls,
+history and AmbientReactivity in isolated Chrome. Output pulse is nonzero/bounded,
+effective voice and degraded STT are visible, and all six committed history items
+retain separate roles and content. The mounted WebGL renderer remains alive; the
+separate fixed-camera regression establishes geometry/light response. No physical
+audio, real inference or advanced agency/memory behavior is used by this simulator.
