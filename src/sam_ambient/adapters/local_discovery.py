@@ -506,7 +506,12 @@ async def unload_owned_model(service: LocalService, model: str) -> CleanupResult
         await _local_command((service.executable, "unload", model), timeout_s=8)
     except (OSError, RuntimeError, TimeoutError) as error:
         return CleanupResult("model", service.id, CleanupStatus.FAILED, type(error).__name__)
-    return CleanupResult("model", service.id, CleanupStatus.SUCCEEDED, "unloaded")
+    await probe_service(service)
+    if not service.running or model in service.models:
+        return CleanupResult(
+            "model", service.id, CleanupStatus.FAILED, "model unload not confirmed by provider"
+        )
+    return CleanupResult("model", service.id, CleanupStatus.SUCCEEDED, "unloaded; confirmed absent")
 
 
 async def stop_owned_service(
@@ -519,7 +524,15 @@ async def stop_owned_service(
             await _local_command((service.executable, "server", "stop"), timeout_s=8)
         except (OSError, RuntimeError, TimeoutError) as error:
             return CleanupResult("provider", service.id, CleanupStatus.FAILED, type(error).__name__)
-        return CleanupResult("provider", service.id, CleanupStatus.SUCCEEDED, "stopped")
+        status = await lms_status(service.executable, "server")
+        if status.get("running") is not False:
+            return CleanupResult(
+                "provider", service.id, CleanupStatus.FAILED, "server stop not confirmed"
+            )
+        service.running = False
+        service.server_running = False
+        service.models.clear()
+        return CleanupResult("provider", service.id, CleanupStatus.SUCCEEDED, "stopped; confirmed")
     if service.id == "ollama" and owned_processes:
         failed = False
         for process in tuple(owned_processes):

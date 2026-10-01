@@ -35,3 +35,28 @@ human acoustic, voice-persona or visual acceptance. No human session is availabl
 
 Checkpoint results and final acceptance distinctions are appended here as evidence
 is obtained, rather than inferring success from dispatched operations.
+
+## Provider lifecycle checkpoint
+
+- A new deterministic regression reproduced success reports when `lms` returned
+  zero but the model/server remained present. Unload now re-probes the serving
+  inventory; stop requires `lms server status` to confirm `running=false`.
+  Missing/contradictory confirmation is a bounded failure, not success.
+- 31 provider/bootstrap/route/discovery tests pass. Existing cleanup remains
+  single-pass and ownership-scoped, with runtime retirement before cleanup.
+- Real Windows check: LM Studio initially reported daemon/server stopped. Cold
+  inventory first returned no model; a subsequent inventory exposed the existing
+  `google/gemma-4-e2b` Q4_K_M. The normal Sam discovery/bootstrap loaded that exact
+  model, a short text answer completed, and Rescan retained the exact route.
+  Sam-loaded model unload was confirmed absent. Serving was already running at
+  bootstrap, so server stop was correctly skipped; no external process was killed.
+- The smoke's temporary-directory removal exposed a Windows operational-state
+  SQLite handle still open after runtime close. Investigate in the shutdown
+  checkpoint; this did not prevent generation, Rescan or model unload.
+
+## Ordinary voice checkpoint
+
+90 focused tests pass across capture/STT, conservative interruption, multi-turn
+voice delivery, generation terminality and typed recovery. No new turn semantics
+are required. Physical STT accuracy and early acoustic barge-in remain unproven;
+the failed AEC prototype stays outside runtime.

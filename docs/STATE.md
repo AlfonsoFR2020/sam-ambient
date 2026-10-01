@@ -7,6 +7,10 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 
 ## Release and evidence boundary
 
+- Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
+  basics before capability expansion. Provider cleanup verifies the resulting
+  inventory/server state; CLI dispatch success alone is insufficient.
+
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.
 - Windows-first development; Linux compatibility/native CI has a documented deferred

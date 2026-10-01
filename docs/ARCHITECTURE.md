@@ -8,6 +8,10 @@ Presentation failure never becomes a core crash/restart condition.
 
 ## Trusted lifecycle
 
+Provider cleanup reports success only after model absence or stopped serving is
+confirmed. Missing confirmation is failure; external ownership and bounded exit
+remain unchanged. See [core-experience evidence](CORE_EXPERIENCE_ACCEPTANCE.md).
+
 The supervisor contains no LLM/provider logic. Trusted argv specifications launch
 components, whose instance-correlated readiness records distinguish initialization
 from health. Crashes trigger bounded backoff; three failures within 60 seconds

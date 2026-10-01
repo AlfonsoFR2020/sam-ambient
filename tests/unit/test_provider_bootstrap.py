@@ -236,9 +236,12 @@ def test_quit_cleanup_uses_independent_service_and_model_ownership(monkeypatch):
 
     async def probe(service):
         service.running = True
+        if any(argv[1:2] == ("unload",) for argv, _ in commands):
+            service.models = []
 
     monkeypatch.setattr(discovery, "_local_command", command)
     monkeypatch.setattr(discovery, "probe_service", probe)
+    monkeypatch.setattr(discovery, "lms_status", AsyncMock(return_value={"running": False}))
 
     async def scenario():
         external = discovery.LocalService(
@@ -339,10 +342,11 @@ def test_rescan_snapshots_cleanup_once_with_unload_before_stop_and_failure_isola
 
     async def probe(service):
         service.running = True
-        service.models = ["sam-loaded"]
+        service.models = [] if any(argv[1] == "unload" for argv in commands) else ["sam-loaded"]
 
     monkeypatch.setattr(discovery, "_local_command", command)
     monkeypatch.setattr(discovery, "probe_service", probe)
+    monkeypatch.setattr(discovery, "lms_status", AsyncMock(return_value={"running": False}))
 
     async def scenario():
         first = discovery.LocalService(
@@ -465,6 +469,33 @@ def test_restart_rescan_and_unsupported_cleanup_never_widen_ownership(monkeypatc
             policy=discovery.CleanupPolicy("unload_if_sam_loaded", "keep"),
         )
         assert results[0].status is discovery.CleanupStatus.UNSUPPORTED
+
+    asyncio.run(scenario())
+
+
+def test_cleanup_does_not_claim_success_from_cli_exit_alone(monkeypatch):
+    async def present(service):
+        service.running = True
+        service.models = ["still-loaded"]
+
+    monkeypatch.setattr(discovery, "probe_service", present)
+    monkeypatch.setattr(discovery, "_local_command", AsyncMock())
+    monkeypatch.setattr(discovery, "lms_status", AsyncMock(return_value={"running": True}))
+
+    async def scenario():
+        service = discovery.LocalService(
+            "lm-studio",
+            discovery.LM_STUDIO_URL,
+            "lms",
+            True,
+            ["still-loaded"],
+            started_by_sam=True,
+        )
+        unloaded = await discovery.unload_owned_model(service, "still-loaded")
+        stopped = await discovery.stop_owned_service(service, [])
+        assert unloaded.status is discovery.CleanupStatus.FAILED
+        assert stopped.status is discovery.CleanupStatus.FAILED
+        assert service.running
 
     asyncio.run(scenario())
 
