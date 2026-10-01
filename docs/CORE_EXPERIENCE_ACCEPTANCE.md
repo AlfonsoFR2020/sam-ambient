@@ -227,3 +227,30 @@ advanced Agency/Memory stress suite or human beta was run.
 fixed or explicitly reduced to human-validation items. Ordinary speech quality and
 prompt acoustic interruption still need engineering evidence. Human recognition,
 voice pleasantness, physical double-talk and visual naturalness remain distinct gates.
+
+## Consolidation II provider / Controls confirmation (checkpoints 8–9)
+
+The deterministic provider/bootstrap/local-control/first-run/supervisor gate passes
+**67 tests**. Eight bounded isolated Chrome cases preserve core-confirmed speech
+health/effective voice, tab inventory/particle mapping, gain interactions, startup
+facts, vertical drag, narrow diagnostics separation, renderer recovery and failed
+Rescan/reconnect without losing Controls or the Orb. No UI redesign was performed.
+
+One normal-supervisor real confirmation was attempted with microphone/TTS disabled,
+isolated state/memory and the installed LM Studio/Gemma request. Initial HTTP probe
+was unreachable; subsequent discovery reported a running LM Studio server but empty
+conversational inventory in both startup scans. The owner UI remained mounted in
+degraded/unavailable state; it never falsely showed the requested model active.
+The bounded 90-second wait for Gemma timed out. The harness requested authenticated
+Quit, revoked authority and stopped Sam cleanly. No model was loaded/generated/
+unloaded by this session, and no external provider was killed.
+
+Immediately afterward, read-only `lms` status/inventory reported daemon running,
+server running on 1234 and `google/gemma-4-e2b` installed. This is **transient
+inventory/readiness evidence**, not proof that the model disappeared permanently
+or a reproduced source regression. The helper can return empty inventory for
+timeout/failure as well as a genuinely empty list; this run did not establish which
+occurred. Do not restart providers or invent a fix from the snapshot alone.
+Consolidation I's successful generation/Rescan/confirmed unload remains historical
+evidence; this new lifecycle confirmation is **incomplete**, not green. A bounded
+cold-readiness/inventory diagnostic is a remaining basic task, separate from AEC.
