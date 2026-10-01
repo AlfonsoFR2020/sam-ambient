@@ -122,3 +122,24 @@ claims and other workspaces are excluded. This lexical foundation cannot guarant
 paraphrase/concept matching; no semantic retrieval claim. `MemoryRetriever` is the
 future semantic seam, whose implementations must preserve these filters/budgets.
 Runtime prompt context is a separate following checkpoint.
+
+## Conversation context (checkpoint 6)
+
+A relevant turn on a **local** route may receive a separately named USER data
+message (`sam_memory`, JSON type `sam.memory.context`) between history and the
+current question. It preserves claim provenance/revision without pretending to
+be a system instruction, a synthetic tool result or an ordinary committed chat
+message. A system reminder explains data/authority separation and revision priority.
+No memory changes the existing message path when recall is empty/disabled.
+
+Memory is private in this first version: explicit cloud permission for a current
+question is not memory-export permission. Cloud routes receive no memory context;
+existing history/tool privacy guards remain unchanged. Retired generation/token,
+revoked capability authority or recall failure prevent injection. Optional store
+failure still allows a normal text answer.
+
+The 4,800-character limit includes the serialized context envelope. It is a
+character limit, not an asserted precise tokenizer budget. No recalled entry is
+persisted as another chat message. Earlier committed answers/current conversation
+may already contain information repeated from memory; deleting a memory does not
+silently erase conversation history or recall prior provider requests.

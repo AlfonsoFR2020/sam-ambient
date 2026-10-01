@@ -12,6 +12,8 @@ Updated: 2026-09-30
   credential rejection; tool-mediated proposal execution is not yet connected.
   Checkpoint 5 adds bounded reviewed/scoped lexical recall with source/revision;
   no embeddings and no runtime prompt injection until the following checkpoint.
+  Checkpoint 6 selectively assembles provenance-labelled local model context;
+  empty recall is unchanged, cloud excludes memory, store failure preserves text.
   See [memory implementation](MEMORY_FOUNDATION_I.md).
 
 - 2026-10-01: existing LM Studio/Gemma completed one owner-window structured read,
