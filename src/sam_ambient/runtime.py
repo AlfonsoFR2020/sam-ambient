@@ -122,6 +122,7 @@ user request and system policy take precedence over remembered preferences."""
 _MAX_PROVIDER_TOOL_CALL_ID_CHARS = 256
 log = logging.getLogger(__name__)
 _SHUTDOWN_TASK_GRACE_S = 2.0
+_PROVIDER_RETRY_DELAYS = (0.5, 1.0, 2.0)
 _WORD = re.compile(r"[^\W_]+", re.UNICODE)
 
 
@@ -520,6 +521,9 @@ class SamRuntime:
         self._pending_model = config.startup_model
         self._pending_provider_request_id: str | None = None
         self._provider_scan_active = False
+        self._provider_refresh_epoch = 0
+        self._desired_provider = config.startup_provider
+        self._desired_model = config.startup_model
         self._provider_selection_reason = config.provider_selection_reason
         self._model_unavailable_reason = config.model_unavailable_reason
         self.config = config
@@ -903,11 +907,13 @@ class SamRuntime:
             raise RuntimeError("Provider discovery is unavailable")
         if not self._active_done.is_set():
             raise RuntimeError("Wait for the active response before changing models")
+        self._provider_refresh_epoch += 1
+        epoch = self._provider_refresh_epoch
         if self._provider_refresh_task is not None and not self._provider_refresh_task.done():
             self._provider_refresh_task.cancel()
             await asyncio.gather(self._provider_refresh_task, return_exceptions=True)
         task = asyncio.create_task(
-            self._perform_provider_refresh(provider_id, model, remember, request_id)
+            self._perform_provider_refresh(provider_id, model, remember, request_id, epoch)
         )
         self._provider_refresh_task = task
         self._tasks.add(task)
@@ -1021,12 +1027,60 @@ class SamRuntime:
             )
         )
 
+    async def _recover_provider_inventory(
+        self, provider_id: str | None, model: str | None, request_id: str | None, epoch: int
+    ) -> ProviderRefresh:
+        assert self._provider_refresher is not None
+        for attempt in range(len(_PROVIDER_RETRY_DELAYS) + 1):
+            log.info("provider_inventory_attempt epoch=%d attempt=%d", epoch, attempt + 1)
+            result = await self._provider_refresher(provider_id, model)
+            if self._closed or epoch != self._provider_refresh_epoch:
+                if result.provider is not None and result.provider is not self.provider:
+                    await result.provider.aclose()
+                raise asyncio.CancelledError()
+            transient = result.provider is None and any(
+                item.get("id") == "lm-studio" and item.get("inventory_retryable") is True
+                for item in result.catalog
+                if provider_id in {None, "lm-studio"}
+            )
+            if not transient or attempt == len(_PROVIDER_RETRY_DELAYS):
+                if transient:
+                    log.warning(
+                        "provider_inventory_recovery_exhausted epoch=%d attempts=%d",
+                        epoch,
+                        attempt + 1,
+                    )
+                return result
+            self._provider_catalog = result.catalog
+            delay = _PROVIDER_RETRY_DELAYS[attempt]
+            log.info("provider_inventory_retry epoch=%d delay_s=%s", epoch, delay)
+            await self._publish_provider_status(
+                "scanning",
+                provider=provider_id,
+                model=model,
+                request_id=request_id,
+                reason=(
+                    "LM Studio is running; waiting for its model inventory. Sam will retry shortly."
+                ),
+                retry_attempt=attempt + 1,
+                retry_delay_s=delay,
+            )
+            await asyncio.sleep(delay)
+        raise AssertionError("bounded provider retry must return")
+
     async def _perform_provider_refresh(
-        self, provider_id: str | None, model: str | None, remember: bool, request_id: str | None
+        self,
+        provider_id: str | None,
+        model: str | None,
+        remember: bool,
+        request_id: str | None,
+        epoch: int,
     ) -> LocalControlResult:
         async with self._provider_refresh_lock:
-            target_provider = provider_id or self.config.startup_provider
-            target_model = model or self.config.startup_model
+            target_provider = provider_id or self._desired_provider
+            target_model = model or self._desired_model
+            self._desired_provider = target_provider
+            self._desired_model = target_model
             self._pending_provider = target_provider
             self._pending_model = target_model
             self._pending_provider_request_id = request_id
@@ -1038,8 +1092,17 @@ class SamRuntime:
                 request_id=request_id,
             )
             try:
-                result = await self._provider_refresher(provider_id, model)
+                result = await self._recover_provider_inventory(
+                    target_provider, target_model, request_id, epoch
+                )
             except asyncio.CancelledError:
+                if epoch == self._provider_refresh_epoch:
+                    await self._publish_provider_status(
+                        "failed",
+                        reason="Model discovery cancelled; Rescan to continue.",
+                        request_id=request_id,
+                        preserve_current=True,
+                    )
                 raise
             except Exception as error:
                 reason = (
@@ -1064,6 +1127,17 @@ class SamRuntime:
                 or (model is not None and result.model != model)
             )
             if unavailable:
+                inventory_failed = any(
+                    item.get("inventory_status")
+                    in {"timeout", "cli_failed", "malformed", "unavailable"}
+                    for item in result.catalog
+                    if item.get("id") == "lm-studio"
+                )
+                preserve_route = provider_id is not None or (
+                    inventory_failed
+                    and self._model_unavailable_reason is None
+                    and self._model is not None
+                )
                 reason = (
                     "Requested provider/model is unavailable"
                     if provider_id is not None
@@ -1071,15 +1145,15 @@ class SamRuntime:
                 )
                 if result.provider is not None and result.provider is not self.provider:
                     await result.provider.aclose()
-                if provider_id is None:
+                if not preserve_route:
                     self._provider_catalog = result.catalog
                     self._model = None
                     self._model_unavailable_reason = reason
                 await self._publish_provider_status(
-                    "blocked",
+                    "failed" if inventory_failed else "blocked",
                     reason=reason,
                     request_id=request_id,
-                    preserve_current=provider_id is not None,
+                    preserve_current=preserve_route,
                 )
                 return LocalControlResult(LocalControlOutcome.UNAVAILABLE, reason)
             if not self._active_done.is_set():
@@ -1118,6 +1192,8 @@ class SamRuntime:
             self.providers = registry
             self.router = ProviderRouter(registry)
             self._model = result.model
+            self._desired_provider = result.provider.id
+            self._desired_model = result.model
             self._provider_catalog = result.catalog
             self._provider_selection_reason = result.reason
             self._model_unavailable_reason = None
@@ -1127,6 +1203,9 @@ class SamRuntime:
                 model=result.model,
                 reason=result.reason,
                 request_id=request_id,
+            )
+            log.info(
+                "provider_active_route_confirmed epoch=%d provider=%s", epoch, result.provider.id
             )
             if previous is not result.provider:
                 try:
@@ -2839,6 +2918,9 @@ class SamRuntime:
         )
 
     async def _detach_owner(self, connection: OwnerConnection) -> None:
+        if self._provider_refresh_task is not None and not self._provider_refresh_task.done():
+            self._provider_refresh_task.cancel()
+            await asyncio.gather(self._provider_refresh_task, return_exceptions=True)
         await self.owner_actions.detach(connection)
         await self.owned_browser.close(owner_connection=connection.connection_id)
 

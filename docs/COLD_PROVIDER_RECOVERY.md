@@ -48,3 +48,22 @@ loaded-model response cannot erase a failed installed-inventory observation.
 Explicit desired identity remains pending when unavailable; bootstrap requires the
 exact model to be observed installed before loading. Definitively stale preferences
 retain the existing choice/fallback policy rather than silently claiming activity.
+
+## Runtime recovery checkpoint
+
+The existing refresh task owns at most four discovery attempts, with 0.5 / 1 / 2 s
+backoff only for an unresolved LM Studio timeout/nonzero inventory while daemon,
+server or endpoint is observed running. Successful empty, malformed schema and
+unavailable executable are terminal; no retry loop is attached to those outcomes.
+Each attempt retains the same desired provider/model. A newer scan increments its
+epoch before cancellation; late results are closed and cannot adopt a route. Quit,
+disconnect and runtime close cancel pending recovery. Reconnect can explicitly
+Rescan using retained intent. No raw provider error body/credentials are emitted.
+
+Exact desired identity persists in runtime across a failed attempt and subsequent
+Rescan; a successful explicit switch replaces it. One recovery can load only the
+observed exact installed model and becomes active only after endpoint confirmation.
+A failed inventory scan preserves an already-valid route rather than disabling
+typed recovery. Deterministic coverage uses the actual discovery/bootstrap/probe
+and runtime path with fake external transport, proving one load after late inventory.
+The temporary expected-failure markers are removed; nearby lifecycle tests pass.

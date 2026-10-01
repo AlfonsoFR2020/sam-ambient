@@ -758,6 +758,9 @@ async def discover_local(
         if not service.running and not service.executable:
             service.detail += "; CLI not found; start external service or install runtime"
     lm = next(service for service in services if service.id == "lm-studio")
+    lm.inventory_retryable = lm.inventory_retryable and bool(
+        lm.running or lm.daemon_running or lm.server_running
+    )
     log.info(
         "lm_inventory status=%s endpoint_ready=%s installed_count=%d",
         lm.inventory_status,
