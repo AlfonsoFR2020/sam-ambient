@@ -10,7 +10,6 @@ from sam_ambient.runtime import ProviderRefresh, RuntimeConfig, SamRuntime
 from tests.unit.test_conversation_context import ConversationProvider
 
 
-@pytest.mark.xfail(strict=True, reason="inventory outcomes currently collapse to list")
 @pytest.mark.parametrize(
     "body,code,error,status",
     [
@@ -26,9 +25,15 @@ from tests.unit.test_conversation_context import ConversationProvider
     ],
 )
 def test_inventory_outcomes_are_not_empty(monkeypatch, body, code, error, status):
+    consumed = False
+
     async def read(_limit):
+        nonlocal consumed
         if error is not None:
             raise error
+        if consumed:
+            return b""
+        consumed = True
         return body.encode() if isinstance(body, str) else json.dumps(body).encode()
 
     process = SimpleNamespace(
@@ -58,6 +63,21 @@ def unavailable(status="timeout", retryable=True):
             },
         ),
     )
+
+
+def test_inventory_reads_every_stdout_chunk_and_never_logs_body(monkeypatch, caplog):
+    chunks = [b'[{"model', b'Key":"gemma","type":"llm"}]', b""]
+    process = SimpleNamespace(
+        stdout=SimpleNamespace(read=AsyncMock(side_effect=chunks)),
+        returncode=0,
+        wait=AsyncMock(return_value=0),
+    )
+    monkeypatch.setattr(
+        discovery.asyncio, "create_subprocess_exec", AsyncMock(return_value=process)
+    )
+    result = asyncio.run(discovery.lms_models("lms"))
+    assert result.status == "available" and result.models == ("gemma",)
+    assert not caplog.text
 
 
 @pytest.mark.xfail(strict=True, reason="runtime currently has no inventory recovery")

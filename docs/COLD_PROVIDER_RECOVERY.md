@@ -31,3 +31,20 @@ transient running-provider recovery to Gemma, and genuine empty without retry.
 Known-failing requirements are temporarily strict-xfailed in the reproduction
 commit; the implementation checkpoint must remove those markers and pass them.
 Existing stale scan / switch / Quit regressions remain in the focused gate.
+
+## Classified adapter checkpoint
+
+`ModelInventory` now separates available / successful empty / timeout / nonzero CLI
+failure / unavailable executable / malformed or oversized response. Only timeout
+and nonzero CLI failures are transient candidates; raw stdout/stderr is never
+surfaced or logged. Installed identities remain separate from callable loaded IDs.
+The bounded stdout reader consumes through EOF: a single `read(n)` can return a
+partial chunk even when the command eventually succeeds. A split-JSON regression
+protects this additional confirmed parsing defect. Neither defect alone identifies
+the exact unrecorded CLI outcome in the prior real session.
+
+Positive native/API inventory can establish available models; an empty compatible
+loaded-model response cannot erase a failed installed-inventory observation.
+Explicit desired identity remains pending when unavailable; bootstrap requires the
+exact model to be observed installed before loading. Definitively stale preferences
+retain the existing choice/fallback policy rather than silently claiming activity.

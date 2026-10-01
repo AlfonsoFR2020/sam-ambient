@@ -125,7 +125,17 @@ async def lms_status(executable: str, subject: str) -> dict:
             await process.wait()
 
 
-async def lms_models(executable: str) -> list[str]:
+@dataclass(frozen=True, slots=True)
+class ModelInventory:
+    status: str
+    models: tuple[str, ...] = ()
+
+    @property
+    def retryable(self) -> bool:
+        return self.status in {"timeout", "cli_failed"}
+
+
+async def lms_models(executable: str) -> ModelInventory:
     """Read the installed LM Studio inventory without loading or downloading."""
 
     process = None
@@ -141,22 +151,42 @@ async def lms_models(executable: str) -> list[str]:
                 stderr=asyncio.subprocess.DEVNULL,
             )
             assert process.stdout is not None
-            raw = await process.stdout.read(262_145)
-            if len(raw) > 262_144 or await process.wait() != 0:
-                return []
+            # StreamReader.read(n) may return just the first available chunk.
+            # Wait for EOF without permitting unbounded provider output.
+            raw = bytearray()
+            while chunk := await process.stdout.read(min(16_384, 262_145 - len(raw))):
+                raw.extend(chunk)
+                if len(raw) > 262_144:
+                    return ModelInventory("malformed")
+            if await process.wait() != 0:
+                return ModelInventory("cli_failed")
             body = json.loads(raw)
-            rows = body.get("models", body.get("data", [])) if isinstance(body, dict) else body
+            rows = body.get("models", body.get("data")) if isinstance(body, dict) else body
             if not isinstance(rows, list):
-                return []
+                return ModelInventory("malformed")
+            if any(
+                not isinstance(row, (dict, str))
+                or (
+                    isinstance(row, dict)
+                    and not any(isinstance(row.get(key), str) for key in ("modelKey", "id", "path"))
+                )
+                for row in rows[:256]
+            ):
+                return ModelInventory("malformed")
             string_ids = [row for row in rows[:256] if isinstance(row, str)]
-            return (
+            models = (
                 _ids(rows, "modelKey")
                 or _ids(rows, "id")
                 or _ids(rows, "path")
-                or sorted({value for value in string_ids if 0 < len(value) <= 256})
+                or _ids([{"id": value} for value in string_ids], "id")
             )
-    except (OSError, ValueError, TimeoutError):
-        return []
+            return ModelInventory("available" if models else "empty", tuple(models))
+    except TimeoutError:
+        return ModelInventory("timeout")
+    except OSError:
+        return ModelInventory("unavailable")
+    except ValueError:
+        return ModelInventory("malformed")
     finally:
         if process is not None and process.returncode is None:
             try:
@@ -180,6 +210,8 @@ class LocalService:
     started_by_sam: bool = False
     server_running: bool | None = None
     models_loaded_by_sam: list[str] = field(default_factory=list, repr=False)
+    inventory_status: str = "unavailable"
+    inventory_retryable: bool = False
 
 
 @dataclass
@@ -440,6 +472,9 @@ async def probe_service(service: LocalService) -> None:
                             service.installed_models = sorted(
                                 set(service.installed_models + native_available)
                             )
+                            if native_available:
+                                service.inventory_status = "available"
+                                service.inventory_retryable = False
                             service.available_models = service.installed_models.copy()
                             native_loaded = _ids(
                                 [
@@ -455,11 +490,18 @@ async def probe_service(service: LocalService) -> None:
                         # Older compatible-only servers advertise callable models in /v1/models.
                         pass
             service.running = True
+            if service.id == "lm-studio" and service.installed_models:
+                service.inventory_status = "available"
+                service.inventory_retryable = False
             service.detail = (
                 "ready"
                 if service.models
                 else "server running; installed chat model available but not loaded"
                 if service.installed_models
+                else "LM Studio is running; model inventory is temporarily unavailable"
+                if service.id == "lm-studio" and service.inventory_retryable
+                else "LM Studio model inventory could not be read; Rescan or check the local CLI"
+                if service.id == "lm-studio" and service.inventory_status != "empty"
                 else "server running; no conversational model installed"
             )
     except Exception as error:
@@ -681,7 +723,7 @@ async def discover_local(
     daemon, server, installed_lm = (
         await asyncio.gather(lms_status(lms, "daemon"), lms_status(lms, "server"), lms_models(lms))
         if lms
-        else ({}, {}, [])
+        else ({}, {}, ModelInventory("unavailable"))
     )
     lm_url = LM_STUDIO_URL
     if server.get("running") is True and type(server.get("port")) is int:
@@ -701,8 +743,10 @@ async def discover_local(
     ]
     services[1].daemon_running = daemon.get("status") == "running" if daemon else None
     services[1].server_running = server.get("running") if server else None
-    services[1].installed_models = installed_lm
-    services[1].available_models = installed_lm.copy()
+    services[1].installed_models = list(installed_lm.models)
+    services[1].available_models = list(installed_lm.models)
+    services[1].inventory_status = installed_lm.status
+    services[1].inventory_retryable = installed_lm.retryable
     if ollama_url != DEFAULT_OLLAMA_BASE_URL:
         services.insert(1, LocalService("ollama", DEFAULT_OLLAMA_BASE_URL, shutil.which("ollama")))
     if provider == "openai-compatible":
@@ -714,6 +758,12 @@ async def discover_local(
         if not service.running and not service.executable:
             service.detail += "; CLI not found; start external service or install runtime"
     lm = next(service for service in services if service.id == "lm-studio")
+    log.info(
+        "lm_inventory status=%s endpoint_ready=%s installed_count=%d",
+        lm.inventory_status,
+        lm.running,
+        len(lm.installed_models),
+    )
     if lm.executable and not lm.running:
         lm.detail += "; installed; Sam can start it after a model is selected"
     explicit_provider = provider != "auto" or base_url is not None
@@ -734,10 +784,13 @@ async def discover_local(
         )
         if target:
             desired = (target.id, model)
+        elif provider == "lm-studio":
+            desired = (provider, model)  # Preserve intent, never claim availability.
     elif preferred and not explicit_provider:
         target = next((item for item in services if item.id == preferred[0]), None)
-        if target and preferred[1] in set(
-            target.models + target.installed_models + target.available_models
+        if target and (
+            preferred[1] in set(target.models + target.installed_models + target.available_models)
+            or target.inventory_retryable
         ):
             desired = preferred
     candidates = sorted(
@@ -758,6 +811,10 @@ async def discover_local(
         try:
             for service in order:
                 if service.id != desired[0]:
+                    continue
+                if desired[1] not in set(
+                    service.models + service.installed_models + service.available_models
+                ):
                     continue
                 if not service.running or desired[1] not in service.models:
                     await bootstrap_service(service, desired[1], owned)

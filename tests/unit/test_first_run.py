@@ -165,7 +165,9 @@ def test_lms_headless_custom_port_and_stopped_actionable_status(monkeypatch):
         return {"status": "running"} if subject == "daemon" else {"running": True, "port": 1240}
 
     monkeypatch.setattr(discovery, "lms_status", status)
-    monkeypatch.setattr(discovery, "lms_models", AsyncMock(return_value=[]))
+    monkeypatch.setattr(
+        discovery, "lms_models", AsyncMock(return_value=discovery.ModelInventory("empty"))
+    )
     monkeypatch.setattr(discovery, "probe_service", AsyncMock())
     result = asyncio.run(discovery.discover_local())
     lm = result.services[1]
@@ -213,7 +215,11 @@ def test_lm_installed_inventory_is_independent_from_served_models(monkeypatch):
     monkeypatch.delenv("OLLAMA_HOST", raising=False)
     monkeypatch.setattr(discovery, "find_lms", lambda: "lms")
     monkeypatch.setattr(discovery, "lms_status", AsyncMock(return_value={}))
-    monkeypatch.setattr(discovery, "lms_models", AsyncMock(return_value=["google/gemma-chat"]))
+    monkeypatch.setattr(
+        discovery,
+        "lms_models",
+        AsyncMock(return_value=discovery.ModelInventory("available", ("google/gemma-chat",))),
+    )
 
     async def probe(service):
         if service.id == "lm-studio":
