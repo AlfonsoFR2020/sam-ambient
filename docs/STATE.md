@@ -4,6 +4,11 @@ Updated: 2026-09-30
 
 ## Current agency foundation
 
+- Memory checkpoint 2 adds a separate transactional SQLite store, stable scoped
+  principal, provenance/review, revision checks and content-removing correction/
+  deletion. Isolated tests only; runtime/UI/context admission follows separately.
+  See [memory implementation](MEMORY_FOUNDATION_I.md).
+
 - 2026-10-01: existing LM Studio/Gemma completed one owner-window structured read,
   inert malicious-result handling and cancellation. The source owner context now
   grants local-network access only to its trusted UI origin; fake shipped-UI
