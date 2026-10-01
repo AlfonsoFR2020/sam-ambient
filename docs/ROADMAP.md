@@ -37,7 +37,10 @@ Explicit recognition language now reaches whisper.cpp without automatic-language
 retry; default auto and preferred-language fallback remain separate. Installed
 System.Speech selection now favors a consistent cross-language persona, honors an
 explicit voice and reports unavoidable mismatch. Actual en/es PCM synthesis passed
-without playback. Clean attributed clips can evaluate recognition before AEC;
+without playback. The [installed speech baseline](SPEECH_BASELINE_2026-10-01.md)
+now establishes actual forced/auto decoding, paced endpoints, bilingual sequential
+recovery, persona switching and actual meters → fixed-WebGL response. Its generated
+speech WER is 7.95% English / 8.75% Spanish, with all auto languages correct;
 playback-contaminated microphone recognition must still wait for source separation.
 Neither a Whisper replacement nor new TTS engine is presumed. Ordinary voice,
 terminality and typed recovery pass the composed simulator. The exact historical
@@ -52,6 +55,13 @@ The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate 
 ### Provider and local-control architecture
 
 **Current:** correlated discovery/Rescan and transport epochs; immutable turn-local provider/model; exact typed switch and Stop speaking; no silent provider fallback; typed post-final-STT control seam. Configured-but-unavailable models no longer appear active in startup snapshots. Real supervised LM Studio/Gemma load, three text turns, Rescan and confirmed Sam-owned unload pass; external serving is preserved. **Unmet:** physical device/provider failure timing and broader real multi-provider recovery. Named profiles, atomic profile + provider + model switching and natural-language controls are parked expansion. Keep active route pinning and credential boundaries when those resume.
+
+Consolidation II's single cold confirmation was incomplete: startup scans reported
+empty installed inventory and the requested route stayed unavailable; immediately
+after authenticated Quit, read-only CLI inventory exposed the existing Gemma.
+No model generation/unload was performed in that session. This does not invalidate
+the earlier warm success, but leaves a cold readiness/inventory diagnostic next.
+See the [current evidence matrix](CORE_EXPERIENCE_ACCEPTANCE.md).
 
 ### Memory and intelligence
 
@@ -94,31 +104,37 @@ These supersede the previous expansion queue. Each task is bounded and contribut
 engineering evidence to the acceptance matrix; none requests a human session now.
 Completed dependency/authority/memory foundations remain indexed above, not open cards.
 
-### 1. Real local STT language and endpoint evidence
+### 1. Cold provider inventory and startup recovery
 
-- **Objective / why next:** measure ordinary English/Spanish recognition using the
-  installed base model now that forced-language wiring is correct. Poor recognition
-  impaired the beta even outside interruption; clean attributed audio can be tested
-  without pretending speaker leakage is solved.
-- **Prerequisites:** existing whisper.cpp/model, explicit-language contract and small
-  non-personal speech fixtures with lawful provenance, or installed TTS-generated speech.
-- **Scope:** forced/automatic language, controlled level/noise/silence and endpoint
-  timing; minimal demonstrated configuration fixes. **Non-scope:** model downloads,
-  a broad parameter search, AEC or claims about the owner's accent from synthetic voices.
-- **Deliverable / validation:** reproducible WER/CER/language/edge-word and latency
-  evidence, separating recognizer quality from segmentation. Nearby voice/typed recovery.
-- **Reasoning / quota:** Sol Medium, High for demonstrated lifecycle ownership trouble;
-  medium. Stop if fixtures/backend are unavailable or a model comparison is required.
-  **Human acceptance:** later user speech/accent/environment, not this task.
+- **Objective / why next:** explain and repair, if reproduced, the installed-model
+  inventory/readiness gap that prevented the latest normal launch from reaching a
+  usable route. Ordinary typed/voice interaction requires a confirmed model first.
+- **Prerequisites:** current outcome-verifying lifecycle and preserved II logs;
+  installed LM Studio/Gemma, with a separately bounded real-session authorization.
+- **Scope:** distinguish genuine empty inventory from CLI timeout/failure/malformed
+  output, correlate cold startup scans, and verify explicit Rescan/recovery once
+  inventory becomes ready. Fix only a demonstrated discovery/readiness defect.
+  **Non-scope:** arbitrary polling delays, provider downloads/profiles or AEC.
+- **Deliverable / validation:** deterministic cold/late inventory regressions and
+  truthful state/error classification; one bounded load/text/Rescan/owned-cleanup
+  confirmation if permitted. Preserve external resource ownership.
+- **Reasoning / quota:** Sol Medium; medium, High only for reproduced cross-owner
+  concurrency. Stop on an external-provider defect rather than inventing a workaround.
+  **Human acceptance:** no immediate human test; contributes usable startup evidence.
+
+Completed predecessor: [real bilingual STT/persona/signal evidence](SPEECH_BASELINE_2026-10-01.md),
+including actual base-model forced/auto recognition and sequential typed recovery.
+Do not reopen this as an unimplemented configuration or mock-only benchmark task.
 
 ### 2. Speech timing and representative full-app performance
 
-- **Objective / why after 1:** check real generated PCM, metering/delivery and Orb
-  timing with stable ordinary language input before pursuing acoustic concurrency.
+- **Objective / why after 1:** measure representative full-app/low-power cost and
+  delivery timing once the normal route is usable, before adding acoustic concurrency.
 - **Prerequisites:** current signal-to-WebGL regressions, installed voices and the
   isolated performance baseline. Real-device use requires a separately bounded scope.
-- **Scope:** generated English/Spanish PCM → normal meters → visual state; full-app
-  and available lower-tier cost, silence/cancellation, reduced motion/Canvas.
+- **Scope:** physical delivery timing only if authorized; full-app and available
+  lower-tier cost, silence/cancellation, reduced motion/Canvas. Generated en/es PCM
+  → normal meters → actual WebGL form/light is already proven in Consolidation II.
   **Non-scope:** artistic tuning, new sliders, subjective voice claims or a speed benchmark.
 - **Deliverable / validation:** measured timing/cost with CPU/frame/GPU distinctions;
   synthetic browser and existing interaction regressions; fixes only for broken paths.
@@ -130,10 +146,13 @@ Completed dependency/authority/memory foundations remain indexed above, not open
 - **Objective / why after ordinary paths:** prompt full-duplex interruption is a basic
   requirement, but needs a proven processor rather than raw VAD or a lower threshold.
 - **Prerequisites:** [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md), the preserved
-  [failed extraction probe](AEC_PROTOTYPE_2026-09-30.md), license/build provenance.
-- **Scope:** one maintainable full WebRTC APM boundary first, Windows-native path only
-  if that is unsuitable. Replay echo/noise/double-talk/delay/reset fixtures and unchanged
-  gates. **Non-scope:** production integration, large WebRTC fork or DSP catalogue.
+  [failed extraction probe](AEC_PROTOTYPE_2026-09-30.md), the later
+  [failed Windows filter probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md), and verified
+  license/build provenance. Full upstream APM itself has not been tested.
+- **Scope:** establish one pinned maintainable full WebRTC APM artifact/build, then
+  replay unchanged echo/noise/double-talk/delay/reset gates. Separate build and
+  measurement checkpoints. **Non-scope:** production integration, a large WebRTC
+  fork, lowering thresholds or repeating a DSP catalogue.
 - **Deliverable / validation:** binary pass/fail, near-end preservation/convergence,
   real-time cost and bounded memory/build implications. No physical success inferred.
 - **Reasoning / quota:** Sol High; medium with an independent evidence commit. Stop

@@ -25,10 +25,10 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - A composed authenticated runtime/voice/PCM/history/Controls simulator proves
   typed → voice → STT failure → typed recovery → Rescan → ordered Quit. Its real
   core events also drive the isolated frontend and bounded visual response.
-- Normal supervised LM Studio/Gemma startup, three owner-UI text turns, Rescan,
-  memory initialization and confirmed unload/Quit pass. Requested-but-unavailable
-  models no longer appear active in ready snapshots. Supervisor SQLite handles
-  also close explicitly. Actual en/es System.Speech PCM was generated without playback.
+- Consolidation I's normal Gemma load/text/Rescan/unload passed. II cold confirmation
+  stayed unavailable on empty startup inventory; later CLI found Gemma. Quit was clean.
+  Requested models never falsely appeared active. Cold readiness/recovery remains open.
+  Actual en/es synthesis/meters reach fixed WebGL without physical playback.
 
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.
@@ -191,8 +191,8 @@ behavior. Isolated frontend memory and shipped-owner-window tests are separate f
 real provider/hardware/human evidence. Exact counts are recorded in the memory document.
 No new dependencies, provider/audio models or published-release metadata were changed.
 
-The [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) records the 252-Python /
-208-frontend final gate and normal provider/synthesis evidence. [ROADMAP](ROADMAP.md)
-now prioritizes basic speech quality, timing and proven interruption; new capabilities
-remain parked. Automated correctness is not human perceptual acceptance.
+The [core matrix](CORE_EXPERIENCE_ACCEPTANCE.md) separates I and II evidence; II's
+195-Python / 135-frontend gate and two Chrome cases pass. [ROADMAP](ROADMAP.md)
+prioritizes cold provider recovery, representative timing and proven interruption;
+new capabilities remain parked. Automated visuals are not human perceptual acceptance.
 Human testing is scarce and reserved for a substantial integrated checkpoint; unavailable now.

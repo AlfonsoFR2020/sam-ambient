@@ -1,4 +1,4 @@
-# Core Experience Consolidation I
+# Core Experience Consolidation I–II
 
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
 Expansion**. Published v0.2.3 is unchanged. Automated evidence does not establish
@@ -273,3 +273,63 @@ socket-only stopping notification is also an EventBus event. These were test
 assumptions corrected during development, not newly discovered runtime defects.
 The existing default composed scenario remains compatible with the frontend harness.
 No advanced agency/memory action, physical device or new acoustic processor is used.
+
+## Consolidation II current acceptance matrix
+
+This supersedes the remaining-work column of the Consolidation I matrix above;
+earlier results remain historical evidence. Recorded 2026-10-01. No human beta,
+model/voice download, new capability or production acoustic integration occurred.
+Specialist evidence: [installed speech benchmark](SPEECH_BASELINE_2026-10-01.md),
+[Windows filter probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) and the bounded
+provider confirmation above. Generated voices are not the owner's microphone speech.
+
+| Fundamental area | Deterministic / automated | Real runtime | Human acceptance | Remaining |
+| --- | --- | --- | --- | --- |
+| Startup | Authenticated supervisor/core simulator and browser mount | I normal launch passed; II degraded owner UI mounted and Quit cleanly | Earlier beta only | Cold provider inventory/readiness recovery; wider hosts |
+| Provider discovery | Exact/stale/failed Rescan and route protection | I Rescan passed; II two startup scans exposed empty inventory, later CLI found Gemma | No new acceptance | Distinguish empty inventory from CLI failure/timeout; recover truthfully |
+| Model load/select | Requested/loading distinct from confirmed active | I exact Gemma loaded; II never falsely marked missing inventory active | No new acceptance | II real confirmation incomplete; cold-state diagnostics |
+| Model unload | Post-operation inventory verification, safe ordering | I Sam-loaded Gemma absence confirmed; II did not load/unload a model | No new acceptance | Repeat only in a separately bounded recovery task |
+| Provider shutdown/ownership | Owned/reused/unsupported/failing/idempotent cleanup | Existing server preserved; no external process killed | No new acceptance | Real Sam-started service stop unexercised |
+| Text conversation | Terminality, clean history, STT-failure typed recovery; six completions across bilingual restarts | I three complete owner-UI turns; II blocked on model readiness before generation | Earlier beta initially worked | Cold provider usability and broader fault timing |
+| Voice turn lifecycle | Continuous paced capture, language restart, failure → typed → later voice; cancellation identities isolated | Actual whisper.cpp and generated PCM pass; physical capture not used | Physical beta initially worked then failed | Device loss/restart, physical pacing and sustained overlap |
+| STT configuration | Hard en/es versus auto reaches each actual stream | 36 installed base-model requests; explicit language makes one forced request | No new acceptance | No demonstrated wiring defect remains |
+| STT quality | Corpus scoring / edge-word / endpoint helpers, deterministic level/noise/silence | en 7.95% WER / 6.68% CER; es 8.75% / 5.30%; forced and auto equal; all auto languages correct | User Spanish quality remains unaccepted | Actual accent/room speech; base-model errors; no model download justified here |
+| TTS/persona | Preference/fallback/stale-generation protection | Actual en→es→en→es Hazel/Helena; first-PCM health matches adapter; missing preference falls back | Pleasantness/persona coherence unaccepted | Shared inventory gender is not proof of matching sound |
+| Interruption/barge-in | Conservative pinned candidates, echo rejection, full assistant text and typed recovery preserved | Both offline processors fail unchanged separation gates; no early integration | Physical beta failed | Proven full APM boundary, then processed-evidence integration and physical double-talk |
+| Voice reactivity | Actual scalar meters replay through reducer/freshness/motion/WebGL; zero/expiry/input separation | Actual TTS and paced input produce events; en/es body/light response measurable | Naturalness/perceptibility unaccepted | Physical playback/visual timing; no artistic tuning here |
+| Orb/form | Existing high-tier geometry/normal/fixed-camera regressions retained | Isolated Chrome only | Revised form unaccepted | Perceptual softness; full-app/lower-power cost |
+| Membrane | Existing lift/shared pigment/depth coverage preserved | Isolated Chrome only | Revised living skin unaccepted | Physical appearance/perceptual edge quality |
+| Living Surface | Existing broad evolution and short-frame continuity preserved | Isolated Chrome only | Revised field unaccepted | Organic perception; representative full-app performance |
+| Particles | Persisted amount maps to quality budget and rendered coverage | Controls/interaction browser verification | Older beta broadly acceptable | Current density/performance acceptance |
+| Controls | Existing inventory, truthful speech health/persona, last-known disconnection, disabled reasons | Eight isolated cases; II degraded startup remained usable | Organization improved in older beta | Current discoverability; no redesign needed |
+| Diagnostics | Existing hierarchy/layout/scroll retained | Narrow layout/Controls separation protected | Earlier beta useful; revised layout unaccepted | Live human readability; no telemetry redesign |
+| Memory initialization | Real isolated stores reused across restart; ordinary runtime opens/closes | Normal II supervised state/memory initialization and cleanup | Outside this task | Advanced memory expansion parked |
+| Shutdown | Authority revoked, tasks/stores/output closed, bounded unload-before-stop and idempotence | II authenticated Quit after timeout stopped Sam cleanly | No new acceptance | Physical devices; owned-provider real stop; cold recovery |
+
+Endpoint evidence is separate from decoding accuracy: four actual VAD/paced cases
+preserve first/last words and both sentences across a trimmed 250 ms pause, with
+1.22–1.44 s endpoint wall time. Forced request median is approximately 1.19 s,
+auto approximately 1.74–1.79 s. This is generated-input recognition/segmentation
+evidence, not physical microphone or speaker latency. No parameter search/config
+change was justified. The Windows filter preserves near-end speech but fails echo
+suppression (best 0/40/80/160 ms cases 18.16/19.74/19.30/14.99 dB against >=20 dB).
+Full upstream APM was not built or algorithmically falsified.
+
+**Freeze line:** the ordinary generated speech loop, persona selection and signal
+connectivity now have real-backend evidence. Cold provider readiness and proven
+early acoustic ownership remain engineering items. No substantial Agency/Memory/
+browser/workspace/profile expansion until basic blockers are fixed or reduced to
+explicit acceptance limitations. Later human questions remain: actual Spanish/
+English accent/room transcription, pleasant voice identity, speaker→microphone
+interruption/first-word preservation, Orb aesthetic quality and natural speech
+response, living membrane/pigment and practical Controls/history usability.
+Automated visual correctness is not human perceptual acceptance.
+
+Consolidation II final focused gate: **195 Python tests**, **135 frontend tests
+(11 files)**, TypeScript, Ruff lint/format (nine changed Python files), changed-file
+Biome and `git diff --check` pass. Two final isolated Chrome cases pass for the
+composed event/history/Controls journey and actual installed speech scalar replay.
+The earlier eight presentation/interaction cases are not redundantly rerun here.
+Native `/W4 /WX` compilation and two optional native contract tests passed; the
+signal-separation experiment itself exits failure as intended. No native DSP is
+loaded by production, no dependency version changed, and no human acceptance occurred.

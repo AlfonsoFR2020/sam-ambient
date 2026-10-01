@@ -12,6 +12,13 @@ records composed voice/recovery, ordinary-RMS WebGL response, hard STT language,
 installed persona policy and confirmed lifecycle fixes. A normal supervised
 LM Studio/Gemma text session and non-played System.Speech PCM passed. These are
 new engineering observations, not a rerun or acceptance of this physical beta.
+Consolidation II adds [actual bilingual generated recognition/endpoint/persona and
+meter-to-WebGL evidence](SPEECH_BASELINE_2026-10-01.md), not the owner's physical
+speech. The [Windows filter AEC probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md)
+failed unchanged echo gates and remains outside runtime. The latest cold provider
+confirmation was incomplete on transient inventory/readiness; clean Quit and truthful
+unavailable state are proven, another model lifecycle pass is not. ROADMAP owns
+the recovery priority; prompt acoustic interruption remains unsolved.
 The implemented repair status and current dependency order are maintained in
 [Roadmap](ROADMAP.md); this file preserves what the physical run falsified and
 the causal diagnosis, rather than treating every observation as a separate task.

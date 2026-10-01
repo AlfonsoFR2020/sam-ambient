@@ -4,8 +4,11 @@
 [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and [Roadmap](ROADMAP.md).
 Hard STT language, installed multilingual persona selection, effective speech
 status, confirmed provider cleanup and explicit runtime/supervisor SQLite closure
-are implemented. Normal supervised LM Studio/Gemma text/load/Rescan/unload passes;
-physical voice and human visual/persona acceptance remain open. Workspace mutation,
+are implemented. Consolidation I's supervised Gemma lifecycle passed; II exposed
+transient cold inventory/readiness with clean degraded startup/Quit. Actual base-model
+en/es generated recognition, paced recovery, persona switching and meters→WebGL now
+have evidence. Cold recovery and proven AEC remain engineering work; physical voice
+and human visual/persona acceptance remain open. Workspace mutation,
 richer browser automation, arbitrary shell, memory sophistication, profiles and
 multi-person implementation are parked. Retain their direction without treating
 existing infrastructure as permission to make them the next frontier.
