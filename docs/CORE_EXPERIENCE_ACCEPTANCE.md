@@ -60,3 +60,13 @@ is obtained, rather than inferring success from dispatched operations.
 voice delivery, generation terminality and typed recovery. No new turn semantics
 are required. Physical STT accuracy and early acoustic barge-in remain unproven;
 the failed AEC prototype stays outside runtime.
+
+## Recognition configuration checkpoint
+
+`voice.stt_language` / `SAM_STT_LANGUAGE` / `--stt-language` now carry a validated
+hard language (or default `auto`) through the normal supervisor and runtime to
+the existing voice-stream context. Explicit en/es makes one forced whisper.cpp
+request, with no automatic hypothesis or language retry. Preferences retain their
+separate automatic-fallback meaning. Endpointing/base model are unchanged; the
+beta's recognition accuracy cannot be attributed solely to configuration and
+still needs a later physical evaluation after echo ownership is adequate.

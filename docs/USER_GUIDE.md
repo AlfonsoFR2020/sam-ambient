@@ -110,6 +110,14 @@ language voice; nothing is installed automatically. INFO logs report the request
 language, selected voice/locale and fallback reason. eSpeak receives the requested
 language; no cloud TTS service is connected.
 
+Recognition is independently configured: `[voice] stt_language = "es"` or `"en"`
+forces that language through supervisor, capture/STT context and whisper.cpp.
+The equivalent source-launch option is `--stt-language es`; `SAM_STT_LANGUAGE`
+is available for session configuration. Default `"auto"` detects language;
+`preferred_languages` only guides uncertain automatic decoding and is **not**
+a hard language selection. This does not improve the capacity of the installed
+base Whisper model or establish real Spanish transcription quality.
+
 Open **Controls → System** for provider/model and STT/TTS status. Successful local
 responses remember the provider/model in
 `<root>/.sam/state.db`. Explicit CLI options override this preference; stale

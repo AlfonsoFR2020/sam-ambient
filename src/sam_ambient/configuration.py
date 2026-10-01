@@ -30,6 +30,7 @@ class VoiceSettings:
     stt_enabled: bool = True
     stt_url: str = "http://127.0.0.1:8080"
     preferred_languages: tuple[str, ...] = ("en", "es")
+    stt_language: str = "auto"
     tts_enabled: bool = True
     tts_voice: str = "default"
 
@@ -109,7 +110,14 @@ _SCHEMA: dict[str, frozenset[str]] = {
         {"preference", "model", "base_url", "local_compatible_url", "compatible_is_local"}
     ),
     "voice": frozenset(
-        {"stt_enabled", "stt_url", "preferred_languages", "tts_enabled", "tts_voice"}
+        {
+            "stt_enabled",
+            "stt_url",
+            "preferred_languages",
+            "stt_language",
+            "tts_enabled",
+            "tts_voice",
+        }
     ),
     "audio": frozenset({"input_gain", "output_gain"}),
     "lifecycle": frozenset({"model_on_exit", "provider_on_exit"}),
@@ -141,6 +149,7 @@ _ENV: dict[str, tuple[str, str]] = {
     "SAM_STT_ENABLED": ("voice", "stt_enabled"),
     "SAM_STT_URL": ("voice", "stt_url"),
     "SAM_PREFERRED_LANGUAGES": ("voice", "preferred_languages"),
+    "SAM_STT_LANGUAGE": ("voice", "stt_language"),
     "SAM_TTS_ENABLED": ("voice", "tts_enabled"),
     "SAM_TTS_VOICE": ("voice", "tts_voice"),
     "SAM_ALLOW_WORKSPACE_WRITE": ("capabilities", "workspace_write"),
@@ -230,6 +239,8 @@ def apply_cli_overrides(
         voice = replace(voice, stt_url=args.stt_url)
     if "--preferred-languages" in explicit:
         voice = replace(voice, preferred_languages=args.preferred_languages)
+    if "--stt-language" in explicit:
+        voice = replace(voice, stt_language=_recognition_language(args.stt_language))
     if "--no-tts" in explicit:
         voice = replace(voice, tts_enabled=False)
     if "--tts-voice" in explicit:
@@ -270,6 +281,7 @@ def configure_namespace(args: Any, argv: list[str], *, supervisor: bool = False)
         "no_voice": not settings.voice.stt_enabled,
         "stt_url": settings.voice.stt_url,
         "preferred_languages": settings.voice.preferred_languages,
+        "stt_language": settings.voice.stt_language,
         "no_tts": not settings.voice.tts_enabled,
         "tts_voice": settings.voice.tts_voice,
         "allow_workspace_write": settings.capabilities.workspace_write,
@@ -366,6 +378,7 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
             stt_enabled=_boolean(voice.get("stt_enabled", True), "voice.stt_enabled"),
             stt_url=_string(voice.get("stt_url", "http://127.0.0.1:8080"), "voice.stt_url"),
             preferred_languages=normalized_languages,
+            stt_language=_recognition_language(voice.get("stt_language", "auto")),
             tts_enabled=_boolean(voice.get("tts_enabled", True), "voice.tts_enabled"),
             tts_voice=_string(voice.get("tts_voice", "default"), "voice.tts_voice"),
         ),
@@ -525,6 +538,13 @@ def _string(value: Any, name: str) -> str:
 
 def _optional_string(value: Any, name: str) -> str | None:
     return None if value is None else _string(value, name)
+
+
+def _recognition_language(value: Any) -> str:
+    code = _string(value, "voice.stt_language").lower()
+    if code != "auto" and (not code.isascii() or not code.isalpha() or len(code) not in (2, 3)):
+        raise ConfigurationError("voice.stt_language must be auto or a language code")
+    return code
 
 
 def _language(value: Any) -> str:

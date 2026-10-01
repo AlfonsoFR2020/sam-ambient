@@ -138,6 +138,23 @@ open_ui = false
     assert args.no_tts and args.no_ui
 
 
+def test_explicit_stt_language_reaches_supervisor_core_and_cli_override(tmp_path, monkeypatch):
+    config = tmp_path / "config/sam.toml"
+    _write(config, '[voice]\nstt_language = "es"\n')
+    monkeypatch.chdir(tmp_path)
+    args = build_supervisor_parser().parse_args([])
+    configure_namespace(args, [], supervisor=True)
+    assert args.stt_language == "es"
+    command = _trusted_core_command(args, tmp_path)
+    assert command[command.index("--stt-language") + 1] == "es"
+    argv = ["runtime", "--stt-language", "en"]
+    args = build_sam_parser().parse_args(argv)
+    configure_namespace(args, argv)
+    assert args.stt_language == "en"
+    with pytest.raises(ConfigurationError, match="stt_language"):
+        load_settings(project_root=tmp_path, environment={"SAM_STT_LANGUAGE": "--unsafe"})
+
+
 def test_visual_settings_are_typed_and_bounded(tmp_path):
     config = tmp_path / "visual.toml"
     _write(

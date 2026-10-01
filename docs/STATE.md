@@ -10,6 +10,8 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
   inventory/server state; CLI dispatch success alone is insufficient.
+- Explicit `voice.stt_language` reaches local STT; automatic language preferences
+  remain fallback hints. Physical recognition quality is still unaccepted.
 
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.

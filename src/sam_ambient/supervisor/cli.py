@@ -73,6 +73,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-tts", action="store_true")
     parser.add_argument("--stt-url", default="http://127.0.0.1:8080")
     parser.add_argument(
+        "--stt-language", default="auto", help="Hard recognition language code, or auto"
+    )
+    parser.add_argument(
         "--preferred-languages",
         type=lambda value: tuple(part.strip() for part in value.split(",") if part.strip()),
         default=("en", "es"),
@@ -134,6 +137,8 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
         command.extend(("--preferred-languages", ",".join(args.preferred_languages)))
     if args.stt_url:
         command.extend(("--stt-url", args.stt_url))
+    if getattr(args, "stt_language", "auto") != "auto":
+        command.extend(("--stt-language", args.stt_language))
     return tuple(command)
 
 

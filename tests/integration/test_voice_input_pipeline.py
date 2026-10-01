@@ -235,7 +235,8 @@ def test_cancelled_capture_returns_to_idle_and_cannot_revive(cancel_stage: str) 
     asyncio.run(scenario())
 
 
-def test_voice_input_pipeline_emits_levels_transcript_and_committed_turn() -> None:
+@pytest.mark.parametrize("language", ["auto", "es", "en"])
+def test_voice_input_pipeline_emits_levels_transcript_and_committed_turn(language) -> None:
     async def scenario() -> None:
         audio_format = AudioFormat(sample_rate_hz=1_000)
         times = [0, 20, 220, 620, 1_020, 1_320]
@@ -261,6 +262,7 @@ def test_voice_input_pipeline_emits_levels_transcript_and_committed_turn() -> No
             stt=stt,
             turn_manager=manager,
             publish=publish,
+            language=language,
         )
         result = await pipeline.run(CancellationToken("voice-cancel"))
 
@@ -268,6 +270,7 @@ def test_voice_input_pipeline_emits_levels_transcript_and_committed_turn() -> No
         assert result.audio_frames == len(frames)
         assert manager.state is VoiceState.COMMITTING
         assert stt.stream is not None and stt.stream.pushed == len(frames)
+        assert stt.stream.context.language == language
         assert any(event.payload.get("reason") == "stt_finalizing" for event in events)
         assert sum(event.type == EventType.VOICE_LEVEL for event in events) == len(frames)
         first_level = next(event for event in events if event.type == EventType.VOICE_LEVEL)

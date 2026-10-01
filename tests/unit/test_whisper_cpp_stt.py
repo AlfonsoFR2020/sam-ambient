@@ -55,6 +55,30 @@ def test_auto_language_prefers_recent_or_configured_but_accepts_confident_switch
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("language", ["en", "es"])
+def test_explicit_language_never_runs_auto_detection_or_uncertain_retry(language):
+    async def scenario():
+        requests = []
+
+        async def handler(request):
+            requests.append(request.content)
+            return httpx.Response(
+                200, json={"text": "spoken fact", "language_probabilities": {"el": 0.4, "pt": 0.3}}
+            )
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            provider = WhisperCppServerSTT(client=client)
+            result = await provider.transcribe(
+                b"wav", language=language, cancellation=CancellationToken()
+            )
+            assert result.text == "spoken fact"
+            assert len(requests) == 1
+            assert f"\r\n{language}\r\n".encode() in requests[0]
+            assert b"\r\nauto\r\n" not in requests[0]
+
+    asyncio.run(scenario())
+
+
 def test_whisper_silence_is_not_conversation_and_legacy_metadata_is_supported():
     assert WhisperCppServerSTT._decode_transcript(b'{"text":"[Music]"}').text == ""
     assert WhisperCppServerSTT._decode_transcript('{"text":"[Música]"}'.encode()).text == ""

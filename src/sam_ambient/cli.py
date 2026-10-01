@@ -194,6 +194,9 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--no-tts", action="store_true", help="Disable spoken output")
     runtime.add_argument("--stt-url", default=DEFAULT_WHISPER_CPP_URL)
     runtime.add_argument(
+        "--stt-language", default="auto", help="Hard recognition language code, or auto"
+    )
+    runtime.add_argument(
         "--preferred-languages",
         type=lambda value: tuple(part.strip() for part in value.split(",") if part.strip()),
         default=("en", "es"),
@@ -733,7 +736,7 @@ async def _serve_runtime(
         )
         try:
             await stt.ensure_ready(Path(args.root))
-            stt_status = f"ready at {stt.base_url}"
+            stt_status = f"ready at {stt.base_url}; recognition language: {args.stt_language}"
             voice = RuntimeVoiceAdapters(SoundDeviceCapture(), WebRtcVoiceActivityDetector(), stt)
         except (SpeechRecognitionError, AudioDeviceError) as error:
             stt_status = str(error)[:500]
@@ -778,6 +781,7 @@ async def _serve_runtime(
             if args.memory_db
             else default_memory_path(),
             tts_voice=args.tts_voice,
+            language=args.stt_language,
             visual_settings=asdict(configured.visual),
             audio_settings=asdict(configured.audio),
             lifecycle_settings=asdict(configured.lifecycle),
