@@ -75,6 +75,8 @@ a new typed conversation. See [capabilities](AGENCY_CAPABILITIES.md) and
    Studio. Sam may load an existing model but never downloads one.
 4. Open **Controls**. Type in **Text request** and press **Send**. Enable
    **Microphone** and **Voice** only after the separate speech setup is ready.
+   Wait for the model to finish loading: a requested/pending model is not an
+   available inference route. Missing speech leaves typed conversation available.
 5. Adjust Sam input/output gain and basic visual/profile settings in Controls.
    Use **Reload interface** for the UI only, **Restart Sam** for managed components,
    and **Quit Sam → Confirm quit** to stop. The safe exit defaults keep local models

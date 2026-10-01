@@ -188,3 +188,42 @@ Two older Quit regressions still assumed the pre-owner-proof protocol. The final
 gate exposed their missing handshake and outdated consumer signature. Fixtures
 now authenticate through the shared helper and supply an OwnerConnection; 33
 first-run/authority tests pass. Product authorization was not weakened or changed.
+
+## Consolidation I acceptance matrix
+
+Recorded 2026-10-01. “Passed” below always names its evidence class; no new human
+acceptance occurred. Published v0.2.3 and its artifacts remain unchanged.
+
+| Fundamental area | Automated evidence | Real runtime | Human acceptance | Remaining |
+| --- | --- | --- | --- | --- |
+| Startup | Supervisor/first-run/owner fixtures | Normal core/UI/owner window starts | Earlier beta only | Wider host/device matrix |
+| Provider discovery | Exact/stale/failed scan regressions | LM Studio inventory, Rescan | Earlier beta only | Other providers and failure timing |
+| Model load/select | Requested/loading separated from active | Existing Gemma load confirmed | No new session | Cold inventory delay; broader switches |
+| Model unload | Outcome re-probed, contradictory CLI failure | Sam-loaded Gemma confirmed absent | No new session | External model deliberately preserved |
+| Provider shutdown/ownership | Stop status verified; owned/reused/failing cases | Reused server preserved | No new session | Real Sam-started stop not exercised |
+| Text conversation | Terminality, correlation, recovery, history | Three complete owner-UI turns | Earlier beta; late stall originally failed | Broader provider/device fault timing |
+| Voice turn lifecycle | Sequential/mixed/failure/cancel paths; composed PCM simulator | No physical capture in this pass | Older beta worked then degraded | Physical pacing/device recovery |
+| STT configuration | Hard en/es through normal launch/backend; no auto retry | Not exercised against real recognizer here | None new | Real configuration/quality benchmark |
+| STT quality | Backend mocks establish semantics only | Installed base model unchanged | Beta materially failed Spanish | Actual bilingual recognition/endpoint evidence |
+| TTS/persona | Installed coverage/preference/fallback/stale selection | Hazel/Helena produce real PCM without playback | Pleasantness/coherence unaccepted | Gender is a limited persona proxy |
+| Interruption/barge-in | Conservative candidate/late-event/text-preservation safeguards | No new physical overlap | Beta failed prompt interruption | Proven AEC/double-talk; roughly-one-second target |
+| Voice reactivity | Real reducer → freshness/motion → fixed WebGL expansion/light | Real TTS PCM nonzero; render coupling synthetic | Revised embodiment unaccepted | Physical sound/visual timing and perception |
+| Orb/form | High-tier representation/geometry and WebGL checks | Isolated Chrome only | Revised form unaccepted | Perceptual softness; representative hardware |
+| Membrane | Lifted coverage/shared pigment/depth checks | Isolated Chrome only | Revised skin unaccepted | Perceptual living skin/edges |
+| Living Surface | Broad evolution with short-frame continuity | Fixed-orientation Chrome only | Revised evolution unaccepted | Organic perception; full-app cost |
+| Particles | Density persists/scales actual quality budget; depth checks | Isolated Chrome | Beta broadly acceptable before current pass | Current density/performance acceptance |
+| Controls | Inventory/wiring, core-confirmed health/voice, last-known state | Normal model/Rescan/Quit used | Beta organization improved | Current integrated discoverability |
+| Diagnostics | Hierarchy/layout/scroll existing regressions preserved | No new detailed live-panel test | Earlier beta useful; old overlap repaired later | Current human readability/layout |
+| Memory initialization | Real isolated store initialized in composed path | Normal app-data store initialized | Not assessed here | Advanced memory deliberately outside this pass |
+| Shutdown | Idempotent retirement; runtime/supervisor handles close/rollback | Quit zero, owner closes, temp state removable | No new session | Physical devices and failed external cleanup |
+
+Final focused gate: **252 Python tests**, **208 frontend tests (18 files)**,
+TypeScript, changed-file Ruff/Biome and formatting pass. The shipped frontend
+production build passes. Nine bounded Chrome cases cover ordinary speech/form/
+surface/particles, Controls/drag, speech status and composed core events. No broad
+advanced Agency/Memory stress suite or human beta was run.
+
+**Freeze line:** no substantial new capability expansion until basic blockers are
+fixed or explicitly reduced to human-validation items. Ordinary speech quality and
+prompt acoustic interruption still need engineering evidence. Human recognition,
+voice pleasantness, physical double-talk and visual naturalness remain distinct gates.

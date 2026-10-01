@@ -616,3 +616,15 @@ master specification are recorded here.
   low-frequency synthesis-health event. Meter events are coalescible and cannot
   reliably carry the only copy of persistent selection state. Retired-generation
   health events cannot replace the current delivery's selection.
+
+## D-036 — Consolidate the basic experience before expanding capabilities
+
+- **Accepted:** 2026-10-01. Agency and Memory foundations remain implemented;
+  workspace mutation, browser expansion, arbitrary shell, memory sophistication,
+  profiles and multi-person implementation are parked while fundamentals are assessed.
+- [Core acceptance](CORE_EXPERIENCE_ACCEPTANCE.md) separates deterministic,
+  real-runtime and human evidence. Current provider/text/synthesis checks and
+  signal/render metrics do not accept real recognition, double-talk or visual character.
+- Prompt interruption is basic behavior, but still needs a processor passing the
+  unchanged acoustic gate. Do not lower that gate or confuse VAD with human origin.
+  Clean STT/persona/timing work need not wait for the uncertain native subsystem.

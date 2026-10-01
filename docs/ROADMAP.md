@@ -1,6 +1,11 @@
 # Sam development plan: post-v0.2.3 toward v0.2.4
 
-**HQ priority change (2026-09-30): secure agency now precedes further AEC.**
+**HQ priority change (2026-10-01): Basics Before Expansion.**
+The current [core-experience acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md)
+owns the next milestone: ordinary voice, truthful model lifecycle, stable installed
+persona, connected embodiment, complete Controls and clean startup/shutdown.
+The completed agency/memory foundations remain assets; new powers are parked.
+The previous 2026-09-30 agency priority is superseded, not erased from history.
 Owner authentication, typed bounded capabilities, read-only console/public-page
 browser slices, model mediation and the adversarial simulator are implemented on
 development HEAD. See [agency evidence](AGENCY_FOUNDATION_I.md).
@@ -9,9 +14,9 @@ review/provenance, bounded lexical retrieval/context, typed proposals and restar
 privacy/recovery simulation are implemented; [memory evidence](MEMORY_FOUNDATION_I.md).
 An existing LM Studio/Gemma owner-window structured workspace read, inert returned
 instructions and cancellation passed. No human memory/visual/audio acceptance is claimed.
-The acoustic prototype failed its integration gate and remains a separate voice
-workstream; it is not a prerequisite for agency. Existing numbered voice cards
-below retain their internal dependencies, not the current cross-workstream order.
+The acoustic prototype failed its integration gate. Prompt barge-in still requires
+a proven processor; it does not block improvements to the ordinary voice loop.
+The ordered basic-experience cards below supersede the former expansion queue.
 See [owner authority](OWNER_AUTHORITY.md) for the first agency checkpoint.
 
 This is the **authoritative execution order**, not a promise that every later capability belongs in v0.2.4. [STATE](STATE.md) records implemented truth; [BACKLOG](BACKLOG.md) retains unresolved items; [ARCHITECTURE](ARCHITECTURE.md) and [DECISIONS](DECISIONS.md) contain current contracts. The [physical beta record](POST_0.2.3_BETA_PLAN.md) remains primary product evidence. Specialist sources: [AEC decision](AEC_DOUBLE_TALK_CONTRACT.md), [trust review](TRUST_BOUNDARIES.md), [dependency triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md), [visual direction](VISUAL_DIRECTION.md) and [isolated performance sample](VISUAL_PERFORMANCE_0.2.3_DEV.md). The [published v0.2.3 release scope](RELEASE_READINESS_0.2.3.md) is historical; this plan changes neither it nor its tag.
@@ -28,7 +33,15 @@ Post-release dev has repaired unsafe promotion of playback-time interruption can
 
 **Current:** separate bounded capture, STT, synthesis and playback lifetimes; health, cancellation and turn-local route identity; conservative candidate screening and typed recovery after supersession. **Unmet requirement:** Sam cannot acoustically prove human origin during speaker output or reliably stop delivery after roughly one second of genuine overlapping speech. This blocks prompt barge-in and contaminates interpretation of STT errors. The [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) prefers a bounded reverse-render/near-end interface and a WebRTC Audio Processing feasibility prototype. Native binding, format conversion, timing/drift and double-talk are high uncertainty. Split prototype, runtime integration and short physical validation. Synthetic echo/double-talk and lifecycle tests precede real hardware; human beta waits for a larger integrated state.
 
-After acoustic separation, diagnose observed Spanish/Portuguese/Greek language drift and endpoint errors on attributed clips, then define a stable multilingual Sam voice identity. System Speech selected David for English and Helena for Spanish in the beta. STT clips and short real audio establish recognition; physical listening establishes persona. Neither a Whisper model replacement nor a new TTS engine is presumed. Deterministic tests reproduced and fixed stall paths, but the exact five-minute no-response incident remains unproven. Correlated real runs must validate terminality and typed recovery rather than claim retroactive attribution.
+Explicit recognition language now reaches whisper.cpp without automatic-language
+retry; default auto and preferred-language fallback remain separate. Installed
+System.Speech selection now favors a consistent cross-language persona, honors an
+explicit voice and reports unavoidable mismatch. Actual en/es PCM synthesis passed
+without playback. Clean attributed clips can evaluate recognition before AEC;
+playback-contaminated microphone recognition must still wait for source separation.
+Neither a Whisper replacement nor new TTS engine is presumed. Ordinary voice,
+terminality and typed recovery pass the composed simulator. The exact historical
+five-minute no-response episode remains unproven; physical timing is not inferred.
 
 ### Security and authority
 
@@ -38,7 +51,7 @@ The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate 
 
 ### Provider and local-control architecture
 
-**Current:** correlated discovery/Rescan and transport epochs; immutable turn-local provider/model; exact typed switch and Stop speaking; no silent provider fallback; typed post-final-STT control seam. **Unmet:** named server/API profiles, atomic profile + provider + model switching, credential-safe configuration, spoken intent recognition/acknowledgement and real multi-provider recovery. Control-channel ownership and profile semantics precede more privileged spoken controls. Separate profile schema/route work from recognizer and UI. Fake stale-discovery tests precede real provider checks. Do not mutate an active generation's route.
+**Current:** correlated discovery/Rescan and transport epochs; immutable turn-local provider/model; exact typed switch and Stop speaking; no silent provider fallback; typed post-final-STT control seam. Configured-but-unavailable models no longer appear active in startup snapshots. Real supervised LM Studio/Gemma load, three text turns, Rescan and confirmed Sam-owned unload pass; external serving is preserved. **Unmet:** physical device/provider failure timing and broader real multi-provider recovery. Named profiles, atomic profile + provider + model switching and natural-language controls are parked expansion. Keep active route pinning and credential boundaries when those resume.
 
 ### Memory and intelligence
 
@@ -75,181 +88,117 @@ runtime/GPU/dependency/license suitability requires evaluation before adoption.
 
 **Current:** prepared-checkout Windows launch is one action; v0.2.3 wheel/sdist are public; unsigned Windows development installer is withheld. Supervisor/update authority remains distinct from conversation with staged activation/rollback contracts. **Unmet:** signed, reputation-tested, clean-host public Windows installation and owner-controlled update/release. Signing identity and security-software response need owner/security decisions; do not invent a workaround. This blocks a non-developer distribution claim, not the AEC prototype. Split signing prerequisites, clean-host package test and publication. Linux/mobile distribution remain later tracks.
 
-## Ordered Codex task cards
+## Next basic-experience tasks
 
-These cards preserve the voice workstream's internal dependency order. **Task 1
-is complete; cards 9, 10 and 12 are completed by Agency Foundation I.** Card 2
-remains the next acoustic experiment, not HQ's next overall task. Follow the
-current agency milestone/next bounded task below before resuming acoustic work.
-Skip a card only when prerequisites/environment are unavailable and record why.
-No card requests human testing now.
+These supersede the previous expansion queue. Each task is bounded and contributes
+engineering evidence to the acceptance matrix; none requests a human session now.
+Completed dependency/authority/memory foundations remain indexed above, not open cards.
 
-### 1. Development-toolchain advisory maintenance — complete on dev
+### 1. Real local STT language and endpoint evidence
 
-- **Objective / why now:** Resolve Vite/Vitest dev-server advisories before more browser/control work.
-- **Prerequisites:** [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md); clean locked toolchain.
-- **Scope:** Compatible fixed dev-package versions, transitive mocker resolution and lockfile/notice review. **Non-scope:** Sam features, arbitrary upgrades, deployed-binary vulnerability claims.
-- **Deliverable / validation:** One coherent dependency commit; locked install, TypeScript, focused frontend/browser tests, Biome and lock diff. No provider/audio runtime.
-- **Model / quota:** Sol Medium; **small**. **Stop/escalate:** if the mocker fix requires disruptive Vitest major migration, separate it and retain a documented test-UI restriction. **Human checkpoint:** no. This prevents toolchain repair from consuming task 2's feasibility budget.
+- **Objective / why next:** measure ordinary English/Spanish recognition using the
+  installed base model now that forced-language wiring is correct. Poor recognition
+  impaired the beta even outside interruption; clean attributed audio can be tested
+  without pretending speaker leakage is solved.
+- **Prerequisites:** existing whisper.cpp/model, explicit-language contract and small
+  non-personal speech fixtures with lawful provenance, or installed TTS-generated speech.
+- **Scope:** forced/automatic language, controlled level/noise/silence and endpoint
+  timing; minimal demonstrated configuration fixes. **Non-scope:** model downloads,
+  a broad parameter search, AEC or claims about the owner's accent from synthetic voices.
+- **Deliverable / validation:** reproducible WER/CER/language/edge-word and latency
+  evidence, separating recognizer quality from segmentation. Nearby voice/typed recovery.
+- **Reasoning / quota:** Sol Medium, High for demonstrated lifecycle ownership trouble;
+  medium. Stop if fixtures/backend are unavailable or a model comparison is required.
+  **Human acceptance:** later user speech/accent/environment, not this task.
 
-### 2. Falsifying AEC processor prototype
+### 2. Speech timing and representative full-app performance
 
-**First probe recorded; integration blocked:** the optional Windows AEC3
-extraction binding runs, but fails the declared separation gate. See
-[measurements and reproduction](AEC_PROTOTYPE_2026-09-30.md). Task 2 remains open:
-establish pinned upstream APM adapter/build feasibility and replay the same
-fixtures before Task 3. No runtime acoustic or early-barge-in claim is made.
+- **Objective / why after 1:** check real generated PCM, metering/delivery and Orb
+  timing with stable ordinary language input before pursuing acoustic concurrency.
+- **Prerequisites:** current signal-to-WebGL regressions, installed voices and the
+  isolated performance baseline. Real-device use requires a separately bounded scope.
+- **Scope:** generated English/Spanish PCM → normal meters → visual state; full-app
+  and available lower-tier cost, silence/cancellation, reduced motion/Canvas.
+  **Non-scope:** artistic tuning, new sliders, subjective voice claims or a speed benchmark.
+- **Deliverable / validation:** measured timing/cost with CPU/frame/GPU distinctions;
+  synthetic browser and existing interaction regressions; fixes only for broken paths.
+- **Reasoning / quota:** Sol Medium; medium. Stop on missing hardware/timers; report
+  limitations. **Human acceptance:** later speech pleasantness and natural embodied timing.
 
-- **Objective / why now:** Prove or reject the [preferred processing boundary](AEC_DOUBLE_TALK_CONTRACT.md) before changing live conversation.
-- **Prerequisites:** AEC contract; native binding/license/build provenance; task 1 if tooling overlaps.
-- **Scope:** Isolated adapter and short synthetic PCM/delay/resampling fixtures; measure false triggers, near-end onset and package/CPU cost. **Non-scope:** live Sam, production barge-in, UI or STT tuning.
-- **Deliverable / validation:** Explicit pass/fail for echo-only, noise, double-talk, playback-end, changing delay and reset, plus 22.05-to-16 kHz conversion and license/build-size record.
-- **Model / quota:** Sol High; **medium**. **Stop/escalate:** no trustworthy Windows binding or excessive native cost; compare SpeexDSP/Windows DSP instead of inventing a subsystem. **Human checkpoint:** no. A falsifiable processor result is necessary before task 3.
+### 3. Pinned upstream APM feasibility and falsifying processor probe
 
-### 3. Bounded acoustic ownership and early delivery interruption
+- **Objective / why after ordinary paths:** prompt full-duplex interruption is a basic
+  requirement, but needs a proven processor rather than raw VAD or a lower threshold.
+- **Prerequisites:** [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md), the preserved
+  [failed extraction probe](AEC_PROTOTYPE_2026-09-30.md), license/build provenance.
+- **Scope:** one maintainable full WebRTC APM boundary first, Windows-native path only
+  if that is unsuitable. Replay echo/noise/double-talk/delay/reset fixtures and unchanged
+  gates. **Non-scope:** production integration, large WebRTC fork or DSP catalogue.
+- **Deliverable / validation:** binary pass/fail, near-end preservation/convergence,
+  real-time cost and bounded memory/build implications. No physical success inferred.
+- **Reasoning / quota:** Sol High; medium with an independent evidence commit. Stop
+  if the native subsystem becomes invasive or licensing/build maintenance is unclear.
+  **Human acceptance:** none; failure remains useful evidence and blocks task 4.
 
-- **Objective / why now:** Stop TTS for validated sustained human-origin speech before STT finalizes, while keeping echo provisional and assistant text complete.
-- **Prerequisites:** Task 2 passes, or a documented substitute passes the same fixtures.
-- **Scope:** Bounded post-gain reference, capture alignment/delay, processed VAD/STT, pre-roll, pinned candidate identity and conservative fallback. **Non-scope:** Whisper replacement, voice persona, visual tuning, VAD-only timer or route redesign.
-- **Deliverable / validation:** Generation-scoped audio path; deterministic echo/double-talk, late STT, playback-end, device-reset and typed-recovery regressions; no stale ownership or unbounded buffer.
-- **Model / quota:** Sol High; **large**, with mandatory processor, candidate-handoff and integration checkpoint commits. **Stop/escalate:** false echo-only interruption or unstable delay means keep conservative fallback. **Human checkpoint:** no. This creates task 4's physical testable path.
+### 4. Proven acoustic boundary and delivery-only early barge-in
 
-### 4. Bounded physical acoustic/device validation
+- **Objective / why after 3:** stop speech promptly from sustained processed near-end
+  evidence while preserving the full assistant answer and the user's first syllable.
+- **Prerequisites:** processor passes task 3; existing identity/candidate/terminality rules.
+- **Scope:** bounded post-gain render alignment, processed capture, VAD/STT pre-roll,
+  candidate evidence and conservative failure fallback. **Non-scope:** STT replacement,
+  route redesign, VAD-only timer or new user-visible settings.
+- **Deliverable / validation:** checkpointed processor ownership then interruption
+  integration; echo-only/noise/human-overlap/end-of-playback/reset/late-event/typed
+  recovery cases with onset-to-cancellation latency. Target roughly one second.
+- **Reasoning / quota:** Sol High; large, mandatory independent green checkpoints.
+  Stop on false echo-only interruption or unmet near-end gate; keep conservative runtime.
+  **Human acceptance:** later real speaker/microphone double-talk, not synthetic acceptance.
 
-- **Objective / why now:** Check whether synthetic ownership holds on actual Windows speakers and microphone before diagnosing recognition.
-- **Prerequisites:** Green task 3 and a separately authorized short real-device window.
-- **Scope:** Purpose-specific playback-only and overlapping-human-speech run; measure onset-to-delivery-stop, STT continuation, reset and typed recovery. **Non-scope:** human beta, tuning marathon, provider feature work.
-- **Deliverable / validation:** Correlated turn/generation/device evidence; minimal regression only for a reproduced defect.
-- **Model / quota:** Sol Medium; High only for a demonstrated race; **medium**. **Stop/escalate:** unavailable hardware or repeated unsafe false interruptions; record inconclusive status. **Human checkpoint:** no. Acoustic attribution must precede task 5.
+### 5. Bounded physical recovery and integrated acceptance preparation
 
-### 5. STT language and endpoint diagnosis
-
-- **Objective / why now:** Separate real Spanish/Portuguese/Greek classification and endpoint errors from echo/candidate errors.
-- **Prerequisites:** Tasks 3–4, or clean attributed clips with the limitation stated.
-- **Scope:** Multilingual clip matrix, correlated language/endpoint inspection and minimal justified policy fix. **Non-scope:** unproven Whisper upgrade, diarization, audio rewrite.
-- **Deliverable / validation:** Source-backed diagnosis, focused clips/state tests, brief real-language check only if authorized.
-- **Model / quota:** Sol Medium; **medium**. **Stop/escalate:** model capability rather than Sam policy; do not fabricate confidence. **Human checkpoint:** no. Stable language evidence informs task 6.
-
-### 6. Multilingual Sam voice-identity policy
-
-- **Objective / why now:** Avoid surprising male/female persona change when Sam changes language.
-- **Prerequisites:** Task 5 language evidence and installed/licensed voice inventory.
-- **Scope:** Define per-language identity/fallback and make only a supported small selection correction. **Non-scope:** cloud TTS, cloning, new engine, voice marketplace.
-- **Deliverable / validation:** Durable policy and adapter tests; physical listening remains later.
-- **Model / quota:** Sol Medium; **medium**. **Stop/escalate:** no suitable licensed local voices; document the backend decision separately. **Human checkpoint:** later integrated voice acceptance, not this task. This defines the expected speech behavior for task 7.
-
-### 7. Real provider/audio/typed-recovery integration
-
-- **Objective / why now:** Check post-release terminality, exact route and audio-health guarantees against real timing without claiming the old beta incident was fully diagnosed.
-- **Prerequisites:** Tasks 3–6 green or explicitly limited; available pre-existing provider/model and authorized devices.
-- **Scope:** Controlled Rescan/selection, short text/voice turns, interruption, failure recovery, reconnect and ownership-aware cleanup with correlated IDs. **Non-scope:** benchmarking, new provider download/setup, exploratory runtime, human beta.
-- **Deliverable / validation:** Observed provider/device results and limitations; regressions only for reproduced defects.
-- **Model / quota:** Sol Medium; High for a reproduced concurrency defect; **medium**. **Stop/escalate:** no provider/device or committed-text loss/stuck typed turn. **Human checkpoint:** no. This supplies runtime evidence before task 8.
-
-### 8. Integrated visual/performance/accessibility gate
-
-- **Objective / why now:** Establish that the revised speech-responsive body remains bounded and usable with real conversation active.
-- **Prerequisites:** Task 7 stable path; [isolated timing baseline](VISUAL_PERFORMANCE_0.2.3_DEV.md).
-- **Scope:** One bounded full-app Windows cost/latency sample, lower tier if available, reduced motion/Canvas and diagnostics/history coexistence. **Non-scope:** new art direction, brittle FPS threshold, immediate human acceptance.
-- **Deliverable / validation:** GPU/CPU/frame/audio-latency evidence with limitations and fixes only for measured defects; existing interaction/render tests.
-- **Model / quota:** Sol Medium; **medium**. **Stop/escalate:** severe contention or missing timers; report what is actually measurable. **Human checkpoint:** prepares a later scarce integrated session, does not request it. This closes the automated/runtime evidence for a v0.2.4 candidate.
-
-### 9. Owner-authenticated local control-channel contract
-
-**Completed by Agency Foundation I:** [contract](OWNER_AUTHORITY.md), private bootstrap and connection/restart/revocation tests. The card below records its original scope.
-
-- **Objective / why now:** Define command ownership before more computer agency.
-- **Prerequisites:** [trust model](TRUST_BOUNDARIES.md); task 7 reconnect evidence is useful but not required.
-- **Scope:** Threat model and protocol contract for owner capability, native/browser bootstrap, handshake, reconnect, rotation and revocation. **Non-scope:** browser/console implementation, OS-user isolation claims, credentials in logs/pages.
-- **Deliverable / validation:** Reviewed design and fake hostile-origin/process cases, with compatibility plan.
-- **Model / quota:** Sol High; **medium**. **Stop/escalate:** no secret-safe browser bootstrap; split native and browser policies. **Human checkpoint:** no. This makes task 10 implementable.
-
-### 10. Local command-channel authentication slice
-
-**Completed by Agency Foundation I:** all live private commands/events require a fresh owner proof; source-window fixture and native compile pass. Native physical launch/package remains unvalidated.
-
-- **Objective / why now:** Enforce task 9 without breaking text/voice recovery or startup.
-- **Prerequisites:** Approved task 9 contract.
-- **Scope:** Connection-scoped handshake, bounded failure/revocation and trusted UI bootstrap while retaining Origin/protocol/policy checks. **Non-scope:** user accounts, remote service, OAuth, new tools or page access.
-- **Deliverable / validation:** Protocol, reconnect, stale-capability and startup tests; one bounded browser/native seam check if required.
-- **Model / quota:** Sol High; **large** with mandatory handshake/reconnect checkpoints. **Stop/escalate:** legitimate UI lockout or leak into page context. **Human checkpoint:** no. This precedes tasks 11–12.
-
-### 11. Named inference-profile and atomic route slice
-
-- **Objective / why now:** Enable exact profile + provider + model selection without redirecting active turns or leaking credentials.
-- **Prerequisites:** Task 10 trusted channel and current route-pinning/discovery contract.
-- **Scope:** Typed profile identity/storage boundary, atomic future-turn switch, unavailable/ambiguous outcomes and stale-discovery tests; minimal UI if necessary. **Non-scope:** natural-language recognizer, arbitrary API-key UI, silent fallback, mid-generation migration.
-- **Deliverable / validation:** Typed route slice with fake provider and frontend/core correlation tests, later real switch check.
-- **Model / quota:** Sol Medium, High if credential ownership changes; **medium**. **Stop/escalate:** unresolved secret-store policy. **Human checkpoint:** no. This gives later spoken control a safe target.
-
-### 12. Console/browser capability boundary design
-
-**Completed beyond the original design card:** [typed capabilities](AGENCY_CAPABILITIES.md), [owned browser](OWNED_BROWSER.md), [simulator evidence](AGENCY_FOUNDATION_I.md). No arbitrary shell or page scripting. [Memory Foundation I](MEMORY_FOUNDATION_I.md) now implements the single-owner memory seam; semantic/multi-person extensions remain architecture only.
-
-- **Objective / why now:** Choose the first useful computer-facing ability without giving untrusted content owner command authority.
-- **Prerequisites:** Tasks 9–10 and existing trusted tool registry/approval/epoch.
-- **Scope:** One bounded console or browser use case, isolation, grants, output limits, audit and cancellation; specify an implementable first slice. **Non-scope:** full terminal, unrestricted automation, memory retrieval, self-update or natural-language controls.
-- **Deliverable / validation:** Threat-modelled design and deterministic policy/injection tests; broad implementation is a separate task.
-- **Model / quota:** Sol High for cross-origin authority, otherwise Medium; **medium**. **Stop/escalate:** proposed UI must expose owner capability or bypass approval. **Human checkpoint:** no. This starts a later expansion horizon.
+- **Objective / why last:** validate the composed basic experience against device and
+  provider timing after ordinary recognition and acoustic processing are coherent.
+- **Prerequisites:** tasks 1–4 pass or are explicitly limited; authorized installed
+  hardware/provider window. Human beta remains unavailable until separately scheduled.
+- **Scope:** current LM Studio route, actual audio failure/restart, interleaved voice/text,
+  confirmed conditional cleanup and available full-app cost. Use non-personal fixtures
+  where possible. **Non-scope:** new capabilities, model/voice downloads or repeated tuning.
+- **Deliverable / validation:** correlated runtime results and precise remaining human
+  questions; minimal regressions for reproduced defects, same basic simulator/Controls gate.
+- **Reasoning / quota:** Sol Medium; medium, High only for a reproduced ownership race.
+  Stop on unsafe false interruption or unrecoverable text state. **Human acceptance:**
+  prepares a substantial later integrated session; does not request one immediately.
 
 ## Meaningful v0.2.4 integrated checkpoint
 
-HQ now prioritizes useful secure agency. The candidate may include owner-authenticated
-local authority, typed bounded/cancellable capabilities, read-only Console/public-page
-inspection, structured model mediation, clean conversation history/typed recovery and
-the implemented visual repairs and reviewed local Memory Foundation I. **AEC is a separate voice workstream, not a release
-prerequisite for these capabilities.** Conservative candidate safety remains required.
+v0.2.4 should consolidate the existing fundamentals: normal startup, truthful exact
+model discovery/load/Rescan, reliable interleaved voice/text with typed recovery,
+clean committed history, deliberate installed voice persona, bounded perceptible
+speech embodiment, coherent current Orb/membrane/surface/particles, complete Controls,
+useful diagnostics and ownership-correct confirmed cleanup. Agency and Memory remain
+implemented assets with safe initialization/closure, not this milestone's expansion.
 
-The first bounded real-provider structured workspace read through the owned UI
-passed with existing LM Studio/Gemma, including inert injected data and cancellation.
-Memory's restart/recall/review/recovery path is deterministically integrated; actual
-model use of persistent context and human privacy/approval usefulness remain unverified.
-Fake protocol/adversarial/model fixtures and isolated browser evidence are green;
-production native driver bundling/launch and real external-site compatibility are
-not established. Preserve text recovery and bounded ownership in later slices.
-No new release, package/signing action or immediate human beta is implied.
+Automated evidence includes the composed owner/runtime/voice/output/frontend path,
+configuration and retirement regressions, signal-to-fixed-WebGL measurements, authority
+initialization, isolated memory initialization and bounded cleanup. Real evidence must
+include current provider lifecycle, installed synthesis/STT and device/recovery timing;
+synthetic recognition and DSP results never substitute for real-room ownership.
+A credible prompt-interruption claim requires a passing processor and physical acoustic
+evidence. Otherwise voice remains explicitly limited, rather than declaring barge-in solved.
 
-**Explicitly later:** prompt acoustic barge-in/AEC integration, STT/persona improvements,
-named profiles/natural-language switching, arbitrary shell, sensitive browser actions,
-semantic/vector retrieval, automatic learning, cloud/multi-user memory, diarization,
-signed public installer and self-update.
-Their specialist contracts and internal voice dependencies above remain valid.
+**Explicitly parked:** workspace mutation, arbitrary shell, browser expansion, more
+memory sophistication/vectors, profiles/hot-swapping, multi-user/diarization, public
+installer/signing and new visual art direction. Preserve security/provenance contracts;
+model, page, memory and transcript content never become owner authority.
 
-**Next scarce human beta:** only when secure agency has demonstrated useful integrated
-owner workflows, text/voice recovery remains sound, and a separately authorized runtime
-window has checked the relevant paths. It should assess actual usefulness, understandable
-authority/approval, selective memory usefulness/correction/deletion/privacy, history
-and visual perception together. Do not request human testing
-now or treat deterministic visual metrics as perceptual acceptance.
-
-### Next bounded Codex task — owner-approved workspace edit with preview and rollback
-
-- **Objective:** move from reading to one useful, explicitly approved contained file
-  change, using existing file/capability primitives rather than arbitrary shell.
-- **Why next:** owner authority, real structured read and memory foundations now exist;
-  a reviewable/reversible workspace action adds product value before richer browser
-  power or further memory plumbing. It need not wait for AEC.
-- **Prerequisites:** current authority/policy/epoch and canonical root enforcement;
-  inspect existing files.write and workspace-writable configuration before extending.
-- **Scope:** one owner-selected allowed workspace boundary, clear before/after preview,
-  exact approval tied to content/path/revision, atomic change and bounded rollback;
-  cancellation/failure/late-result handling. Use scratch fixtures/fake inference first.
-- **Non-scope:** arbitrary PowerShell, broad OS writes, browser automation, provider
-  profiles, automatic memory learning, signing, audio or visual work.
-- **Deliverable:** one coherent vertical slice plus trustworthy change/rollback UX and
-  security contract, not a general filesystem editor or permission framework.
-- **Validation:** traversal/symlink/junction, stale approval/revision, cancellation,
-  hostile memory/tool text, partial-write/rollback and fresh typed-turn regressions;
-  one bounded owner-UI fixture. Real-model demonstration only if separately authorized.
-- **Suggested effort:** Sol High for authority/change/rollback ownership; medium quota,
-  checkpoint contract before implementation. Medium is appropriate after the contract
-  is concretely bounded. Stop if exact reversible authority cannot fit existing tools.
-- **Human checkpoint:** no immediate test; contributes to later integrated usefulness.
-
-After that, choose a separately bounded real-provider agency + memory usefulness/
-public-page check, then one justified browser interaction. Do not promote vectors,
-profiles or multi-person research merely because their seams exist. Existing voice
-cards remain the separate dependency-aware acoustic/language workstream.
+**Next scarce human beta:** only a substantial integrated state with the ordinary loop,
+voice selection, current revised visuals, Controls and shutdown already technically
+verified, and acoustic ownership either physically supported or explicitly constrained.
+Assess the owner's actual Spanish/English recognition, voice identity/pleasantness,
+interruption/first-word preservation, natural visible speech response, soft form/skin,
+living pigment and practical conversation usability together. No human test is available
+now. Automated visual correctness is not human perceptual acceptance.
 
 ## HQ quota and execution practice
 

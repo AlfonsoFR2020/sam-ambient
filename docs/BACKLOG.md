@@ -1,5 +1,15 @@
 # Post-0.2 engineering backlog
 
+**Current policy: Basics Before Expansion (2026-10-01).** See the authoritative
+[core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and [Roadmap](ROADMAP.md).
+Hard STT language, installed multilingual persona selection, effective speech
+status, confirmed provider cleanup and explicit runtime/supervisor SQLite closure
+are implemented. Normal supervised LM Studio/Gemma text/load/Rescan/unload passes;
+physical voice and human visual/persona acceptance remain open. Workspace mutation,
+richer browser automation, arbitrary shell, memory sophistication, profiles and
+multi-person implementation are parked. Retain their direction without treating
+existing infrastructure as permission to make them the next frontier.
+
 The published 0.2.3 human beta is preserved in
 [Post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md). Conversation candidate
 promotion, generation retirement, typed recovery and history integrity now have

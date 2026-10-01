@@ -191,6 +191,8 @@ behavior. Isolated frontend memory and shipped-owner-window tests are separate f
 real provider/hardware/human evidence. Exact counts are recorded in the memory document.
 No new dependencies, provider/audio models or published-release metadata were changed.
 
-The next useful capability direction is in [ROADMAP](ROADMAP.md): an owner-approved,
-contained workspace edit with explicit preview/rollback rather than more memory plumbing.
+The [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) records the 252-Python /
+208-frontend final gate and normal provider/synthesis evidence. [ROADMAP](ROADMAP.md)
+now prioritizes basic speech quality, timing and proven interruption; new capabilities
+remain parked. Automated correctness is not human perceptual acceptance.
 Human testing is scarce and reserved for a substantial integrated checkpoint; unavailable now.

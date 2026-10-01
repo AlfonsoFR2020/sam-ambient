@@ -387,6 +387,12 @@ frame rate alone is insufficient evidence.
 
 ## Orb Lab and design review
 
+Core Experience Consolidation I confirmed ordinary RMS through the protocol
+reducer into actual fixed-camera body expansion/illumination, with stronger emphasis
+and preserved membrane/surface/particle checks. No new art or geometry was justified.
+See [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md): human naturalness/softness/
+living-field acceptance and representative full-app/low-power cost remain open.
+
 An eventual Orb Lab / Visual Explorer can render many deterministic variants as a
 grid or contact sheet before scarce human acceptance. Hold seed, viewport, camera,
 quality tier, state and synthetic input/output audio fixture fixed while comparing

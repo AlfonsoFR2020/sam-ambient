@@ -7,6 +7,11 @@ Sam started through the supervisor with the existing LM Studio
 System Speech. Several voice → model → spoken-answer turns succeeded. Vertical
 Orb dragging worked, and Controls tabs, diagnostics, and particles were useful.
 No post-release repair has yet been verified against the physical session.
+The subsequent [Core Experience Consolidation](CORE_EXPERIENCE_ACCEPTANCE.md)
+records composed voice/recovery, ordinary-RMS WebGL response, hard STT language,
+installed persona policy and confirmed lifecycle fixes. A normal supervised
+LM Studio/Gemma text session and non-played System.Speech PCM passed. These are
+new engineering observations, not a rerun or acceptance of this physical beta.
 The implemented repair status and current dependency order are maintained in
 [Roadmap](ROADMAP.md); this file preserves what the physical run falsified and
 the causal diagnosis, rather than treating every observation as a separate task.
@@ -15,10 +20,11 @@ Post-release agency and Memory Foundation I are now implemented on dev: owner
 proof, bounded capabilities, a real installed-model workspace-read smoke, reviewed
 local persistent memory and deterministic restart/recall/correction/delete evidence.
 These additions do not retroactively repair/accept the physical voice beta. Acoustic
-barge-in, STT/persona, visual perception, physical recovery and distribution findings
+barge-in, STT quality/persona perception, visual perception, physical recovery and distribution findings
 below remain open. Memory/agency usefulness and privacy/approval UX join the later
 integrated acceptance checkpoint; no human test is available now. Current semantics
-and next priorities are in [Memory Foundation I](MEMORY_FOUNDATION_I.md) and ROADMAP.
+are in [Memory Foundation I](MEMORY_FOUNDATION_I.md); next priorities follow
+ROADMAP's Basics Before Expansion policy, with no further agency/memory expansion.
 
 ## 1. P0 — restore conversation ownership before tuning speech quality
 
