@@ -20,6 +20,8 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
   acceptance remains distinct and outstanding.
 - Conversation Controls exposes core-confirmed speech health/mode/effective voice;
   preferences, actual readiness and disconnected last-known facts remain distinct.
+- Operational conversation-state transactions explicitly close their SQLite handles
+  on success/failure; shutdown no longer relies on garbage collection for these.
 
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.

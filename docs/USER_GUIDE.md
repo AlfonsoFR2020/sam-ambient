@@ -120,7 +120,7 @@ is available for session configuration. Default `"auto"` detects language;
 a hard language selection. This does not improve the capacity of the installed
 base Whisper model or establish real Spanish transcription quality.
 
-Open **Controls → System** for provider/model and STT/TTS status. Successful local
+Open **Controls → System** for provider/model and STT/TTS status.
 Speech health, recognition mode and the actual most recent voice are also shown
 in **Conversation**. Enabled microphone/voice preferences do not prove that a
 device/backend is working; degraded health is reported separately. Disconnected

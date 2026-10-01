@@ -124,3 +124,16 @@ not presented as proof of functioning hardware; disconnected facts are last know
 Recognition language and voice preference remain normal source configuration,
 not new live-setting commands. 65 focused frontend tests and one new Chrome status
 case pass, including STT failure with typed Send still enabled.
+
+## Startup/shutdown checkpoint
+
+The real smoke exposed an operational conversation-state handle leak:
+`sqlite3.Connection` context exit commits/rolls back but does not close. Short
+SQLiteSessionStore operations now explicitly close on both success and exception,
+without waiting for garbage collection/process exit. A failing regression held
+strong references to every connection; after repair they are closed, rollback
+preserves prior state, and Windows can remove the database immediately. 54
+focused state/context/provider/generation/first-run shutdown tests pass.
+Durable memory already uses per-operation closed connections; no memory features
+or schemas changed. Runtime still revokes authority, retires active work and
+closes speech/browser/bridge/provider resources before configured provider cleanup.
