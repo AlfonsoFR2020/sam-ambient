@@ -84,3 +84,35 @@ and count, retry/backoff, exhaustion, actual load start and active-route confirm
 No raw stdout/stderr, credentials or conversation text is added. Isolated Chrome
 protects mounted Orb/Controls, manual supersession, stale result rejection and
 disconnected state; frontend correlation regressions remain green.
+
+## Single real verification, 2026-10-01 (Europe/Madrid)
+
+Installed LM Studio / `google/gemma-4-e2b`, normal supervisor and private owner
+window, isolated state/app-data memory; microphone and TTS disabled. No downloads,
+provider restart/kill, persistent endpoint changes or human session.
+
+| Observed time | Transition |
+| --- | --- |
+| Before 18:24:38 launch | HTTP unreachable; daemon `not-running`, server `running=false`, no loaded model; first installed-inventory request classified **timeout** |
+| 18:24:38–39 | Supervisor/core/UI start; UI healthy |
+| 18:24:42 | Initial core inventory available, one installed chat model; endpoint ready, model not loaded; owner core is truthfully degraded/pending |
+| 18:24:42 | Automatic bootstrap attempt 1 begins |
+| 18:24:44 | Exact installed Gemma load begins; core reports loading |
+| 18:24:50 | Endpoint confirms Gemma; active route adopted automatically |
+| 18:25:00 | Two complete owner-UI text answers, approximately 9.89 s / 0.45 s request-to-completion; machine observations, not performance gates |
+| 18:25:01–03 | Manual Rescan confirms same exact route; no second load; both answers retained, zero page errors |
+| 18:25:03–04 | Authenticated Quit; authority revoked, core/resources closed; Sam-loaded Gemma unload confirmed absent; exit zero |
+| 18:25:05 | Read-only endpoint probe confirms model absent; serving remains reachable |
+
+`lms ls` can implicitly wake a stopped daemon. The bounded preflight read timed
+out, then serving was ready before normal Sam bootstrap. Sam did **not** issue a
+server-start operation or acquire server ownership; the log correctly skips
+stopping a service already running at bootstrap. Initial preflight-stopped state
+must not be described as a verified Sam-owned server-stop test. Model loading was
+performed by Sam and its confirmed unload was verified. No arbitrary process kill.
+
+This reproduces a cold **inventory timeout**, not the prior session's exact
+unrecorded failure. Inventory recovered by the first core scan, so the runtime
+automatic backoff branch was not needed in this session. Its failure/retry/late
+success path is deterministically proven. Broader machine/provider compatibility,
+physical audio and human acceptance remain outside this evidence.
