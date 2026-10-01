@@ -18,6 +18,8 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - Core experience now verifies ordinary RMS through the reducer to actual WebGL
   expansion/light, rather than only near-full-scale visual fixtures. Human visual
   acceptance remains distinct and outstanding.
+- Conversation Controls exposes core-confirmed speech health/mode/effective voice;
+  preferences, actual readiness and disconnected last-known facts remain distinct.
 
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.

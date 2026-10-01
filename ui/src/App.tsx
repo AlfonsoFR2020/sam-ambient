@@ -27,7 +27,7 @@ import { MemoryManager } from "./memory/Manager";
 import { isNativeShell, nativeShellRuntime } from "./native/runtime";
 import type { UiState } from "./protocol/types";
 import { QuitDialog, ShutdownStatus } from "./QuitDialog";
-import { RuntimeStatus } from "./RuntimeStatus";
+import { RuntimeStatus, SpeechStatusFields } from "./RuntimeStatus";
 import { ProtocolClient } from "./state/client";
 import { statusPresentation } from "./status";
 import { placeTooltip, type TooltipPlacement } from "./tooltip";
@@ -835,6 +835,9 @@ export default function App() {
           {controlsTab === "conversation" && (
             <section className="controls__group" aria-labelledby={`${controlsId}-conversation`}>
               <h2 id={`${controlsId}-conversation`}>Conversation &amp; voice</h2>
+              <dl className="controls__speech-status" aria-label="Current speech status">
+                <SpeechStatusFields state={state} />
+              </dl>
               <form
                 className="controls__request"
                 onSubmit={(event) => {

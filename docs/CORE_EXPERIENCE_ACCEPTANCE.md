@@ -110,3 +110,17 @@ tint agreement 0.985, palette delta 6.68, low/medium shader errors zero; particl
 had exterior coverage without rear-body depth leaks. These establish continuity,
 evolution and coherent shared rendering, not aesthetic success or low-power
 full-app performance.
+
+## Controls checkpoint
+
+The existing tab inventory remains intact: Conversation (text, microphone,
+speech output, Stop speaking, gains, transcript), Appearance (intensity, motion,
+reactivity, particle amount, reduced motion, fullscreen), Device (quality/profile),
+System (exact provider/model, Rescan, restart, ownership-scoped exit preferences,
+Quit), Diagnostics (opening status). Agency/Memory surfaces are preserved without
+expansion. Recognition/effective voice/health are now also visible in Conversation
+using the same core-confirmed fields as System. An enabled capture preference is
+not presented as proof of functioning hardware; disconnected facts are last known.
+Recognition language and voice preference remain normal source configuration,
+not new live-setting commands. 65 focused frontend tests and one new Chrome status
+case pass, including STT failure with typed Send still enabled.

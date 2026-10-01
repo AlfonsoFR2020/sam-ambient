@@ -142,18 +142,21 @@
   padding: 10px;
 }
 
-.runtime-status dl {
+.runtime-status dl,
+.controls__speech-status {
   display: grid;
   grid-template-columns: minmax(84px, auto) 1fr;
   gap: 6px 10px;
   margin: 10px 0 0;
 }
 
-.runtime-status dt {
+.runtime-status dt,
+.controls__speech-status dt {
   color: #9d8875;
 }
 
-.runtime-status dd {
+.runtime-status dd,
+.controls__speech-status dd {
   margin: 0;
   color: #eadac8;
 }

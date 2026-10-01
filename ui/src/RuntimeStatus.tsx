@@ -1,6 +1,44 @@
 import type { UiState } from "./protocol/types";
 import { friendlyStartupReason, statusPresentation } from "./status";
 
+export function SpeechStatusFields({ state }: { state: UiState }) {
+  const lastKnown = state.connection === "connected" ? "" : " (last known)";
+  return (
+    <>
+      <dt>Speech input</dt>
+      <dd>
+        {state.sttHealth?.status === "degraded"
+          ? state.sttHealth.reason
+          : (state.sttStatus ?? "Waiting for readiness")}
+        {lastKnown}
+      </dd>
+      <dt>Microphone</dt>
+      <dd>
+        {state.voiceInputHealth?.status === "degraded"
+          ? state.voiceInputHealth.reason
+          : state.microphoneEnabled
+            ? "Capture preference enabled"
+            : "Muted"}
+        {lastKnown}
+      </dd>
+      <dt>Spoken output</dt>
+      <dd>
+        {state.synthesisHealth?.status === "degraded"
+          ? state.synthesisHealth.reason
+          : state.playbackHealth?.status === "degraded"
+            ? state.playbackHealth.reason
+            : (state.ttsBackend ?? "Waiting for readiness")}
+        {lastKnown}
+      </dd>
+      <dt>Effective voice</dt>
+      <dd>
+        {state.ttsSelection ?? "Not selected yet"}
+        {lastKnown}
+      </dd>
+    </>
+  );
+}
+
 export function RuntimeStatus({ state }: { state: UiState }) {
   const presentation = statusPresentation(state);
   return (
@@ -25,34 +63,7 @@ export function RuntimeStatus({ state }: { state: UiState }) {
             <dd>{state.selectionReason}</dd>
           </>
         )}
-        <dt>Speech input</dt>
-        <dd>
-          {state.sttHealth?.status === "degraded"
-            ? state.sttHealth.reason
-            : (state.sttStatus ?? "Waiting for readiness")}
-        </dd>
-        <dt>Microphone</dt>
-        <dd>
-          {state.voiceInputHealth?.status === "degraded"
-            ? state.voiceInputHealth.reason
-            : state.microphoneEnabled
-              ? "Enabled"
-              : "Muted"}
-        </dd>
-        <dt>Spoken output</dt>
-        <dd>
-          {state.synthesisHealth?.status === "degraded"
-            ? state.synthesisHealth.reason
-            : state.playbackHealth?.status === "degraded"
-              ? state.playbackHealth.reason
-              : (state.ttsBackend ?? "Waiting for readiness")}
-        </dd>
-        {state.ttsSelection && (
-          <>
-            <dt>Voice</dt>
-            <dd>{state.ttsSelection}</dd>
-          </>
-        )}
+        <SpeechStatusFields state={state} />
         <dt>Privacy</dt>
         <dd>
           {state.cloudAllowed === true
