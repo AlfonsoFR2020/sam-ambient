@@ -8,9 +8,9 @@ $format = [System.Speech.AudioFormat.SpeechAudioFormatInfo]::new(16000, 16, 1)
 try {
     if ($ListVoices) {
         $voices = @($synthesizer.GetInstalledVoices() | Where-Object Enabled | ForEach-Object {
-            @{voice_id = $_.VoiceInfo.Name; locale = $_.VoiceInfo.Culture.Name}
+            @{voice_id = $_.VoiceInfo.Name; locale = $_.VoiceInfo.Culture.Name; gender = $_.VoiceInfo.Gender.ToString().ToLowerInvariant()}
         })
-        @{voices = $voices; default = @{voice_id = $synthesizer.Voice.Name; locale = $synthesizer.Voice.Culture.Name}} | ConvertTo-Json -Depth 4 -Compress
+        @{voices = $voices; default = @{voice_id = $synthesizer.Voice.Name; locale = $synthesizer.Voice.Culture.Name; gender = $synthesizer.Voice.Gender.ToString().ToLowerInvariant()}} | ConvertTo-Json -Depth 4 -Compress
         return
     }
     $request = [Console]::In.ReadToEnd() | ConvertFrom-Json

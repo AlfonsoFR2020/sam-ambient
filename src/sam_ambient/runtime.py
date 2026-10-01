@@ -1946,9 +1946,25 @@ class SamRuntime:
             try:
                 async for frame in synthesized:
                     cancellation.raise_if_cancelled()
+                    selection = None
                     if first_pcm:
                         first_pcm = False
-                        await self._audio_health("synthesis", "ready")
+                        selected_voice = getattr(self.tts, "last_selection", None)
+                        if selected_voice is not None:
+                            selection = asdict(selected_voice)
+                        await self._publish_generation(
+                            EventType.COMPONENT_HEALTH,
+                            generation_id,
+                            session_id=session_id,
+                            turn_id=turn_id,
+                            cancellation_id=cancellation.cancellation_id,
+                            payload={
+                                "component": "synthesis",
+                                "state": "healthy",
+                                "reason": "ready",
+                                **({"tts_selection": selection} if selection is not None else {}),
+                            },
+                        )
                         log.info(
                             "conversation_timing stage=first_pcm generation=%s",
                             generation_id,
@@ -1961,7 +1977,11 @@ class SamRuntime:
                         session_id=session_id,
                         turn_id=turn_id,
                         cancellation_id=cancellation.cancellation_id,
-                        payload={"envelope": rms, "peak": peak, "sequence": frame.sequence},
+                        payload={
+                            "envelope": rms,
+                            "peak": peak,
+                            "sequence": frame.sequence,
+                        },
                     )
                     yield frame
             except (OperationCancelled, asyncio.CancelledError):

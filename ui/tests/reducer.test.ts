@@ -10,6 +10,51 @@ const event = (
 ): ProtocolEvent => ({ protocol: 1, type, monotonic_ms, payload, session_id: "s1", ...extra });
 
 describe("protocol state reduction", () => {
+  it("updates the effective voice from current synthesis and ignores retired delivery", () => {
+    let state = reduceProtocolEvent(
+      resetUiState(),
+      event(
+        "voice.state_changed",
+        1,
+        { to: "SPEAKING" },
+        { turn_id: "turn", generation_id: "current" },
+      ),
+    );
+    state = reduceProtocolEvent(
+      state,
+      event(
+        "component.health",
+        2,
+        {
+          component: "synthesis",
+          state: "healthy",
+          reason: "ready",
+          tts_selection: {
+            voice: { voice_id: "Helena", locale: "es-ES" },
+            reason: "female persona",
+          },
+        },
+        { turn_id: "turn", generation_id: "current" },
+      ),
+    );
+    expect(state.ttsSelection).toContain("Helena");
+    const late = reduceProtocolEvent(
+      state,
+      event(
+        "component.health",
+        3,
+        {
+          component: "synthesis",
+          state: "healthy",
+          reason: "ready",
+          tts_selection: { voice: { voice_id: "David", locale: "en-US" } },
+        },
+        { turn_id: "old", generation_id: "old" },
+      ),
+    );
+    expect(late.ttsSelection).toBe(state.ttsSelection);
+    expect(late.metrics.playbackEnvelope).toBe(0);
+  });
   it("shows transcription while final STT is pending, then model thinking", () => {
     let state = reduceProtocolEvent(
       resetUiState(),

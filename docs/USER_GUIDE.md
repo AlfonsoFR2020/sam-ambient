@@ -104,8 +104,10 @@ validation. Text mode remains useful when voice is unavailable.
 
 Speech follows the assistant response language where there is enough text to
 identify it; short ambiguous replies retain recent language context. Windows uses
-installed voices only: exact locale, same-language regional fallback, then a
-configured/system voice. Missing language voices may therefore use a different
+installed voices only. The automatic persona prefers the installed gender with
+the widest language coverage, then a matching locale/region. Explicit `tts_voice`
+preferences are honored in their supported language and guide persona elsewhere;
+missing persona/language fallbacks are reported. Missing language voices may use a different
 language voice; nothing is installed automatically. INFO logs report the requested
 language, selected voice/locale and fallback reason. eSpeak receives the requested
 language; no cloud TTS service is connected.

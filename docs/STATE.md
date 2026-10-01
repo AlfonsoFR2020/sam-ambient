@@ -12,6 +12,9 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
   inventory/server state; CLI dispatch success alone is insufficient.
 - Explicit `voice.stt_language` reaches local STT; automatic language preferences
   remain fallback hints. Physical recognition quality is still unaccepted.
+- System.Speech defaults to an installed cross-language persona, honoring explicit
+  voice preference and reporting fallbacks. First PCM reports effective selection
+  through correlated synthesis health, independently of coalesced meters.
 
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.

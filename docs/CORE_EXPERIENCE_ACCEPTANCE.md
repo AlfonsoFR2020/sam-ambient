@@ -70,3 +70,15 @@ request, with no automatic hypothesis or language retry. Preferences retain thei
 separate automatic-fallback meaning. Endpointing/base model are unchanged; the
 beta's recognition accuracy cannot be attributed solely to configuration and
 still needs a later physical evaluation after echo ownership is adequate.
+
+## Voice-persona checkpoint
+
+Windows inventory was read without speaking: Helena/es-ES female, David/en-US
+male, Zira/en-US female, Hazel/en-GB female. Default selection now consistently
+prefers the installed cross-language female persona; explicit configured IDs
+remain honored and missing same-persona language support is reported. Existing
+metadata without gender remains compatible. No synthetic voice claims timbre
+or cadence equivalence. Actual synthesis selection is delivered reliably in the
+first-PCM synthesis-health event (not a coalesced meter), with stale-delivery
+rejection. 33 focused Python and 37 reducer tests pass; TypeScript and the shipped
+frontend build pass. Physical listening/persona acceptance remains open.

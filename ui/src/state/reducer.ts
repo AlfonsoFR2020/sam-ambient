@@ -67,7 +67,8 @@ const isConversationEvent = (type: string): boolean =>
   type.startsWith("tts.") ||
   type.startsWith("tool.") ||
   type === "turn.committed" ||
-  type === "component.error";
+  type === "component.error" ||
+  type === "component.health";
 
 const isCandidateEvent = (event: ProtocolEvent): boolean =>
   event.payload.candidate === true ||
@@ -605,6 +606,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     next = {
       ...next,
       [target.key]: { status, reason, retrying: event.payload.retrying === true },
+      ttsSelection:
+        component === "synthesis" && status === "healthy"
+          ? (speechSelection(event.payload.tts_selection) ?? next.ttsSelection)
+          : next.ttsSelection,
       diagnosticReason:
         status === "degraded"
           ? `${prefix}${reason ?? "unavailable"}`

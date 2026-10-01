@@ -42,6 +42,22 @@ def test_installed_voice_selection(language, configured, expected, reason):
     assert selection.reason == reason
 
 
+def test_multilingual_default_persona_and_explicit_preference_are_deterministic():
+    david = SpeechVoice("Microsoft David Desktop", "en-US", "male")
+    zira = SpeechVoice("Microsoft Zira Desktop", "en-US", "female")
+    helena = SpeechVoice("Microsoft Helena Desktop", "es-ES", "female")
+    voices = (david, zira, helena)
+    assert select_voice(voices, "en", "default", david).voice == zira
+    assert select_voice(voices, "es", "default", david).voice == helena
+    assert select_voice(tuple(reversed(voices)), "en", "missing", david).voice == zira
+    assert select_voice(voices, "en", david.voice_id, david).voice == david
+    mismatch = select_voice(voices, "es", david.voice_id, david)
+    assert mismatch.voice == helena
+    assert "persona unavailable" in mismatch.reason
+    assert select_voice((david,), "es", "default", david).voice == david
+    assert "language unavailable" in select_voice((david,), "es", "default", david).reason
+
+
 def test_windows_passes_selected_voice_and_unicode_as_data(monkeypatch):
     async def scenario():
         adapter = SystemTextToSpeech(("unused",), backend_id="windows-system-speech")

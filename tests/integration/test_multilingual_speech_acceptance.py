@@ -87,6 +87,12 @@ def test_multi_turn_language_playback_recovery_stale_cancel_and_shutdown(tmp_pat
                 ):
                     break
             states = [e.payload.get("to") for e in seen if e.type is EventType.VOICE_STATE_CHANGED]
+            selections = [
+                e.payload["tts_selection"]["voice"]["voice_id"]
+                for e in seen
+                if e.type is EventType.COMPONENT_HEALTH and "tts_selection" in e.payload
+            ]
+            assert selections[:2] == ["Spanish", "English"]
             assert states[:3] == ["THINKING", "SPEAKING", "IDLE"]
             assert not any(
                 event.type is EventType.MODEL_CANCELLED

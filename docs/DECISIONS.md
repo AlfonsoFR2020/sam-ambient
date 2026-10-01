@@ -600,3 +600,19 @@ master specification are recorded here.
   lower thresholds, promote candidates from VAD alone or integrate this result.
   Establish pinned upstream APM adapter feasibility next; fallback alternatives
   remain as recorded in the contract. Physical acoustic acceptance is unproven.
+
+## D-035 — Keep installed speech persona stable across languages
+
+- **Accepted:** 2026-10-01. Default System.Speech selection uses the installed
+  gender with widest distinct-language coverage, then locale and deterministic
+  voice identity. An explicit `tts_voice` wins in its supported language and
+  anchors the preferred gender elsewhere. Language remains primary: if that
+  persona is unavailable, use an installed language voice and report the mismatch.
+- This machine has Helena (es-ES), David/Zira (en-US) and Hazel (en-GB). Automatic
+  selection therefore uses female voices for English/Spanish instead of the
+  former alphabetical David/Helena split. No voice is downloaded or invented.
+  Gender metadata is a limited persona proxy, not proof of matched timbre/cadence.
+- Actual first PCM publishes selected voice/locale/reason in a correlated,
+  low-frequency synthesis-health event. Meter events are coalescible and cannot
+  reliably carry the only copy of persistent selection state. Retired-generation
+  health events cannot replace the current delivery's selection.
