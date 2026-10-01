@@ -52,8 +52,9 @@ retain the existing choice/fallback policy rather than silently claiming activit
 ## Runtime recovery checkpoint
 
 The existing refresh task owns at most four discovery attempts, with 0.5 / 1 / 2 s
-backoff only for an unresolved LM Studio timeout/nonzero inventory while daemon,
-server or endpoint is observed running. Successful empty, malformed schema and
+backoff for unresolved LM Studio inventory timeout, including cold daemon readiness.
+A generic nonzero CLI exit is retryable only when daemon, server or endpoint is
+observed running. Successful empty, malformed schema and
 unavailable executable are terminal; no retry loop is attached to those outcomes.
 Each attempt retains the same desired provider/model. A newer scan increments its
 epoch before cancellation; late results are closed and cannot adopt a route. Quit,

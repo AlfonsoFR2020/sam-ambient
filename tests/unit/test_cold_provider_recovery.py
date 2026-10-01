@@ -91,14 +91,69 @@ def test_inventory_reads_every_stdout_chunk_and_never_logs_body(monkeypatch, cap
     assert not caplog.text
 
 
-def test_real_discovery_retries_installed_intent_then_loads_exactly_once(tmp_path, monkeypatch):
+def test_cancelled_inventory_reaps_only_its_cli_child(monkeypatch):
+    async def scenario():
+        reading = asyncio.Event()
+
+        async def read(_limit):
+            reading.set()
+            await asyncio.Event().wait()
+
+        process = SimpleNamespace(
+            stdout=SimpleNamespace(read=read), returncode=None, wait=AsyncMock(return_value=0)
+        )
+        killed = []
+
+        def kill():
+            killed.append(True)
+            process.returncode = 0
+
+        process.kill = kill
+        monkeypatch.setattr(
+            discovery.asyncio, "create_subprocess_exec", AsyncMock(return_value=process)
+        )
+        task = asyncio.create_task(discovery.lms_models("lms"))
+        await reading.wait()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert killed == [True]
+        process.wait.assert_awaited_once()
+
+    asyncio.run(scenario())
+
+
+def test_oversized_inventory_is_permanent_malformed_not_empty(monkeypatch):
+    process = SimpleNamespace(
+        stdout=SimpleNamespace(read=AsyncMock(return_value=b"x" * 262_145)),
+        returncode=0,
+        wait=AsyncMock(return_value=0),
+    )
+    monkeypatch.setattr(
+        discovery.asyncio, "create_subprocess_exec", AsyncMock(return_value=process)
+    )
+    result = asyncio.run(discovery.lms_models("lms"))
+    assert result.status == "malformed" and not result.retryable
+
+
+@pytest.mark.parametrize("initially_ready", [True, False])
+def test_real_discovery_retries_installed_intent_then_loads_exactly_once(
+    tmp_path, monkeypatch, initially_ready
+):
     import sam_ambient.runtime as runtime_module
 
     monkeypatch.setattr(runtime_module, "_PROVIDER_RETRY_DELAYS", (0, 0, 0))
     monkeypatch.setattr(discovery, "find_lms", lambda: "lms")
     monkeypatch.setattr(discovery.shutil, "which", lambda _: None)
     monkeypatch.setattr(
-        discovery, "lms_status", AsyncMock(return_value={"running": True, "status": "running"})
+        discovery,
+        "lms_status",
+        AsyncMock(
+            return_value={
+                "running": initially_ready,
+                "status": "running" if initially_ready else "stopped",
+            }
+        ),
     )
     inventories = [
         discovery.ModelInventory("timeout"),
@@ -110,7 +165,8 @@ def test_real_discovery_retries_installed_intent_then_loads_exactly_once(tmp_pat
 
     async def command(argv, **_kwargs):
         commands.append(argv)
-        loaded.append(argv[2])
+        if argv[1] == "load":
+            loaded.append(argv[2])
 
     monkeypatch.setattr(discovery, "_local_command", command)
 
@@ -121,6 +177,8 @@ def test_real_discovery_retries_installed_intent_then_loads_exactly_once(tmp_pat
         async def request_json(self, method, url, **_kwargs):
             if url.endswith("api/tags"):
                 return {"models": []}
+            if not initially_ready and not commands:
+                raise TimeoutError()
             return {"data": [{"id": model, "state": "loaded", "type": "llm"} for model in loaded]}
 
         async def aclose(self):
@@ -161,9 +219,10 @@ def test_real_discovery_retries_installed_intent_then_loads_exactly_once(tmp_pat
             await runtime._refresh_providers(None, None, False, "cold")
             await runtime._provider_refresh_task
             assert snapshots[0].selected is None
-            assert "temporarily unavailable" in snapshots[0].reason
+            assert snapshots[0].services[1].inventory_retryable
             assert snapshots[-1].model == runtime._model == "gemma"
-            assert len(commands) == 1 and commands[0][1:3] == ("load", "gemma")
+            assert len(commands) == (1 if initially_ready else 2)
+            assert sum(argv[1:3] == ("load", "gemma") for argv in commands) == 1
         finally:
             await runtime.close()
 
@@ -264,6 +323,30 @@ def test_retry_bound_and_no_duplicate_route_commit(tmp_path, monkeypatch, failur
         finally:
             await runtime.close()
             await collector
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("terminal", ["empty", "unavailable", "malformed"])
+def test_provider_disappearance_or_definitive_result_ends_existing_retry(
+    tmp_path, monkeypatch, terminal
+):
+    import sam_ambient.runtime as runtime_module
+
+    monkeypatch.setattr(runtime_module, "_PROVIDER_RETRY_DELAYS", (0, 0, 0))
+
+    async def scenario():
+        refresh = AsyncMock(side_effect=[unavailable(), unavailable(terminal, False)])
+        runtime = SamRuntime(
+            ConversationProvider(), RuntimeConfig(tmp_path), provider_refresher=refresh
+        )
+        try:
+            await runtime._refresh_providers(None, None, False, "disappearance")
+            await runtime._provider_refresh_task
+            assert refresh.await_count == 2
+            assert runtime._model is None and not runtime._provider_scan_active
+        finally:
+            await runtime.close()
 
     asyncio.run(scenario())
 
