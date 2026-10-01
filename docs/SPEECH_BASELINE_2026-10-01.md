@@ -75,3 +75,27 @@ unresolved as human evidence. This establishes real decoding/configuration and
 endpoint basics, not robust physical recognition or prompt full-duplex interruption.
 Forced language avoids extra language-detection cost, but did not improve this
 corpus's accuracy. No broad model-capacity conclusion follows from twelve clips.
+
+## Sequential runtime gate (checkpoint 3)
+
+`python -m tests.integration.test_voice_sequence --real` uses actual generated
+PCM, WebRTC VAD, whisper.cpp streams, SamRuntime, authenticated owner commands,
+operational/durable-memory initialization and cancellation. Only inference,
+response synthesis/output and the physical capture device are fixtures. Capture
+produces paced silence indefinitely; no finite fake starvation.
+
+Two Spanish turns complete, then the normal configured-session boundary switches
+explicitly to English (recognition language is not a new live setting). Short and
+long English turns complete; injected recognizer failure retires its stream;
+authenticated typed input completes; re-enabling capture permits another voice
+generation. Six generations complete, each STT stream has a unique cancellation
+identity, and all four scored real transcripts retain first/last words with zero
+normalized word errors. Both owner sessions revoke and tasks close. The same
+composed path is protected by one deterministic integration regression.
+
+An initial harness timeout came from leaving the owner socket unread. Continuous
+real-paced events require a consuming client, as the actual UI provides. Draining
+that test socket corrected the fixture; no product reset or timing change was
+added. Slow durable-event subscribers are an existing backpressure design, not
+evidence of a new voice/STT ownership defect. Physical PortAudio buffering,
+overflow and device restart remain outside this generated-input gate.
