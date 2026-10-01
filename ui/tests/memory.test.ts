@@ -38,6 +38,8 @@ describe("owner memory projection", () => {
   it("bounds overview and rejects malformed or overlong records", () => {
     expect(memoryRows(Array.from({ length: 40 }, () => record))).toHaveLength(16);
     expect(memoryRecord({ ...record, content: "a".repeat(1201) })).toBeUndefined();
+    expect(memoryRecord({ ...record, content: "🦊".repeat(1200) })).toBeDefined();
+    expect(memoryRecord({ ...record, content: "🦊".repeat(1201) })).toBeUndefined();
     expect(memoryRecord({ ...record, revision: 0 })).toBeUndefined();
   });
 });

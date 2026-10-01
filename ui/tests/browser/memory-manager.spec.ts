@@ -83,3 +83,71 @@ test("owner memory surface keeps provenance, edits and deletion outside chat", a
       .evaluate((node) => getComputedStyle(node).overflowY),
   ).toBe("auto");
 });
+
+test("memory follows variable page offsets and restores previous pages", async ({ page }) => {
+  await page.goto("/?transport=browser");
+  await page.evaluate(() => {
+    let time = 1;
+    window.addEventListener("sam-control-command", (event) => {
+      const command = (event as CustomEvent).detail;
+      if (command.payload.capability !== "memory.list") return;
+      const offset = Number(command.payload.arguments.offset ?? 0);
+      const rows = Array.from({ length: 5 }, (_, i) => ({
+        id: `memory-${i}`,
+        content: `Claim number ${i}`,
+        kind: "fact",
+        scope: "personal",
+        source_kind: "owner",
+        source_ref: "owner",
+        review: "reviewed",
+        revision: 1,
+      })).slice(offset, offset + 2);
+      window.dispatchEvent(
+        new CustomEvent("sam-protocol-event", {
+          detail: {
+            protocol: 1,
+            type: "capability.state",
+            monotonic_ms: ++time,
+            payload: {
+              request_id: command.command_id,
+              capability: "memory.list",
+              state: "completed",
+              result: {
+                records: rows,
+                next_offset: offset + rows.length,
+                has_more: offset + rows.length < 5,
+              },
+            },
+          },
+        }),
+      );
+      window.dispatchEvent(
+        new CustomEvent("sam-protocol-event", {
+          detail: {
+            protocol: 1,
+            type: "control.acknowledged",
+            monotonic_ms: ++time,
+            payload: {
+              command_id: command.command_id,
+              command_type: command.type,
+              status: "applied",
+            },
+          },
+        }),
+      );
+    });
+  });
+  await page.getByRole("button", { name: "Memory", exact: true }).click();
+  const memory = page.getByRole("region", { name: "Sam Memory", exact: true });
+  await expect(memory.locator("article").first()).toContainText("Claim number 0");
+  await memory.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(memory.locator("article").first()).toContainText("Claim number 2");
+  await memory.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(memory.locator("article")).toHaveCount(1);
+  await expect(memory.locator("article")).toContainText("Claim number 4");
+  await expect(memory.getByRole("button", { name: "Next", exact: true })).toBeDisabled();
+  await memory.getByRole("button", { name: "Previous", exact: true }).click();
+  await expect(memory.locator("article").first()).toContainText("Claim number 2");
+  await memory.getByRole("button", { name: "Previous", exact: true }).click();
+  await expect(memory.locator("article").first()).toContainText("Claim number 0");
+});

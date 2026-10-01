@@ -98,6 +98,9 @@ def test_large_unicode_overview_remains_structured_and_can_be_paged(tmp_path):
                     if not page["result"]["has_more"]:
                         break
                 assert len(seen) == len(set(seen)) == 12
+                inspected = await action(socket, "get", {"id": seen[0]}, 20)
+                assert not inspected.get("truncated")
+                assert len(inspected["result"]["record"]["content"]) <= 1200
         finally:
             await runtime.close()
 

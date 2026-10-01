@@ -233,3 +233,9 @@ short-lived connections. No per-record media/embedding assets. Tests assert
 result/context/inbox/page bounds and transactional recovery rather than brittle
 machine-speed thresholds. Thousands of rows remain a modest lexical scan; larger
 scales or semantic paraphrases require a separately measured indexing decision.
+
+Final boundary correction: full Unicode inspection counts Unicode code points,
+matching the Python 1,200-character store bound rather than JavaScript UTF-16
+code units. A 1,200-emoji record is valid; overlong records remain rejected.
+The isolated Chrome regression verifies next/previous navigation for smaller
+variable-size pages, alongside create/correct/delete/inert rendering.

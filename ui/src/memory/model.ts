@@ -17,7 +17,7 @@ export function memoryRecord(value: unknown): MemoryRecord | undefined {
     typeof row.id !== "string" ||
     row.id.length > 64 ||
     typeof row.content !== "string" ||
-    row.content.length > 1200 ||
+    Array.from(row.content).length > 1200 ||
     typeof row.scope !== "string" ||
     typeof row.source_kind !== "string" ||
     typeof row.source_ref !== "string" ||
