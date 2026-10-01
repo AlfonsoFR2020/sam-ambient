@@ -628,3 +628,20 @@ master specification are recorded here.
 - Prompt interruption is basic behavior, but still needs a processor passing the
   unchanged acoustic gate. Do not lower that gate or confuse VAD with human origin.
   Clean STT/persona/timing work need not wait for the uncertain native subsystem.
+
+## D-037 — Classify inventory failure and bound cold provider recovery
+
+- **Accepted:** 2026-10-01. Empty means a successful inventory with no usable
+  conversational models. Timeout, CLI exit failure and malformed/unavailable
+  output remain distinct; complete bounded stdout is consumed before parsing.
+- Only unresolved readiness failures retry, at most four attempts with 0.5/1/2 s
+  backoff. A cold timeout can precede observable daemon readiness; generic nonzero
+  CLI failure requires observed daemon/server/endpoint life. Definitive empty,
+  malformed schema and unavailable executable are terminal, not polling loops.
+- The refresh owner retains exact desired identity independently from confirmed
+  active route. New scan epochs, disconnect and Quit retire retries; stale results
+  are closed and cannot overwrite newer state. Failed inventory preserves a valid
+  route. Actual load progress comes from bootstrap, not command dispatch.
+- Diagnostics expose safe outcome classes/counts/attempts, never raw CLI/provider
+  bodies or credentials. [Cold recovery](COLD_PROVIDER_RECOVERY.md) records tests
+  and the real Gemma session; prior II CLI failure attribution remains unproven.

@@ -56,12 +56,14 @@ The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate 
 
 **Current:** correlated discovery/Rescan and transport epochs; immutable turn-local provider/model; exact typed switch and Stop speaking; no silent provider fallback; typed post-final-STT control seam. Configured-but-unavailable models no longer appear active in startup snapshots. Real supervised LM Studio/Gemma load, three text turns, Rescan and confirmed Sam-owned unload pass; external serving is preserved. **Unmet:** physical device/provider failure timing and broader real multi-provider recovery. Named profiles, atomic profile + provider + model switching and natural-language controls are parked expansion. Keep active route pinning and credential boundaries when those resume.
 
-Consolidation II's single cold confirmation was incomplete: startup scans reported
-empty installed inventory and the requested route stayed unavailable; immediately
-after authenticated Quit, read-only CLI inventory exposed the existing Gemma.
-No model generation/unload was performed in that session. This does not invalidate
-the earlier warm success, but leaves a cold readiness/inventory diagnostic next.
-See the [current evidence matrix](CORE_EXPERIENCE_ACCEPTANCE.md).
+Consolidation III completes [cold readiness/recovery](COLD_PROVIDER_RECOVERY.md):
+CLI failure/timeout/malformed output is distinct from successful empty inventory;
+four bounded transient attempts retain exact intent and reject stale results.
+The real preflight timed out, then normal startup automatically activated Gemma,
+completed two text turns and Rescan, and confirmed Sam-loaded unload on Quit.
+Serving was already ready at bootstrap and preserved. Runtime backoff is proven
+deterministically, not exercised by that real session. Wider hosts and Sam-started
+server-stop confirmation remain open; see the [evidence matrix](CORE_EXPERIENCE_ACCEPTANCE.md).
 
 ### Memory and intelligence
 
@@ -104,31 +106,19 @@ These supersede the previous expansion queue. Each task is bounded and contribut
 engineering evidence to the acceptance matrix; none requests a human session now.
 Completed dependency/authority/memory foundations remain indexed above, not open cards.
 
-### 1. Cold provider inventory and startup recovery
-
-- **Objective / why next:** explain and repair, if reproduced, the installed-model
-  inventory/readiness gap that prevented the latest normal launch from reaching a
-  usable route. Ordinary typed/voice interaction requires a confirmed model first.
-- **Prerequisites:** current outcome-verifying lifecycle and preserved II logs;
-  installed LM Studio/Gemma, with a separately bounded real-session authorization.
-- **Scope:** distinguish genuine empty inventory from CLI timeout/failure/malformed
-  output, correlate cold startup scans, and verify explicit Rescan/recovery once
-  inventory becomes ready. Fix only a demonstrated discovery/readiness defect.
-  **Non-scope:** arbitrary polling delays, provider downloads/profiles or AEC.
-- **Deliverable / validation:** deterministic cold/late inventory regressions and
-  truthful state/error classification; one bounded load/text/Rescan/owned-cleanup
-  confirmation if permitted. Preserve external resource ownership.
-- **Reasoning / quota:** Sol Medium; medium, High only for reproduced cross-owner
-  concurrency. Stop on an external-provider defect rather than inventing a workaround.
-  **Human acceptance:** no immediate human test; contributes usable startup evidence.
+Completed predecessor: [cold provider recovery](COLD_PROVIDER_RECOVERY.md), including
+classified CLI outcomes, bounded cancellation-safe retry, retained desired route,
+truthful loading/active state and one real automatic Gemma lifecycle confirmation.
+Prompt acoustic interruption remains the highest unmet conversational requirement;
+the small measurement task below establishes timing before its native concurrency work.
 
 Completed predecessor: [real bilingual STT/persona/signal evidence](SPEECH_BASELINE_2026-10-01.md),
 including actual base-model forced/auto recognition and sequential typed recovery.
 Do not reopen this as an unimplemented configuration or mock-only benchmark task.
 
-### 2. Speech timing and representative full-app performance
+### 1. Speech timing and representative full-app performance
 
-- **Objective / why after 1:** measure representative full-app/low-power cost and
+- **Objective / why after cold recovery:** measure representative full-app/low-power cost and
   delivery timing once the normal route is usable, before adding acoustic concurrency.
 - **Prerequisites:** current signal-to-WebGL regressions, installed voices and the
   isolated performance baseline. Real-device use requires a separately bounded scope.
@@ -141,7 +131,7 @@ Do not reopen this as an unimplemented configuration or mock-only benchmark task
 - **Reasoning / quota:** Sol Medium; medium. Stop on missing hardware/timers; report
   limitations. **Human acceptance:** later speech pleasantness and natural embodied timing.
 
-### 3. Pinned upstream APM feasibility and falsifying processor probe
+### 2. Pinned upstream APM feasibility and falsifying processor probe
 
 - **Objective / why after ordinary paths:** prompt full-duplex interruption is a basic
   requirement, but needs a proven processor rather than raw VAD or a lower threshold.
@@ -157,13 +147,13 @@ Do not reopen this as an unimplemented configuration or mock-only benchmark task
   real-time cost and bounded memory/build implications. No physical success inferred.
 - **Reasoning / quota:** Sol High; medium with an independent evidence commit. Stop
   if the native subsystem becomes invasive or licensing/build maintenance is unclear.
-  **Human acceptance:** none; failure remains useful evidence and blocks task 4.
+  **Human acceptance:** none; failure remains useful evidence and blocks task 3.
 
-### 4. Proven acoustic boundary and delivery-only early barge-in
+### 3. Proven acoustic boundary and delivery-only early barge-in
 
-- **Objective / why after 3:** stop speech promptly from sustained processed near-end
+- **Objective / why after 2:** stop speech promptly from sustained processed near-end
   evidence while preserving the full assistant answer and the user's first syllable.
-- **Prerequisites:** processor passes task 3; existing identity/candidate/terminality rules.
+- **Prerequisites:** processor passes task 2; existing identity/candidate/terminality rules.
 - **Scope:** bounded post-gain render alignment, processed capture, VAD/STT pre-roll,
   candidate evidence and conservative failure fallback. **Non-scope:** STT replacement,
   route redesign, VAD-only timer or new user-visible settings.
@@ -174,11 +164,11 @@ Do not reopen this as an unimplemented configuration or mock-only benchmark task
   Stop on false echo-only interruption or unmet near-end gate; keep conservative runtime.
   **Human acceptance:** later real speaker/microphone double-talk, not synthetic acceptance.
 
-### 5. Bounded physical recovery and integrated acceptance preparation
+### 4. Bounded physical recovery and integrated acceptance preparation
 
 - **Objective / why last:** validate the composed basic experience against device and
   provider timing after ordinary recognition and acoustic processing are coherent.
-- **Prerequisites:** tasks 1–4 pass or are explicitly limited; authorized installed
+- **Prerequisites:** tasks 1–3 pass or are explicitly limited; authorized installed
   hardware/provider window. Human beta remains unavailable until separately scheduled.
 - **Scope:** current LM Studio route, actual audio failure/restart, interleaved voice/text,
   confirmed conditional cleanup and available full-app cost. Use non-personal fixtures

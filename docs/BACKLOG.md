@@ -7,7 +7,9 @@ status, confirmed provider cleanup and explicit runtime/supervisor SQLite closur
 are implemented. Consolidation I's supervised Gemma lifecycle passed; II exposed
 transient cold inventory/readiness with clean degraded startup/Quit. Actual base-model
 en/es generated recognition, paced recovery, persona switching and meters→WebGL now
-have evidence. Cold recovery and proven AEC remain engineering work; physical voice
+have evidence. [Cold recovery](COLD_PROVIDER_RECOVERY.md) now has bounded classified
+retry and a real automatic Gemma/text/Rescan/owned-unload pass; wider compatibility
+remains unverified. Proven AEC remains engineering work; physical voice
 and human visual/persona acceptance remain open. Workspace mutation,
 richer browser automation, arbitrary shell, memory sophistication, profiles and
 multi-person implementation are parked. Retain their direction without treating

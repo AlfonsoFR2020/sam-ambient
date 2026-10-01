@@ -274,7 +274,7 @@ assumptions corrected during development, not newly discovered runtime defects.
 The existing default composed scenario remains compatible with the frontend harness.
 No advanced agency/memory action, physical device or new acoustic processor is used.
 
-## Consolidation II current acceptance matrix
+## Current acceptance matrix — Consolidations I, II and III
 
 This supersedes the remaining-work column of the Consolidation I matrix above;
 earlier results remain historical evidence. Recorded 2026-10-01. No human beta,
@@ -282,15 +282,18 @@ model/voice download, new capability or production acoustic integration occurred
 Specialist evidence: [installed speech benchmark](SPEECH_BASELINE_2026-10-01.md),
 [Windows filter probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) and the bounded
 provider confirmation above. Generated voices are not the owner's microphone speech.
+Consolidation III selectively updates provider/startup/Controls/text/cleanup evidence
+below; [cold readiness evidence](COLD_PROVIDER_RECOVERY.md) preserves its exact timeline
+and limits. Other II rows remain unchanged. No new human acceptance is claimed.
 
 | Fundamental area | Deterministic / automated | Real runtime | Human acceptance | Remaining |
 | --- | --- | --- | --- | --- |
-| Startup | Authenticated supervisor/core simulator and browser mount | I normal launch passed; II degraded owner UI mounted and Quit cleanly | Earlier beta only | Cold provider inventory/readiness recovery; wider hosts |
-| Provider discovery | Exact/stale/failed Rescan and route protection | I Rescan passed; II two startup scans exposed empty inventory, later CLI found Gemma | No new acceptance | Distinguish empty inventory from CLI failure/timeout; recover truthfully |
-| Model load/select | Requested/loading distinct from confirmed active | I exact Gemma loaded; II never falsely marked missing inventory active | No new acceptance | II real confirmation incomplete; cold-state diagnostics |
-| Model unload | Post-operation inventory verification, safe ordering | I Sam-loaded Gemma absence confirmed; II did not load/unload a model | No new acceptance | Repeat only in a separately bounded recovery task |
+| Startup | Cold timeout/late success, bounded retries, cancel/supersession and mounted owner UI | III cold preflight timed out, normal startup recovered without external intervention | Earlier beta only | Wider hosts; runtime backoff is deterministic evidence only |
+| Provider discovery | Complete bounded CLI output; available/empty/timeout/failure/malformed; late epochs ignored | III installed Gemma discovered; Rescan retained exact route | No new acceptance | Broader provider/host compatibility; exact II CLI cause remains unknown |
+| Model load/select | Retained desired intent; one exact load after late inventory; loading distinct from active | III Gemma became active automatically after endpoint confirmation | No new acceptance | Broader switching/failure timing across machines |
+| Model unload | Post-operation inventory verification, safe ordering | III Sam-loaded Gemma confirmed absent on Quit | No new acceptance | Wider provider implementations |
 | Provider shutdown/ownership | Owned/reused/unsupported/failing/idempotent cleanup | Existing server preserved; no external process killed | No new acceptance | Real Sam-started service stop unexercised |
-| Text conversation | Terminality, clean history, STT-failure typed recovery; six completions across bilingual restarts | I three complete owner-UI turns; II blocked on model readiness before generation | Earlier beta initially worked | Cold provider usability and broader fault timing |
+| Text conversation | Terminality, failed-inventory route retention and typed recovery | III two complete owner-UI answers; same history survived Rescan | Earlier beta initially worked | Broader fault timing and physical overlap |
 | Voice turn lifecycle | Continuous paced capture, language restart, failure → typed → later voice; cancellation identities isolated | Actual whisper.cpp and generated PCM pass; physical capture not used | Physical beta initially worked then failed | Device loss/restart, physical pacing and sustained overlap |
 | STT configuration | Hard en/es versus auto reaches each actual stream | 36 installed base-model requests; explicit language makes one forced request | No new acceptance | No demonstrated wiring defect remains |
 | STT quality | Corpus scoring / edge-word / endpoint helpers, deterministic level/noise/silence | en 7.95% WER / 6.68% CER; es 8.75% / 5.30%; forced and auto equal; all auto languages correct | User Spanish quality remains unaccepted | Actual accent/room speech; base-model errors; no model download justified here |
@@ -301,10 +304,10 @@ provider confirmation above. Generated voices are not the owner's microphone spe
 | Membrane | Existing lift/shared pigment/depth coverage preserved | Isolated Chrome only | Revised living skin unaccepted | Physical appearance/perceptual edge quality |
 | Living Surface | Existing broad evolution and short-frame continuity preserved | Isolated Chrome only | Revised field unaccepted | Organic perception; representative full-app performance |
 | Particles | Persisted amount maps to quality budget and rendered coverage | Controls/interaction browser verification | Older beta broadly acceptable | Current density/performance acceptance |
-| Controls | Existing inventory, truthful speech health/persona, last-known disconnection, disabled reasons | Eight isolated cases; II degraded startup remained usable | Organization improved in older beta | Current discoverability; no redesign needed |
+| Controls | Waiting inventory distinct from empty/error/loading; manual retry supersession; disconnected last-known | III Chrome cold startup case plus normal real owner-window lifecycle passed | Organization improved in older beta | Current discoverability/human readability; no redesign needed |
 | Diagnostics | Existing hierarchy/layout/scroll retained | Narrow layout/Controls separation protected | Earlier beta useful; revised layout unaccepted | Live human readability; no telemetry redesign |
 | Memory initialization | Real isolated stores reused across restart; ordinary runtime opens/closes | Normal II supervised state/memory initialization and cleanup | Outside this task | Advanced memory expansion parked |
-| Shutdown | Authority revoked, tasks/stores/output closed, bounded unload-before-stop and idempotence | II authenticated Quit after timeout stopped Sam cleanly | No new acceptance | Physical devices; owned-provider real stop; cold recovery |
+| Shutdown | Retry/CLI cancellation reaps child; authority/task/store retirement; bounded cleanup | III Quit unloaded owned Gemma, preserved reused serving and exited zero | No new acceptance | Physical devices; real Sam-started server stop remains unexercised |
 
 Endpoint evidence is separate from decoding accuracy: four actual VAD/paced cases
 preserve first/last words and both sentences across a trimmed 250 ms pause, with
@@ -316,8 +319,9 @@ suppression (best 0/40/80/160 ms cases 18.16/19.74/19.30/14.99 dB against >=20 d
 Full upstream APM was not built or algorithmically falsified.
 
 **Freeze line:** the ordinary generated speech loop, persona selection and signal
-connectivity now have real-backend evidence. Cold provider readiness and proven
-early acoustic ownership remain engineering items. No substantial Agency/Memory/
+connectivity now have real-backend evidence. Cold provider recovery has deterministic
+and bounded real-runtime evidence; proven early acoustic ownership remains engineering
+work. No substantial Agency/Memory/
 browser/workspace/profile expansion until basic blockers are fixed or reduced to
 explicit acceptance limitations. Later human questions remain: actual Spanish/
 English accent/room transcription, pleasant voice identity, speaker→microphone
@@ -333,3 +337,15 @@ The earlier eight presentation/interaction cases are not redundantly rerun here.
 Native `/W4 /WX` compilation and two optional native contract tests passed; the
 signal-separation experiment itself exits failure as intended. No native DSP is
 loaded by production, no dependency version changed, and no human acceptance occurred.
+
+Consolidation III final focused gate: **127 Python tests** (provider adapter/discovery,
+runtime intent/retry/cancellation, first-run, router, local controls, supervisor,
+SQLite lifetime, CLI and generation terminality), **89 frontend tests in seven files**,
+TypeScript, Ruff lint/format for six changed Python files, changed-file Biome for
+seven UI/test files and `git diff --check` pass. Two bounded Chrome cases passed:
+new cold inventory recovery/Controls mount and the existing provider Rescan case.
+Production frontend build passed; shipped trusted owner assets were refreshed.
+No audio/model download, dependency change or human test occurred. One real installed
+LM Studio/Gemma supervisor/owner-window session is documented separately; it proves
+automatic activation, two answers, Rescan and owned-model unload, not real retry
+backoff execution or Sam-owned server stop.

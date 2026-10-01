@@ -15,10 +15,12 @@ new engineering observations, not a rerun or acceptance of this physical beta.
 Consolidation II adds [actual bilingual generated recognition/endpoint/persona and
 meter-to-WebGL evidence](SPEECH_BASELINE_2026-10-01.md), not the owner's physical
 speech. The [Windows filter AEC probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md)
-failed unchanged echo gates and remains outside runtime. The latest cold provider
-confirmation was incomplete on transient inventory/readiness; clean Quit and truthful
-unavailable state are proven, another model lifecycle pass is not. ROADMAP owns
-the recovery priority; prompt acoustic interruption remains unsolved.
+failed unchanged echo gates and remains outside runtime. II's cold confirmation was
+incomplete. [Consolidation III](COLD_PROVIDER_RECOVERY.md) now classifies cold timeout/
+failure, bounds retries and retains exact route intent; real automatic Gemma activation,
+two text turns, Rescan and owned-model unload passed. Serving was preserved according
+to ownership. This is new engineering evidence, not physical beta acceptance;
+ROADMAP owns priority and prompt acoustic interruption remains unsolved.
 The implemented repair status and current dependency order are maintained in
 [Roadmap](ROADMAP.md); this file preserves what the physical run falsified and
 the causal diagnosis, rather than treating every observation as a separate task.

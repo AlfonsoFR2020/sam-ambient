@@ -27,9 +27,9 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - A composed authenticated runtime/voice/PCM/history/Controls simulator proves
   typed → voice → STT failure → typed recovery → Rescan → ordered Quit. Its real
   core events also drive the isolated frontend and bounded visual response.
-- Consolidation I's normal Gemma load/text/Rescan/unload passed. II cold confirmation
-  stayed unavailable on empty startup inventory; later CLI found Gemma. Quit was clean.
-  Requested models never falsely appeared active. Cold readiness/recovery remains open.
+- Consolidation III classifies cold inventory failures and bounds recovery. A real
+  preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
+  and Sam-loaded unload passed. Reused serving remained; broader hosts are unverified.
   Actual en/es synthesis/meters reach fixed WebGL without physical playback.
 
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
@@ -193,8 +193,8 @@ behavior. Isolated frontend memory and shipped-owner-window tests are separate f
 real provider/hardware/human evidence. Exact counts are recorded in the memory document.
 No new dependencies, provider/audio models or published-release metadata were changed.
 
-The [core matrix](CORE_EXPERIENCE_ACCEPTANCE.md) separates I and II evidence; II's
-195-Python / 135-frontend gate and two Chrome cases pass. [ROADMAP](ROADMAP.md)
-prioritizes cold provider recovery, representative timing and proven interruption;
+The [core matrix](CORE_EXPERIENCE_ACCEPTANCE.md) separates I, II and III evidence;
+III's 127-Python / 89-frontend gate and two Chrome cases pass. [ROADMAP](ROADMAP.md)
+prioritizes representative timing and proven acoustic interruption after cold recovery;
 new capabilities remain parked. Automated visuals are not human perceptual acceptance.
 Human testing is scarce and reserved for a substantial integrated checkpoint; unavailable now.

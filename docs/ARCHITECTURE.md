@@ -242,6 +242,17 @@ It does not install applications or download models.
 
 ### Inference route and future spoken controls
 
+LM Studio inventory distinguishes successful available/empty from timeout, CLI
+failure, unavailable executable and malformed response. Bounded complete stdout
+reads never turn failed discovery into an empty inventory. The refresh owner makes
+at most four transient attempts (0.5/1/2 s backoff); a cold timeout is retryable,
+generic CLI failure requires observed service life. Successful empty/permanent
+failure ends recovery. Refresh epochs, cancellation and disconnect retire attempts;
+late results cannot adopt a route. Runtime retains latest exact desired identity
+separately from requested/loading/confirmed active. Actual bootstrap publishes
+loading only when load begins; readiness follows endpoint confirmation. Failed
+inventory preserves an existing valid route. See [cold recovery](COLD_PROVIDER_RECOVERY.md).
+
 The configured provider/model pair is currently spread across `ProviderSettings`,
 CLI discovery arguments, `SamRuntime.provider`/`_model`, and the selected provider
 adapter. `ProviderSettings.base_url` and `local_compatible_url` identify at most
