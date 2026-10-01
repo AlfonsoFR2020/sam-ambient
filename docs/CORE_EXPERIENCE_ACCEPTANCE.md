@@ -254,3 +254,22 @@ occurred. Do not restart providers or invent a fix from the snapshot alone.
 Consolidation I's successful generation/Rescan/confirmed unload remains historical
 evidence; this new lifecycle confirmation is **incomplete**, not green. A bounded
 cold-readiness/inventory diagnostic is a remaining basic task, separate from AEC.
+
+## Consolidation II composed journey (checkpoint 10)
+
+The existing composed simulator now also runs English then Spanish across normal
+configured-language restarts using the same isolated operational/memory stores.
+Each authenticated session discovers a route and completes typed → voice → injected
+STT failure → typed recovery → Rescan → Quit, with continuous paced capture,
+effective-voice/audio activity and confirmed unload-before-stop cleanup. Six model
+generations complete across those two sessions; every STT stream receives that
+session's selected language. The standalone real-recognizer sequence separately
+proves subsequent voice use after failure and typed recovery.
+
+Durable conversation identity is intentionally preserved across restart; ephemeral
+owner authority is separately authenticated and revoked. The regression observes
+the actual published capability-revocation event rather than assuming that the
+socket-only stopping notification is also an EventBus event. These were test
+assumptions corrected during development, not newly discovered runtime defects.
+The existing default composed scenario remains compatible with the frontend harness.
+No advanced agency/memory action, physical device or new acoustic processor is used.

@@ -118,7 +118,7 @@ class Speech:
         self.closed = True
 
 
-async def core_experience_scenario(root: Path):
+async def core_experience_scenario(root: Path, language="es"):
     provider = ConversationProvider()
     capture, stt, speech = Capture(), Stt(), Speech()
     output_streams = []
@@ -162,10 +162,10 @@ async def core_experience_scenario(root: Path):
             root,
             port=0,
             model="chat",
-            language="es",
+            language=language,
             state_db=root / "state.db",
             memory_db=root / "memory.db",
-            stt_status="synthetic ready; es",
+            stt_status=f"synthetic ready; {language}",
         ),
         voice=RuntimeVoiceAdapters(capture, Vad(), stt),
         tts=speech,
@@ -226,7 +226,7 @@ async def core_experience_scenario(root: Path):
             )
             capture.utterances.put_nowait(True)
             await until(lambda: len(provider.contexts) == 2 and runtime._active_done.is_set())
-            assert any(context.language == "es" for context in stt.contexts)
+            assert stt.contexts and all(context.language == language for context in stt.contexts)
             assert any(event.type is EventType.TURN_COMMITTED for event in records)
             assert any(
                 event.type is EventType.TTS_LEVEL and event.payload["envelope"] > 0.05
@@ -310,6 +310,27 @@ async def core_experience_scenario(root: Path):
 def test_composed_core_experience_and_shutdown(tmp_path):
     records = asyncio.run(core_experience_scenario(tmp_path))
     assert sum(event["type"] == "model.completed" for event in records) == 3
+
+
+def test_core_restart_changes_recognition_language_without_stale_session_ownership(tmp_path):
+    async def scenario():
+        # Reuse real isolated stores, but replace session authority/capture owners
+        # at the normal configured-language restart boundary. No live setting invented.
+        english = await core_experience_scenario(tmp_path, "en")
+        spanish = await core_experience_scenario(tmp_path, "es")
+        # Durable conversation identity is preserved; ephemeral owner authority
+        # is newly authenticated and revoked in each scenario.
+        assert english[0]["session_id"] == spanish[0]["session_id"]
+        for records in (english, spanish):
+            assert sum(event["type"] == "model.completed" for event in records) == 3
+            assert any(
+                event["type"] == EventType.CAPABILITY_AUTHORITY_CHANGED
+                and event["payload"].get("active") is False
+                and event["payload"].get("reason") == "owner_requested_shutdown"
+                for event in records
+            )
+
+    asyncio.run(scenario())
 
 
 if __name__ == "__main__":
