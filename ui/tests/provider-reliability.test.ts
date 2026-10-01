@@ -432,7 +432,7 @@ describe("cold inventory outcome semantics", () => {
         provider: "lm-studio",
         model: "gemma",
         retry_attempt: 1,
-        reason: "LM Studio is running; waiting for its model inventory",
+        reason: "Waiting for LM Studio model inventory. Sam will retry shortly.",
         catalog: [],
       }),
     );
@@ -442,6 +442,9 @@ describe("cold inventory outcome semantics", () => {
     expect(
       statusPresentation({ ...state, connection: "connected", sessionId: "cold" }).notice,
     ).toContain("waiting for its model inventory");
+    expect(
+      statusPresentation({ ...state, connection: "connected", sessionId: "cold" }).notice,
+    ).not.toContain("is running");
   });
   it("successful empty remains distinct from terminal discovery failure", () => {
     const empty = reduceProtocolEvent(

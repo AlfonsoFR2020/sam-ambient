@@ -26,7 +26,7 @@ test("cold inventory retry remains mounted, allows Rescan and confirms only the 
   const waiting = [
     {
       id: "lm-studio",
-      running: true,
+      running: false,
       models: [],
       installed_models: [],
       inventory_status: "timeout",
@@ -46,7 +46,7 @@ test("cold inventory retry remains mounted, allows Rescan and confirms only the 
     catalog: waiting,
     provider: "lm-studio",
     model: "gemma",
-    reason: "LM Studio is running; waiting for its model inventory",
+    reason: "Waiting for LM Studio model inventory. Sam will retry shortly.",
     retry_attempt: 1,
   });
   await page.getByRole("button", { name: "Controls", exact: true }).click();
@@ -54,7 +54,8 @@ test("cold inventory retry remains mounted, allows Rescan and confirms only the 
   const controls = page.getByRole("region", { name: "Sam controls" });
   const status = controls.locator(".runtime-status");
   await status.locator("summary").click();
-  await expect(status).toContainText("Sam is waiting for its model inventory");
+  await expect(status).toContainText("Sam is waiting for LM Studio’s model inventory");
+  await expect(status).not.toContainText("LM Studio is running");
   await expect(status).not.toContainText("lm-studio · gemma");
   await expect(page.locator(".ambient-scene canvas")).toHaveCount(1);
   const rescan = controls.getByRole("button", { name: "Rescan providers/models" });

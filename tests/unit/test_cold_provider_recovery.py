@@ -191,6 +191,8 @@ def test_real_discovery_retries_installed_intent_then_loads_exactly_once(
 
     async def scenario():
         async def refresh(provider, model):
+            if snapshots and not initially_ready:
+                assert "is running" not in runtime._provider_discovery_reason
             result = await discovery.discover_local(provider=provider, model=model, bootstrap=True)
             snapshots.append(result)
             assert (

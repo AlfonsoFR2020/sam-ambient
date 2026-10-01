@@ -117,3 +117,24 @@ unrecorded failure. Inventory recovered by the first core scan, so the runtime
 automatic backoff branch was not needed in this session. Its failure/retry/late
 success path is deterministically proven. Broader machine/provider compatibility,
 physical audio and human acceptance remain outside this evidence.
+
+## Final stress and validation gate
+
+The composed discovery/bootstrap/runtime case covers both a reachable endpoint
+and a timeout before daemon/server readiness, then inventory success and exactly
+one model load. Additional cases cover complete multi-chunk output, over-limit
+malformed output, CLI child cancellation/reap, permanent/definitive-empty outcomes,
+provider disappearance, exhaustion, manual scan supersession, late cancelled-result
+closure, changing desired model, disconnect/reconnect and Quit during recovery.
+Failed inventory preserves an existing valid route and accepts a later typed turn.
+These are deterministic ownership/transition proofs, not a claim that the historical
+II incident's unrecorded CLI outcome is known.
+
+Final focused gate: 127 Python tests, 89 frontend tests (seven files), TypeScript,
+six-file Ruff lint/format, seven-file Biome and `git diff --check` pass. The frontend
+production build and two bounded Chrome cases (cold recovery and existing Rescan)
+pass, including a final stopped-daemon presentation check. Retry wording does not
+claim LM Studio is running before that is confirmed; endpoint facts remain separate.
+The package-manager shell fallback was unavailable in the final shell; the same
+already-installed Node test/typecheck/Biome executables were used directly, without
+installing or changing tooling. No unrelated large suites or additional real runs.

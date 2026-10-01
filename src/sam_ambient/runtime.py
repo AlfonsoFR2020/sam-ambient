@@ -1062,9 +1062,7 @@ class SamRuntime:
                 provider=provider_id,
                 model=model,
                 request_id=request_id,
-                reason=(
-                    "LM Studio is running; waiting for its model inventory. Sam will retry shortly."
-                ),
+                reason="Waiting for LM Studio model inventory. Sam will retry shortly.",
                 retry_attempt=attempt + 1,
                 retry_delay_s=delay,
             )
