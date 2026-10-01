@@ -10,6 +10,7 @@ test("measured output pulse expands and illuminates the fixed body", async ({ pa
       { RENDER_BUDGETS },
       { DEFAULT_VISUAL_ENGINE_SETTINGS },
       { WebGLBackend },
+      { reduceProtocolEvent },
     ] = await Promise.all([
       import("../../src/protocol/types"),
       import("../../src/visual-engine/input"),
@@ -17,6 +18,7 @@ test("measured output pulse expands and illuminates the fixed body", async ({ pa
       import("../../src/visual-engine/quality"),
       import("../../src/visual-engine/types"),
       import("../../src/visual-engine/webgl"),
+      import("../../src/state/reducer"),
     ]);
     const canvas = document.createElement("canvas");
     const gl = canvas.getContext("webgl2", { antialias: true, preserveDrawingBuffer: true });
@@ -41,14 +43,18 @@ test("measured output pulse expands and illuminates the fixed body", async ({ pa
       ...motion.currentFrame,
       reactivity: { ...motion.currentFrame.reactivity },
     };
-    const active = adapter.ingest(
-      {
-        ...state,
-        lastMonotonicByType: { "tts.level": 350 },
-        metrics: { ...state.metrics, playbackEnvelope: 0.7 },
-      },
-      350,
-    );
+    // Ordinary PCM RMS, not a near-full-scale envelope. Exercise the actual
+    // protocol reducer before freshness, smoothing and shader submission.
+    const protocolState = reduceProtocolEvent(state, {
+      protocol: 1,
+      type: "tts.level",
+      monotonic_ms: 350,
+      session_id: "session",
+      turn_id: "turn",
+      generation_id: "generation",
+      payload: { envelope: 0.04, peak: 0.12 },
+    });
+    const active = adapter.ingest(protocolState, 350);
     for (let time = 350; time <= 500; time += 50)
       motion.evaluate(active, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.high);
     const pulse = {
@@ -81,6 +87,22 @@ test("measured output pulse expands and illuminates the fixed body", async ({ pa
     const before = read();
     current = pulse;
     const after = read();
+    const ordinaryRadius = pulse.radius - baseline.radius;
+    const emphasized = adapter.ingest(
+      reduceProtocolEvent(protocolState, {
+        protocol: 1,
+        type: "tts.level",
+        monotonic_ms: 550,
+        session_id: "session",
+        turn_id: "turn",
+        generation_id: "generation",
+        payload: { envelope: 0.2, peak: 0.5 },
+      }),
+      550,
+    );
+    for (let time = 550; time <= 700; time += 50)
+      motion.evaluate(emphasized, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.high);
+    const emphasisPulse = motion.currentFrame.reactivity.outputPulse;
     let beforeArea = 0;
     let afterArea = 0;
     let centerLight = 0;
@@ -104,12 +126,22 @@ test("measured output pulse expands and illuminates the fixed body", async ({ pa
     }
     const error = gl.getError();
     backend.dispose();
-    return { areaGain: afterArea - beforeArea, lightGain: centerLight / centerCount, error };
+    return {
+      areaGain: afterArea - beforeArea,
+      lightGain: centerLight / centerCount,
+      ordinaryRadius,
+      ordinaryPulse: pulse.reactivity.outputPulse,
+      emphasisPulse,
+      error,
+    };
   });
   console.info("Fixed-body speaking response:", result);
   expect(result.error).toBe(0);
-  expect(result.areaGain).toBeGreaterThan(500);
-  expect(result.lightGain).toBeGreaterThan(2);
+  expect(result.areaGain).toBeGreaterThan(150);
+  expect(result.lightGain).toBeGreaterThan(0.5);
+  expect(result.ordinaryRadius).toBeGreaterThan(0.008);
+  expect(result.emphasisPulse).toBeGreaterThan(result.ordinaryPulse);
+  expect(result.emphasisPulse).toBeLessThanOrEqual(1);
 });
 
 test("high-tier fixed body and membrane retain measurable lifted coverage", async ({ page }) => {

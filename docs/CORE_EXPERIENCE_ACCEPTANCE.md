@@ -82,3 +82,31 @@ or cadence equivalence. Actual synthesis selection is delivered reliably in the
 first-PCM synthesis-health event (not a coalesced meter), with stale-delivery
 rejection. 33 focused Python and 37 reducer tests pass; TypeScript and the shipped
 frontend build pass. Physical listening/persona acceptance remains open.
+
+## Embodiment connectivity checkpoint
+
+No renderer/art-direction defect was demonstrated in this pass. Separate
+`voice.level` / `tts.level` feed reducer metrics, independent freshness retirement,
+AmbientReactivity, radial/material response and body/membrane shaders. The browser
+regression now sends ordinary output RMS 0.04 through the actual reducer instead
+of assigning a near-full-scale 0.7 sample directly to UI state.
+
+At default audio reactivity, a fixed-camera Chrome/WebGL check measured 2,112
+additional covered body pixels, mean central light gain 3.24 (8-bit channels),
+radius change 0.017 Orb units and output pulse 0.212. An emphasis RMS 0.2 raised
+the pulse to 0.445, still bounded. 80 focused visual/input/reactivity/quality tests
+pass, including zero amount, separate receptive input, expiry/cancellation and
+bounded values. These metrics do not prove perceptual acceptance.
+
+High-tier fixed body/membrane coverage remained measurable: 3,317 changed pixels,
+765 outside-body pixels, no WebGL error. Controls particle amount reached the
+renderer and vertical interaction remained correct. Existing form/normal/shared
+material representations are preserved; no geometry, shader/noise cost or palette
+art-direction change was justified.
+
+Seven bounded browser cases passed. Remaining fixed-orientation material checks
+showed long-interval mean color change 29.57 versus adjacent-frame 1.20; membrane
+tint agreement 0.985, palette delta 6.68, low/medium shader errors zero; particles
+had exterior coverage without rear-body depth leaks. These establish continuity,
+evolution and coherent shared rendering, not aesthetic success or low-power
+full-app performance.

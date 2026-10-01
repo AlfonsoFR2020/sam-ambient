@@ -15,6 +15,9 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - System.Speech defaults to an installed cross-language persona, honoring explicit
   voice preference and reporting fallbacks. First PCM reports effective selection
   through correlated synthesis health, independently of coalesced meters.
+- Core experience now verifies ordinary RMS through the reducer to actual WebGL
+  expansion/light, rather than only near-full-scale visual fixtures. Human visual
+  acceptance remains distinct and outstanding.
 
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.
