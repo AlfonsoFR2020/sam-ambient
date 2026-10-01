@@ -99,3 +99,23 @@ that test socket corrected the fixture; no product reset or timing change was
 added. Slow durable-event subscribers are an existing backpressure design, not
 evidence of a new voice/STT ownership defect. Physical PortAudio buffering,
 overflow and device restart remain outside this generated-input gate.
+
+## Installed persona/runtime gate (checkpoint 4)
+
+`python -m scripts.speech_persona_gate` drives four complete fake-provider answers
+through actual System.Speech, SamRuntime synthesis-health/meter publication and
+the normal SoundDeviceOutput adapter with a paced **discarding device fixture**.
+English → Spanish → English → Spanish selects Hazel/en-GB → Helena/es-ES →
+Hazel → Helena, all reported female by Windows inventory. Each first-PCM health
+event matches the selected adapter voice; the final ready snapshot agrees.
+Four complete assistant answers remain committed. 1,079 output-level events,
+maximum RMS 0.3354, demonstrate actual post-gain waveform activity. No PCM is
+saved or played. Missing preferred voice still synthesizes with installed Helena;
+both runtime and synthesis subprocess resources close. Existing 19 persona/TTS/
+multilingual delivery tests pass, including late cancellation and configured
+preference/fallback. Frontend stale selection rejection is retained separately.
+
+The script records bounded non-personal events in ignored `.sam` for the next
+fixed-camera signal-to-render gate. No voice preference schema or UI policy
+changes were required. Same inventory gender does not prove matching timbre,
+cadence or pleasantness; those remain human questions.
