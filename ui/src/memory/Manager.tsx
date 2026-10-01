@@ -22,6 +22,8 @@ export function MemoryManager({
   const [editing, setEditing] = useState<MemoryRecord>();
   const [deleting, setDeleting] = useState<string>();
   const [offset, setOffset] = useState(0);
+  const [nextOffset, setNextOffset] = useState(0);
+  const [previousPages, setPreviousPages] = useState<number[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -30,10 +32,14 @@ export function MemoryManager({
     setRequest("admitting");
     const id = await client.executeCapability(`memory.${operation}`, args);
     if (id) setRequest(id);
-    else setMessage("Other actions are active; try again when one finishes.");
+    else {
+      setRequest(undefined);
+      setMessage("Other actions are active; try again when one finishes.");
+    }
   };
   const list = (page = 0) => {
     setOffset(page);
+    if (page === 0) setPreviousPages([]);
     return run("list", { query, scope: "all", review, offset: page });
   };
 
@@ -56,6 +62,11 @@ export function MemoryManager({
     if (action.capability === "memory.list") {
       setRecords(memoryRows(action.result?.records));
       setHasMore(action.result?.has_more === true);
+      setNextOffset(
+        typeof action.result?.next_offset === "number"
+          ? action.result.next_offset
+          : offset + memoryRows(action.result?.records).length,
+      );
     } else if (action.capability === "memory.get") {
       const record = memoryRecord(action.result?.record);
       if (record) {
@@ -195,14 +206,21 @@ export function MemoryManager({
             <button
               type="button"
               disabled={offset === 0 || !!request || !connected}
-              onClick={() => void list(Math.max(0, offset - 8))}
+              onClick={() => {
+                const page = previousPages.at(-1) ?? 0;
+                setPreviousPages(previousPages.slice(0, -1));
+                void list(page);
+              }}
             >
               Previous
             </button>
             <button
               type="button"
               disabled={!hasMore || !!request || !connected}
-              onClick={() => void list(offset + 8)}
+              onClick={() => {
+                setPreviousPages([...previousPages, offset]);
+                void list(nextOffset);
+              }}
             >
               Next
             </button>

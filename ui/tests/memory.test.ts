@@ -41,3 +41,35 @@ describe("owner memory projection", () => {
     expect(memoryRecord({ ...record, revision: 0 })).toBeUndefined();
   });
 });
+
+it("correction/deletion releases prior memory content without touching console data", () => {
+  for (const capability of ["memory.correct", "memory.delete"]) {
+    const actions = projectAgencyEvent(
+      [
+        {
+          id: "old",
+          capability: "memory.get",
+          state: "completed",
+          output: "Private old text",
+          result: { record },
+        },
+        { id: "file", capability: "files.read", state: "completed", output: "File output" },
+        { id: "mutate", capability, state: "running" },
+      ],
+      {
+        protocol: 1,
+        type: "capability.state",
+        monotonic_ms: 1,
+        payload: {
+          request_id: "mutate",
+          capability,
+          state: "completed",
+          result: { deleted: "memory-1" },
+        },
+      },
+    );
+    expect(actions[0].result).toBeUndefined();
+    expect(actions[0].output).toBeUndefined();
+    expect(actions[1].output).toBe("File output");
+  }
+});

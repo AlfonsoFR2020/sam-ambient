@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -112,22 +113,24 @@ class MemoryTool:
                             review=None if review == "all" else review,
                         )
                         # Overview is bounded; inspect retrieves the complete individual record.
+                        previews = []
+                        for row in rows:
+                            preview = {
+                                **row.to_data(),
+                                "content": row.content[:160],
+                                "source_ref": row.source_ref[:80],
+                                "update_ref": row.update_ref[:80] if row.update_ref else None,
+                                "preview": len(row.content) > 160,
+                            }
+                            # Match the executor's escaped JSON byte accounting, including Unicode.
+                            if len(json.dumps([*previews, preview]).encode()) > 14_000:
+                                break
+                            previews.append(preview)
                         return ToolResult(
                             {
-                                "records": [
-                                    {
-                                        **row.to_data(),
-                                        "content": row.content[:160],
-                                        "source_ref": row.source_ref[:80],
-                                        "update_ref": row.update_ref[:80]
-                                        if row.update_ref
-                                        else None,
-                                        "preview": len(row.content) > 160,
-                                    }
-                                    for row in rows
-                                ],
-                                "next_offset": arguments.get("offset", 0) + len(rows),
-                                "has_more": len(rows) == 8,
+                                "records": previews,
+                                "next_offset": arguments.get("offset", 0) + len(previews),
+                                "has_more": len(previews) < len(rows) or len(rows) == 8,
                             }
                         )
                     if name == "get":

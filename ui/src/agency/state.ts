@@ -55,6 +55,10 @@ export function projectAgencyEvent(
               : undefined,
           truncated: event.payload.truncated === true || (output?.length ?? 0) > 20_000,
         }
-      : action,
+      : state === "completed" &&
+          ["memory.delete", "memory.correct"].includes(capability) &&
+          action.capability.startsWith("memory.")
+        ? { ...action, output: undefined, result: undefined, truncated: undefined }
+        : action,
   );
 }

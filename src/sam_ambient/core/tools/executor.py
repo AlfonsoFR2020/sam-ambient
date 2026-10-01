@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import time
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from sam_ambient.core.protocol import EventType, ProtocolEvent
@@ -176,7 +177,12 @@ class ToolExecutor:
             raise
         async with self._lock:
             waiting = self._inflight.pop(key)
-            self._history[key] = execution
+            # Retain replay terminality, not private memory arguments or returned content.
+            self._history[key] = (
+                replace(execution, invocation=replace(invocation, arguments={}), result=None)
+                if invocation.tool_id.startswith("memory.")
+                else execution
+            )
             while len(self._history) > self.config.max_history:
                 self._history.popitem(last=False)
             if not waiting.done():
@@ -514,7 +520,10 @@ def _approval_summary(invocation: ToolInvocation) -> str:
 
 
 def _invocation_key(invocation: ToolInvocation) -> InvocationKey:
-    return invocation.authority_identity
+    identity = invocation.authority_identity
+    if invocation.tool_id.startswith("memory."):
+        return (*identity[:-1], hashlib.sha256(identity[-1].encode()).hexdigest())
+    return identity
 
 
 def bound_result(result: ToolResult, limit: int = 16_384) -> ToolResult:

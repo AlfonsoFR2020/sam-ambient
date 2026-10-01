@@ -84,25 +84,27 @@ export function AgencyConsole({
             </button>
           </form>
           <section className="agency-console__output" aria-label="Console results">
-            {actions.map((action) => (
-              <article key={action.id}>
-                <strong>{action.capability}</strong> <span>{action.state}</span>
-                <small>{action.id}</small>
-                {!TERMINAL_ACTION_STATES.has(action.state) && (
-                  <button
-                    type="button"
-                    disabled={!connected}
-                    onClick={() => {
-                      void client.cancelCapability(action.id);
-                    }}
-                  >
-                    Cancel action
-                  </button>
-                )}
-                {action.output && <pre>{action.output}</pre>}
-                {action.truncated && <small>Result truncated</small>}
-              </article>
-            ))}
+            {actions
+              .filter((action) => !action.capability.startsWith("memory."))
+              .map((action) => (
+                <article key={action.id}>
+                  <strong>{action.capability}</strong> <span>{action.state}</span>
+                  <small>{action.id}</small>
+                  {!TERMINAL_ACTION_STATES.has(action.state) && (
+                    <button
+                      type="button"
+                      disabled={!connected}
+                      onClick={() => {
+                        void client.cancelCapability(action.id);
+                      }}
+                    >
+                      Cancel action
+                    </button>
+                  )}
+                  {action.output && <pre>{action.output}</pre>}
+                  {action.truncated && <small>Result truncated</small>}
+                </article>
+              ))}
           </section>
         </section>
       )}

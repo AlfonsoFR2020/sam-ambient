@@ -8,7 +8,7 @@ import sqlite3
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
@@ -81,7 +81,7 @@ class MemoryRecord:
     owner_id: str
     kind: str
     scope: str
-    content: str
+    content: str = field(repr=False)
     source_kind: str
     source_ref: str
     review: str

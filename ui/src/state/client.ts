@@ -111,9 +111,11 @@ export class ProtocolClient {
 
   private retireAgency(): void {
     this.agency = this.agency.map((action) =>
-      TERMINAL_ACTION_STATES.has(action.state)
-        ? action
-        : { ...action, state: "cancelled", output: "Owner connection retired" },
+      action.capability.startsWith("memory.")
+        ? { ...action, state: "cancelled", output: undefined, result: undefined }
+        : TERMINAL_ACTION_STATES.has(action.state)
+          ? action
+          : { ...action, state: "cancelled", output: "Owner connection retired" },
     );
   }
 

@@ -168,3 +168,21 @@ Results return candidate ID/review requirement, not another instruction envelope
 Malformed/secret/provenance failures are bounded tool failures; the model can still
 finish its text answer. Synthetic seven-mode tests include inert prose, schema
 spoofing, source spoofing, excessive proposals and real workspace-read provenance.
+
+## Privacy/adversarial checkpoint 8
+
+Replay history keeps only hashed memory-argument identity and terminal metadata,
+not memory bodies/results; old plaintext is not retained for mutation idempotency.
+Fresh reads require fresh owner requests. Correction/deletion clear older memory
+result caches in the owner UI; disconnect clears them too. Console excludes memory
+results. This does not erase earlier committed chat or third-party copies.
+
+Overview pages contain up to eight previews, packed under 14 KB of escaped JSON;
+Unicode-heavy pages may be smaller. Pagination uses the returned offset rather
+than assuming eight entries. Full inspection remains a separate bounded action.
+
+Regressions reproduce and fix replay retention and Unicode result overflow, deny
+absent/wrong owner proofs, verify cancellation rolls back before commit, preserve
+inert text, and keep unrelated console data unchanged. Secret/schema/provenance,
+proposal limits and authority rotation remain covered by adjacent focused suites.
+No private recordings, external memory service or new dependency was added.
