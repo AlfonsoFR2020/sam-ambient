@@ -28,6 +28,14 @@ bounded review; real hostile-local-process testing was not performed.
 
 ## Rules for future console, browser and memory work
 
+Durable memory now uses the [memory foundation](MEMORY_FOUNDATION_I.md). CRUD is
+direct-owner-only at both executor and live-action transaction checks; model
+schemas do not advertise it. Future model proposal admission requires ordinary
+exact tool approval and can create only an unreviewed claim. Review/correction is
+separate from permitting a proposal. Stored text, provenance and review are data,
+never capability permission. Credentials are rejected before approval/storage;
+the plaintext database still relies on OS account privacy.
+
 The [integrated agency simulator](AGENCY_FOUNDATION_I.md) verifies exact approval
 before model navigation, inert/injected result handling, browser cancellation and
 subsequent typed recovery. Shutdown revokes root/epoch authority before cleanup.

@@ -88,3 +88,20 @@ Checkpoint 3 evidence: authenticated real-WebSocket CRUD plus hidden model-tool
 denial; store/executor/action regressions; frontend projection/client tests;
 isolated Chrome memory create/correct/delete/inert text/scroll test; TypeScript,
 Ruff/Biome and packaged frontend asset build. No provider/audio run for this phase.
+
+## Write policy (checkpoint 4)
+
+Owner create/correct is deliberately reviewed. Other sources can only enter a
+**proposed** inbox: never auto-promoted, never silently overwrite an existing
+owner claim. Exact owner approval of a model tool call permits holding a candidate;
+it does **not** approve its truth for retrieval. The Memory panel's Approve claim
+or correction is the separate review step. There is no automatic learning from
+ordinary model prose, transcripts or pages. Model proposals remain optional and
+bounded; pending inbox limit is 100 with duplicate same-origin/content/scope reuse.
+
+Provenance is supplied by trusted mediation, not model arguments. Proposal policy
+rejects owner impersonation. No raw transcript/page is saved as provenance.
+Registered memory handlers reject secret-like content before an approval request,
+not just before SQLite insertion. Correction is the explicit resolution for a
+contradiction; distinct conflicting claims remain visible for owner review.
+No automatic semantic conflict detection is claimed.

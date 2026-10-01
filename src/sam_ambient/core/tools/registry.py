@@ -72,6 +72,10 @@ class ToolRegistry:
 
     def validate(self, tool: ToolHandler, arguments: Mapping[str, Any]) -> None:
         _validate_value(dict(tool.descriptor.input_schema), arguments, "arguments")
+        # Trusted registered handlers may reject domain-invalid data before approval.
+        validator = getattr(tool, "validate_arguments", None)
+        if validator is not None:
+            validator(arguments)
 
 
 def _validate_value(schema: Mapping[str, Any], value: Any, path: str) -> None:

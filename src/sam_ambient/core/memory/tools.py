@@ -6,7 +6,13 @@ import asyncio
 from collections.abc import Callable, Mapping
 from typing import Any
 
-from sam_ambient.core.memory.store import KINDS, MemoryError, MemoryStore, guarded_transaction
+from sam_ambient.core.memory.store import (
+    KINDS,
+    MemoryError,
+    MemoryStore,
+    guarded_transaction,
+    validate_content,
+)
 from sam_ambient.core.tools.agency import OwnerAction
 from sam_ambient.core.tools.models import (
     RiskClass,
@@ -68,6 +74,10 @@ class MemoryTool:
             side_effect=SideEffect.NONE if read else SideEffect.LOCAL_STATE,
             owner_only=True,
         )
+
+    def validate_arguments(self, arguments: Mapping[str, Any]) -> None:
+        if "content" in arguments:
+            validate_content(arguments["content"])
 
     async def execute(
         self, arguments: Mapping[str, Any], cancellation: CancellationToken

@@ -17,6 +17,7 @@ SCHEMA_VERSION = 1
 MAX_CONTENT = 1200
 KINDS = ("fact", "preference", "project")
 SOURCES = ("owner", "model", "conversation", "tool", "web")
+MAX_PROPOSED = 100
 _WORD = re.compile(r"[^\W_]+", re.UNICODE)
 _GUARD: ContextVar[Callable[[], None]] = ContextVar(
     "memory_transaction_guard", default=lambda: None
@@ -65,6 +66,8 @@ def validate_content(content: str) -> str:
 def _text(value: str, maximum: int, name: str) -> str:
     if not isinstance(value, str) or not value.strip() or len(value) > maximum or "\x00" in value:
         raise MemoryError(f"Invalid memory {name}")
+    if _SECRET.search(value):
+        raise MemoryError("Credentials cannot be memory metadata")
     return value.strip()
 
 
@@ -177,6 +180,7 @@ class MemoryStore:
         reviewed = source_kind == "owner"
         now, record_id = _now(), str(uuid4())
         with self._db() as db:
+            db.execute("BEGIN IMMEDIATE")
             # Repeated proposals do not accumulate duplicate unreviewed claims.
             prior = db.execute(
                 "SELECT * FROM memories WHERE owner_id=? AND scope=? AND kind=? "
@@ -185,6 +189,14 @@ class MemoryStore:
             ).fetchone()
             if prior is not None:
                 return self._record(prior)
+            if (
+                not reviewed
+                and db.execute(
+                    "SELECT count(*) FROM memories WHERE owner_id=? AND review='proposed'", (owner,)
+                ).fetchone()[0]
+                >= MAX_PROPOSED
+            ):
+                raise MemoryError("Proposal inbox full; review or delete existing claims first")
             db.execute(
                 "INSERT INTO memories VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
