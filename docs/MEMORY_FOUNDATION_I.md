@@ -186,3 +186,20 @@ absent/wrong owner proofs, verify cancellation rolls back before commit, preserv
 inert text, and keep unrelated console data unchanged. Secret/schema/provenance,
 proposal limits and authority rotation remain covered by adjacent focused suites.
 No private recordings, external memory service or new dependency was added.
+
+## Restart simulator (checkpoint 9)
+
+Two real SQLite/runtime instances and authenticated WebSocket sessions verify
+stable storage identity alongside fresh owner credentials. An old connection proof
+is rejected. The owner creates a beverage preference, restarts, recalls it for a
+relevant question, receives no memory for an unrelated question, approves an exact
+model proposal (still unreviewed), then explicitly reviews it for recall. Correction
+and deletion change subsequent retrieval. A fake page containing action-like text
+can create only an approved, web-provenance, unreviewed candidate; it acquires no
+execution authority. Only inference/page content are fakes, not storage, command,
+authentication, policy or context code. No physical speech or new real-provider run.
+
+This fixture also exposed an irrelevant recall caused by the shared word
+"preferred". Preference/request scaffolding is now excluded from lexical matching;
+subject-specific words still select records. Lexical recall remains limited for
+paraphrases and ambiguous broad queries; it is not semantic understanding.

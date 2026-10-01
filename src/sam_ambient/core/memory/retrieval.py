@@ -13,7 +13,8 @@ _STOP = frozenset(
     """a an and are as at be by can could do does for from how i in is it
 me my of on or please sam tell that the this to was what when where which who why will
 with would you your un una el la los las de del y en que qué cómo como mi mis por para
-es son me puedes favor responde respuesta answer reply remember memory""".split()
+es son me puedes favor responde respuesta answer reply remember memory
+prefer prefers preferred preference preferences lasting durable""".split()
 )
 MAX_RECALL_ENTRIES = 6
 MAX_CONTEXT_CHARS = 4800
