@@ -10,6 +10,8 @@ Updated: 2026-09-30
   surface. Model CRUD is denied; retrieval/context/proposals follow separately.
   Checkpoint 4 fixes review-first proposal policy, bounded inbox and pre-approval
   credential rejection; tool-mediated proposal execution is not yet connected.
+  Checkpoint 5 adds bounded reviewed/scoped lexical recall with source/revision;
+  no embeddings and no runtime prompt injection until the following checkpoint.
   See [memory implementation](MEMORY_FOUNDATION_I.md).
 
 - 2026-10-01: existing LM Studio/Gemma completed one owner-window structured read,

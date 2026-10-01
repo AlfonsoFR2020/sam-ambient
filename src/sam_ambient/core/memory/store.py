@@ -298,6 +298,29 @@ class MemoryStore:
                 db.execute("SELECT * FROM memories WHERE id=?", (record_id,)).fetchone()
             )
 
+    def ranked_reviewed(
+        self,
+        owner: str,
+        words: tuple[str, ...],
+        scopes: tuple[str, ...],
+    ) -> tuple[tuple[MemoryRecord, int], ...]:
+        self._owner(owner)
+        if not words or not scopes:
+            return ()
+        if len(words) > 12 or len(scopes) > 2:
+            raise MemoryError("Memory retrieval bounds exceeded")
+        expression = "+".join("CASE WHEN instr(search_text,?)>0 THEN 1 ELSE 0 END" for _ in words)
+        sql = (
+            f"WITH ranked AS (SELECT *, ({expression}) AS relevance FROM memories "
+            "WHERE owner_id=? AND reviewed_by=? AND review='reviewed' AND scope IN ("
+            + ",".join("?" for _ in scopes)
+            + ")) SELECT * FROM ranked WHERE relevance>0 "
+            "ORDER BY relevance DESC,updated_at DESC,id LIMIT 32"
+        )
+        values = [*(" " + word + " " for word in words), owner, owner, *scopes]
+        with self._db() as db:
+            return tuple((self._record(row), row["relevance"]) for row in db.execute(sql, values))
+
     def approve(
         self, owner: str, record_id: str, *, expected_revision: int, action_ref: str
     ) -> MemoryRecord:

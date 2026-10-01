@@ -105,3 +105,20 @@ Registered memory handlers reject secret-like content before an approval request
 not just before SQLite insertion. Correction is the explicit resolution for a
 contradiction; distinct conflicting claims remain visible for owner review.
 No automatic semantic conflict detection is claimed.
+
+## Retrieval (checkpoint 5)
+
+SQLite ranks **reviewed-by-this-owner** claims in Personal/current workspace only.
+Unicode casefolded whole-word overlap supplies an explainable score; recency and
+stable ID break ties. Stop words avoid retrieving personal facts for generic
+request scaffolding. SQL ranks before returning at most 32 candidates; caller
+selects at most six complete entries within a 4,800-character context envelope.
+Individual content remains bounded at 1,200 characters. No partial claims or
+database dump, no model/embedding dependency, no external search/index service.
+
+Recall preserves source/revision/review and matched terms internally. Corrections
+replace lexical content; deletion leaves no cached/indexed result. Unreviewed
+claims and other workspaces are excluded. This lexical foundation cannot guarantee
+paraphrase/concept matching; no semantic retrieval claim. `MemoryRetriever` is the
+future semantic seam, whose implementations must preserve these filters/budgets.
+Runtime prompt context is a separate following checkpoint.
