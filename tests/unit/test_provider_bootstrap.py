@@ -691,12 +691,14 @@ def test_rapid_rescan_cancels_older_refresh_before_new_selection(tmp_path):
     asyncio.run(scenario())
 
 
-def test_runtime_ready_event_keeps_pending_model_distinct(tmp_path):
+@pytest.mark.parametrize("requested_model", [None, "google/gemma"])
+def test_runtime_ready_event_keeps_pending_model_distinct(tmp_path, requested_model):
     async def scenario():
         runtime = SamRuntime(
             ConversationProvider(),
             RuntimeConfig(
                 tmp_path,
+                model=requested_model,
                 model_unavailable_reason="Installed model is not loaded",
                 startup_provider="lm-studio",
                 startup_model="google/gemma",
@@ -705,6 +707,7 @@ def test_runtime_ready_event_keeps_pending_model_distinct(tmp_path):
         try:
             event = runtime._ready_event()
             assert event.payload["model"] is None
+            assert event.payload["provider"] is None
             assert event.payload["pending_provider"] == "lm-studio"
             assert event.payload["pending_model"] == "google/gemma"
         finally:

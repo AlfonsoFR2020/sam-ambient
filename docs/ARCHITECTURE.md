@@ -1,5 +1,11 @@
 # Architecture
 
+Core startup snapshots distinguish configured/pending route identity from an
+available current route: an explicit unavailable reason suppresses current model
+and provider until confirmed discovery succeeds. Operational runtime and supervisor
+SQLite transactions explicitly close their handles on success and rollback. See
+[core-experience evidence](CORE_EXPERIENCE_ACCEPTANCE.md) for composed and real checks.
+
 Sam is a supervised modular monolith with a separate ambient presentation client.
 The installed `sam-ambient` command starts `sam-supervisor`, the authoritative
 `sam-core`, and an optional static `sam-ui` server. The supervisor opens the UI

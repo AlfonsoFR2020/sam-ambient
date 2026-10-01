@@ -5,6 +5,7 @@ import sqlite3
 import pytest
 
 from sam_ambient.core.storage.sqlite import SQLiteSessionStore
+from sam_ambient.supervisor.persistence import SupervisorStore
 
 
 def test_each_state_transaction_closes_its_connection_and_rolls_back(tmp_path, monkeypatch):
@@ -31,3 +32,28 @@ def test_each_state_transaction_closes_its_connection_and_rolls_back(tmp_path, m
         with pytest.raises(sqlite3.ProgrammingError, match="closed"):
             connection.execute("SELECT 1")
     path.unlink()  # Windows must be able to remove state immediately.
+
+
+def test_supervisor_transactions_close_and_preserve_rollback(tmp_path, monkeypatch):
+    connect = sqlite3.connect
+    connections = []
+
+    def tracked(*args, **kwargs):
+        connection = connect(*args, **kwargs)
+        connections.append(connection)
+        return connection
+
+    monkeypatch.setattr(sqlite3, "connect", tracked)
+    path = tmp_path / "state.db"
+    store = SupervisorStore(path)
+    original = store.revoke_capabilities("shutdown")
+    with pytest.raises(RuntimeError, match="transaction failure"):
+        with store._connect() as connection:
+            connection.execute("DELETE FROM supervisor_metadata")
+            raise RuntimeError("transaction failure")
+    assert store.security_state() == original
+    assert store.diagnostic_snapshot()["security"]["capabilities_revoked"]
+    for connection in connections:
+        with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+            connection.execute("SELECT 1")
+    path.unlink()

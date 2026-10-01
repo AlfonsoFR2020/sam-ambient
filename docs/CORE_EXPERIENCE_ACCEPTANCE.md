@@ -154,3 +154,32 @@ effective voice and degraded STT are visible, and all six committed history item
 retain separate roles and content. The mounted WebGL renderer remains alive; the
 separate fixed-camera regression establishes geometry/light response. No physical
 audio, real inference or advanced agency/memory behavior is used by this simulator.
+
+## Normal integrated runtime checkpoint
+
+The normal supervisor launched its real core/UI subprocesses and private owner
+window, with isolated state and app-data memory. The existing LM Studio server
+was running with no loaded model; normal bootstrap loaded `google/gemma-4-e2b`.
+Three short typed turns completed (request-to-completion approximately 1.39 s,
+1.28 s and 0.16 s; not a benchmark). Rescan reached terminal state with that exact
+route, all three committed answers remained, and no page exception occurred.
+Quit returned zero, closed the owner browser/revoked authority, and confirmed the
+Sam-loaded model absent. The pre-existing serving process was correctly preserved.
+No provider stop of an externally owned resource was attempted.
+
+The first smoke attempts exposed a real snapshot defect: a configured model was
+reported as current while its unavailable reason still blocked generation. Ready
+snapshots now report no available model/provider until bootstrap confirms them;
+requested/loading identity remains separate. A parameterized regression includes
+the explicit configured-model case previously absent from the pending-model test.
+The smoke also reproduced the operational SQLite handle leak in SupervisorStore;
+it now explicitly closes short transactions, preserving rollback. A fixture selector
+error was corrected without changing product behavior. The corrected session passed
+and removed its isolated temporary state without a Windows sharing violation.
+
+Microphone and physical playback were disabled for this normal session. Separately,
+actual System.Speech generated 87 PCM frames per short en/es phrase; metered peaks
+were 0.702/0.771, with Hazel/en-GB and Helena/es-ES (both female). PCM was consumed
+without sending it to speakers. This proves synthesis initialization/selection and
+nonzero waveform, not capture/STT accuracy, sound timing or persona quality. Normal
+speech event-to-render behavior is protected by the composed synthetic/browser path.

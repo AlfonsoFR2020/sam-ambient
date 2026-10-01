@@ -2843,6 +2843,9 @@ class SamRuntime:
         await self.owned_browser.close(owner_connection=connection.connection_id)
 
     def _ready_event(self) -> ProtocolEvent:
+        # A configured request is not an available route. Reconnect/startup
+        # snapshots must preserve that distinction while bootstrap is pending.
+        available_model = self._model if self._model_unavailable_reason is None else None
         authority = self.capability_authority.snapshot
         voice_state = self.voice_turns.state if self.voice is not None else VoiceState.IDLE
         voice_is_current = self._active_generation_id is None or (
@@ -2874,8 +2877,8 @@ class SamRuntime:
                 "tts_output_enabled": self.controls.tts_output_enabled,
                 "sam_name": __product_name__,
                 "sam_author": __author__,
-                "provider": self.provider.id if self._model else None,
-                "model": self._model,
+                "provider": self.provider.id if available_model else None,
+                "model": available_model,
                 "pending_provider": self._pending_provider,
                 "pending_model": self._pending_model,
                 "provider_scan_active": self._provider_scan_active,

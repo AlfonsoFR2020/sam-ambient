@@ -25,6 +25,10 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - A composed authenticated runtime/voice/PCM/history/Controls simulator proves
   typed → voice → STT failure → typed recovery → Rescan → ordered Quit. Its real
   core events also drive the isolated frontend and bounded visual response.
+- Normal supervised LM Studio/Gemma startup, three owner-UI text turns, Rescan,
+  memory initialization and confirmed unload/Quit pass. Requested-but-unavailable
+  models no longer appear active in ready snapshots. Supervisor SQLite handles
+  also close explicitly. Actual en/es System.Speech PCM was generated without playback.
 
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.

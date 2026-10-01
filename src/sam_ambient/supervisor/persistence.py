@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Iterator
+from contextlib import closing, contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -59,10 +61,13 @@ class SupervisorStore:
         except sqlite3.DatabaseError as error:
             raise SupervisorStateError("supervisor state database is corrupt") from error
 
-    def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.path, timeout=5)
-        connection.execute("PRAGMA busy_timeout = 5000")
-        return connection
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        # Transaction context exit alone leaves the Windows file handle open.
+        with closing(sqlite3.connect(self.path, timeout=5)) as connection:
+            connection.execute("PRAGMA busy_timeout = 5000")
+            with connection:
+                yield connection
 
     def security_state(self) -> SecurityState:
         values = self._metadata()
