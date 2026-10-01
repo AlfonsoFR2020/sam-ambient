@@ -112,3 +112,31 @@ def test_invalid_database_and_locked_write_fail_safely(tmp_path):
         with pytest.raises(MemoryError, match="unavailable"):
             add(store)
     assert not store.list(store.owner_id)
+
+
+def test_failed_schema_initialization_is_transactional_and_preserves_data(tmp_path):
+    path = tmp_path / "partial.db"
+    with sqlite3.connect(path) as db:
+        db.execute("CREATE TABLE memories (id TEXT)")
+        db.execute("INSERT INTO memories VALUES ('keep-this')")
+    with pytest.raises(MemoryError):
+        MemoryStore(path)
+    with sqlite3.connect(path) as db:
+        assert db.execute("PRAGMA user_version").fetchone()[0] == 0
+        assert db.execute("SELECT id FROM memories").fetchone()[0] == "keep-this"
+        assert not db.execute("SELECT name FROM sqlite_master WHERE name='memory_meta'").fetchone()
+
+
+def test_invalid_stored_record_and_page_types_are_sanitized(tmp_path):
+    store = MemoryStore(tmp_path / "memory.db")
+    item = add(store)
+    with sqlite3.connect(store.path) as db:
+        db.execute(
+            "UPDATE memories SET review='forged', content=? WHERE id=?",
+            ("secret corrupted claim", item.id),
+        )
+    with pytest.raises(MemoryError, match="Invalid stored"):
+        store.get(store.owner_id, item.id)
+    for bounds in ({"limit": "many"}, {"offset": True}, {"limit": 1.5}):
+        with pytest.raises(MemoryError, match="bounds"):
+            store.list(store.owner_id, **bounds)

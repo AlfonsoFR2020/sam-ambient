@@ -85,7 +85,6 @@ class MemoryTool:
         self, arguments: Mapping[str, Any], cancellation: CancellationToken
     ) -> ToolResult:
         action = self.owner_action(cancellation)
-        store = self.store()
 
         def check():
             cancellation.raise_if_cancelled()
@@ -95,6 +94,7 @@ class MemoryTool:
         def operation():
             try:
                 with guarded_transaction(check):
+                    store = self.store()
                     owner = store.owner_id
                     name = self.operation
                     if name == "list":
@@ -221,7 +221,6 @@ class MemoryProposalTool:
     async def execute(
         self, arguments: Mapping[str, Any], cancellation: CancellationToken
     ) -> ToolResult:
-        store = self.store()
         source_action = arguments.get("source_action")
         source = self.source(cancellation, source_action)
 
@@ -233,6 +232,7 @@ class MemoryProposalTool:
         def proposal():
             try:
                 with guarded_transaction(check):
+                    store = self.store()
                     record = self.policy.propose(
                         store,
                         kind=arguments["kind"],

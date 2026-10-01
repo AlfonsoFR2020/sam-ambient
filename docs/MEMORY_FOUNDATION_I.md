@@ -203,3 +203,33 @@ This fixture also exposed an irrelevant recall caused by the shared word
 "preferred". Preference/request scaffolding is now excluded from lexical matching;
 subject-specific words still select records. Lexical recall remains limited for
 paraphrases and ambiguous broad queries; it is not semantic understanding.
+
+## Recovery, migration and representative cost (checkpoint 10)
+
+Schema 0 -> 1 initialization is one explicit SQLite transaction, with integrity
+and required-column checks; future versions are rejected without editing them.
+Invalid stored records are sanitized failures, never trusted context. A broken
+store is not automatically deleted or replaced. The owner can repair/restore it
+externally and use Memory refresh to reopen it without restarting Sam. A temporary
+lock times out after 250 ms; writes roll back and later healthy reads work. Recall
+failure omits memory for that turn while normal text still completes. Cancelled
+searches cannot publish late results or block a later read. There is no retention
+of old record content; owner entries persist until deliberate deletion.
+
+`scripts/check_memory_performance.py` uses only generated temporary stores. This
+Windows sample (2026-10-01, existing Python 3.12/SQLite, wall-clock median of 15
+reads/reopens) is evidence, not a portable latency promise:
+
+| Records | Reopen ms | Mean write ms | Correct / delete ms | Scoped search ms | Recall/context ms | DB bytes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 30 | 11.093 | 12.933 | 14.263 / 13.599 | 0.500 | 0.695 | 36,864 |
+| 300 | 12.711 | 12.650 | 11.552 / 13.763 | 1.503 | 2.036 | 163,840 |
+| 3,000 | 14.207 | 13.900 | 13.453 / 14.913 | 5.916 | 8.397 | 1,404,928 |
+
+First creation/open measured 17.2-19.8 ms. Filesystem/antivirus/cache influence
+writes; these are not CPU or real-provider timings. No extra process/background
+loop exists; DB operations use the existing bounded executor worker threads and
+short-lived connections. No per-record media/embedding assets. Tests assert
+result/context/inbox/page bounds and transactional recovery rather than brittle
+machine-speed thresholds. Thousands of rows remain a modest lexical scan; larger
+scales or semantic paraphrases require a separately measured indexing decision.

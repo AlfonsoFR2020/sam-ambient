@@ -103,9 +103,12 @@ class MemoryStore:
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             with self._db() as db:
+                db.execute("BEGIN IMMEDIATE")
                 version = db.execute("PRAGMA user_version").fetchone()[0]
                 if version not in {0, SCHEMA_VERSION}:
                     raise MemoryError("Unsupported memory schema; database left unchanged")
+                if db.execute("PRAGMA quick_check(1)").fetchone()[0] != "ok":
+                    raise MemoryError("Memory database integrity check failed")
                 db.execute(
                     "CREATE TABLE IF NOT EXISTS memory_meta "
                     "(key TEXT PRIMARY KEY, value TEXT NOT NULL)"
@@ -127,8 +130,14 @@ class MemoryStore:
                     "SELECT value FROM memory_meta WHERE key='owner'"
                 ).fetchone()[0]
                 UUID(self.owner_id)
+                # A supported version with incompatible columns is not a recoverable empty store.
+                db.execute(
+                    "SELECT "
+                    + ",".join(MemoryRecord.__dataclass_fields__)
+                    + ",search_text FROM memories LIMIT 0"
+                )
                 db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
-        except (OSError, ValueError, sqlite3.Error) as error:
+        except (OSError, ValueError, TypeError, sqlite3.Error) as error:
             if isinstance(error, MemoryError):
                 raise
             raise MemoryError("Memory database unavailable or invalid") from None
@@ -159,7 +168,26 @@ class MemoryStore:
 
     @staticmethod
     def _record(row: sqlite3.Row) -> MemoryRecord:
-        return MemoryRecord(**{field: row[field] for field in MemoryRecord.__dataclass_fields__})
+        try:
+            record = MemoryRecord(
+                **{field: row[field] for field in MemoryRecord.__dataclass_fields__}
+            )
+            UUID(record.id)
+            UUID(record.owner_id)
+            validate_content(record.content)
+            if (
+                record.kind not in KINDS
+                or record.source_kind not in SOURCES
+                or record.review not in {"reviewed", "proposed"}
+                or not isinstance(record.revision, int)
+                or record.revision < 1
+            ):
+                raise MemoryError("Invalid stored memory record")
+            _text(record.scope, 128, "scope")
+            _text(record.source_ref, 256, "source reference")
+            return record
+        except (TypeError, ValueError, KeyError, IndexError):
+            raise MemoryError("Invalid stored memory record; database left unchanged") from None
 
     def create(
         self,
@@ -241,7 +269,12 @@ class MemoryStore:
         offset: int = 0,
     ) -> tuple[MemoryRecord, ...]:
         self._owner(owner)
-        if isinstance(limit, bool) or not 1 <= limit <= 20 or not 0 <= offset <= 100_000:
+        if (
+            type(limit) is not int
+            or type(offset) is not int
+            or not 1 <= limit <= 20
+            or not 0 <= offset <= 100_000
+        ):
             raise MemoryError("Invalid memory page bounds")
         if not isinstance(query, str) or len(query) > 256:
             raise MemoryError("Memory query exceeds its bound")

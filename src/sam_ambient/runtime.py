@@ -2709,7 +2709,11 @@ class SamRuntime:
 
     def _memory_store(self) -> MemoryStore:
         if self.memory is None:
-            raise MemoryError(self.memory_error or "Memory is not configured")
+            if self.config.memory_db is None:
+                raise MemoryError("Memory is not configured")
+            # Explicit owner refresh may retry repaired storage; never erase/recreate bad data.
+            self.memory = MemoryStore(self.config.memory_db)
+            self.memory_error = None
         return self.memory
 
     def _memory_owner_action(self, token: CancellationToken) -> OwnerAction:
