@@ -26,9 +26,10 @@ from sam_ambient.adapters.stt.whisper_cpp import (
 )
 from sam_ambient.adapters.ui import DEFAULT_UI_BRIDGE_PORT, WebSocketCoreBridge
 from sam_ambient.core.memory import MemoryError, MemoryStore
+from sam_ambient.core.memory.policy import ProposalSource
 from sam_ambient.core.memory.retrieval import MAX_CONTEXT_CHARS, LexicalMemoryRetriever
 from sam_ambient.core.memory.store import guarded_transaction
-from sam_ambient.core.memory.tools import MemoryTool
+from sam_ambient.core.memory.tools import MemoryProposalTool, MemoryTool
 from sam_ambient.core.owner import OwnerConnection, OwnerSession
 from sam_ambient.core.protocol import (
     CancellationTarget,
@@ -598,6 +599,13 @@ class SamRuntime:
                         self.memory_workspace_scope,
                     )
                 )
+            self.tools.register(
+                MemoryProposalTool(
+                    self._memory_store,
+                    self._memory_proposal_source,
+                    self.memory_workspace_scope,
+                )
+            )
         self.approvals = ApprovalBroker()
         self.capability_authority = CapabilityAuthority(
             active=config.capabilities_active,
@@ -1420,6 +1428,7 @@ class SamRuntime:
             ]
             contains_private_context = bool(history or memory_context)
             proposed_actions: set[tuple[str, str]] = set()
+            memory_proposals = 0
             for tool_round in range(self.config.max_tool_rounds + 1):
                 cancellation.raise_if_cancelled()
                 log.info(
@@ -1479,11 +1488,18 @@ class SamRuntime:
                         cancellation_id=cancellation.cancellation_id,
                     ):
                         signature = (invocation.tool_id, invocation.authority_identity[-1])
-                        if signature in proposed_actions:
+                        if invocation.tool_id == "memory.propose":
+                            memory_proposals += 1
+                        over_proposal_limit = (
+                            invocation.tool_id == "memory.propose" and memory_proposals > 2
+                        )
+                        if signature in proposed_actions or over_proposal_limit:
                             execution = ToolExecution(
                                 invocation,
                                 ToolStatus.DENIED,
-                                error="identical action already proposed in this turn",
+                                error="memory proposal limit reached"
+                                if over_proposal_limit
+                                else "identical action already proposed in this turn",
                             )
                             await self._publish_tool_event(
                                 ProtocolEvent(
@@ -2702,6 +2718,35 @@ class SamRuntime:
                 if self.capability_authority.snapshot.active:
                     return action
         raise MemoryError("Memory requires a current authenticated owner action")
+
+    def _memory_proposal_source(
+        self, token: CancellationToken, source_action: str | None
+    ) -> ProposalSource:
+        token.raise_if_cancelled()
+        if (
+            self._active_token is not token
+            or not self._active_generation_id
+            or not self.capability_authority.snapshot.active
+            or not self.owner_actions.owner.active
+        ):
+            raise MemoryError("Memory proposal requires a current generation")
+        generation = self._active_generation_id
+        if source_action is None:
+            return ProposalSource("model", f"turn:{self._active_turn_id};generation:{generation}")
+        execution = self.tool_executor.completed_action(source_action, generation)
+        if execution is None or execution.invocation.tool_id.startswith("memory."):
+            raise MemoryError(
+                "Memory provenance must refer to a completed source action in this turn"
+            )
+        reference = (
+            source_action
+            if len(source_action) <= 128
+            else hashlib.sha256(source_action.encode()).hexdigest()
+        )
+        return ProposalSource(
+            "web" if execution.invocation.tool_id.startswith("browser.") else "tool",
+            f"action:{reference};generation:{generation}",
+        )
 
     async def _execute_owner_action(
         self, command: ControlCommand, connection: OwnerConnection

@@ -45,9 +45,11 @@ def test_owner_crud_real_authenticated_command_path_and_model_denial(tmp_path):
         )
         await runtime.start()
         try:
-            assert not any(
-                tool.name.startswith("memory.") for tool in runtime.tools.provider_schemas()
-            )
+            assert [
+                tool.name
+                for tool in runtime.tools.provider_schemas()
+                if tool.name.startswith("memory.")
+            ] == ["memory.propose"]
             async with connect(
                 f"ws://127.0.0.1:{runtime.bridge.port}",
                 origin="http://127.0.0.1:8766",

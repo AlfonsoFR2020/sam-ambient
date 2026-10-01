@@ -14,6 +14,8 @@ Updated: 2026-09-30
   no embeddings and no runtime prompt injection until the following checkpoint.
   Checkpoint 6 selectively assembles provenance-labelled local model context;
   empty recall is unchanged, cloud excludes memory, store failure preserves text.
+  Checkpoint 7 connects sparse typed `memory.propose` via exact tool approval;
+  at most two candidates/turn, generation-pinned sources, no automatic trust.
   See [memory implementation](MEMORY_FOUNDATION_I.md).
 
 - 2026-10-01: existing LM Studio/Gemma completed one owner-window structured read,

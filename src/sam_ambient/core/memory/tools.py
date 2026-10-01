@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Callable, Mapping
 from typing import Any
 
+from sam_ambient.core.memory.policy import MemoryWritePolicy, ProposalSource
 from sam_ambient.core.memory.store import (
     KINDS,
     MemoryError,
@@ -167,3 +168,86 @@ class MemoryTool:
                 raise ToolError(str(error)) from None
 
         return await asyncio.to_thread(operation)
+
+
+class MemoryProposalTool:
+    """Only approved typed model proposals enter an unreviewed local inbox."""
+
+    def __init__(
+        self,
+        store: Callable[[], MemoryStore],
+        source: Callable[[CancellationToken, str | None], ProposalSource],
+        workspace_scope: str,
+    ) -> None:
+        self.store, self.source, self.workspace_scope = store, source, workspace_scope
+        self.policy = MemoryWritePolicy()
+        self.descriptor = ToolDescriptor(
+            id="memory.propose",
+            description=(
+                "Propose sparse, useful durable personal/project context when appropriate, "
+                "especially when the owner asks to remember a lasting fact/preference. "
+                "Never memorize every question, transient tasks, assistant speculation "
+                "or unrelated page facts. "
+                "Owner approval permits only an unreviewed candidate, not a trusted fact; "
+                "owner must separately review it in Memory. No credentials. "
+                "If derived from a returned tool/page, include that completed source_action ID."
+            ),
+            input_schema={
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    **_FIELDS["create"],
+                    "rationale": {"type": "string", "minLength": 1, "maxLength": 256},
+                    "source_action": {"type": "string", "minLength": 1, "maxLength": 256},
+                },
+                "required": ["content", "kind", "scope", "rationale"],
+            },
+            result_schema={"type": "object"},
+            risk=RiskClass.REVERSIBLE_WRITE,
+            platforms=("windows", "linux", "darwin"),
+            requires_confirmation=True,
+            supports_cancellation=True,
+            timeout_s=2,
+            side_effect=SideEffect.LOCAL_STATE,
+        )
+
+    def validate_arguments(self, arguments: Mapping[str, Any]) -> None:
+        validate_content(arguments["content"])
+        validate_content(arguments["rationale"])
+
+    async def execute(
+        self, arguments: Mapping[str, Any], cancellation: CancellationToken
+    ) -> ToolResult:
+        store = self.store()
+        source_action = arguments.get("source_action")
+        source = self.source(cancellation, source_action)
+
+        def check():
+            cancellation.raise_if_cancelled()
+            if self.source(cancellation, source_action) != source:
+                raise ToolError("Memory proposal generation retired")
+
+        def proposal():
+            try:
+                with guarded_transaction(check):
+                    record = self.policy.propose(
+                        store,
+                        kind=arguments["kind"],
+                        scope=self.workspace_scope
+                        if arguments["scope"] == "workspace"
+                        else "personal",
+                        content=arguments["content"],
+                        source=source,
+                    )
+                    return ToolResult(
+                        {
+                            "proposal_id": record.id,
+                            "review": "proposed",
+                            "review_required": True,
+                            "source_kind": record.source_kind,
+                        }
+                    )
+            except MemoryError as error:
+                raise ToolError(str(error)) from None
+
+        return await asyncio.to_thread(proposal)

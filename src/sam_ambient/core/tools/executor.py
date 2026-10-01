@@ -183,6 +183,18 @@ class ToolExecutor:
                 waiting.set_result(execution)
         return execution
 
+    def completed_action(self, request_id: str, generation_id: str) -> ToolExecution | None:
+        """Bounded provenance lookup, not a new execution or authorization path."""
+        for execution in reversed(tuple(self._history.values())):
+            invocation = execution.invocation
+            if (
+                invocation.tool_call_id == request_id
+                and invocation.generation_id == generation_id
+                and execution.status is ToolStatus.COMPLETED
+            ):
+                return execution
+        return None
+
     async def _execute_once(
         self,
         invocation: ToolInvocation,

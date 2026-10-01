@@ -143,3 +143,28 @@ character limit, not an asserted precise tokenizer budget. No recalled entry is
 persisted as another chat message. Earlier committed answers/current conversation
 may already contain information repeated from memory; deleting a memory does not
 silently erase conversation history or recall prior provider requests.
+
+## Structured model proposals (checkpoint 7)
+
+Only `memory.propose` is advertised to models; ordinary prose cannot call it.
+Arguments are concise content, kind, Personal/workspace scope, a bounded rationale
+and optional completed source action ID. No owner/trust/review/source-kind override.
+Ordinary exact tool approval permits the write of an **unreviewed** candidate;
+the owner then inspects/corrects/approves it in Memory before recall can use it.
+This intentionally conservative first UX uses two separate decisions, not silent
+automatic learning. No user utterance or assistant text is automatically imported.
+
+Source references are pinned to the active generation/turn. Tool-derived provenance
+must identify an actual completed action in that same generation; browser sources
+become web provenance, other actions tool provenance. References to old/unknown or
+memory actions are rejected. Omitted evidence remains explicitly model-origin,
+not an assertion that the owner actually said it. Rationale is approval context,
+not a retained raw transcript.
+
+Maximum two proposals per turn, the existing repeat/round/fragment limits and the
+100-candidate inbox prevent compulsive/recursive collection. The tool guidance
+asks for sparse lasting context, excluding transient tasks/speculation/page trivia.
+Results return candidate ID/review requirement, not another instruction envelope.
+Malformed/secret/provenance failures are bounded tool failures; the model can still
+finish its text answer. Synthetic seven-mode tests include inert prose, schema
+spoofing, source spoofing, excessive proposals and real workspace-read provenance.
