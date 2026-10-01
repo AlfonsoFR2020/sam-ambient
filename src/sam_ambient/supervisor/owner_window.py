@@ -95,6 +95,10 @@ class OwnerWindow:
                     await route.fulfill(path=str(asset))
 
             await self._context.route("**/*", local_only)
+            # Privately fulfilled assets have no network response address space.
+            # Recent Chromium gates their loopback WebSocket on this permission.
+            # Grant only the trusted owner origin, never the untrusted tool browser.
+            await self._context.grant_permissions(["local-network-access"], origin=url)
             self._context.on("page", lambda page: asyncio.create_task(page.close()))
             await self._page.goto(url + "/?shell=app", wait_until="domcontentloaded")
             return True

@@ -1,5 +1,12 @@
 # Decision log
 
+## 2026-10-01 — Trusted owner UI receives origin-scoped loopback permission
+
+Chromium blocks loopback WebSockets from privately fulfilled owner assets without
+local-network-access permission. Grant it only to the designated Sam owner origin
+inside its dedicated context. Keep shipped-asset routing, owner proof and separate
+untrusted browser isolation. Never disable Chromium security globally to connect.
+
 ## 2026-09-30 — Signer-bearing UI uses trusted assets, not HTTP origin alone
 
 Source owner-window routes fulfill only canonical shipped frontend assets over

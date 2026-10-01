@@ -41,6 +41,30 @@ owned-browser cleanup; repeated shutdown is harmless.
 
 ## Evidence limits and next use
 
+### 2026-10-01 bounded real-provider follow-up
+
+LM Studio's existing `google/gemma-4-e2b` completed a structured workspace
+`files.read` through the shipped, privately authenticated OwnerWindow (headless
+for automation). The bounded fixture contained a mascot fact and fake privileged
+instructions; only the registered read ran and the model returned the correct
+mascot. Owner emergency cancellation retired a subsequent model request. No
+speech adapters or full supervisor stack ran; no models/providers were downloaded.
+The installed model was loaded with an idle TTL, without changing saved endpoints.
+
+This uncovered Chromium's local-network-access check blocking the owner UI's
+loopback WebSocket. OwnerWindow now grants that permission **only to its trusted
+UI origin**, before navigation. The separate untrusted capability browser receives
+no such grant. Private shipped assets and mutual HMAC remain mandatory. The
+regression exercises the actual shipped UI and text submission with fake inference.
+See [Playwright permissions](https://playwright.dev/docs/api/class-browsercontext#browser-context-grant-permissions).
+
+An inherited `SSLKEYLOGFILE` caused Python OpenSSL initialization to abort; it was
+removed only from validation child processes. The first model request also failed
+truthfully after the short model TTL expired during connection diagnosis; a reload
+of the same installed model allowed the representative turn above. No persistent
+environment or dependency change was made. Public browser/TLS and native packaging
+remain outside this check.
+
 Final touched-subsystem gate: 137 agency Python tests and 36 nearby synthetic voice
 regressions pass, one Windows symlink-privilege
 skip; 73 frontend tests pass across six files; TypeScript and changed-file Ruff/

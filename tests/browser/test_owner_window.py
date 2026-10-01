@@ -8,6 +8,35 @@ from sam_ambient.core.owner import OwnerSession
 from sam_ambient.supervisor.owner_window import OwnerWindow
 
 
+def test_shipped_owner_ui_connects_and_submits_text(tmp_path):
+    """Exercise the real shipped UI, including Chromium loopback permission."""
+    from sam_ambient.runtime import RuntimeConfig, SamRuntime
+    from tests.unit.test_cli import FakeProvider
+
+    async def run():
+        owner = OwnerSession()
+        runtime = SamRuntime(
+            FakeProvider(),
+            RuntimeConfig(workspace_root=tmp_path, model="discovered-model"),
+            owner_session=owner,
+        )
+        window = OwnerWindow(tmp_path, owner, headless=True)
+        try:
+            await runtime.start()
+            assert await window.open("http://127.0.0.1:8766")
+            page = window._page
+            await page.get_by_role("button", name="Controls", exact=True).click()
+            await page.get_by_placeholder("Ask Sam…").fill("hello")
+            await page.get_by_role("button", name="Send", exact=True).click(timeout=10_000)
+            await page.get_by_text("Hello Sam", exact=True).wait_for(timeout=10_000)
+            assert runtime.bridge.connected.is_set()
+        finally:
+            await window.aclose()
+            await runtime.close()
+
+    asyncio.run(run())
+
+
 def test_private_owner_binding_and_child_frame_rejection(tmp_path):
     async def run():
         requested = []

@@ -4,6 +4,11 @@ Updated: 2026-09-30
 
 ## Current agency foundation
 
+- 2026-10-01: existing LM Studio/Gemma completed one owner-window structured read,
+  inert malicious-result handling and cancellation. The source owner context now
+  grants local-network access only to its trusted UI origin; fake shipped-UI
+  regression protects connection/submission. Physical audio was not used.
+
 - All private core events/commands require fresh connection-bound mutual HMAC proof.
   A random per-supervisor root travels only over private pipes; ordinary tabs fail
   closed. Source owner UI uses shipped assets over the private browser channel.
