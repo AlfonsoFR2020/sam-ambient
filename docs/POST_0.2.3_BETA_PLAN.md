@@ -11,6 +11,15 @@ The implemented repair status and current dependency order are maintained in
 [Roadmap](ROADMAP.md); this file preserves what the physical run falsified and
 the causal diagnosis, rather than treating every observation as a separate task.
 
+Post-release agency and Memory Foundation I are now implemented on dev: owner
+proof, bounded capabilities, a real installed-model workspace-read smoke, reviewed
+local persistent memory and deterministic restart/recall/correction/delete evidence.
+These additions do not retroactively repair/accept the physical voice beta. Acoustic
+barge-in, STT/persona, visual perception, physical recovery and distribution findings
+below remain open. Memory/agency usefulness and privacy/approval UX join the later
+integrated acceptance checkpoint; no human test is available now. Current semantics
+and next priorities are in [Memory Foundation I](MEMORY_FOUNDATION_I.md) and ROADMAP.
+
 ## 1. P0 — restore conversation ownership before tuning speech quality
 
 The first dependency is a trustworthy distinction between microphone speech

@@ -9,6 +9,16 @@ Use Personal scope across workspaces, or This workspace for project context.
 Stored credentials are prohibited. The plaintext local database is
 `%LOCALAPPDATA%/Sam/memory.sqlite3` on Windows; back it up only according to your
 privacy needs. Deletion removes live content, not external backups/provider copies.
+Sam selectively recalls reviewed Personal/current-workspace entries for relevant
+local questions; it does not dump every entry into each prompt. A model's proposal
+first asks permission to hold an **unreviewed** candidate; use **Approve claim** or
+correct it in Memory before recall may use it. Rejected/unreviewed claims do not
+become personal facts. Question-level cloud opt-in does not export stored memory.
+Memory uses lexical matching, so paraphrases may not find a relevant entry yet.
+If storage fails, text remains usable. Repair/restore the database without deleting
+it automatically, then **Search / refresh** retries opening it. `sam runtime
+--no-memory` disables it for a standalone core session; `--memory-db PATH` supplies
+an isolated development/test store. Use expected revisions/refresh after a conflict.
 See [memory semantics and limits](MEMORY_FOUNDATION_I.md).
 
 Start with [Getting started](GETTING_STARTED.md). On Windows, double-click

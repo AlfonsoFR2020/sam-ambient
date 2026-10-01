@@ -29,9 +29,26 @@ bounded scripts-disabled public HTTPS inspection. Browser/model content remains 
 The [agency simulator](AGENCY_FOUNDATION_I.md) proves exact approval, inert results,
 cancellation and typed recovery using fake inference/local browser fixtures. Shutdown
 revokes authority and cancels execution before owned-browser resource cleanup.
-Future durable memory uses the [memory authority contract](MEMORY_AUTHORITY_CONTRACT.md):
-provenance-labelled scoped data, explicit write policy and bounded retrieval, not
-automatic promotion of model/page/tool output or raw session history.
+Durable memory uses a separate app-data SQLite store and the shared capability
+boundary: [Memory Foundation I](MEMORY_FOUNDATION_I.md). A stable database owner
+principal is distinct from ephemeral owner authentication. Owner-only CRUD is
+hidden from model schemas and denied without a live direct-owner action. Only
+typed `memory.propose` is model-facing; exact approval can store an unreviewed
+candidate, and separate owner review/correction admits it to recall. Provenance
+stays pinned to turn/generation or actual completed tool/page action, never
+client-supplied trust. No automatic transcript/page/model-prose import.
+
+Reviewed Personal/current-workspace lexical recall yields at most six whole entries
+within 4,800 context characters. A named provenance-labelled user-context message
+is distinct from system instructions, current question, history and tool results.
+Stored text is data, not authority. All memory remains local/private; cloud routes
+receive none even with ordinary question cloud opt-in. Empty/failed recall preserves
+the existing text path. Transactions guard ownership before commit, enforce
+revisions and remove replaced/deleted content rather than storing plaintext history.
+Memory UI is separate from conversation/Console. Schema/open/lock failures are
+bounded and recoverable by owner refresh after repair, never automatic erasure.
+Semantic retrieval and person/consent extensions retain the
+[memory authority contract](MEMORY_AUTHORITY_CONTRACT.md) as future seams.
 
 The supervisor's `OwnerWindow` uses Playwright's private pipes to launch an installed
 Chromium-family browser with `.sam/owner-ui-profile`, never the owner's browsing

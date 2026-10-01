@@ -1,5 +1,24 @@
 # Decision log
 
+## 2026-10-01 — Durable memory is reviewed local context, never authority
+
+HQ authorized a post-MVP single-owner SQLite foundation without external database
+or embedding dependency. Stable principal, provenance, review and optimistic
+revisions survive credential rotation. Owner CRUD uses shared live authority;
+model prose cannot write. Exact `memory.propose` approval permits an unreviewed
+candidate, not a trusted fact; separate review/correction permits bounded lexical
+recall. Maximum six complete entries / 4,800 characters, separate from system
+instructions/history/tool results. All memory is local/private: ordinary cloud
+question permission grants no memory export. No automatic transcript import.
+
+Correction/deletion remove live old content/index text; replay keeps terminal
+metadata rather than bodies. This cannot retract prior chat/provider copies,
+backups or guarantee forensic erasure. Store failures preserve text, migrations
+are transactional and bad databases are not auto-erased. Single-owner sessions
+do not authenticate speakers; multi-user consent and semantic retrieval are future
+contracts. See [memory evidence](MEMORY_FOUNDATION_I.md). Synthetic tests/real
+agency smoke are distinct from human memory/privacy acceptance.
+
 ## 2026-10-01 — Memory management is owner-only shared capability authority
 
 Use a separate app-data SQLite store and stable database principal, not ephemeral

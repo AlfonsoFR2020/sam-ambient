@@ -1,629 +1,173 @@
 # Sam implementation state
 
-Updated: 2026-09-30
+Updated: 2026-10-01. This is current development truth, not a release acceptance claim.
+Historical implementation/release detail remains in [changelog](../CHANGELOG.md),
+[architecture](ARCHITECTURE.md), [decisions](DECISIONS.md) and specialist evidence.
+[ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 
-## Current agency foundation
+## Release and evidence boundary
 
-- Memory checkpoint 2 adds a separate transactional SQLite store, stable scoped
-  principal, provenance/review, revision checks and content-removing correction/
-  deletion. Checkpoint 3 adds authenticated owner-only CRUD and a separate Memory
-  surface. Model CRUD is denied; retrieval/context/proposals follow separately.
-  Checkpoint 4 fixes review-first proposal policy, bounded inbox and pre-approval
-  credential rejection; tool-mediated proposal execution is not yet connected.
-  Checkpoint 5 adds bounded reviewed/scoped lexical recall with source/revision;
-  no embeddings and no runtime prompt injection until the following checkpoint.
-  Checkpoint 6 selectively assembles provenance-labelled local model context;
-  empty recall is unchanged, cloud excludes memory, store failure preserves text.
-  Checkpoint 7 connects sparse typed `memory.propose` via exact tool approval;
-  at most two candidates/turn, generation-pinned sources, no automatic trust.
-  See [memory implementation](MEMORY_FOUNDATION_I.md).
+- v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
+  post-release repairs. The unsigned Windows development installer remains withheld.
+- Windows-first development; Linux compatibility/native CI has a documented deferred
+  failure. Native packaging, signing/reputation and clean-host installation remain open.
+- The five-minute physical beta initially completed voice/model/TTS turns, then exposed
+  self-output contamination, ineffective interruption, eventual no-response, messy
+  history and inadequate visual embodiment. [Beta record](POST_0.2.3_BETA_PLAN.md)
+  remains primary evidence; these dev changes have not received a new human beta.
+- Deterministic lifecycle tests had missed the simultaneous playback/listening race.
+  Renderer metrics prove numerical properties, not human perceptual visual acceptance.
 
-- 2026-10-01: existing LM Studio/Gemma completed one owner-window structured read,
-  inert malicious-result handling and cancellation. The source owner context now
-  grants local-network access only to its trusted UI origin; fake shipped-UI
-  regression protects connection/submission. Physical audio was not used.
+## Secure agency
 
-- All private core events/commands require fresh connection-bound mutual HMAC proof.
-  A random per-supervisor root travels only over private pipes; ordinary tabs fail
-  closed. Source owner UI uses shipped assets over the private browser channel.
-  Native proof accepts bundled origins, deliberately not HTTP native-dev code.
-- Manual and provider-structured actions share registry/schema/policy/exact approval/
-  epoch leases. Model prose, transcript, webpage and returned data are not authority.
-  Four manual tasks, replay sequences, bounded results and retirement checks apply.
-- Separate Console offers workspace list/read/system info and isolated public-page
-  navigate/read/close. No manual shell/write, page JS, credentials, personal profile,
-  downloads/forms or privileged page binding. Browser DNS is validated then IP-pinned.
-- Console history preserves active actions, has independent scrolling and cancellation;
-  admission failures/replies cannot strand or overwrite terminal state. Model tool
-  rounds/fragments/repeats/results are bounded; exact navigation approval is required.
-- The integrated fixture proves owner → model proposal → approval → local browser →
-  untrusted result → injected-action rejection → final answer. Cancelling the browser
-  releases resources before a fresh typed turn completes. Shutdown revokes/cancels
-  before cleanup. Adversarial and prior conversation/voice regressions stay green.
-- [Memory authority](MEMORY_AUTHORITY_CONTRACT.md) is a future-only contract: durable
-  owner identity, provenance, reviewed writes, scoped retrieval/delete; no new memory.
-- Native physical launch/driver packaging, real-provider tool support and external-site
-  compatibility remain unvalidated. Host memory/code tampering is an OS limitation.
-  No new release or physical/visual acceptance is claimed.
+- All private core events/commands require fresh mutual HMAC owner proof. The random
+  supervisor root travels over private pipes; connection challenges prevent stale
+  credential replay. Disconnect/restart/revocation retire authority and actions.
+- Source OwnerWindow fulfills canonical shipped assets privately; ordinary HTTP tabs
+  cannot supply signer-bearing code. Native proof accepts bundled origins, not native
+  HTTP development pages. Host memory/code compromise remains an OS/trusted-code limit.
+- Registry, typed schemas, trusted policy, exact approval, epoch leases, cancellation
+  and result limits govern both manual and structured model actions. Model prose,
+  transcripts, webpage text, tool results and stored memories are data, never authority.
+- Console exposes bounded workspace list/read/system info. Canonical roots reject
+  traversal, absolute/device paths and symlink/junction escapes. No arbitrary shell
+  or manual writes. Existing separately configured trusted tools retain their own policy.
+- Owned browser is a separate ephemeral, scripts-disabled public-page context with
+  navigate/read/close, validated public-IP-pinned egress and no owner binding or
+  personal profile. No forms, downloads/uploads, arbitrary JS or sensitive actions.
+- Four owner tasks, increasing replay sequence, bounded output/history and terminal
+  guards apply. Model tool rounds/fragments/repeats are bounded; actions cannot be
+  recursively manufactured from returned content. Shutdown revokes before cleanup.
+- A bounded real LM Studio / installed google/gemma-4-e2b owner-window workspace
+  read completed with a useful final answer; malicious fixture instructions remained
+  inert and a later generation was cancelled. Chromium local-network permission is
+  scoped only to the trusted UI context/origin. No physical speech was used.
+  Public-site/TLS compatibility and native driver bundling remain unverified.
 
-See [owner authority](OWNER_AUTHORITY.md), [capabilities](AGENCY_CAPABILITIES.md),
-[owned browser](OWNED_BROWSER.md) and [integrated evidence](AGENCY_FOUNDATION_I.md).
-[ROADMAP](ROADMAP.md) now prioritizes secure useful agency ahead of acoustic work.
+See [owner contract](OWNER_AUTHORITY.md), [capabilities](AGENCY_CAPABILITIES.md),
+[owned browser](OWNED_BROWSER.md), [agency evidence](AGENCY_FOUNDATION_I.md) and
+[trust boundaries](TRUST_BOUNDARIES.md). Vite 7.3.5 / Vitest and mocker 4.1.11 advisory
+maintenance is complete; separately triaged build/test/Linux findings remain deferred.
 
-The optional [Windows AEC3 processor probe](AEC_PROTOTYPE_2026-09-30.md) runs but
-fails its declared echo/double-talk separation gate. Its 11 frame/reset/metric
-tests pass; that is not processor acceptance. Runtime AEC/early barge-in remain
-unimplemented and conservative candidate safety remains unchanged. Within that
-acoustic workstream, the next experiment must establish pinned upstream APM feasibility and replay the same fixtures.
+## Durable personal memory — Foundation I implemented
 
-Post-release physical beta exposed a conversation-integrity defect: an
-unverified microphone candidate could be promoted when TTS completed, then
-its final transcript could bypass the playback-echo reference and commit as
-human input. On `dev`, an open candidate remains provisional at TTS completion
-and its monitor retains the relevant playback generation for late STT screening.
-Unresolved candidates retire when their monitor stops. Focused deterministic
-lifecycle tests cover echo rejection and novel speech after playback. During
-playback, sustained VAD alone still cannot stop TTS because the stack lacks
-acoustic source discrimination; human interruption was
-correspondingly slow in the beta. A deterministic text/voice-managed sequence
-now reproduces one stall path: a superseded provider stream that has not
-finished held the next typed generation behind its `response_done`. The runtime
-now requests cancellation, retires that generation's model/delivery ownership
-before admitting its successor, and rejects late output; a typed turn can
-complete even if the old adapter remains open. An older voice handoff also
-checks its generation epoch after asynchronous retirement, so it cannot reclaim
-authority after a newer typed request. A stale terminal event
-releases its frontend pending command without changing current conversation
-state, and pending Controls no longer disable typed submission. This is a
-source-backed recovery guarantee, not proof that this exact path caused the
-physical beta's eventual no-response state. See
-[post-0.2.3 beta diagnosis](POST_0.2.3_BETA_PLAN.md). This does not modify the
-released 0.2.3 implementation or establish physical repair acceptance.
-Further inspection confirmed post-gain playback PCM and capture PCM are both
-available, but their PortAudio streams lack shared timing and an AEC/double-talk
-signal. A simple amplitude, correlation or VAD-only rule is insufficient for
-safe one-second barge-in; no acoustic processor has been added. The
-[AEC feasibility contract](AEC_DOUBLE_TALK_CONTRACT.md) records the preferred
-render-reference boundary and falsifying prototype; it is a decision, not an
-implemented feature. The beta plan retains candidate-state evidence.
-Conversation history now renders committed typed/voice messages only; an
-uncommitted or rejected candidate remains outside normal history. The full
-assistant answer survives speech interruption, which appears as separate
-delivery metadata. Common assistant paragraphs, emphasis and lists render as
-escaped text; history scrolls independently and follows new entries only when
-the reader is near the bottom. Richer Markdown remains future UI work. On wide
-viewports, diagnostics and history now occupy separate left/right regions with
-independent scrolling; narrow viewports retain the bounded overlay. Current
-health and errors lead the monitor, followed by conversation, voice/audio,
-collapsed renderer detail and bounded event history. Reducer and bounded browser regressions cover this
-presentation; the physical beta has not been repeated.
-Exit cleanup retains the existing owner-only rule: `unload_if_sam_loaded`
-requests bounded LM Studio unload only for a model Sam loaded; `stop_if_sam_started`
-stops only a service Sam started. Reused services/models remain untouched even
-when those conditional options are selected. Controls and Quit now show the
-current eligibility, and cleanup reports ownership skips. Discovery snapshots
-are merged for one unload-before-stop sequence so a Rescan cannot duplicate
-cleanup or stop a service before another snapshot unloads. Failures are bounded
-and do not block exit. This is fake-provider validation, not a physical LM Studio
-shutdown check.
-The exit selectors now display core-confirmed settings rather than an optimistic
-local choice, so a rejected update cannot appear to be the effective Quit policy.
-Controls inventory: Conversation contains text, microphone/voice, audio gains and
-transcript; Appearance contains fullscreen, intensity, motion, audio reactivity,
-particle amount and reduced motion; Device contains profile/quality; System
-contains discovery, safety, restart/exit preferences and Quit; Diagnostics opens
-the existing status monitor. The pre-tabbed settings were retained. Particle
-amount was present but hard to find; its label and tab guidance now identify it.
-`particle_density` persists and selects a visible share of the 12/24/40 WebGL
-quality budget; Canvas has no particles. Renderer choice, glow gain and engine
-enable remain internal; Surface Flow and detailed membrane/audio controls remain
-deferred. Speech-input retry now follows explicit degraded health rather than the
-latest diagnostic text, so another error cannot hide recovery.
-Shutdown no longer waits without a bound for a provider stream that ignores
-cancellation; the core allows two seconds for task retirement before detaching
-remaining stale tasks. LM Studio unload uses the documented `lms unload MODEL`
-form (no extra confirmation flag). Cleanup has an 18-second overall bound
-inside a 24-second supervised core-stop window.
+- Separate standard-library SQLite schema 1 lives in Windows user app data
+  `%LOCALAPPDATA%/Sam/memory.sqlite3`, not the checkout or session history.
+  Tests supply temporary stores; standalone core supports --memory-db / --no-memory.
+- Stable database principal scopes records across owner-session rotation; it is not
+  a secret, OS username or speaker recognition. Every public operation still needs
+  current authenticated authority. Personal and canonical-workspace scopes apply.
+- Fact/preference/project records carry stable ID, source/reference, review/reviewer,
+  timestamps, revision and last correction action. Owner create/correct is reviewed;
+  model/conversation/tool/web candidates are proposed until deliberately reviewed.
+- Owner-only memory.list/get/create/correct/approve/delete use the shared executor.
+  CRUD is neither advertised nor allowed to models. Memory UI independently scrolls,
+  searches/filters, shows provenance, inspects/edits and confirms permanent deletion.
+- Only structured memory.propose is advertised to models. Exact tool approval permits
+  holding an unreviewed candidate; separate owner review permits recall. Maximum two
+  proposals/turn and 100 proposed entries; duplicate candidates reuse their record.
+  Provenance is pinned to the live generation and actual same-generation source action.
+- Obvious credentials/tokens/private keys are rejected before approval/storage. This
+  is not general DLP. Database is plaintext under OS account privacy, not a secret vault.
+- Scoped reviewed lexical recall ranks whole-word matches, then recency. No embeddings
+  or external DB/service. Maximum six complete entries / 4,800 context characters;
+  irrelevant scaffolding and unreviewed claims are omitted. Paraphrase recall is limited.
+- Memory is a named, provenance-labelled context message, separate from system policy,
+  committed history, current question and untrusted tool results. Context cannot grant
+  capability permission. Cloud routes receive no memory, even with question cloud opt-in.
+- Correction replaces old plaintext at the stable ID; expected revisions prevent lost
+  updates. Delete removes live content/index text, not provider copies, chat or backups.
+  Secure-delete/default rollback journal, content-free replay metadata and UI cache
+  retirement avoid deliberately retaining deleted content. No forensic SSD guarantee.
+- Transactional initialization, integrity/schema/row checks, 250 ms lock waits and
+  before-commit ownership checks support bounded cancellation/recovery. A repaired
+  store can reopen on explicit owner refresh. Memory failure does not block text.
+- Restart simulator uses actual store/auth/commands/policy/context with fake inference
+  and page data. It rejects an old proof, selectively recalls across restart, reviews
+  proposals, corrects/deletes and keeps malicious web claims untrusted.
+- Temporary 3,000-record sample: scoped search median 5.916 ms, recall/context 8.397 ms,
+  mean write 13.900 ms, DB 1,404,928 bytes. Wall-clock machine evidence, not CI speed limits.
+- Human recall/privacy/approval UX acceptance and real-model memory usefulness remain
+  unverified. Semantic/vector retrieval, cloud export policy, multi-user consent and
+  diarization are future contracts, not current capabilities.
 
-The published 0.2.3 implementation boundary and accepted validation limits are
-recorded in [0.2.3 release readiness](RELEASE_READINESS_0.2.3.md). Current
-post-release priorities are in the [Roadmap](ROADMAP.md).
+See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
+[memory authority/multi-person seam](MEMORY_AUTHORITY_CONTRACT.md).
 
-## MVP status
+## Conversation, inference and voice
 
-- v0.2.3 local controls: typed `switch_inference` and `stop_speaking` intents
-  share core execution and explicit outcomes. UI model selection starts without
-  holding the command dispatcher during discovery; its final outcome is reported
-  separately. Explicit failed/unavailable switches preserve a valid current
-  route, while active responses block switches. Ordinary final STT has an
-  optional typed-control hook before turn commitment: synthetic recognized
-  controls are consumed locally, and other transcripts retain the model path.
-  Existing Stop speaking cancellation remains idempotent. Phrase recognition,
-  active barge-in control interception, named connection profiles and physical
-  provider switching remain deferred.
-- v0.2.3 audio reliability: core now reports separate operational health for
-  microphone capture, STT, synthesis and playback through `component.health`.
-  Successful later operations clear only their own degraded status. Capture/STT
-  failures leave typed conversation eligible; synthesis/playback failures keep
-  the completed model answer as text and terminate speech delivery with
-  `tts.failed`. Frontend status and diagnostics project each health fact
-  separately, and STT failure retires input visual activity. These are
-  deterministic fake-device/service guarantees; physical device and service
-  recovery remain unverified.
-- v0.2.3 audio buffering checkpoint: capture/STT and metered synthesis/playback
-  remain pull-based, with a 10-frame capture pre-roll, a bounded 120-second
-  whisper.cpp utterance buffer, a 32 MiB maximum synthesized WAV, and an
-  eight-chunk backpressured speech queue. PortAudio input overflow fails the
-  utterance instead of silently dropping speech. Delivery now explicitly closes
-  nested synthesis iterators if playback stops early, releasing retained PCM.
-  Existing `voice.level` and `tts.level` remain distinct measured producer
-  signals; visual input retires them on matching terminal/failure state and
-  expires old samples, while AmbientReactivity retains visual smoothing.
-  Fake slow-consumer and lifecycle tests pass; real device timing remains open.
-- v0.2.3 inference checkpoint: each committed text or voice generation now
-  snapshots its provider instance, router, model eligibility and selected model
-  before asynchronous work. Model streaming uses that explicit provider only;
-  a later selection cannot redirect an existing turn or silently fall back.
-  Discovery that began before a turn and finishes during it rejects the swap
-  without invalidating the active model. A later idle selection can serve the
-  following turn. Configuration has one endpoint per provider setting, not
-  named server/API profiles; natural-language voice control and real hot switching
-  remain future work. Source audit mapped capture/STT/synthesis/playback
-  cancellation and gain ownership; no physical audio path was run.
-- v0.2.3 conversation lifecycle keeps `TurnManager` as core state authority and
-  projects its correlated turn/generation state through one frontend reducer.
-  Uncommitted voice STT finals stay provisional; typed input is identified as
-  text and both paths converge on the same model/delivery turn. Capture stop
-  emits one `stt.cancelled` and returns to IDLE. Superseded, failed, completed,
-  disconnected and restarted turns retire their IDs, so late callbacks cannot
-  revive them; `system.ready` names the active turn on reconnect. Text command
-  origin IDs let accepted/terminal turn events retire pending UI controls before
-  a late acknowledgement. Capture health is separate from model/TTS state;
-  synthesis/playback failure emits `tts.failed` after model completion without
-  replacing the model's terminal result or deleting committed answer text.
-  Synthetic core and fake-transport tests cover these transitions; real core,
-  physical speech, provider timing and audio playback remain unverified here.
-- v0.2.3 provider discovery now has an explicit frontend operation state and
-  command/connection correlation. Rescan and model selection carry the originating
-  command id through core discovery events; older scans and prior-connection events
-  cannot replace newer results. A completed empty scan clears the catalog and
-  current runtime model, while disconnect retains clearly marked last-known data.
-  A failed scan remains recoverable; terminal discovery clears its pending command
-  even if the command acknowledgement arrives later. The core no longer keeps a
-  startup-only model failure after successful refresh or reports a completed
-  startup model as still pending. Expected scan errors stay in application state,
-  with a 30-second acknowledgement bound. Fake-transport and isolated browser
-  regressions pass; real provider discovery and model loading remain unverified.
-- v0.2.3 WebGL particles retain 12/24/40 points and one draw, but seeded
-  paths now use a biased 1.2–2.45 Orb-radius distribution with a sparse far tail,
-  independent orbit planes, integer-harmonic rates, slow bounded drift, and varied
-  warm size/opacity/shape. The field stays centered on Sam rather than following
-  pointer rotation; depth testing occludes points behind body/membrane while rear
-  points outside the silhouette remain visible. Canvas intentionally has no
-  particles. The engine's new visual-only AmbientReactivity owns smoothed
-  sustained/onset response from existing reported envelopes and bounded particle
-  spread, rate and opacity perturbations; zero input leaves autonomous motion
-  unchanged. Input expiry remains in the adapter. Counts, draw budget, quality
-  caps and all core/audio protocols are unchanged. Representative GPU cost,
-  sparse-field perception and physical voice reactivity remain unverified.
-- Post-v0.2.3 visual embodiment checkpoint 1 maps existing measured `tts.level`
-  and `voice.level` separately. Visual-only AmbientReactivity compresses ordinary
-  speech RMS, tracks a slow output baseline and a fast output emphasis pulse,
-  and gives microphone activity a smaller receptive response. Output pulse
-  expands the body and raises material illumination/highlight; input gently
-  tightens the body and changes its rim/opening. The existing Audio reactivity
-  setting scales both and zero removes audio modulation. Cancellation and stale
-  samples release to the autonomous baseline. No protocol, audio producer,
-  shader sample, draw, or geometry count changed. Deterministic signals verify
-  bounds and relative responses; human perceptual acceptance remains open.
-- Post-v0.2.3 form checkpoint 2 keeps the high-tier body mesh at 96×48: its
-  undeformed sphere chord deviation is below 0.22% of radius. The membrane's
-  former 24-edge tessellation and 68% triangle-facet normal mix were concrete
-  sources of angular fragment silhouettes/shading. High membrane edges now use
-  40 samples, lifted-center range is 0.045–0.065 radius, smoothly interpolated
-  dome normals replace flat facet response, and fragment alpha feathers in the
-  fragment shader. Low/medium budgets and four draws remain unchanged. High
-  membrane geometry grows from 1,168 to 1,936 vertices; the fragment shader
-  removes derivative-normal work and adds no noise samples. A fixed-camera
-  WebGL comparison confirms a rendered, lifted high-tier membrane without GPU
-  error; human perception of soft form remains unverified.
-- Post-v0.2.3 Living Surface checkpoint 3 keeps two field noise samples and the
-  same seed/clock ownership. The medium territory now samples a small bounded
-  fold relative to the broad territory, driven by the existing two shear
-  phases; stronger shear evolution changes their spatial relationship without
-  accelerating rigid field rotation. This permits coarse boundaries to shift
-  shape while frame-to-frame change remains continuous. Body and membrane use
-  the same GLSL field, pointer hold still attenuates the flow clock, and palette
-  timing remains separate. Extra per-fragment vector math/normalization replaces
-  no samples or draws. Deterministic coarse-region tests pass; the human beta's
-  static-looking pigment report remains open until later perceptual review.
-- An isolated Windows Chrome/WebGL2 cost sample after the visual checkpoints
-  measured about 0.045/0.179/1.815 ms median GPU draw time at low/medium/high,
-  with high synthetic output/input at 1.864/1.652 ms. A high body-only variant
-  measured 1.399 ms and a current-shader 24-edge membrane variant 2.039 ms.
-  CPU submission timing was quantized near 0.1 ms; the 8 ms browser callback
-  cadence is not Sam's engine FPS. See [visual performance sample](VISUAL_PERFORMANCE_0.2.3_DEV.md).
-  No visual optimization was justified by this single isolated desktop run;
-  integrated load and representative low-power GPU cost remain unverified.
-- v0.2.3 Living Surface uses one deterministic, seamless object-space
-  two-shear/two-scale field for the WebGL body and irregular membrane fragments. Broad asymmetric
-  shears now deform and carry pigment regions instead of relying mainly on rigid
-  material rotation. Separate slow palette-balance and contrast clocks change the
-  spatial warm-region relationship without globally shifting hue. Pointer ownership eases the material
-  flow down to 12% and back without banking or resetting phase; Orb orientation,
-  bounded ovoid relief/breathing, lighting and particles retain distinct clocks.
-  Seeded membrane patches share body displacement and field sampling, lift toward
-  their centers, approach attachment at irregular edges, and use near-opaque
-  depth-writing blending and shape-sensitive normals. One primary light crosses
-  the limb; medium/high tier lights provide weak fill. Four draws and 1/2/3 lights
-  remain. Membrane vertex count rises to about 1.5 times the old peel geometry; GPU cost
-  and visual acceptance on representative hardware remain open.
-  Fixed-orientation WebGL pixels move substantially over six seconds and remain
-  smooth at 50 ms; human perceptual acceptance remains open. Low/medium/high still
-  compile 0/1/2 optional fine samples for luminance/glint only. AUTO
-  keeps its windowed hysteresis, using paced intervals for overload and CPU
-  render-submission cost for headroom. The engine retains seed, phase, orientation,
-  semantic state and existing audio envelope across backend/quality changes;
-  hidden/reduced-motion and four-draw contracts remain. Active backend and fallback
-  reason are non-visually exposed on the ambient host, and shader-build failures
-  log the error, preventing the older amber Canvas fallback from masquerading as
-  WebGL. Focused tests/type/lint pass. A short frontend-only demo verified WebGL2
-  active at all three tiers and captured a preview. An isolated fixed-body WebGL
-  check measures membrane tint alignment, spatial lighting variation and palette
-  change; human visual acceptance,
-  representative GPU/mobile performance, sustained drag/motion and native review
-  remain open. Canvas fallback still uses its older amber approximation.
-- The 0.2.3 frontend reliability pass fixes the actual Microphone sensitivity and
-  Output volume slider crash by reading input values before queued React updates;
-  a render error boundary retains a visible Reload interface path, and render-time
-  exceptions fall back through Canvas to a static Orb with diagnostic events. Browser-level
-  fullscreen slider and physical upward/downward drag regressions pass. Pointer Y
-  now matches screen projection; inertia damping is 2.5 rather than 3.2. Motion
-  speed keeps its 0.6 default rate and reaches 3× that rate at its maximum.
-  Startup presents one plain-language explanation and observed service/model/speech
-  facts; raw protocol detail stays in expandable details and diagnostics. Controls
-  now separate Conversation, Appearance, Device, System and Diagnostics. The existing
-  overlay adds core/model/audio state and 64 bounded events, with event-level verbose
-  console output and a mobile-safe close route. It exposes existing envelopes, not
-  new audio features or a new cross-process telemetry contract. Physical voice,
-  full palette/lighting art direction, higher particle richness and representative
-  GPU/mobile acceptance remain open.
-- The 0.2.2 core-interaction slice gives accepted generations one
-  correlated completed, cancelled/superseded, timeout, empty-response or error terminal
-  outcome. Replacement turns wait for predecessor terminal publication; stale chunks
-  remain rejected. The existing OpenAI-compatible stream timeout now bounds total
-  wall-clock generation and first useful content unless the latter is explicitly
-  narrowed; metadata/keepalive-only streams cannot report silent success. The reducer
-  commits completed current-turn text and clears provisional text on cancellation/error.
-  It also serializes committed-turn handoff across runtime and
-  delivery ownership. A replacement cancels the predecessor with its existing identity,
-  publishes a delivery cancellation when model completion preceded active playback,
-  waits for the predecessor response task to unwind, and only then opens the successor
-  ledger. Typed responses now take ownership of live capture while active so credible
-  voice overlap reaches the same interruption/turn-commit/replacement path. Final
-  whisper.cpp text with no calibrated confidence is accepted only after known-output
-  transcript screening; exact output echo is explicitly rejected and clearly novel
-  overlap is retained. Generated assistant text is committed before TTS, current-session
-  committed UI entries are append-only, and Stop/Mute cannot erase them. Stop affects
-  current playback only; Mute also suppresses future TTS while text remains available.
-  This text-reference guard is not acoustic echo cancellation and physical overlap
-  remains unproven. Transcript hydration and resume policy remain later work. Focused
-  deterministic tests pass; broad and live-model validation have not been run.
-- Visual polish pass 1 on `feature/visual-polish` substantially restrains the
-  analytic halo and makes the existing deterministic peels wider and farther
-  from the body without increasing geometry, draw calls, or mobile frame budgets.
-- Visual polish pass 2 restores direct rotation across WebGL and Canvas, makes
-  flick inertia frame-independent and motion-scaled, and aligns the pointer hit
-  region with the bounded maximum orb extent while preserving mobile budgets.
-- Visual polish passes 3 and 4 land their scoped repairs: particles are visibly gold,
-  slightly thick and orbiting Sam's atmospheric space; density and resolved
-  quality/profile influence bounded renderer budgets; and tooltip/popover placement
-  is contained within the Sam window alongside the Controls typography/layout cleanup.
-- Visual polish pass 5 audits the implemented engine against the v1 contract. It
-  restores the 50 ms integration cap, stationary availability states, 15 Hz and
-  200 ms reduced-motion behavior, exact Canvas sampling/clipping/DPR/cadence,
-  five-second Auto-quality semantics, bounded context-loss recovery, zero-size and
-  disabled suspension, resize/resource cleanup, and allocation-free inertial matrix
-  updates. Deterministic validation covers these paths; final human visual/native
-  acceptance and a future unobstructed ambient-layout pass remain open.
+- Authoritative turn/generation identities, stale-event rejection and cancellation
+  survive voice/model/TTS overlap. Committed typed/voice messages share clean history;
+  provisional/rejected candidates stay out. Full assistant text survives stopped
+  speech, whose status is separate metadata. Safe common Markdown and independent
+  history scrolling/autofollow are implemented.
+- Unverified playback candidates are never promoted just because playback completes;
+  they retain the playback generation needed for late transcript screening and retire
+  safely. VAD alone cannot distinguish a human from Sam's loudspeaker leakage.
+- Superseded streams relinquish active model/delivery ownership before new typed
+  work. Old voice handoffs and late model/TTS events cannot reclaim it. Stale terminal
+  events release their pending command; unrelated Controls cannot disable text input.
+  This proves recovery paths, not exact retrospective attribution of the beta stall.
+- Provider discovery/Rescan protects correlated commands and stale catalogs. Preferred
+  configuration is distinct from availability, with no silent fallback. Per-turn
+  inference route is immutable; exact typed switching blocks active generation.
+  Stop speaking reuses delivery cancellation. Future identity includes profile ID;
+  named profiles and natural-language recognition remain unimplemented.
+- Capture/STT/synthesis/playback own separate bounded lifetimes and health. Pull-based
+  PCM paths, retired speech queues and explicit TTS iterator close protect cleanup.
+  Mic sensitivity applies per capture frame; output volume per synthesized frame.
+  Separate voice.level / tts.level measurements retire on failure/cancellation.
+- Local speech uses PortAudio/WebRTC VAD/whisper.cpp and System.Speech on Windows
+  (eSpeak fallback on supported Linux). Raw audio is not persisted; missing speech
+  components degrade to text. Physical timing/device recovery is not broadly accepted.
+- The optional lightweight [AEC probe](AEC_PROTOTYPE_2026-09-30.md) failed its declared
+  echo/double-talk gate; passing frame/reset tests is not processor acceptance.
+  Runtime AEC and prompt one-second barge-in remain unimplemented. Its next upstream
+  APM feasibility experiment is separate from agency, not an agency prerequisite.
 
-- `0.2.0`, `0.2.1` and `0.2.2` are published under the Windows-first alpha convention.
-  The 0.2.2 generation and interaction reliability slice is integrated into `dev`.
-  Hosted Windows Quality and Native Package passed on its final commit; the known
-  Ubuntu failure caused dependent package smoke to skip. Linux review remains
-  deferred to 0.3.0. Physical visual/native/acoustic acceptance and signed
-  installer/AV acceptance remain separate future gates, not claims of this release.
-- Native integration checkpoint (`feature/ambient-shell`): the thin Tauri 2 shell
-  is reconciled with the frozen ambient React source. It owns the native window,
-  single-instance focus, identity/icons, one trusted supervisor child, fixed
-  packaged-companion resource boundary, and close coordination only. React still
-  connects over the localhost WebSocket; Python still owns supervisor/core,
-  models, voice, policy, tools, persistence, and updates. Browser and Chromium
-  app-window development fallbacks remain supported.
-- Native source includes frozen sibling-component handling, Tauri-origin protocol
-  coverage, lifecycle tests, icons, resource layout, Windows CI definitions, and
-  guarded companion/NSIS scripts. Native development validation now passes from a
-  cold Tauri build through clean managed shutdown: the current Visual Engine loads,
-  Restart Sam reconnects to the restarted core without quitting the window, a
-  second native launch focuses the sole existing instance, and the title-bar close
-  request routes through Sam's Quit confirmation. Vite ignores Cargo target output
-  so its watcher survives cold compilation, and the development supervisor uses the
-  bootstrapped locked environment without dependency synchronization. Browser and
-  Chromium app-window fallbacks remain intact. This validation performs no
-  packaging, unsigned companion execution, signing, release, or full human voice or
-  visual acceptance. Source gates pass: 105 frontend tests, changed-file Biome,
-  TypeScript, Vite production build, Rust formatting and `cargo check --locked`.
-- Native LM Studio inventory now preserves installed conversational models reported
-  by the supported `lms` CLI when the server's serving inventories are empty because
-  those models are unloaded. Installed and loaded inventories remain distinct, and
-  existing explicit, last-good, and sole-model selection policy is unchanged. The
-  live native development path resolved the existing CLI without a user-specific
-  path and reported one installed model with zero loaded. Automated UI smoke covered
-  status visibility, Controls, compact 390x700 layout, and distinct Restart/Quit
-  confirmations without loading or downloading a model. Human visual/voice
-  acceptance and all packaging/release gates remain outstanding.
-- Productization backbone: schema-v1 TOML configures supervisor/runtime behavior
-  with defaults -> user -> workspace -> environment -> explicit CLI precedence.
-  Unsupported keys/types fail early; secrets and SQLite last-good state stay separate.
-- Doctor now categorizes runtime, uv, browser, writable root, local providers and
-  chat models, Whisper assets/service, system TTS voices, audio directions, UI,
-  and supervisor/security state. It is read-only and supplies shared structured
-  readiness data for a future installer. Current host: LM Studio installed/stopped;
-  Whisper assets available; Windows TTS, audio, UI, Python and root ready.
-- GitHub CI repeats Python/Ruff and frontend/Biome/type/build gates on Windows/Linux,
-  then builds wheel/sdist and smoke-installs the wheel. Windows Quality and Native
-  Package passed for the published 0.2.2 source. Ubuntu still fails, so its dependent
-  package smoke was skipped; this known Linux issue remains visible and deferred
-  to 0.3.0. Publishing later releases remains manual.
-- Unreleased TTS hardening: response-language evidence now reaches synthesis;
-  Windows enumerates installed voices and selects locale/language before fallback.
-  Existing cancellable PCM contract retained; cloud speech remains disabled.
-  Silent Windows WAV synthesis passed for installed es-ES Helena and en-US David;
-  physical recognition, playback and barge-in remain unvalidated.
-- Hardening gate: 306 Python tests pass, two existing skips; Ruff/format pass.
-  No frontend changes. Composed multi-turn acceptance covers language/voice switch,
-  PCM subprocess synthesis, underrun recovery, stale/duplicate cancellation and
-  shutdown. Output waits for PCM; underruns no longer abort speech; last-frame
-  cancellation cannot claim completion. TTS stdin is now timeout-bound.
-- Read-only audit: system-default audio devices and Whisper assets available;
-  Whisper/LM Studio stopped, Ollama absent. Bootstrap/preferences/filtering/owned
-  cleanup pass controlled tests; no service manipulation or new live model claim.
-- Accepted 0.2.x source on `dev` includes an isolated
-  Chromium-family app window with browser fallback, per-root single-instance lock,
-  graceful owned-window shutdown, truthful startup/status controls, and bounded
-  transcript polish are implemented. [Visual Engine v1](VISUAL_ENGINE_V1.md) Stages
-  A-D add typed inputs, bounded motion, a WebGL2 amber orb, drifting peels, analytic
-  lights/particles and mobile fallbacks. Desktop geometry/material baselines were
-  strengthened after initial review. Acceptance-pending direct mouse/touch rotation,
-  damped inertia, persisted typed visual preferences, mobile-profile emulation and a
-  bounded measured Auto-quality governor are implemented; final acceptance remains pending.
-- Voice endpointing now layers sustained-resume hysteresis and bounded speech-density
-  evidence over WebRTC VAD. Sparse candidates are discarded after 12 seconds; every
-  initial STT candidate is finalized once at 24 seconds, so dense VAD-positive noise
-  cannot accumulate a 30-second clip. Empty results are discarded while meaningful
-  sustained speech is committed. Normal silence endpointing, 200 ms pre-roll, short
-  utterances, and playback-aware barge-in remain intact. Physical acoustic/AEC
-  acceptance remains pending.
-- Schema-v1 and trusted owner controls now persist Sam application input and output
-  gains from 0-200%. Captured PCM is saturated once before all voice consumers;
-  synthesized PCM is saturated once before output metering/playback, so mute reports
-  zero emitted energy. These are not operating-system device-volume controls.
-- Local bootstrap records service-start and model-load provenance independently.
-  Direct Ollama process handles stay in their creating core; verified LM Studio
-  service/model provenance is keyed to a random supervisor lifetime so it survives
-  managed core Restart but cannot authorize cleanup in a future Sam launch. Persisted graceful-Quit
-  policies default to Keep; opt-in cleanup unloads only a Sam-loaded LM Studio model
-  and stops only a service Sam started. Restart/failure/Emergency Stop never apply
-  exit cleanup, unsupported providers fail closed, and timeouts cannot block shutdown.
-- The accepted combined source on `dev` preserves the frozen ambient behavior and
-  includes the native application boundary. The 0.2.2 scope is closed. The later
-  [Orb visual direction](VISUAL_DIRECTION.md) is design intent, not implemented
-  fluid surface, outer membrane or audio extractor; human visual acceptance remains open.
-- Sam 0.1.2 alpha completes first-run stabilization; Phases 0–9 remain complete.
-- 0.1.2 release gate: 288 Python tests pass with two justified skips (optional live
-  Ollama and unavailable unprivileged Windows symlink creation). Frontend:
-  45 tests, Biome lint/version-file format, TypeScript typecheck, and Vite
-  production build pass.
-- `sam-ambient` is the end-user command. The trusted `sam-supervisor` starts
-  `sam-core` plus optional `sam-ui`; `Ctrl+C` or confirmed Quit Sam stops both.
-- The 0.2.2 release build targets
-  `dist/sam_ambient-0.2.2-py3-none-any.whl` and
-  `dist/sam_ambient-0.2.2.tar.gz`. The wheel must include the production UI, launchers,
-  configuration example, license, and third-party notices. Artifact validation and
-  isolated-install smoke remain important gates for later distribution work.
-- Original Sam material is Apache-2.0; NOTICE attributes Copyright 2026
-  Alfonso Ernesto de la Fuente Ruiz, PhD. Bundled React/MIT notices are retained.
+See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 
-## 0.1.2 first-run behavior
+## Embodiment and basic UI
 
-- Windows source checkouts now have `Start Sam.cmd`: it changes to its own
-  checkout and runs the existing `.venv` `sam-ambient` entry point, with no
-  install/sync. Missing environment and failed startup remain visible; the
-  supervisor's existing per-root lock handles a second launch.
-- Browser handoff occurs once per supervisor lifetime after core and UI HTTP
-  readiness. Browser errors print a manual URL; browser lifetime is independent.
-- Quit Sam / Ctrl+Q uses a focused in-app Confirm quit / Cancel dialog, then a trusted
-  shutdown channel. Acknowledged shutdown stops frontend reconnects. No LLM tool
-  can quit Sam. Controls also exposes Quit; the stopped screen is unambiguous.
-  Windows runs resolved version entry points in the monitored
-  child rather than CRT exec-spawning an untracked descendant.
-- INFO reports lifecycle, discovery, selection, voice configuration, degradation,
-  revocation and shutdown. `--verbose` adds safe DEBUG diagnostics; doctor shows
-  providers, audio/TTS/STT, UI readiness, active version and persisted health.
-- Discovery checks known loopback endpoints and bounded `lms` status. Diagnostics
-  stay passive; runtime startup may start installed Ollama/LM and load an existing
-  LM chat model (20 s/backend, 4096 context, 600 s idle TTL). No eviction/download/cloud.
-- Explicit choices win; otherwise last successful local provider/model → Ollama →
-  LM → configured compatible. SQLite runtime metadata remembers successful local
-  responses only; stale preferences fall back. Embeddings are excluded. External
-  resources remain untouched. Sam-owned resources are retained by default and may
-  receive bounded ownership-aware cleanup only on terminal Quit when opted in.
-- Provider reason, started/reused status, STT readiness and TTS backend reach the
-  UI; unavailable discovery cannot be bypassed by runtime model auto-selection.
-  Core startup budget is 90 s for bounded provider/model + existing STT readiness.
-- Protocol-compatible local routers (including future PAIR) fit the endpoint-based
-  provider boundary. Discovery labels are not verified vendor identity; no PAIR
-  integration is implemented. Restart Sam after changing provider availability.
+- Autonomous Living Surface, shared membrane pigment, lighting and particles remain;
+  measured input/output envelopes have distinct bounded form/light response under
+  the existing Audio Reactivity control. Zero retains autonomous motion.
+- High-tier form/membrane and broad pigment transport were revised; fixed-camera
+  signal/render tests and isolated cost evidence exist. Revised appearance and speech
+  embodiment have no human perceptual acceptance; low-power/full-app cost remains open.
+- Controls inventory is audited: Conversation, Appearance, Device, System, Diagnostics.
+  particle_density persists and chooses a visible fraction of 12/24/40 tier counts;
+  Canvas has no particles. Dedicated flow/membrane/reactivity art controls remain deferred.
+- Wide diagnostics/history occupy separate independently scrolling regions; constrained
+  viewports use a bounded overlay. Current health/errors precede conversation, audio,
+  collapsed renderer detail and bounded event history. No product settings moved there.
 
-## Runtime architecture
+See [visual direction](VISUAL_DIRECTION.md), [performance](VISUAL_PERFORMANCE_0.2.3_DEV.md)
+and the beta record; numerical visual change does not establish perceptual success.
 
-- `sam-core` composes the EventBus, cancellation registry, turn manager,
-  provider router/Ollama, voice adapters, delivery ledger, tool policy,
-  capability authority, persistence, and loopback WebSocket bridge.
-- Continuous microphone acquisition uses sounddevice/PortAudio fixed 20 ms PCM,
-  WebRTC VAD, and a local-only whisper.cpp final-STT adapter. STT starts on
-  speech rather than accumulating indefinite leading silence.
-- While the model or TTS is active, microphone frames feed the Phase 4
-  interruption-candidate controller. Confirmed interruption cancels the shared
-  generation token before event delivery; false candidates recover without
-  replay. Generated, queued, and chunk-level spoken text remain distinct.
-- Real TTS uses Windows System.Speech through fixed structured PowerShell argv,
-  or a separately installed Linux `espeak-ng`/`espeak` executable. Synthesized
-  PCM flows through the neutral TTS contract, bounded 32 MiB WAV capture,
-  cancellation-aware sounddevice output, and normalized `tts.level` events.
-- Missing microphone, STT, TTS, or provider degrades to the packaged text UI;
-  none is required by deterministic CI. No raw microphone audio is persisted.
+## Supervisor, cleanup and distribution
 
-## UI and protocol
+- Supervisor stays independent of LLM logic, with readiness, bounded crash backoff,
+  safe mode, capability revocation and trusted argv. Presentation failure cannot restart
+  core. Versioned staged activation/hash checks/atomic pointer/rollback contracts remain.
+- Exit defaults to retaining provider/model. unload_if_sam_loaded affects only a model
+  Sam loaded; stop_if_sam_started only a service Sam started. Reused services/models
+  stay untouched. UI eligibility and outcomes are truthful; unload precedes stop.
+- Non-cooperative core tasks receive two-second retirement grace, external cleanup an
+  18-second bound inside supervised 24-second stop. LM Studio unload uses structured
+  lms unload MODEL; lms server stop stops serving, not the desktop application.
+- Prepared Windows checkout launches through Start Sam.cmd / existing supervisor,
+  without silently installing/upgrading dependencies. Public signed installation,
+  updater publication and non-developer distribution remain later work.
 
-- React 19 + TypeScript + WebGL2/Canvas/CSS renders ambient state and voice/TTS
-  metrics, concise transcript, interruption, tool approval, update, offline,
-  reconnect, reduced-motion, and intensity state.
-- The startup card uses actual connection, provider, model and speech reports; an
-  unexpected React render error displays a reload path. A tabbed Controls panel
-  and optional diagnostics overlay expose currently reported core and renderer data.
-- `sam-ui` is a small loopback-only static HTTP component on port 8766. It
-  serves compiled assets with traversal rejection and a restrictive CSP; the
-  UI uses protocol-v1 WebSocket transport to core port 8765 by default.
-- The integrated Tauri shell uses the same localhost protocol through the browser
-  transport and adds only fixed close coordination. The older injected transport
-  seam remains available; neither path is required for the browser-packaged MVP.
+## Focused validation and next direction
 
-## Tools and security
+The final memory gate protects storage/migrations, owner authority, policy/proposals,
+retrieval/context, cancellation, persistence/recovery and nearby conversation/CLI
+behavior. Isolated frontend memory and shipped-owner-window tests are separate from
+real provider/hardware/human evidence. Exact counts are recorded in the memory document.
+No new dependencies, provider/audio models or published-release metadata were changed.
 
-- The post-v0.2.3 [trust-boundary review](TRUST_BOUNDARIES.md) found no critical
-  issue in the bounded source audit. Authenticated provider HTTP errors now omit
-  remote body text, and cloud-compatible routes require HTTPS without embedded
-  URL credentials/query data. Loopback WebSocket Origin checks are a browser
-  boundary, not authentication against a hostile same-user process; future
-  browser/console work must address that before sharing core authority.
-- Immutable registry descriptors and trusted policy expose bounded
-  `files.list/read/search/write`, `system.info`, clipboard read/write,
-  constrained `app.open`, and structured `process.run` with `shell=False`.
-- Canonical read/write roots reject absolute, drive/UNC/device, `..`, ADS,
-  reserved-name, symlink, and junction/reparse escapes. Writes are bounded and
-  atomic. Process output, time, cwd, argv, and environment are bounded.
-- Approval is invocation-specific and separate from capability authority.
-  Epoch-based global revoke invalidates leases/pending approvals, blocks new
-  work, and cancels compatible active work; nested schemas/arguments are immutable
-  after construction and the model cannot restore authority.
-- External capability Stage 1 adds a standard-library MCP stdio client beneath
-  the same executor. Trusted user/explicit config owns structured launch argv;
-  workspace config and models cannot launch servers. Discovery creates immutable
-  descriptors but no authority; all calls need exact approval and current epoch.
-  Catalog drift, malformed/oversized data, timeout, cancellation, crash, and
-  revocation fail closed. No server, remote transport, or automation is installed.
-
-## Resilience and updates
-
-- The LLM-independent supervisor uses structured trusted argv, readiness
-  records, rolling bounded backoff, three-failures/60-second crash-loop
-  detection, safe mode, capability revocation before critical restart, POSIX
-  process groups, and Windows direct-child termination.
-- SQLite persists committed text, component health, a bounded 200-record crash
-  journal, security epoch, and explicit update transactions; raw audio and
-  secrets are excluded. UI reconnect does not own authoritative state.
-- Phase 8 stages contained local artifacts in version directories, verifies
-  identity/provenance/SHA-256, runs bounded structured validation, atomically
-  replaces `active.json`, observes Phase 7 health, commits last-known-good only
-  after stability plus a second hash check, and automatically rolls back. A changed
-  rollback artifact fails closed into safe mode rather than executing.
-- The stable core launcher re-reads and re-hashes `active.json` on every restart
-  and executes only a contained fixed `sam_core.py` entry point. An absent
-  pointer uses the installed package; an invalid pointer fails closed.
-
-## Environment and live validation
-
-- Host: Windows development machine; primary deployment target remains Linux.
-- Python 3.12+, uv 0.9.26, bundled Node 24.19.0, and pnpm 11.19.0 are available.
-  No privileged/native toolchain installation was performed.
-- Live checks passed for audio-device discovery (default input 1/output 4),
-  Windows System.Speech synthesis and physical playback, supervised core/UI
-  launch, static HTTP 200, and protocol `system.ready` over WebSocket.
-- Ollama and whisper.cpp were not running on this host; `sam doctor` reported
-  both unavailable while confirming UI, audio, TTS, roots, active version, and
-  supervisor state without exposing secrets.
-- Windows live text acceptance passes two contextual turns with the installed
-  `google/gemma-4-e2b` via LM Studio (local-only). Bounded SQLite history fixes
-  context; complete response intervals were 2.72 s and 0.51 s. Physical voice
-  remains unaccepted after recognition, self-echo and status problems.
-- Voice reliability continuation: whisper.cpp b4938 CPU server and multilingual
-  `ggml-base.bin` installed in ignored `.sam/runtime` / `.sam/models`; LM Studio
-  uses its installed Vulkan runtime. No additional model was downloaded this run.
-  Default system input/output are used without hardcoded hardware selection.
-- Final STT requests auto language/metadata. Uncertain detection prefers recent
-  confirmed language or en/es with one retry; only confidence >=0.8 updates it.
-  Confident other languages remain valid. Silence markers are discarded and
-  10-frame pre-roll retains speech onset; INFO never logs transcript text.
-- Voice monitoring waits for model-start/ledger readiness after SQLite commit;
-  TTS can start during tentative candidates. UI projects actual turn state on reconnect.
-- `72d083f` retains uncertain language; active turn/generation/token validation
-  precedes cancellation callbacks so stale STT cleanup cannot cancel new speech.
-  Controlled tests do not establish every physical cutoff cause.
-- VAD hysteresis, bracket-caption filtering, playback echo rejection and reconciled clocks remain.
-- Lifecycle correction detaches final STT streams before awaiting and disposes rejected/noise buffers.
-  Controller confirmations cancel once; input health cannot force model/TTS OFFLINE.
-  Device retries are bounded; protocol/service errors halt retry. Finals cannot reopen endpoints.
-  Gate: 71 bounded Python tests + 10 focused tests after the confidence guard; Ruff/diff pass.
-  Sustained-noise endpointing and physical voice remain unaccepted; no AEC or VAD tuning added.
-- LM Studio now distinguishes installed/loaded models: explicit/last-good choices
-  win, a sole chat model may load automatically, and multiple candidates require
-  selection. Model load has a separate cancellable 180-second bound while ordinary
-  provider readiness remains short. Trusted Rescan can adopt newly available local
-  models; Restart affects managed Sam components only. The startup card has an
-  explicit dismissible lifecycle and compact picker; reconnect errors clear on
-  success and correlated roles/history remain stable. Physical voice and visual
-  acceptance remain pending.
-
-## Known limitations / post-MVP priorities
-
-- Physical voice/Linux hardware acceptance and a seamless installer remain open.
-- Native and ambient source are integrated on `dev`, but combined product/visual/native
-  acceptance and signed-installer publication remain open.
-  The rejected ambient experiment is not part of `dev`.
-- Visual polish Pass 3 makes WebGL particles materially visible as bounded, seeded
-  gold points and maps density to their deterministic visible share. Quality/profile
-  changes rebuild the resolved 12/24/40-particle budget; `mobile_2020` remains capped
-  at low. Canvas remains the intentionally particle-free fallback from the v1 spec.
-- Visual polish Pass 4 replaces Controls' native and locally anchored help tooltips
-  with measured, viewport-contained popovers and normalizes Controls form typography.
-  Visual acceptance remains pending; no live GUI was launched for this pass.
-- Visual polish Pass 5 closes renderer-contract and lifecycle defects found by a
-  code/spec audit without adding effects or raising geometry, draw-call, pixel, or
-  cadence budgets. No browser or native GUI was launched; final appearance remains
-  a human acceptance gate.
-- Voice reliability Pass 1 treats authoritative terminal turn states as the response
-  monitor's teardown boundary even while its response task is still unwinding. This
-  closes the playback-completion `IDLE` race without changing interruption confirmation,
-  stale-event rejection, cancellation identity, endpointing, or text mode.
-- Voice reliability Pass 2 bounds dense noise-held initial STT candidates: sparse
-  candidates still discard at 12 seconds, while every initial candidate finalizes at
-  24 seconds. Empty results discard; meaningful sustained speech commits. Physical
-  acceptance remains needed for language drift, noise hallucination risk,
-  session-resume policy and broader physical voice reliability. The 0.2.2 deterministic
-  slice now defines Stop/Mute and current-session transcript behavior without claiming
-  physical acoustic acceptance.
-- The post-release input/output envelope response now maps to distinct bounded
-  Orb motion and light. An audio feature extractor, physical/perceptual acceptance
-  and a richer diagnostics/status console remain future work.
-- Deskwright, remote MCP, self-update bootstrap, AEC, and delegated workers remain
-  future work. Priorities and release boundaries are in [Roadmap](ROADMAP.md).
-
-## Commands
-
-- Bootstrap/test: `scripts/{bootstrap,test}.{ps1,sh}`.
-- Windows source beta launch: `Start Sam.cmd` after `uv sync --locked` once.
-- Terminal/debug launch: `uv run --no-sync sam-ambient`.
-- Diagnostics: `uv run sam doctor --root .`.
-- Release build: `scripts/package.ps1` or `scripts/package.sh`.
-- Development UI/runtime: `scripts/ui-dev.*` and `scripts/sam-dev.*`.
+The next useful capability direction is in [ROADMAP](ROADMAP.md): an owner-approved,
+contained workspace edit with explicit preview/rollback rather than more memory plumbing.
+Human testing is scarce and reserved for a substantial integrated checkpoint; unavailable now.

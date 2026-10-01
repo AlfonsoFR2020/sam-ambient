@@ -86,11 +86,16 @@ An early inherited packaged-startup test contacted existing local provider disco
 before its fixture was corrected to fake discovery. No provider/model was started,
 generated with, unloaded or stopped. Subsequent startup tests use the fake boundary.
 
-Real provider tool compatibility, public-site/TLS behavior, native physical launch
+The follow-on memory task completed one real installed LM Studio/Gemma structured
+workspace read through the actual owner window, with inert malicious returned text
+and cancellation. It fixed origin-scoped Chromium local-network permission while
+preserving private signer assets and authenticated commands. Broader provider
+compatibility, public-site/TLS behavior, native physical launch
 and native driver packaging remain unvalidated. Same-user memory inspection,
 trusted-code replacement or a compromised Sam UI are OS/trusted-code limitations,
 not solved by possession proofs. Root material is never logged or exposed to pages.
 
-The highest-value next task is a bounded, separately authorized real structured-tool
-workflow with an existing provider through the owner window, before adding more
-tool types. No human beta is requested. [ROADMAP](ROADMAP.md) is authoritative.
+Memory Foundation I subsequently implements the single-owner seam, bounded lexical
+recall and review-first proposals; [memory evidence](MEMORY_FOUNDATION_I.md).
+The current next task is maintained only in [ROADMAP](ROADMAP.md). No human beta
+is requested; this original evidence does not imply acceptance of later memory UX.

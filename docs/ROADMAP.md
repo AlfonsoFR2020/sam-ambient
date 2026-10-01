@@ -4,6 +4,11 @@
 Owner authentication, typed bounded capabilities, read-only console/public-page
 browser slices, model mediation and the adversarial simulator are implemented on
 development HEAD. See [agency evidence](AGENCY_FOUNDATION_I.md).
+**Memory Foundation I completed (2026-10-01):** local durable store, owner CRUD,
+review/provenance, bounded lexical retrieval/context, typed proposals and restart/
+privacy/recovery simulation are implemented; [memory evidence](MEMORY_FOUNDATION_I.md).
+An existing LM Studio/Gemma owner-window structured workspace read, inert returned
+instructions and cancellation passed. No human memory/visual/audio acceptance is claimed.
 The acoustic prototype failed its integration gate and remains a separate voice
 workstream; it is not a prerequisite for agency. Existing numbered voice cards
 below retain their internal dependencies, not the current cross-workstream order.
@@ -27,7 +32,7 @@ After acoustic separation, diagnose observed Spanish/Portuguese/Greek language d
 
 ### Security and authority
 
-**Current:** private-pipe owner bootstrap and fresh mutual connection proofs protect all private core events/commands; typed registry/policy/approval/epoch mediates manual and model actions. Replay, revocation, path and injection fixtures pass. Origin is supplemental, not authority. **Remaining:** host-account memory/code compromise is outside this boundary; powerful mutations need deliberate exact approval and policy. Native launch/bundled Playwright-driver packaging and real-provider tool use remain unverified. Pages never receive the owner signer. See [trust review](TRUST_BOUNDARIES.md) and [agency evidence](AGENCY_FOUNDATION_I.md).
+**Current:** private-pipe owner bootstrap and fresh mutual connection proofs protect all private core events/commands; typed registry/policy/approval/epoch mediates manual and model actions. Replay, revocation, path, memory and injection fixtures pass. Origin is supplemental, not authority. Existing LM Studio/Gemma structured read and cancellation passed through the owner window. **Remaining:** host-account memory/code compromise is outside this boundary; powerful mutations need deliberate exact approval and policy. Native launch/bundled Playwright-driver packaging and external-site/TLS compatibility remain unverified. Pages never receive the owner signer. See [trust review](TRUST_BOUNDARIES.md) and [agency evidence](AGENCY_FOUNDATION_I.md).
 
 The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate GitHub records. Vite 7.1.5 has high-severity dev-server file-read findings; Vitest 3.2.4 has a critical finding conditioned on a listening Vitest UI server. These are **development-toolchain exposures**, not demonstrated public Windows runtime vulnerabilities. Resolved on dev with Vite 7.3.5 and Vitest/mocker 4.1.11 before this agency pass; retain separate deferred advisory work. Pytest 8.4.2, setuptools 82.0.1 and Rust GLib 0.18.5 belong to test/build/Linux-native follow-up. Future API credentials need trusted storage and redaction, never route identity, transcripts or diagnostics.
 
@@ -37,11 +42,30 @@ The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate 
 
 ### Memory and intelligence
 
-**Current:** SQLite stores committed conversation text and bounded context; Sam does not claim persistent semantic memory. **Unmet:** owner-defined retention, provenance, review/correction/delete, per-person attribution and cloud-export policy before retrieval/context injection. False or unattributed memories would reduce trust and privacy. A policy/schema task precedes bounded persistence/retrieval slices. Validate provenance, contradictory records, deletion and cloud-off behavior deterministically, then obtain owner acceptance later. Multi-user memory depends on reliable acoustic/turn ownership. NVIDIA Nemotron 3 Diarization (about 100M parameters, 16 kHz mono, up to eight speakers, streaming speaker cache) remains a research option for multi-person attribution, **not AEC**; evaluate runtime/GPU/dependency/license suitability before adoption.
+**Current:** [Memory Foundation I](MEMORY_FOUNDATION_I.md) separates app-data SQLite
+memory from committed conversation history. A stable single-owner principal and
+revisioned provenance/review support owner inspection, correction and real content
+deletion. Only reviewed Personal/current-workspace claims enter selective lexical
+recall: at most six complete entries / 4,800 characters as distinct local context.
+Model proposals require exact tool approval to become unreviewed, then separate
+owner review; model/page content cannot become authority. Cloud routes receive no
+memory. Tests exercise actual store/auth/commands, restart/rotation, selective recall,
+correction/delete, hostile page provenance, rollback and degraded-store text recovery.
+No new dependency, vector database, raw transcript import or automatic learning.
+
+**Unmet:** real-model memory usefulness and human recall/privacy/approval acceptance;
+paraphrase/semantic ranking, explicit cloud-export/retention extensions and per-person
+attribution/consent. These are distinct follow-ups, not reasons to reopen completed
+CRUD. The future retriever interface preserves owner/review/scope/route/budgets before
+any semantic index. Measure a lexical limitation before choosing embeddings. Multi-user
+memory depends on reliable attribution and consent, not merely a diarizer label.
+NVIDIA Nemotron 3 Diarization (about 100M parameters, 16 kHz mono, up to eight speakers,
+streaming speaker cache/FIFO) remains a research direction, **not AEC or authentication**;
+runtime/GPU/dependency/license suitability requires evaluation before adoption.
 
 ### Console, browser and tools
 
-**Current:** authenticated owner Console supports bounded workspace list/read/system info; separate public-page browser supports navigate/read/close with scripts disabled and pinned public-IP egress. Structured provider tools share the same policy, exact approvals, result bounds, cancellation and repeated-call limits. The integrated simulator rejects injected commands and proves typed recovery. **Unmet:** practical real-provider tool workflows, explicitly approved bounded mutations and richer browser interactions. They matter to Sam as a computer interface but can expose host authority to prompt injection. Owner-authenticated control and a narrow capability contract come first; then add one contained ability at a time through the trusted registry/policy/approval/epoch path. A page, model response, retrieved file or tool output remains data, never a control command. Threat-model and contained browser/runtime tests are mandatory. Streamable HTTP MCP, delegation, Linux desktop control and self-maintenance remain conditional later directions.
+**Current:** authenticated owner Console supports bounded workspace list/read/system info; separate public-page browser supports navigate/read/close with scripts disabled and pinned public-IP egress. Structured provider tools share the same policy, exact approvals, result bounds, cancellation and repeated-call limits. The integrated simulator rejects injected commands and proves typed recovery. A bounded real installed-model workspace-read workflow passed. **Unmet:** practical approved workspace changes, broader real-provider/browser compatibility and richer browser interactions. They matter to Sam as a computer interface but can expose host authority to prompt injection. Add one contained ability at a time through the trusted registry/policy/approval/epoch path. A page, model response, retrieved file, memory or tool output remains data, never a control command. Threat-model and contained browser/runtime tests are mandatory. Streamable HTTP MCP, delegation, Linux desktop control and self-maintenance remain conditional later directions.
 
 ### Embodiment and interface
 
@@ -160,7 +184,7 @@ fixtures before Task 3. No runtime acoustic or early-barge-in claim is made.
 
 ### 12. Console/browser capability boundary design
 
-**Completed beyond the original design card:** [typed capabilities](AGENCY_CAPABILITIES.md), [owned browser](OWNED_BROWSER.md), [simulator evidence](AGENCY_FOUNDATION_I.md). No arbitrary shell, page scripting or durable memory. [Memory seam](MEMORY_AUTHORITY_CONTRACT.md) is architecture only.
+**Completed beyond the original design card:** [typed capabilities](AGENCY_CAPABILITIES.md), [owned browser](OWNED_BROWSER.md), [simulator evidence](AGENCY_FOUNDATION_I.md). No arbitrary shell or page scripting. [Memory Foundation I](MEMORY_FOUNDATION_I.md) now implements the single-owner memory seam; semantic/multi-person extensions remain architecture only.
 
 - **Objective / why now:** Choose the first useful computer-facing ability without giving untrusted content owner command authority.
 - **Prerequisites:** Tasks 9–10 and existing trusted tool registry/approval/epoch.
@@ -173,31 +197,59 @@ fixtures before Task 3. No runtime acoustic or early-barge-in claim is made.
 HQ now prioritizes useful secure agency. The candidate may include owner-authenticated
 local authority, typed bounded/cancellable capabilities, read-only Console/public-page
 inspection, structured model mediation, clean conversation history/typed recovery and
-the implemented visual repairs. **AEC is a separate voice workstream, not a release
+the implemented visual repairs and reviewed local Memory Foundation I. **AEC is a separate voice workstream, not a release
 prerequisite for these capabilities.** Conservative candidate safety remains required.
 
-Before claiming real agency, obtain one separately authorized bounded real-provider
-tool workflow through the owned UI, without broad model/browser exploration. Fake
-protocol/adversarial/model fixtures and isolated browser evidence are green; production
-native driver bundling/launch and real external-site compatibility are not established.
+The first bounded real-provider structured workspace read through the owned UI
+passed with existing LM Studio/Gemma, including inert injected data and cancellation.
+Memory's restart/recall/review/recovery path is deterministically integrated; actual
+model use of persistent context and human privacy/approval usefulness remain unverified.
+Fake protocol/adversarial/model fixtures and isolated browser evidence are green;
+production native driver bundling/launch and real external-site compatibility are
+not established. Preserve text recovery and bounded ownership in later slices.
 No new release, package/signing action or immediate human beta is implied.
 
 **Explicitly later:** prompt acoustic barge-in/AEC integration, STT/persona improvements,
 named profiles/natural-language switching, arbitrary shell, sensitive browser actions,
-persistent semantic memory, diarization, signed public installer and self-update.
+semantic/vector retrieval, automatic learning, cloud/multi-user memory, diarization,
+signed public installer and self-update.
 Their specialist contracts and internal voice dependencies above remain valid.
 
 **Next scarce human beta:** only when secure agency has demonstrated useful integrated
 owner workflows, text/voice recovery remains sound, and a separately authorized runtime
 window has checked the relevant paths. It should assess actual usefulness, understandable
-authority/approval, history and visual perception together. Do not request human testing
+authority/approval, selective memory usefulness/correction/deletion/privacy, history
+and visual perception together. Do not request human testing
 now or treat deterministic visual metrics as perceptual acceptance.
 
-**Next bounded Codex task:** validate a representative existing real provider's structured
-tool support through the owner window: one workspace read and one explicitly approved
-public-page inspection, cancellation and final answer. Stop if the provider/environment
-cannot support the protocol; do not download/configure a new model or add features merely
-to pass. This supplies product-value evidence before choosing a bounded mutation slice.
+### Next bounded Codex task — owner-approved workspace edit with preview and rollback
+
+- **Objective:** move from reading to one useful, explicitly approved contained file
+  change, using existing file/capability primitives rather than arbitrary shell.
+- **Why next:** owner authority, real structured read and memory foundations now exist;
+  a reviewable/reversible workspace action adds product value before richer browser
+  power or further memory plumbing. It need not wait for AEC.
+- **Prerequisites:** current authority/policy/epoch and canonical root enforcement;
+  inspect existing files.write and workspace-writable configuration before extending.
+- **Scope:** one owner-selected allowed workspace boundary, clear before/after preview,
+  exact approval tied to content/path/revision, atomic change and bounded rollback;
+  cancellation/failure/late-result handling. Use scratch fixtures/fake inference first.
+- **Non-scope:** arbitrary PowerShell, broad OS writes, browser automation, provider
+  profiles, automatic memory learning, signing, audio or visual work.
+- **Deliverable:** one coherent vertical slice plus trustworthy change/rollback UX and
+  security contract, not a general filesystem editor or permission framework.
+- **Validation:** traversal/symlink/junction, stale approval/revision, cancellation,
+  hostile memory/tool text, partial-write/rollback and fresh typed-turn regressions;
+  one bounded owner-UI fixture. Real-model demonstration only if separately authorized.
+- **Suggested effort:** Sol High for authority/change/rollback ownership; medium quota,
+  checkpoint contract before implementation. Medium is appropriate after the contract
+  is concretely bounded. Stop if exact reversible authority cannot fit existing tools.
+- **Human checkpoint:** no immediate test; contributes to later integrated usefulness.
+
+After that, choose a separately bounded real-provider agency + memory usefulness/
+public-page check, then one justified browser interaction. Do not promote vectors,
+profiles or multi-person research merely because their seams exist. Existing voice
+cards remain the separate dependency-aware acoustic/language workstream.
 
 ## HQ quota and execution practice
 

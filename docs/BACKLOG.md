@@ -7,6 +7,14 @@ post-release repairs. Acoustic source discrimination and prompt barge-in remain
 open. The dependency-aware priority order is in [Roadmap](ROADMAP.md); older
 items below are directions, not evidence that the physical beta passed them.
 
+Memory Foundation I is implemented: app-data SQLite, owner CRUD, review-first
+proposals, scoped lexical recall/context, deletion/correction and restart/adversarial
+evidence. Do not reopen those as unimplemented storage tasks. Semantic/paraphrase
+retrieval, cloud export, multi-user consent and human memory usefulness/privacy
+acceptance remain future work; see [memory evidence](MEMORY_FOUNDATION_I.md).
+The bounded existing LM Studio/Gemma structured workspace read passed; external
+public-site/TLS and native packaging compatibility remain unverified.
+
 This is the detailed backlog beyond the frozen 0.2.3 scope. It records
 observed limitations and planned directions without implying acceptance, priority,
 or a commitment to a specific implementation. Milestone-level sequencing remains

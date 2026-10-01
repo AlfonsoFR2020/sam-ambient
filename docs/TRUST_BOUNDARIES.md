@@ -30,7 +30,7 @@ bounded review; real hostile-local-process testing was not performed.
 
 Durable memory now uses the [memory foundation](MEMORY_FOUNDATION_I.md). CRUD is
 direct-owner-only at both executor and live-action transaction checks; model
-schemas do not advertise it. Future model proposal admission requires ordinary
+schemas do not advertise it. Structured model proposal admission requires ordinary
 exact tool approval and can create only an unreviewed claim. Review/correction is
 separate from permitting a proposal. Stored text, provenance and review are data,
 never capability permission. Credentials are rejected before approval/storage;
@@ -39,8 +39,13 @@ the plaintext database still relies on OS account privacy.
 The [integrated agency simulator](AGENCY_FOUNDATION_I.md) verifies exact approval
 before model navigation, inert/injected result handling, browser cancellation and
 subsequent typed recovery. Shutdown revokes root/epoch authority before cleanup.
-The [future memory contract](MEMORY_AUTHORITY_CONTRACT.md) grants no current durable
-write capability: provenance and scope do not themselves confer permission.
+The [memory authority contract](MEMORY_AUTHORITY_CONTRACT.md) now has a single-owner
+implementation; provenance and scope still do not confer permission. Model/page
+claims require proposal approval and separate review, never an owner-authored label.
+Cloud requests omit memory; local recall permission does not authorize export.
+Hashed replay identity/content-free terminal cache, UI cache retirement and
+content-removing transactions avoid deliberate deleted-content retention. Backups,
+earlier chat/provider copies and SSD forensic erasure remain outside that guarantee.
 Source signer-bearing assets are fulfilled privately from the shipped bundle;
 another HTTP listener cannot impersonate that code. Native HTTP dev origins are
 intentionally non-authoritative; bundled Tauri origins retain proof admission.

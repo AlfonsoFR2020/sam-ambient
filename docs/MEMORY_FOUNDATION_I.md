@@ -1,5 +1,10 @@
 # Durable personal memory foundation
 
+Implemented on post-v0.2.3 dev (2026-10-01). Store, authenticated owner management,
+review-first proposals, selective local recall/context, restart simulator and
+recovery/resource bounds are complete. Sections below retain checkpoint evidence;
+they do not claim semantic retrieval, multi-user integration or human acceptance.
+
 ## Local store and identity
 
 Standard-library SQLite, schema version 1 (`PRAGMA user_version`), stores selected
@@ -78,7 +83,7 @@ work; a transaction already committed cannot be undone by a late cancellation or
 lost acknowledgement—refresh reflects the authoritative store.
 
 The **Memory** surface is separate from chat and Console: searchable/filterable,
-eight-record pages, bounded previews, full inspect/correct, provenance/review,
+up-to-eight-record pages, bounded previews, full inspect/correct, provenance/review,
 explicit creation, proposal approval and permanent deletion. React text rendering
 keeps stored markup inert. Both panel and entries scroll. Disconnect clears the
 view/editor; capability results are bounded transient owner-client state, not a
@@ -239,3 +244,30 @@ matching the Python 1,200-character store bound rather than JavaScript UTF-16
 code units. A 1,200-emoji record is valid; overlong records remain rejected.
 The isolated Chrome regression verifies next/previous navigation for smaller
 variable-size pages, alongside create/correct/delete/inert rendering.
+
+## Final evidence and deliberately open limits (checkpoint 12)
+
+Final focused gate: 116 Python tests across memory, owner proof/actions, shared
+capability policy/executor, provider routing, conversation context/terminality,
+CLI/first-run fixtures and the shipped owner-window harness; another three
+existing agency/browser simulator tests pass (119 total in the final gate).
+72 frontend tests across memory, agency, protocol client, conversation lifecycle,
+history and reducer pass. TypeScript, changed-file Ruff/format/Biome/compile and
+diff/link checks pass. Two isolated Chrome memory UI cases cover inert content,
+owner operations/scrolling and variable-offset pagination; production frontend
+assets were refreshed for the private owner window. No native package was built.
+
+One earlier bounded real provider check used the already-installed
+`google/gemma-4-e2b` through LM Studio: structured workspace read, bounded tool
+result, useful final answer, inert injected text and owner cancellation passed.
+It occurred before memory context integration; no real-provider memory recall or
+new human beta is claimed. The accidental computer reboot left committed slices
+and the working tree intact; interrupted privacy checks/assets were reverified.
+
+No new dependency/version change or external storage/embedding service. Tests and
+measurements isolate stores from owner app data. Real acoustic/device acceptance,
+revised visual perceptual acceptance, real-model memory usefulness and privacy/
+review UX are still unverified. Lexical paraphrase limits, same-user OS/file access,
+backups/provider/chat copies, absent cloud-export policy and future multi-person
+consent are explicit boundaries. The current highest-value next task is in
+[ROADMAP](ROADMAP.md), not an automatic request for more memory plumbing.

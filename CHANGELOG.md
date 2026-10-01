@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — post-v0.2.3 development
+
+- Add owner-managed local durable memory, separate from chat: inspect source/review,
+  search, correct, approve and delete through the authenticated Memory surface.
+- Selectively recall reviewed Personal/workspace context for local conversations,
+  with bounded whole entries and provenance. Model proposals need exact approval
+  to remain unreviewed; they never silently become trusted personal facts.
+- Keep credentials out of ordinary memory, omit memory from cloud routes, retire
+  private result caches, and preserve text conversation through storage failure.
+- Verify restart persistence/review/correction/deletion with deterministic fixtures.
+  Semantic retrieval, multi-user memory and human acceptance remain future work.
+- Correct the trusted owner-window loopback permission discovered by an existing
+  LM Studio/Gemma structured workspace-read smoke, retaining private owner proofs.
+
+See [memory implementation and limitations](docs/MEMORY_FOUNDATION_I.md).
+Published v0.2.3 artifacts and version metadata are unchanged.
+
 ## 0.2.3 (alpha) — Release candidate
 
 [Release notes](docs/RELEASE_NOTES_0.2.3.md) summarize the shipped scope and
