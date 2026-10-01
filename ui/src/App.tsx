@@ -419,7 +419,8 @@ export function StartupCard({
         <button
           type="button"
           disabled={
-            state.connection !== "connected" || state.providerDiscovery.status === "scanning"
+            state.connection !== "connected" ||
+            (state.providerDiscovery.status === "scanning" && !state.providerDiscovery.retrying)
           }
           title="Check local services and models again when Sam is connected."
           onClick={() => applyAction({ type: "providers.rescan" })}
@@ -968,9 +969,9 @@ export default function App() {
               <ControlButton
                 help="Check again for available local AI services and models."
                 disabled={
-                  pending ||
                   state.connection !== "connected" ||
-                  state.providerDiscovery.status === "scanning"
+                  ((pending || state.providerDiscovery.status === "scanning") &&
+                    !state.providerDiscovery.retrying)
                 }
                 onClick={() => {
                   setStartupDismissed(false);

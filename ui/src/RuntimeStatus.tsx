@@ -57,6 +57,13 @@ export function RuntimeStatus({ state }: { state: UiState }) {
         </dd>
         <dt>Provider</dt>
         <dd>{state.provider ?? "Waiting for local provider discovery"}</dd>
+        <dt>Discovery</dt>
+        <dd>
+          {state.providerDiscovery.reason
+            ? friendlyStartupReason(state.providerDiscovery.reason)
+            : state.providerDiscovery.status}
+          {state.connection === "connected" ? "" : " (last known)"}
+        </dd>
         {state.selectionReason && (
           <>
             <dt>Selection detail</dt>

@@ -16,6 +16,12 @@ const unavailable = (value: string | undefined): boolean => {
 
 export const friendlyStartupReason = (reason: string | undefined): string | undefined => {
   if (!reason) return undefined;
+  if (/inventory.*temporarily unavailable|waiting for.*model inventory/i.test(reason))
+    return "LM Studio is running. Sam is waiting for its model inventory.";
+  if (/inventory could not be read/i.test(reason))
+    return "Sam could not read LM Studio’s models. Rescan or check the local service.";
+  if (/no conversational model installed/i.test(reason))
+    return "LM Studio responded, but no conversational model is installed.";
   if (/several local conversational models/i.test(reason))
     return "Several local models are available. Choose one to continue.";
   if (/no usable local chat model|no conversational model/i.test(reason))
@@ -52,7 +58,11 @@ export function statusPresentation(state: UiState): StatusPresentation {
   if (state.providerDiscovery.status === "scanning") {
     return {
       label: "Checking local models",
-      notice: "Checking available local services and conversational models…",
+      notice: state.providerDiscovery.retrying
+        ? "LM Studio is running. Sam is waiting for its model inventory and will retry shortly."
+        : state.startupLifecycle === "loading_model"
+          ? `Loading ${state.pendingModel ?? "a local model"}…`
+          : "Checking available local services and conversational models…",
       limitations: [],
     };
   }

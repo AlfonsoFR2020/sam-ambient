@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import shutil
+from collections.abc import Awaitable, Callable
 from dataclasses import asdict, dataclass, field, replace
 from enum import StrEnum
 from ipaddress import ip_address
@@ -605,7 +606,12 @@ async def stop_owned_service(
     )
 
 
-async def bootstrap_service(service: LocalService, requested: str | None, owned: list) -> None:
+async def bootstrap_service(
+    service: LocalService,
+    requested: str | None,
+    owned: list,
+    progress: Callable[[str, str, str], Awaitable[None]] | None = None,
+) -> None:
     """Start installed local backends only. No downloads or model eviction."""
     if not service.executable or service.id not in {"ollama", "lm-studio"}:
         return
@@ -671,6 +677,8 @@ async def bootstrap_service(service: LocalService, requested: str | None, owned:
                     service.id,
                     model,
                 )
+                if progress is not None:
+                    await progress("loading_model", service.id, model)
                 await _local_command(
                     (
                         service.executable,
@@ -714,6 +722,7 @@ async def discover_local(
     compatible_url: str | None = None,
     bootstrap: bool = False,
     preferred: tuple[str, str] | None = None,
+    progress: Callable[[str, str, str], Awaitable[None]] | None = None,
 ) -> Discovery:
     if provider not in {"auto", "ollama", "lm-studio", "openai-compatible"}:
         raise ValueError("unsupported local provider")
@@ -820,7 +829,10 @@ async def discover_local(
                 ):
                     continue
                 if not service.running or desired[1] not in service.models:
-                    await bootstrap_service(service, desired[1], owned)
+                    if progress is None:
+                        await bootstrap_service(service, desired[1], owned)
+                    else:
+                        await bootstrap_service(service, desired[1], owned, progress)
                 if service.running and desired[1] in service.models:
                     break
         except BaseException:

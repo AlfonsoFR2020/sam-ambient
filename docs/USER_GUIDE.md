@@ -186,6 +186,11 @@ normal `--ui-mode browser` tab does not stop Sam.
 - **Disable all capabilities** revokes computer-action authority and pending
   approvals, preventing new tool execution. The model cannot restore authority.
 - **Rescan providers/models** reruns bounded local discovery and model readiness.
+  If LM Studio is running but its inventory temporarily fails, Sam makes at most
+  four attempts with short backoff. Controls says it is waiting, rather than claiming
+  no model is installed. Rescan can replace that recovery; Quit is always available.
+  A successfully empty inventory is not retried automatically. A requested model
+  becomes active only after the serving endpoint confirms it is loaded.
 - **Restart Sam** asks for confirmation, revokes/cancels active work, and restarts
   managed Sam components without stopping externally owned model services.
 - **Quit Sam** in Controls (or Ctrl+Q) asks for confirmation, then shuts down

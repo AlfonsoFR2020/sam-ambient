@@ -521,6 +521,9 @@ class SamRuntime:
         self._pending_model = config.startup_model
         self._pending_provider_request_id: str | None = None
         self._provider_scan_active = False
+        self._provider_phase = "blocked"
+        self._provider_retrying = False
+        self._provider_discovery_reason = config.model_unavailable_reason
         self._provider_refresh_epoch = 0
         self._desired_provider = config.startup_provider
         self._desired_model = config.startup_model
@@ -1086,7 +1089,7 @@ class SamRuntime:
             self._pending_provider_request_id = request_id
             self._provider_scan_active = True
             await self._publish_provider_status(
-                "loading_model" if target_model else "scanning",
+                "scanning",
                 provider=target_provider,
                 model=target_model,
                 request_id=request_id,
@@ -1217,6 +1220,9 @@ class SamRuntime:
             )
 
     async def _publish_provider_status(self, state: str, **payload: object) -> None:
+        self._provider_phase = state
+        self._provider_retrying = state == "scanning" and "retry_attempt" in payload
+        self._provider_discovery_reason = payload.get("reason")
         if state in {"ready", "blocked", "failed"}:
             self._provider_scan_active = False
             self._pending_provider = None
@@ -2964,6 +2970,9 @@ class SamRuntime:
                 "pending_provider": self._pending_provider,
                 "pending_model": self._pending_model,
                 "provider_scan_active": self._provider_scan_active,
+                "provider_discovery_state": self._provider_phase,
+                "provider_retrying": self._provider_retrying,
+                "provider_discovery_reason": self._provider_discovery_reason,
                 "pending_provider_request_id": self._pending_provider_request_id,
                 "selection_reason": self._provider_selection_reason,
                 "provider_catalog": list(self._provider_catalog),

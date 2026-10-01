@@ -3,7 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { StartupCard } from "../src/App";
 import type { ControlCommand, UiState } from "../src/protocol/types";
+import { INITIAL_UI_STATE } from "../src/protocol/types";
 import { ProtocolClient } from "../src/state/client";
+import { reduceProtocolEvent } from "../src/state/reducer";
+import { statusPresentation } from "../src/status";
 import type {
   ProtocolTransport,
   RuntimeScheduler,
@@ -390,5 +393,78 @@ describe("provider discovery lifecycle", () => {
     });
     expect(client.getSnapshot().providerDiscovery.status).toBe("failed");
     client.stop();
+  });
+});
+
+describe("cold inventory outcome semantics", () => {
+  const event = (type: string, payload: Record<string, unknown>, ms = 1) => ({
+    protocol: 1 as const,
+    type,
+    monotonic_ms: ms,
+    session_id: "cold",
+    payload,
+  });
+  it("does not turn failed inventory in startup/reconnect snapshots into empty", () => {
+    const state = reduceProtocolEvent(
+      INITIAL_UI_STATE,
+      event("system.ready", {
+        state: "IDLE",
+        pending_model: "gemma",
+        provider_catalog: [
+          {
+            id: "lm-studio",
+            running: true,
+            models: [],
+            installed_models: [],
+            inventory_status: "timeout",
+          },
+        ],
+      }),
+    );
+    expect(state.model).toBeUndefined();
+    expect(state.providerDiscovery.status).toBe("failed");
+  });
+  it("preserves requested identity during retry without making it active", () => {
+    const state = reduceProtocolEvent(
+      INITIAL_UI_STATE,
+      event("provider.discovery", {
+        state: "scanning",
+        provider: "lm-studio",
+        model: "gemma",
+        retry_attempt: 1,
+        reason: "LM Studio is running; waiting for its model inventory",
+        catalog: [],
+      }),
+    );
+    expect(state.model).toBeUndefined();
+    expect(state.pendingModel).toBe("gemma");
+    expect(state.providerDiscovery.retrying).toBe(true);
+    expect(
+      statusPresentation({ ...state, connection: "connected", sessionId: "cold" }).notice,
+    ).toContain("waiting for its model inventory");
+  });
+  it("successful empty remains distinct from terminal discovery failure", () => {
+    const empty = reduceProtocolEvent(
+      INITIAL_UI_STATE,
+      event("provider.discovery", {
+        state: "blocked",
+        catalog: [],
+        reason: "server running; no conversational model installed",
+      }),
+    );
+    const failed = reduceProtocolEvent(
+      empty,
+      event(
+        "provider.discovery",
+        {
+          state: "failed",
+          catalog: [],
+          reason: "LM Studio model inventory could not be read",
+        },
+        2,
+      ),
+    );
+    expect(empty.providerDiscovery.status).toBe("empty");
+    expect(failed.providerDiscovery.status).toBe("failed");
   });
 });

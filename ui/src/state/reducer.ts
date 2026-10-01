@@ -136,6 +136,7 @@ const providerCatalog = (value: unknown): ProviderCatalogEntry[] =>
             models: stringList(row.models),
             installedModels: stringList(row.installed_models ?? row.available_models),
             detail: boundedText(row.detail, 500) ?? "unavailable",
+            inventoryStatus: boundedText(row.inventory_status, 40),
             startedBySam: typeof row.started_by_sam === "boolean" ? row.started_by_sam : undefined,
             selectedModelLoadedBySam:
               typeof row.selected_model_loaded_by_sam === "boolean"
@@ -446,6 +447,15 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     const readyPendingProvider = boundedText(event.payload.pending_provider);
     const readyPendingModel = boundedText(event.payload.pending_model);
     const readyScanning = event.payload.provider_scan_active === true;
+    const readyRetrying = event.payload.provider_retrying === true;
+    const readyDiscoveryFailed =
+      event.payload.provider_discovery_state === "failed" ||
+      readyCatalog.some(
+        (item) =>
+          !item.models.length &&
+          !item.installedModels.length &&
+          ["timeout", "cli_failed", "malformed"].includes(item.inventoryStatus ?? ""),
+      );
     const readyRequestId = boundedText(event.payload.pending_provider_request_id, 120);
     const installedCount = readyCatalog.reduce(
       (count, provider) => count + provider.installedModels.length,
@@ -490,14 +500,20 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       providerDiscovery: {
         status: readyScanning
           ? "scanning"
-          : readyModel ||
-              readyCatalog.some((item) => item.models.length || item.installedModels.length)
-            ? "available"
-            : "empty",
+          : readyDiscoveryFailed
+            ? "failed"
+            : readyModel ||
+                readyCatalog.some((item) => item.models.length || item.installedModels.length)
+              ? "available"
+              : "empty",
         ...(readyScanning && readyRequestId ? { requestId: readyRequestId } : {}),
+        retrying: readyRetrying,
+        reason: boundedText(event.payload.provider_discovery_reason, 500),
       },
       startupLifecycle: readyScanning
-        ? readyPendingModel
+        ? readyPendingModel &&
+          !readyRetrying &&
+          event.payload.provider_discovery_state !== "scanning"
           ? "loading_model"
           : "scanning"
         : readyModel
@@ -682,12 +698,24 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
             : phase === "blocked" || phase === "failed"
               ? undefined
               : next.model,
-      pendingProvider: phase === "loading_model" ? provider : undefined,
-      pendingModel: phase === "loading_model" ? model : undefined,
+      pendingProvider: inProgress ? provider : undefined,
+      pendingModel: inProgress ? model : undefined,
       selectionReason: preserveCurrent ? next.selectionReason : (reason ?? next.selectionReason),
       diagnosticReason: phase === "ready" ? undefined : (reason ?? next.diagnosticReason),
-      providerCatalog: inProgress || phase === "failed" ? next.providerCatalog : catalog,
-      providerDiscovery: { status: discoveryStatus, requestId, reason },
+      providerCatalog: catalog.length
+        ? catalog
+        : inProgress || phase === "failed"
+          ? next.providerCatalog
+          : catalog,
+      providerDiscovery: {
+        status: discoveryStatus,
+        requestId,
+        reason,
+        retrying:
+          phase === "scanning" &&
+          typeof event.payload.retry_attempt === "number" &&
+          event.payload.retry_attempt >= 1,
+      },
       startupLifecycle,
     };
   } else if (event.type === "capability.authority_changed") {

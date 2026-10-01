@@ -67,3 +67,20 @@ A failed inventory scan preserves an already-valid route rather than disabling
 typed recovery. Deterministic coverage uses the actual discovery/bootstrap/probe
 and runtime path with fake external transport, proving one load after late inventory.
 The temporary expected-failure markers are removed; nearby lifecycle tests pass.
+
+## Core-confirmed presentation and diagnostics
+
+Initial discovery is scanning, not an assertion that loading already began.
+The actual installed-model bootstrap reports `loading_model` immediately before
+its exact load command. Ready follows endpoint confirmation. Retry reasons/attempts
+and the current phase survive owner reconnect snapshots; failed inventory never
+appears as a definitive empty catalog. Startup/System distinguishes waiting for
+inventory, failed discovery, genuine empty, requested/loading and confirmed active.
+Manual Rescan stays available during backoff and supersedes the automatic attempt;
+Quit remains available. Disconnected facts are explicitly last known.
+
+Low-frequency logs record attempt/epoch, endpoint readiness, safe inventory class
+and count, retry/backoff, exhaustion, actual load start and active-route confirmation.
+No raw stdout/stderr, credentials or conversation text is added. Isolated Chrome
+protects mounted Orb/Controls, manual supersession, stale result rejection and
+disconnected state; frontend correlation regressions remain green.

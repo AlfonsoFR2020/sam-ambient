@@ -233,6 +233,7 @@ async def discover_provider(
     args: argparse.Namespace,
     *,
     bootstrap: bool = False,
+    progress=None,
 ) -> tuple[LLMProvider, str | None, Discovery | None]:
     if args.provider == "openai-compatible" and not args.compatible_is_local:
         return create_provider(args), args.model, None
@@ -255,6 +256,7 @@ async def discover_provider(
         compatible_url=args.local_compatible_url,
         bootstrap=bootstrap,
         preferred=preferred,
+        progress=progress,
     )
     for service in discovery.services:
         log.info(
@@ -635,6 +637,19 @@ async def run_runtime(args: argparse.Namespace) -> int:
         configured.lifecycle.model_on_exit,
         configured.lifecycle.provider_on_exit,
     )
+    runtime_holder = []
+
+    async def progress(state, provider_id, requested_model):
+        if runtime_holder:
+            runtime = runtime_holder[0]
+            task = asyncio.current_task()
+            if task is runtime._provider_refresh_task and not task.cancelling():
+                await runtime._publish_provider_status(
+                    state,
+                    provider=provider_id,
+                    model=requested_model,
+                    request_id=runtime._pending_provider_request_id,
+                )
 
     async def refresh(provider_id: str | None, requested_model: str | None):
         from sam_ambient.runtime import ProviderRefresh
@@ -649,7 +664,7 @@ async def run_runtime(args: argparse.Namespace) -> int:
         if requested_model is not None:
             refresh_args.model = requested_model
         refreshed_provider, refreshed_model, refreshed = await discover_provider(
-            refresh_args, bootstrap=True
+            refresh_args, bootstrap=True, progress=progress
         )
         _restore_instance_resource_ownership(refreshed, ownership)
         if refreshed is not None and ownership_store is not None:
@@ -672,7 +687,7 @@ async def run_runtime(args: argparse.Namespace) -> int:
 
     try:
         lifecycle_intent, effective_policy = await _serve_runtime(
-            args, provider, model, discovery, refresh
+            args, provider, model, discovery, refresh, runtime_observer=runtime_holder.append
         )
         lifecycle_policy = CleanupPolicy(
             str(effective_policy["model_on_exit"]),
@@ -702,6 +717,7 @@ async def _serve_runtime(
     model: str | None,
     discovery: Discovery | None,
     provider_refresher=None,
+    runtime_observer=None,
 ) -> tuple[LifecycleIntent, dict[str, object]]:
     from sam_ambient.adapters.mcp import McpClient, McpError
 
@@ -793,6 +809,8 @@ async def _serve_runtime(
         owner_session=owner_session,
     )
     mcp_clients: list[McpClient] = []
+    if runtime_observer is not None:
+        runtime_observer(runtime)
     try:
         external = getattr(getattr(args, "_sam_settings", None), "external", None)
         for server in getattr(external, "mcp_servers", ()):

@@ -137,6 +137,7 @@ export interface ProviderCatalogEntry {
   models: readonly string[];
   installedModels: readonly string[];
   detail: string;
+  inventoryStatus?: string;
   startedBySam?: boolean;
   selectedModelLoadedBySam?: boolean;
 }
@@ -145,6 +146,7 @@ export interface ProviderDiscoveryState {
   status: "unavailable" | "idle" | "scanning" | "available" | "empty" | "failed" | "stale";
   requestId?: string;
   reason?: string;
+  retrying?: boolean;
 }
 
 export interface UiState {
