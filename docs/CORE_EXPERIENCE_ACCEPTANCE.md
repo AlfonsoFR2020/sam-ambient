@@ -183,3 +183,8 @@ were 0.702/0.771, with Hazel/en-GB and Helena/es-ES (both female). PCM was consu
 without sending it to speakers. This proves synthesis initialization/selection and
 nonzero waveform, not capture/STT accuracy, sound timing or persona quality. Normal
 speech event-to-render behavior is protected by the composed synthetic/browser path.
+
+Two older Quit regressions still assumed the pre-owner-proof protocol. The final
+gate exposed their missing handshake and outdated consumer signature. Fixtures
+now authenticate through the shared helper and supply an OwnerConnection; 33
+first-run/authority tests pass. Product authorization was not weakened or changed.

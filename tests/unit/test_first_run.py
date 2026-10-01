@@ -7,12 +7,14 @@ import pytest
 
 from sam_ambient.adapters import local_discovery as discovery
 from sam_ambient.adapters.ui.websocket import SAM_PROTOCOL_SUBPROTOCOL
+from sam_ambient.core.owner import OwnerConnection
 from sam_ambient.core.protocol import ControlCommand, ControlCommandType
 from sam_ambient.runtime import RuntimeConfig, SamRuntime
 from sam_ambient.static_server import StaticUiServer
 from sam_ambient.supervisor.browser import BrowserHandoff
 from sam_ambient.supervisor.cli import _trusted_core_command, _trusted_ui_command, build_parser
 from sam_ambient.supervisor.process import SubprocessManagedProcess
+from tests.fixtures.owner import authenticate_owner
 from tests.unit.test_cli import FakeProvider
 
 
@@ -245,6 +247,7 @@ def test_quit_is_direct_user_control_idempotent_and_not_a_tool(tmp_path):
                 origin="http://127.0.0.1:8766",
                 subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
             ) as socket:
+                await authenticate_owner(socket, runtime.bridge.owner)
                 ready = json.loads(await socket.recv())
                 invalid = ControlCommand(
                     type=ControlCommandType.APPLICATION_QUIT,
@@ -336,7 +339,8 @@ def test_quit_survives_requester_disconnecting_before_ack(tmp_path):
                 raise ConnectionClosed(None, None)
 
         try:
-            await runtime.bridge._consume(ClosedTab())
+            connection = OwnerConnection(runtime.bridge.owner, runtime.bridge.owner_session_id)
+            await runtime.bridge._consume(ClosedTab(), runtime.bridge.owner, connection)
             assert runtime.shutdown_requested.is_set()
         finally:
             await runtime.close()
