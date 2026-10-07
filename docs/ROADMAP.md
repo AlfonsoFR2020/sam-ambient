@@ -102,6 +102,13 @@ runtime/GPU/dependency/license suitability requires evaluation before adoption.
 
 ## Next basic-experience tasks
 
+**Core Experience V priority (2026-10-07):** complete existing owner-facing Controls,
+direct idle model lifecycle and integrated visual/voice/runtime verification before
+another acoustic research pass. AEC/full-duplex ownership is **parked** pending
+meaningful Windows timing or physical-reference evidence. Conservative interruption
+remains the supported baseline. The acoustic cards below are conditional future
+work, not the immediate product queue; no further synthetic tuning is authorized.
+
 These supersede the previous expansion queue. Each task is bounded and contributes
 engineering evidence to the acceptance matrix; none requests a human session now.
 Completed dependency/authority/memory foundations remain indexed above, not open cards.

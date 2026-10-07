@@ -148,7 +148,7 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
   [Windows filter](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) probes fail the echo gate.
   Windows near-end preservation passes; runtime AEC/early barge-in remain absent.
   [Full APM IV-B](AEC_APM_DIAGNOSIS_2026-10-07.md) uses a pinned DLL/ABI: linear
-  external-delay passes original fixtures; ownership/diversity fail. No engine selected.
+  ownership/diversity fail. Acoustic research is parked pending timing/physical evidence.
 
 See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 
