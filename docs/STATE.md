@@ -188,11 +188,8 @@ and the beta record; numerical visual change does not establish perceptual succe
 
 ## Focused validation and next direction
 
-The final memory gate protects storage/migrations, owner authority, policy/proposals,
-retrieval/context, cancellation, persistence/recovery and nearby conversation/CLI
-behavior. Isolated frontend memory and shipped-owner-window tests are separate from
-real provider/hardware/human evidence. Exact counts are recorded in the memory document.
-No new dependencies, provider/audio models or published-release metadata were changed.
+Memory's store/authority/provenance/recovery gate remains in its specialist document;
+no new dependencies, models or published-release metadata changed in this pass.
 
 The [core matrix](CORE_EXPERIENCE_ACCEPTANCE.md) separates I, II and III evidence;
 III's 127-Python / 89-frontend gate and two Chrome cases pass. IV-A adds 99 focused

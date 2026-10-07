@@ -9,7 +9,7 @@ transient cold inventory/readiness with clean degraded startup/Quit. Actual base
 en/es generated recognition, paced recovery, persona switching and meters→WebGL now
 have evidence. [Cold recovery](COLD_PROVIDER_RECOVERY.md) now has bounded classified
 retry and a real automatic Gemma/text/Rescan/owned-unload pass; wider compatibility
-remains unverified. Proven AEC remains engineering work; physical voice
+remains unverified. AEC research is parked pending timing/physical-reference evidence; physical voice
 and human visual/persona acceptance remain open. Workspace mutation,
 richer browser automation, arbitrary shell, memory sophistication, profiles and
 multi-person implementation are parked. Retain their direction without treating
@@ -65,8 +65,9 @@ are not automatically blockers for a future release.
   fixed-orientation WebGL; pointer ownership eases field flow down and back without
   a phase jump. Verify that the full composition now
   reads as coherent circulation and that drag feels like grasping one object. A
-  separate Surface Flow control still needs a clean persisted settings/protocol path
-  and bounds around an accepted default. Do not claim Auto without a real signal.
+  separate persisted Surface Flow control is completed in [Core Experience V](CORE_EXPERIENCE_V.md),
+  with independent field clocks, legacy migration and renderer/persistence checks.
+  Default-rate human acceptance remains open. Do not claim Auto without a real signal.
 - **Palette and relief:** retain warm dominance and multicolour regions, but evolve
   colour relationships, saturation and tonal balance beyond the new slow local
   balance/contrast changes if human review still finds repetitive

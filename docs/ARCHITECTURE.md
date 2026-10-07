@@ -239,6 +239,15 @@ unloading/unloaded independently from active. Reload uses existing exact selecti
 An explicit owner unload never grants service/process ownership; conditional Quit
 cleanup retains its existing rule. No named profile or automatic swapping is added.
 
+`control.recognition_language.set` saves the authenticated owner's Auto/en/es
+choice in runtime SQLite metadata. It replaces only idle capture; active utterance
+or response blocks it. Ready and acknowledged state expose the actual next-stream
+mode separately from readiness/effective voice. A saved owner choice overrides the
+startup language default; other configured codes remain supported.
+`visual.surface_flow` uses the existing full visual-settings command/persistence
+path. Missing legacy keys inherit Motion speed; independent transport clocks feed
+both renderer backends, while light/palette/body clocks keep Motion speed.
+
 `SamSettings` is the validated, versioned user-intent boundary. Standard-library
 TOML loading merges safe defaults, per-user and workspace files, bounded `SAM_*`
 environment overrides, then options explicitly present on the CLI. The same

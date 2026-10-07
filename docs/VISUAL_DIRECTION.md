@@ -119,7 +119,7 @@ existing Motion control scales the phase rates. A material-specific rate gate
 reduces flow toward 12% while the pointer holds the Orb (0.14 s easing) and
 returns it toward normal after release (0.8 s easing). Integrate that gate over
 elapsed time; do not accumulate hidden phase or catch up after release. Breathing,
-whole-Orb rotation and particle orbits continue independently. A future persisted
+whole-Orb rotation and particle orbits continue independently. The persisted
 Surface Flow control now scales this internal rate without changing the field shader;
 an Auto speed would require a real signal and is not claimed here. Core Experience V
 separates this rate from Motion: Surface Flow affects transport/shear only, while

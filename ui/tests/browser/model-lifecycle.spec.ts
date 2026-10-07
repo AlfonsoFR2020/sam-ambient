@@ -33,11 +33,15 @@ test("owner unload and reload show confirmed state and reject stale outcome", as
     provider: "lm-studio",
     model: "gemma",
     model_unload_supported: true,
+    desired_provider: "lm-studio",
+    desired_model: "gemma",
     provider_catalog: catalog,
   });
   await page.getByRole("button", { name: "Controls", exact: true }).click();
   await page.getByRole("button", { name: "System", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Load selected model" })).toHaveCount(0);
   await page.getByRole("button", { name: "Unload active model" }).click();
+  await expect(page.getByRole("button", { name: "Load selected model" })).toHaveCount(0);
   const command = await page.evaluate(() =>
     (window as Window & { commands?: { command_id: string; type: string }[] }).commands?.at(-1),
   );

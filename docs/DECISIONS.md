@@ -705,7 +705,7 @@ master specification are recorded here.
   Failure, supersession, correlation and terminal guards preserve recovery.
 - Confirmed unload retires Sam's load-ownership entry. Automatic exit cleanup still
   applies only to Sam-owned resources; Rescan retains its existing bootstrap behavior.
-# D042 — idle owner recognition mode
+## D-042 — Idle owner recognition mode
 
 Core Experience V exposes existing Auto/en/es recognition through the authenticated
 owner command path. SQLite remembers an explicit owner choice over startup defaults;

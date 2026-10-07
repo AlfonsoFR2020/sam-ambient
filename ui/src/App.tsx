@@ -430,7 +430,7 @@ export function StartupCard({
         >
           {state.startupLifecycle === "blocked" ? "Retry / Rescan" : "Rescan"}
         </button>
-        {validChoice && (
+        {showModelPicker && validChoice && (
           <button
             type="button"
             disabled={

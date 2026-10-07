@@ -28,6 +28,13 @@ The implemented repair status and current dependency order are maintained in
 [Roadmap](ROADMAP.md); this file preserves what the physical run falsified and
 the causal diagnosis, rather than treating every observation as a separate task.
 
+[Core Experience V](CORE_EXPERIENCE_V.md) now exposes persisted Surface Flow and
+idle recognition mode, verified owner model unload/reload, and separate narrow
+Controls/history scrolling. Fresh generated speech and fixed-WebGL checks retain
+the current visuals without artistic gain changes. The [future beta script](CORE_EXPERIENCE_V_BETA_SCRIPT.md)
+prepares a later integrated 5–10-minute session; none is requested now. Acoustic
+research is explicitly parked, preserving its failures and conservative baseline.
+
 Post-release agency and Memory Foundation I are now implemented on dev: owner
 proof, bounded capabilities, a real installed-model workspace-read smoke, reviewed
 local persistent memory and deterministic restart/recall/correction/delete evidence.

@@ -121,3 +121,30 @@ reduced-motion protocol values are enum strings, not booleans. Those corrections
 required no product gain/shader changes. Defaults remain intensity .82, Motion .6,
 Flow .6, Audio Reactivity .7, Particle amount .6, auto quality/profile and system
 Reduced Motion. Legacy Flow migration inherits saved Motion; no blanket reset.
+
+## Bounded real owner-window session
+
+One normal-supervisor/private owner-window session used the existing LM Studio and
+installed Gemma, isolated temporary config/state/memory, and hardware voice/TTS
+disabled. Actual voice backends and the composed voice journey were tested separately
+above; this is not a physical microphone/playback acceptance session.
+
+21:00:46 local: supervisor began. Preflight daemon was stopped, server false and
+CLI inventory timed out. 21:00:51: endpoint/installed inventory ready; core mounted
+degraded while exact loading proceeded. 21:00:53: Gemma load began.
+21:02:17: exact active route confirmed (about 84 s loading). Two owner-UI typed
+generations completed at 21:02:19 and 21:02:20 (model-request→complete 1.828 s and
+0.187 s). The session then failed its explicit-unload **observation**: it waited
+only for a Load button already present while a desired model was active, then
+checked inventory before the asynchronous unload could finish. Quit followed;
+21:02:21 confirmed Sam-loaded Gemma absent and preserved reused serving, with
+supervisor stopped. No second Sam launch was made.
+
+This exposed a UI invitation bug: desired selection made **Load selected model**
+visible even for an already-active model. It is now restricted to the actual
+unloaded/model-choice state. The browser regression includes a desired active
+model and the pre-response click window. Future runtime verification must wait
+for the enabled terminal-state button/absence, not mere existing DOM visibility.
+Explicit unload/reload and Rescan in this new session therefore remain **not
+real-runtime-proven** after that correction; deterministic/Chrome checks pass.
+Do not reuse earlier Consolidation III's Rescan evidence as a new V result.
