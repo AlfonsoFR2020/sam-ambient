@@ -794,7 +794,7 @@ async def _serve_runtime(
         )
         try:
             await stt.ensure_ready(Path(args.root))
-            stt_status = f"ready at {stt.base_url}; recognition language: {args.stt_language}"
+            stt_status = f"ready at {stt.base_url}"
             voice = RuntimeVoiceAdapters(SoundDeviceCapture(), WebRtcVoiceActivityDetector(), stt)
         except (SpeechRecognitionError, AudioDeviceError) as error:
             stt_status = str(error)[:500]

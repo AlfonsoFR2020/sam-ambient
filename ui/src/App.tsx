@@ -714,6 +714,7 @@ export default function App() {
     <main
       className="sam-shell"
       data-diagnostics-open={visualDiagnosticsOpen || undefined}
+      data-controls-open={controlsOpen || undefined}
       data-reduced-motion={visualSettings.reducedMotion === "on" || undefined}
     >
       {!quitRequested && (

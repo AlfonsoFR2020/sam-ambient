@@ -72,3 +72,13 @@ Focused validation: 29 Python checks (including paced bilingual sequence),
 51 frontend command/reducer checks, TypeScript, changed-file Ruff/Biome. A real
 pipeline regression switches idle capture Spanish → English in one runtime and
 verifies the next STT contexts, plus restart persistence and mid-utterance rejection.
+
+## Narrow owner surfaces
+
+A 390×844 Chrome regression reproduced Controls starting at y≈116 while history
+extended to y≈734: they obscured one another. Constrained windows (≤760 px) now
+bound Controls to the lower region and retain history above it, with separate
+scrolling. Closing Controls restores history composition and reading position.
+Wide history/diagnostics separation and mutually exclusive Controls/diagnostics
+remain. STT readiness text no longer embeds a stale startup-language value;
+the separate live recognition preference is authoritative.

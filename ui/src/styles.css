@@ -1124,6 +1124,18 @@ select {
   }
 }
 
+/* On constrained windows, retain readable history above the owner drawer. */
+@media (max-width: 760px) {
+  .sam-shell[data-controls-open] .controls {
+    max-height: min(46dvh, calc(100dvh - 200px));
+  }
+  .sam-shell[data-controls-open] .transcript {
+    top: 96px;
+    bottom: auto;
+    max-height: max(60px, calc(40dvh - 112px));
+  }
+}
+
 :focus-visible {
   outline: 2px solid #ecb47d;
   outline-offset: 4px;
