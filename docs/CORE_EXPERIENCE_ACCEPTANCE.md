@@ -1,8 +1,10 @@
-# Core Experience Consolidation I–II
+# Core Experience evidence — I through V
 
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
 Expansion**. Published v0.2.3 is unchanged. Automated evidence does not establish
 human acoustic, voice-persona or visual acceptance. No human session is available.
+The **current** matrix is [Core Experience V below](#core-experience-v-current-matrix).
+Earlier sections preserve historical evidence, not a second current task queue.
 
 ## Baseline before consolidation (2026-10-01)
 
@@ -361,3 +363,46 @@ No audio/model download, dependency change or human test occurred. One real inst
 LM Studio/Gemma supervisor/owner-window session is documented separately; it proves
 automatic activation, two answers, Rescan and owned-model unload, not real retry
 backoff execution or Sam-owned server stop.
+## Core Experience V current matrix
+
+Recorded 2026-10-07. [Evidence and quantitative details](CORE_EXPERIENCE_V.md),
+[future 5–10-minute beta script](CORE_EXPERIENCE_V_BETA_SCRIPT.md), and
+[ordered basics-only tasks](ROADMAP.md#next-basic-experience-tasks--after-core-experience-v).
+This matrix supersedes earlier remaining-work columns; no new human acceptance.
+
+| Fundamental area | Deterministic / automated | Real runtime | Human acceptance | Remaining |
+| --- | --- | --- | --- | --- |
+| Startup | Authenticated supervisor/owner initialization, cold retries, mounted degraded UI | V normal supervisor/private window starts from cold preflight timeout | No new beta | Broader machines; source launcher still existing same supervisor |
+| Provider discovery | Empty/failure/not-ready classification, epochs and retry/cancel retained | V inventory recovered and exact Gemma discovered without external intervention | No new beta | Broader provider/device compatibility |
+| Model load/select | Requested/loading separate from confirmed active; composed exact reload | V Gemma load began 21:00:53, confirmed 21:02:17 | No new beta | Long installed-model loading cost, wider providers |
+| Model unload/reload | Exact idle typed owner command, verified callback, desired intent, failures, dedup/stale guards; corrected Load button | V explicit-operation check was premature; not completed after UI correction. Quit unload confirmed | No new beta | One later corrected owner-UI unload/reload/Rescan session |
+| Provider ownership/shutdown | Explicit model unload grants no service ownership; automatic cleanup conditional and bounded | V reused serving preserved; post-Quit endpoint reachable, no loaded models | No new beta | Sam-started service stop still not exercised; no desktop-app closure claim |
+| Typed conversation | Recovery/terminality/correlation plus composed journey | V two owner-UI replies completed; 1.828/0.187 s model completion | Older beta only | Current full sequence after explicit reload |
+| Ordinary voice | Paced sequential/mixed/failure/re-entry, idle en/es switch reaches next actual stream | Fresh actual whisper.cpp/base + generated continuous capture; no physical mic | Older beta contradicted old overlap behavior | Physical device/pacing/recovery |
+| STT configuration | Persisted Auto/en/es control, invalid/mid-utterance rejection; no guessed status parsing | Actual backend hard en/es confirmation retained | No new beta | Other codes remain config-only; no quality claim from wiring |
+| STT quality | Scoring/edge-word/endpoint helpers retained | Four fresh generated sentences zero WER/CER with edge words intact; larger prior baseline remains 7.95/8.75% WER | Owner accent/room unaccepted | Real owner speech/accent/noise, base model capacity |
+| TTS/persona | Preferred/missing/stale selection tests, separate health | Fresh en→es→en→es Hazel/Helena, 1,079 meters, correct missing preference fallback; no playback | Pleasantness/coherence unaccepted | Gender inventory is not perceptual equivalence |
+| Interruption | Explicit Stop speaking delivery-only; full generated text and typed recovery protected | No new room overlap; production AEC unchanged | Earlier beta failed prompt barge-in | All probes rejected; research parked pending timing/physical evidence |
+| Voice embodiment | Fresh real scalars → reducer/input/motion/fixed WebGL; zero/silence/input-output distinction | Generated actual PCM, paced real VAD input, discarded output | Naturalness/perceptibility unaccepted | Physical audio/visual timing and owner perception |
+| Orb/form | Geometry/normals/budgets and fixed high-tier body tests pass | Isolated Chrome, no new art edits | Revised softness/polygonality unaccepted | Representative full-app/low-power cost and human judgment |
+| Membrane | Shared tint/depth/lift coverage, all tiers compile | High tier 3,317 changed body pixels / 765 lifted coverage samples | Revised skin/peels unaccepted | Perceived visibility/organic attachment |
+| Living Surface/palette | Independent Flow persistence/migration, pointer gate, broad material change/adjacent continuity; zero Flow pixels identical | Fixed-camera Chrome material/local palette evidence | Organic evolution unaccepted | Current whole-composition impression; no global hue-cycle redesign |
+| Particles | Amount changes visible deterministic share of 12/24/40 budgets; Controls interaction pass | Isolated browser renderer path | Old beta broadly liked particles | Current density/performance preference |
+| Controls | Five tabs; persisted Flow/recognition, truthful load/unload states, disconnected last-known, gain/event guards | Isolated Chrome across ordinary/fullscreen/narrow; real V typed/status controls | Current discoverability unaccepted | One real explicit model-operation confirmation; no new shader knob cluster |
+| History/layout | Commit-only roles, safe common Markdown, full answer/stopped metadata, independent scroll/autofollow; narrow Controls separated | Chrome wide/narrow + real V typed history | Revised layout unaccepted | Human readability and practical window composition |
+| Diagnostics | Existing health-first hierarchy, subordinate details/events and independent wide scroll preserved | Wide/narrow Chrome checks | Earlier beta useful; repair unaccepted | Actual debugging readability |
+| Memory/authority initialization | Actual isolated stores/auth/revocation/ordered retirement in simulator; advanced powers not exercised | V normal core initialized; later memory-specific assertion not reached in interrupted probe | Outside fundamentals session | Expansion remains parked |
+| Shutdown | Composed idle reload then owner Quit, tasks/voice/store/owned cleanup retire, repeated close idempotent | V error cleanup Quit: model absent confirmed 21:02:21; core/supervisor stopped; reused service preserved | No new beta | Wider hardware failures; Sam-owned server-stop confirmation |
+
+Final touched-system gate: **190 Python / 199 frontend tests**, TypeScript,
+changed-file Ruff/format and Biome, production frontend build, `git diff --check`.
+Seventeen distinct bounded Chrome cases passed, with focused reruns for two test
+assumptions and the runtime-discovered Load invitation. No full browser matrix,
+advanced Agency/Memory stress suite, personal PCM capture or new acoustic work.
+
+**Freeze line:** no substantial new capability expansion. The immediate engineering
+gap is corrected real idle model lifecycle confirmation, followed by representative
+full-app cost/audio-device recovery. Human appearance/voice/recognition acceptance
+is explicitly outstanding; the prepared beta is for a later owner-authorized day.
+Prompt full-duplex interruption remains an unmet BASIC requirement with conservative
+behavior, not a passing engine waiting to be wired. ROADMAP owns subsequent order.

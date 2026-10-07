@@ -31,7 +31,7 @@ Post-release dev has repaired unsafe promotion of playback-time interruption can
 
 ### Conversation and voice foundation
 
-**Current:** separate bounded capture, STT, synthesis and playback lifetimes; health, cancellation and turn-local route identity; conservative candidate screening and typed recovery after supersession. **Unmet requirement:** Sam cannot acoustically prove human origin during speaker output or reliably stop delivery after roughly one second of genuine overlapping speech. This blocks prompt barge-in and contaminates interpretation of STT errors. The [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) prefers a bounded reverse-render/near-end interface and a WebRTC Audio Processing feasibility prototype. Native binding, format conversion, timing/drift and double-talk are high uncertainty. Split prototype, runtime integration and short physical validation. Synthetic echo/double-talk and lifecycle tests precede real hardware; human beta waits for a larger integrated state.
+**Current:** separate bounded capture, STT, synthesis and playback lifetimes; health, cancellation and turn-local route identity; conservative candidate screening and typed recovery after supersession. **Unmet requirement:** Sam cannot acoustically prove human origin during speaker output or reliably stop delivery after roughly one second of genuine overlapping speech. This blocks prompt barge-in and contaminates interpretation of STT errors. The [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) retains the bounded reverse-render/near-end seam. All attempted processors failed ownership/diversity; research is parked pending meaningful Windows timing/physical-reference evidence, not another synthetic parameter sweep. Preserve conservative interruption and typed recovery while completing everyday fundamentals.
 
 Explicit recognition language now reaches whisper.cpp without automatic-language
 retry; default auto and preferred-language fallback remain separate. Installed
@@ -100,97 +100,117 @@ runtime/GPU/dependency/license suitability requires evaluation before adoption.
 
 **Current:** prepared-checkout Windows launch is one action; v0.2.3 wheel/sdist are public; unsigned Windows development installer is withheld. Supervisor/update authority remains distinct from conversation with staged activation/rollback contracts. **Unmet:** signed, reputation-tested, clean-host public Windows installation and owner-controlled update/release. Signing identity and security-software response need owner/security decisions; do not invent a workaround. This blocks a non-developer distribution claim, not the AEC prototype. Split signing prerequisites, clean-host package test and publication. Linux/mobile distribution remain later tracks.
 
-## Next basic-experience tasks
+## Next basic-experience tasks — after Core Experience V
 
-**Core Experience V priority (2026-10-07):** complete existing owner-facing Controls,
-direct idle model lifecycle and integrated visual/voice/runtime verification before
-another acoustic research pass. AEC/full-duplex ownership is **parked** pending
-meaningful Windows timing or physical-reference evidence. Conservative interruption
-remains the supported baseline. The acoustic cards below are conditional future
-work, not the immediate product queue; no further synthetic tuning is authorized.
+[Core Experience V](CORE_EXPERIENCE_V.md) completes persisted Surface Flow, idle
+recognition mode, typed idle model unload/reload, narrow Controls/history separation,
+fresh installed speech→WebGL evidence and the composed everyday simulator.
+Automated visual behavior is not human acceptance. The one real V session passed
+cold activation/two text turns/owned-model Quit cleanup, but stopped before explicit
+unload/reload/Rescan confirmation because the probe observed an already-visible
+Load button. That invitation is corrected and browser-proven; do not label its
+real verification complete. This queue supersedes the prior synthetic-acoustic
+sequence and is ordered by owner value and available evidence.
 
-These supersede the previous expansion queue. Each task is bounded and contributes
-engineering evidence to the acceptance matrix; none requests a human session now.
-Completed dependency/authority/memory foundations remain indexed above, not open cards.
+### 1. Confirm corrected ordinary model lifecycle in one real owner session
 
-Completed predecessor: [cold provider recovery](COLD_PROVIDER_RECOVERY.md), including
-classified CLI outcomes, bounded cancellation-safe retry, retained desired route,
-truthful loading/active state and one real automatic Gemma lifecycle confirmation.
-Prompt acoustic interruption remains the highest unmet conversational requirement;
-the small measurement task below establishes timing before its native concurrency work.
+- **Objective / why first:** close the remaining V runtime evidence gap for an
+  everyday control the owner can now use, without more architecture or UI design.
+- **Prerequisites:** corrected Load-button condition, fake exact unload/reload tests,
+  shipped current assets, existing LM Studio/Gemma and separately authorized session.
+- **Scope:** wait for core-confirmed unloaded state/enabled Load choice, verify actual
+  inventory absence, reload exact model, two short text turns, Rescan, clean Quit and
+  external ownership. Record initial resource ownership and terminal states.
+- **Non-scope:** audio tuning, repeated cold launches, profiles, downloads, capability
+  expansion. If no installed environment is available, record the limit and stop.
+- **Deliverable / validation:** concise timestamped outcome, true provider state,
+  minimal regression only for a reproduced defect. No human speech or aesthetic test.
+- **Reasoning / quota:** Sol Medium; small, one clean checkpoint. Escalate to High only
+  for an actual stale-operation/concurrency fault; stop rather than widening scope.
+- **Human checkpoint contribution:** closes model-operation readiness before the
+  later integrated beta. It comes before cost measurement because false lifecycle
+  readiness would invalidate that normal full-app workload.
 
-Completed predecessor: [real bilingual STT/persona/signal evidence](SPEECH_BASELINE_2026-10-01.md),
-including actual base-model forced/auto recognition and sequential typed recovery.
-Do not reopen this as an unimplemented configuration or mock-only benchmark task.
+### 2. Representative full-app speech/visual timing and low-power budget
 
-### 1. Speech timing and representative full-app performance
+- **Objective / why next:** ensure the now-connected living composition remains
+  usable alongside local inference rather than optimizing isolated screenshots.
+- **Prerequisites:** task 1 or an explicit provider limitation; current fixed-WebGL
+  properties and isolated performance evidence; bounded installed-runtime access.
+- **Scope:** warm-up then observe CPU submission/frame interval and available GPU
+  timing honestly; low/medium/high, speech envelopes, Reduced Motion and fallback.
+  Measure actual level-to-visible-update timing; optimize only a demonstrated cost.
+- **Non-scope:** new art direction, reduced quality to flatter a benchmark, hardware
+  installation, provider/voice/model downloads or arbitrary FPS CI thresholds.
+- **Deliverable / validation:** representative resource/timing evidence and relative
+  budget invariants; preserve interaction, material and envelope checks if changed.
+- **Reasoning / quota:** Sol Medium; medium, checkpoint evidence before any fix. Stop
+  on unavailable timers/hardware; High only for a demonstrated scheduling root cause.
+- **Human contribution / order:** prepares perceptibility/latency questions before
+  physical-device recovery; no aesthetic acceptance inferred from timing metrics.
 
-- **Objective / why after cold recovery:** measure representative full-app/low-power cost and
-  delivery timing once the normal route is usable, before adding acoustic concurrency.
-- **Prerequisites:** current signal-to-WebGL regressions, installed voices and the
-  isolated performance baseline. Real-device use requires a separately bounded scope.
-- **Scope:** physical delivery timing only if authorized; full-app and available
-  lower-tier cost, silence/cancellation, reduced motion/Canvas. Generated en/es PCM
-  → normal meters → actual WebGL form/light is already proven in Consolidation II.
-  **Non-scope:** artistic tuning, new sliders, subjective voice claims or a speed benchmark.
-- **Deliverable / validation:** measured timing/cost with CPU/frame/GPU distinctions;
-  synthetic browser and existing interaction regressions; fixes only for broken paths.
-- **Reasoning / quota:** Sol Medium; medium. Stop on missing hardware/timers; report
-  limitations. **Human acceptance:** later speech pleasantness and natural embodied timing.
+### 3. Bounded Windows audio-device recovery and explicit Stop speaking
 
-### 2. Acoustic timing/reference validity before further engine selection
+- **Objective / why next:** ordinary device start/restart and owner-clicked silence
+  must be dependable independently of the unsolved acoustic overlap requirement.
+- **Prerequisites:** current paced pipeline/persona tests, authorized installed-device
+  window, task 2 cost limits or explicit measurement limitations.
+- **Scope:** capture mute/re-enable, unavailable/default-device recovery, output stop,
+  English/Spanish mode switching, STT failure→typed recovery, resource retirement.
+  Non-personal generated PCM where possible; no owner recording requested.
+- **Non-scope:** AEC tuning, larger Whisper/voice installation, raw audio logging,
+  source separation or a repeated physical tuning loop.
+- **Deliverable / validation:** bounded real-device outcome and narrow reproduced
+  lifecycle regressions; complete assistant text and text recovery remain invariant.
+- **Reasoning / quota:** Sol Medium; medium, High only for a reproduced lifetime race.
+  Stop on unavailable/intrusive hardware, unsafe self-interruption or lost recovery.
+- **Human contribution / order:** verifies device mechanics before consuming scarce
+  owner time on qualitative speech/embodiment acceptance.
 
-- **Objective / why after ordinary paths:** prompt full-duplex interruption is a basic
-  requirement, but needs a proven processor rather than raw VAD or a lower threshold.
-- **Prerequisites:** [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md), the preserved
-  [failed extraction probe](AEC_PROTOTYPE_2026-09-30.md), the later
-  [failed Windows filter probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md), and verified
-  license/build provenance. [IV-A full-APM evidence](AEC_FULL_APM_GATE_2026-10-07.md)
-  supplies a working pinned DLL/local ABI. [IV-B diagnosis](AEC_APM_DIAGNOSIS_2026-10-07.md)
-  repairs known-delay separation but rejects public-stat ownership and spectral
-  diversity; no engine is selected.
-- **Scope:** establish observable render/capture timing, drift and reference validity
-  with deterministic discontinuity tests and a separately authorized bounded
-  non-human Windows device experiment. Characterize representative acoustic paths
-  before further APM tuning; no owner speech session is needed now.
-  **Non-scope:** runtime barge-in, DSP internals, repeated library surveys or lower gates.
-- **Deliverable / validation:** measured timing/reference contract and explicit unknowns,
-  followed by a separately bounded engine/ownership falsification task if justified.
-  Original echo/noise/onset/recovery gates remain; owned reproducible build precedes
-  adoption. No synthetic result implies physical success.
-- **Reasoning / quota:** Sol High; medium with an independent evidence commit. Stop
-  if device timing is unavailable or a driver/native rewrite would be required.
-  **Human acceptance:** none; failure remains useful evidence and blocks task 3.
+### 4. Later integrated 5–10-minute human beta, only when owner is available
 
-### 3. Proven acoustic boundary and delivery-only early barge-in
+- **Objective / why later:** obtain the missing evidence machines cannot supply:
+  owner-accent recognition, pleasant/persona-coherent speech and living visual feel.
+- **Prerequisites:** tasks 1–3 green or truthfully limited, the current acceptance
+  matrix, and separate owner authorization/availability. No human testing is possible now.
+- **Scope / deliverable:** [prepared script](CORE_EXPERIENCE_V_BETA_SCRIPT.md), compact
+  acceptable/distracting/broken observations with timestamps and at most three
+  concrete priorities. Include history, Controls, model operations and conservative
+  interruption as an explicitly limited baseline.
+- **Non-scope:** new feature demonstration, compulsive acoustic repeats or artistic
+  tuning during the session. Stop on discomfort or loss of typed recovery.
+- **Validation / reasoning / quota:** direct human observations, Sol Medium for the
+  preparation/reconciliation; tiny. This is the actual human acceptance checkpoint.
+- **Order:** qualitative correction should follow this evidence rather than guessed
+  gain/palette/membrane changes based solely on automated pixels.
 
-- **Objective / why after 2:** stop speech promptly from sustained processed near-end
-  evidence while preserving the full assistant answer and the user's first syllable.
-- **Prerequisites:** processor passes task 2; existing identity/candidate/terminality rules.
-- **Scope:** bounded post-gain render alignment, processed capture, VAD/STT pre-roll,
-  candidate evidence and conservative failure fallback. **Non-scope:** STT replacement,
-  route redesign, VAD-only timer or new user-visible settings.
-- **Deliverable / validation:** checkpointed processor ownership then interruption
-  integration; echo-only/noise/human-overlap/end-of-playback/reset/late-event/typed
-  recovery cases with onset-to-cancellation latency. Target roughly one second.
-- **Reasoning / quota:** Sol High; large, mandatory independent green checkpoints.
-  Stop on false echo-only interruption or unmet near-end gate; keep conservative runtime.
-  **Human acceptance:** later real speaker/microphone double-talk, not synthetic acceptance.
+### 5. Correct the highest-impact basic defect established by that evidence
 
-### 4. Bounded physical recovery and integrated acceptance preparation
+- **Objective / why conditional:** improve owner satisfaction from a reproduced
+  remaining fundamental, one issue per task instead of another omnibus polish pass.
+- **Prerequisites:** a concrete engineering or later beta finding, bounded reproduction
+  and an unchanged safety/performance contract. Split unrelated findings first.
+- **Scope:** only the selected basic failure; document expected visible/voice behavior.
+- **Non-scope:** Agency/Memory/browser expansion, speculative redesign, unrelated
+  settings, dependency modernization. No acoustic tuning without the evidence below.
+- **Deliverable / validation:** failing regression then coherent fix, relevant browser
+  or installed-runtime check; human aesthetic claims wait for later review.
+- **Reasoning / quota:** Sol Medium; small/medium, High for demonstrated concurrency
+  or cross-layer root cause. Stop if a new architecture would dominate; commit useful
+  evidence and split. Contributes to the next integrated acceptance checkpoint.
 
-- **Objective / why last:** validate the composed basic experience against device and
-  provider timing after ordinary recognition and acoustic processing are coherent.
-- **Prerequisites:** tasks 1–3 pass or are explicitly limited; authorized installed
-  hardware/provider window. Human beta remains unavailable until separately scheduled.
-- **Scope:** current LM Studio route, actual audio failure/restart, interleaved voice/text,
-  confirmed conditional cleanup and available full-app cost. Use non-personal fixtures
-  where possible. **Non-scope:** new capabilities, model/voice downloads or repeated tuning.
-- **Deliverable / validation:** correlated runtime results and precise remaining human
-  questions; minimal regressions for reproduced defects, same basic simulator/Controls gate.
-- **Reasoning / quota:** Sol Medium; medium, High only for a reproduced ownership race.
-  Stop on unsafe false interruption or unrecoverable text state. **Human acceptance:**
-  prepares a substantial later integrated session; does not request one immediately.
+### Parked acoustic re-entry contract
+
+Prompt full-duplex interruption remains a BASIC unmet requirement, not a completed
+feature. It is **not** the next synthetic tuning task. Preserve the extraction,
+Windows filter, full-APM and IV-B ownership/diversity negative results. Re-entry
+requires meaningful Windows render/capture clock, delay/reference validity or
+physical-reference evidence under a separately bounded authorization. Only then
+falsify a maintainable engine against unchanged separation/ownership gates; a pass
+would precede runtime delivery-only barge-in integration and later room acceptance.
+Acoustic evidence may stop TTS; only normal STT/TurnManager semantics commit text.
+No raw-RMS shortcut or lowering gates. See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md)
+and [IV-B evidence](AEC_APM_DIAGNOSIS_2026-10-07.md).
 
 ## Meaningful v0.2.4 integrated checkpoint
 

@@ -148,3 +148,24 @@ for the enabled terminal-state button/absence, not mere existing DOM visibility.
 Explicit unload/reload and Rescan in this new session therefore remain **not
 real-runtime-proven** after that correction; deterministic/Chrome checks pass.
 Do not reuse earlier Consolidation III's Rescan evidence as a new V result.
+
+A separate read-only HTTP check after Quit confirmed endpoint reachable and loaded
+inventory empty. No arbitrary process termination or second Sam launch occurred.
+The initial CLI preflight was cold, but the core discovered serving already running
+and reused it; this session does not establish Sam-started service-stop correctness.
+
+## Final scope and evidence boundary
+
+- Focused final gate: 190 Python tests, 199 frontend tests, TypeScript, twelve-file
+  Ruff lint/format, 21 changed frontend files in Biome, production build and diff check.
+  Twelve relevant documents pass relative-link checks; STATE remains 199 lines.
+- No dependencies, model/voice downloads, DSP/runtime AEC, new capability, new shader
+  samples/draws/tier geometry or artistic gain/default changes. Shipped frontend
+  assets were regenerated so the normal owner window contains the verified Controls.
+- Live V explicit model operations are not fully validated after the corrected UI
+  invitation. Physical mic/speaker/device recovery and representative full-app cost
+  remain open. New visual softness, membrane, pigment character, voice-response
+  naturalness, persona and owner-accent recognition await later human judgment.
+- [Future beta script](CORE_EXPERIENCE_V_BETA_SCRIPT.md) is prepared, not requested.
+  [ROADMAP](ROADMAP.md) owns the bounded next sequence; no further expansion or
+  synthetic AEC tuning is the immediate task. This is not a release-ready claim.

@@ -2,6 +2,17 @@
 
 ## Unreleased — post-v0.2.3 development
 
+- Add separate persisted Surface Flow and idle Auto/English/Spanish recognition
+  Controls, preserving legacy material rates and ongoing utterances.
+- Expose exact idle LM Studio model unload/reload with confirmed results, retained
+  desired selection and unchanged external-service ownership rules.
+- Separate narrow-window Controls/history scroll regions; show Load only when a
+  model choice is needed. Preserve complete answers and clean speech-stop metadata.
+- Confirm fresh generated speech-to-WebGL behavior and the composed everyday
+  recovery/cleanup path. Human acceptance and corrected real explicit model-operation
+  confirmation remain open; acoustic research is parked. See
+  [Core Experience V](docs/CORE_EXPERIENCE_V.md).
+
 - Add owner-managed local durable memory, separate from chat: inspect source/review,
   search, correct, approve and delete through the authenticated Memory surface.
 - Selectively recall reviewed Personal/workspace context for local conversations,

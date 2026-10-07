@@ -177,6 +177,9 @@ for readiness and the last reported speech voice/locale, when core supplies it.
 Reduced motion respects the OS preference (including changes while running) or the
 local control. It freezes continuous geometry motion, retaining state/light feedback.
 
+On narrow windows, opening Controls bounds it below the separately scrolling
+conversation history. Closing Controls restores the ordinary composition and
+reading position. Wide diagnostics/history retain separate regions.
 Development builds prefer a dedicated app window, separate from normal browsing.
 Quit Sam or closing that dedicated window stops the application gracefully. On
 other platforms or browser refusal, close the stopped page yourself. Closing a

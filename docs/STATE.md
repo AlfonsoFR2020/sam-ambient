@@ -191,8 +191,9 @@ and the beta record; numerical visual change does not establish perceptual succe
 Memory's store/authority/provenance/recovery gate remains in its specialist document;
 no new dependencies, models or published-release metadata changed in this pass.
 
-The [core matrix](CORE_EXPERIENCE_ACCEPTANCE.md) separates I, II and III evidence;
-III's 127-Python / 89-frontend gate and two Chrome cases pass. IV-A adds 99 focused
-acoustic/voice tests, not engine acceptance. [ROADMAP](ROADMAP.md) retains basic repair;
-new capabilities remain parked. Automated visuals are not human perceptual acceptance.
+The [current V matrix](CORE_EXPERIENCE_ACCEPTANCE.md) records 190 Python / 199 frontend
+tests, 17 distinct Chrome cases and fresh installed speech→WebGL evidence. Real V
+cold activation/two replies/Quit pass; corrected explicit unload/reload/Rescan still
+needs runtime confirmation. [ROADMAP](ROADMAP.md) parks expansion/acoustic research.
+Automated visuals are not human perceptual acceptance.
 Human testing is scarce and reserved for a substantial integrated checkpoint; unavailable now.
