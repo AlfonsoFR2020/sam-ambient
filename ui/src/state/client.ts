@@ -132,7 +132,9 @@ export class ProtocolClient {
       throw new Error("Control command is already pending");
     const epoch = this.epoch;
     const discoveryCommand =
-      command.type === "control.providers.rescan" || command.type === "control.model.select";
+      command.type === "control.providers.rescan" ||
+      command.type === "control.model.select" ||
+      command.type === "control.model.unload";
     const priorDiscoveryId = discoveryCommand ? this.state.providerDiscovery.requestId : undefined;
     if (priorDiscoveryId) {
       this.commandTimeouts.get(priorDiscoveryId)?.();
@@ -333,7 +335,7 @@ export class ProtocolClient {
     if (!isVisualizationEvent(event.type)) {
       const terminalDiscoveryId =
         event.type === "provider.discovery" &&
-        ["ready", "blocked", "failed"].includes(String(event.payload.state)) &&
+        ["ready", "blocked", "failed", "unloaded"].includes(String(event.payload.state)) &&
         typeof event.payload.request_id === "string" &&
         event.payload.request_id === this.state.providerDiscovery.requestId
           ? event.payload.request_id

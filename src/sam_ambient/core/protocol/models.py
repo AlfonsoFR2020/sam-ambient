@@ -64,6 +64,7 @@ class ControlCommandType(StrEnum):
     CAPABILITY_CANCEL = "control.capability.cancel"
     PROVIDERS_RESCAN = "control.providers.rescan"
     MODEL_SELECT = "control.model.select"
+    MODEL_UNLOAD = "control.model.unload"
     VISUAL_SETTINGS_SET = "control.visual_settings.set"
     AUDIO_SETTINGS_SET = "control.audio_settings.set"
     LIFECYCLE_SETTINGS_SET = "control.lifecycle_settings.set"

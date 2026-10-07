@@ -217,6 +217,14 @@ reload and Sam restart, while automatic quality decisions do not. Drag the orb w
 a mouse or one finger to reorient it; reduced motion keeps direct reorientation but
 suppresses inertial and autonomous movement.
 
+In **System**, **Unload active model** releases the exact confirmed LM Studio
+model while Sam is idle. Wait for confirmed completion; its service remains running.
+The selected model is retained for **Load selected model**, which becomes active
+only after provider confirmation. Explicit unload is your deliberate instruction
+even for a preloaded model; automatic exit cleanup still affects only resources
+Sam owns. Other adapters show this operation as unsupported. **Rescan** retains
+normal bootstrap behavior and may reload the desired installed model.
+
 The **Conversation** controls include **Microphone sensitivity** and
 **Output volume**, each from 0-200% with 100% as the default. They adjust Sam's
 application PCM signal, not the operating-system microphone or master-volume mixer.

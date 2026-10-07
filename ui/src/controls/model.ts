@@ -34,6 +34,7 @@ export type ControlAction =
   | { type: "application.restart" }
   | { type: "providers.rescan" }
   | { type: "model.select"; provider: string; model: string; remember: boolean }
+  | { type: "model.unload"; provider: string; model: string }
   | { type: "user_message.submit"; text: string }
   | { type: "tool.approve"; toolCallId: string }
   | { type: "tool.deny"; toolCallId: string }
@@ -86,6 +87,14 @@ export function commandForAction(
     return createControlCommand(
       "control.model.select",
       { provider: action.provider, model: action.model, remember: action.remember },
+      state,
+      runtime,
+    );
+  }
+  if (action.type === "model.unload") {
+    return createControlCommand(
+      "control.model.unload",
+      { provider: action.provider, model: action.model },
       state,
       runtime,
     );

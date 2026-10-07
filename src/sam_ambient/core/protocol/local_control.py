@@ -8,6 +8,7 @@ from enum import StrEnum
 
 class LocalControlKind(StrEnum):
     SWITCH_INFERENCE = "switch_inference"
+    UNLOAD_INFERENCE = "unload_inference"
     STOP_SPEAKING = "stop_speaking"
 
 

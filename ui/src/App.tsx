@@ -251,9 +251,12 @@ export function StartupCard({
     (item) => activeProviderChoice === "auto" || item.provider === activeProviderChoice,
   );
   const [choice, setChoice] = useState("");
+  const desiredChoice = `${state.desiredProvider}\t${state.desiredModel}`;
   const validChoice = choices.some((item) => `${item.provider}\t${item.model}` === choice)
     ? choice
-    : "";
+    : choices.some((item) => `${item.provider}\t${item.model}` === desiredChoice)
+      ? desiredChoice
+      : "";
   const [remember, setRemember] = useState(true);
   const showModelPicker =
     (!state.model && allChoices.length > 0) ||
@@ -966,6 +969,32 @@ export default function App() {
           {controlsTab === "system" && (
             <section className="controls__group" aria-labelledby={`${controlsId}-system`}>
               <h2 id={`${controlsId}-system`}>System &amp; model</h2>
+              <ControlButton
+                help={
+                  state.modelUnloadSupported
+                    ? "Unload the exact active model while idle. Sam confirms provider inventory before reporting success; the service remains running."
+                    : "Explicit unload is supported by the local LM Studio adapter only."
+                }
+                disabled={
+                  !state.modelUnloadSupported ||
+                  !state.model ||
+                  state.connection !== "connected" ||
+                  state.providerDiscovery.status === "scanning" ||
+                  !["IDLE", "LISTENING", "OFFLINE"].includes(state.conversationalState)
+                }
+                onClick={() => {
+                  if (state.provider && state.model) {
+                    setStartupDismissed(false);
+                    applyAction({
+                      type: "model.unload",
+                      provider: state.provider,
+                      model: state.model,
+                    });
+                  }
+                }}
+              >
+                Unload active model
+              </ControlButton>
               <ControlButton
                 help="Check again for available local AI services and models."
                 disabled={

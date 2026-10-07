@@ -135,6 +135,7 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 - Provider discovery/Rescan protects correlated commands and stale catalogs. Preferred
   configuration is distinct from availability, with no silent fallback. Per-turn
   inference route is immutable; exact typed switching blocks active generation.
+  System now supports confirmed idle LM Studio unload and exact selected-model reload.
   Stop speaking reuses delivery cancellation. Future identity includes profile ID;
   named profiles and natural-language recognition remain unimplemented.
 - Capture/STT/synthesis/playback own separate bounded lifetimes and health. Pull-based

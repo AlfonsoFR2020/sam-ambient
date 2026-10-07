@@ -34,3 +34,24 @@ Zero stops material transport; default 0.6 preserves existing default flow;
 maximum uses the existing bounded rate curve. Body/light/palette clocks retain
 Motion speed. Pointer hold eases only the material rate; Reduced Motion freezes
 both. Missing old keys inherit prior Motion speed, rather than losing preferences.
+
+## Explicit idle model lifecycle
+
+System offers **Unload active model** for a confirmed LM Studio route. The owner
+request names that exact provider/model, blocks while generation/discovery runs,
+fences new generations during unload and reuses verified CLI inventory cleanup.
+An acknowledged request means started, not succeeded. `unloading_model` and
+`unloaded` are provider-confirmed operational phases. Failure preserves the prior
+route and exposes retry/Rescan; cancellation requires route reconfirmation.
+Scan epochs and correlated commands protect newer load/Rescan from old outcomes.
+Desired model survives unload; **Load selected model** reuses exact selection,
+with active published only after confirmation. Rescan retains existing bootstrap
+semantics and may reload the desired installed model; it is not a profiles feature.
+
+Explicit owner unload authorizes the selected model even if it was preloaded;
+it never claims or stops the external provider service. Automatic Quit remains
+different: only Sam-loaded models / Sam-started services are eligible. Confirmed
+explicit unload retires that model's automatic-cleanup ownership record.
+Fake tests cover active-generation block, failure recovery, deduplication,
+superseded late completion and typed progress after reload; Chrome covers actual
+Controls phases, reload selection and stale terminal rejection.

@@ -693,3 +693,15 @@ master specification are recorded here.
   reload/restart. Defaults, shader samples, geometry and draw budgets remain unchanged.
 - No membrane/palette debug sliders: their durable material concepts still require
   human acceptance of the existing composition before independent owner controls.
+
+## D-041 — Explicit owner model unload differs from automatic exit cleanup
+
+- **Accepted:** 2026-10-07. A typed authenticated request may unload the exact
+  confirmed idle LM Studio model, including an externally preloaded model. This
+  deliberate owner action never authorizes stopping/claiming the external service.
+- Acknowledgement reports started; bounded provider inventory confirmation decides
+  completion. Active generation/discovery blocks unload; new generation dispatch
+  waits during unload. Desired identity persists; reload uses existing exact selection.
+  Failure, supersession, correlation and terminal guards preserve recovery.
+- Confirmed unload retires Sam's load-ownership entry. Automatic exit cleanup still
+  applies only to Sam-owned resources; Rescan retains its existing bootstrap behavior.

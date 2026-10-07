@@ -358,6 +358,7 @@ class ProviderRefresh:
 
 
 ProviderRefresher = Callable[[str | None, str | None], Awaitable[ProviderRefresh]]
+ProviderUnloader = Callable[[str, str], Awaitable[ProviderRefresh]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -517,6 +518,7 @@ class SamRuntime:
         tts: TextToSpeech | None = None,
         audio_output: AudioOutput | None = None,
         provider_refresher: ProviderRefresher | None = None,
+        provider_unloader: ProviderUnloader | None = None,
         local_control_recognizer: Callable[[Transcript], LocalControlIntent | None] | None = None,
         owner_session: OwnerSession | None = None,
     ) -> None:
@@ -524,6 +526,7 @@ class SamRuntime:
             raise ValueError("TTS and audio output must be configured together")
         self.provider = provider
         self._provider_refresher = provider_refresher
+        self._provider_unloader = provider_unloader
         self._local_control_recognizer = local_control_recognizer
         self._provider_refresh_lock = asyncio.Lock()
         self._provider_catalog: tuple[Mapping[str, object], ...] = ()
@@ -959,6 +962,43 @@ class SamRuntime:
                     result = LocalControlResult(LocalControlOutcome.FAILED, "Could not stop speech")
                 else:
                     result = LocalControlResult(LocalControlOutcome.SUCCESS, "Speech stopped")
+        elif intent.kind is LocalControlKind.UNLOAD_INFERENCE:
+            if intent.remember or not intent.provider_id or not intent.model_id:
+                result = LocalControlResult(
+                    LocalControlOutcome.INVALID, "Unload requires exact route"
+                )
+            elif not self._active_done.is_set() or self._provider_scan_active:
+                result = LocalControlResult(
+                    LocalControlOutcome.BLOCKED, "Wait for the active response or model operation"
+                )
+            elif intent.provider_id != self.provider.id or intent.model_id != self._model:
+                result = LocalControlResult(
+                    LocalControlOutcome.UNAVAILABLE, "Requested model is not active"
+                )
+            elif self._provider_unloader is None:
+                result = LocalControlResult(
+                    LocalControlOutcome.UNAVAILABLE, "Provider has no supported unload operation"
+                )
+            else:
+                self._provider_refresh_epoch += 1
+                self._provider_scan_active = True
+                self._provider_phase = "unloading_model"
+                task = asyncio.create_task(
+                    self._perform_model_unload(intent, request_id, self._provider_refresh_epoch)
+                )
+                self._provider_refresh_task = task
+                self._tasks.add(task)
+                task.add_done_callback(self._tasks.discard)
+                # Fence new voice/typed generations before any asynchronous unload.
+                self._model_unavailable_reason = "Model unloading; wait for completion"
+                if request_id is not None:
+                    report = asyncio.create_task(
+                        self._report_local_switch(intent, task, request_id)
+                    )
+                    self._tasks.add(report)
+                    report.add_done_callback(self._tasks.discard)
+                    return LocalControlResult(LocalControlOutcome.STARTED, "Model unload started")
+                result = await task
         elif intent.kind is LocalControlKind.SWITCH_INFERENCE:
             provider_id, model_id = intent.provider_id, intent.model_id
             if not provider_id or not model_id:
@@ -1019,6 +1059,60 @@ class SamRuntime:
             log.warning("Route switch report failed (%s)", type(error).__name__)
             result = LocalControlResult(LocalControlOutcome.FAILED, "Route switch failed")
         await self._publish_local_control(intent, result, request_id)
+
+    async def _perform_model_unload(self, intent, request_id, epoch) -> LocalControlResult:
+        assert self._provider_unloader is not None
+        async with self._provider_refresh_lock:
+            self._pending_provider, self._pending_model = intent.provider_id, intent.model_id
+            self._pending_provider_request_id = request_id
+            self._provider_scan_active = True
+            await self._publish_provider_status(
+                "unloading_model",
+                request_id=request_id,
+                provider=intent.provider_id,
+                model=intent.model_id,
+            )
+            try:
+                async with asyncio.timeout(12):
+                    result = await self._provider_unloader(intent.provider_id, intent.model_id)
+                if self._closed or epoch != self._provider_refresh_epoch:
+                    raise asyncio.CancelledError()
+                if result.model is not None:
+                    raise RuntimeError("Unload did not confirm model absence")
+            except asyncio.CancelledError:
+                if self._model == intent.model_id and self.provider.id == intent.provider_id:
+                    self._model = None
+                    self._model_unavailable_reason = (
+                        "Model unload cancelled; Rescan to confirm the route"
+                    )
+                raise
+            except Exception as error:
+                log.warning("Owner model unload failed (%s)", type(error).__name__)
+                self._model_unavailable_reason = None
+                await self._publish_provider_status(
+                    "failed",
+                    request_id=request_id,
+                    reason="Could not confirm model unload. Retry or Rescan.",
+                    preserve_current=True,
+                )
+                return LocalControlResult(LocalControlOutcome.FAILED, "Model unload failed")
+            self._model = None
+            self._model_unavailable_reason = "Model unloaded. Load the selected model to continue."
+            self._provider_catalog = result.catalog
+            self._desired_provider, self._desired_model = intent.provider_id, intent.model_id
+            await self._publish_provider_status(
+                "unloaded",
+                request_id=request_id,
+                provider=intent.provider_id,
+                model=intent.model_id,
+                reason=self._model_unavailable_reason,
+            )
+            return LocalControlResult(
+                LocalControlOutcome.SUCCESS,
+                "Model unload confirmed",
+                intent.provider_id,
+                intent.model_id,
+            )
 
     async def _publish_local_control(
         self, intent: LocalControlIntent, result: LocalControlResult, request_id: str | None
@@ -1231,7 +1325,7 @@ class SamRuntime:
         self._provider_phase = state
         self._provider_retrying = state == "scanning" and "retry_attempt" in payload
         self._provider_discovery_reason = payload.get("reason")
-        if state in {"ready", "blocked", "failed"}:
+        if state in {"ready", "blocked", "failed", "unloaded"}:
             self._provider_scan_active = False
             self._pending_provider = None
             self._pending_model = None
@@ -1242,7 +1336,15 @@ class SamRuntime:
                 type="provider.discovery",
                 monotonic_ms=self._next_event_ms(),
                 session_id=self.session_id,
-                payload={"state": state, "catalog": list(self._provider_catalog), **payload},
+                payload={
+                    "state": state,
+                    "model_unload_supported": self._provider_unloader is not None
+                    and self.provider.id == "lm-studio",
+                    "catalog": list(self._provider_catalog),
+                    "desired_provider": self._desired_provider,
+                    "desired_model": self._desired_model,
+                    **payload,
+                },
             )
         )
 
@@ -1255,6 +1357,8 @@ class SamRuntime:
     ) -> str:
         if self._closed:
             raise RuntimeError("runtime is closed")
+        if self._provider_phase == "unloading_model":
+            raise RuntimeError("Wait for the model unload before sending a request")
         normalized = text.strip()
         if not normalized:
             raise ValueError("user message must be non-blank")
@@ -2975,8 +3079,12 @@ class SamRuntime:
                 "sam_author": __author__,
                 "provider": self.provider.id if available_model else None,
                 "model": available_model,
+                "model_unload_supported": self._provider_unloader is not None
+                and self.provider.id == "lm-studio",
                 "pending_provider": self._pending_provider,
                 "pending_model": self._pending_model,
+                "desired_provider": self._desired_provider,
+                "desired_model": self._desired_model,
                 "provider_scan_active": self._provider_scan_active,
                 "provider_discovery_state": self._provider_phase,
                 "provider_retrying": self._provider_retrying,

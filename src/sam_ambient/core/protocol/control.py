@@ -185,6 +185,19 @@ class ControlDispatcher:
             if self._bindings.revoke_capabilities is None:
                 raise RuntimeError("global capability revocation is unavailable")
             payload.update(await self._bindings.revoke_capabilities("ui_global_capability_revoke"))
+        elif command_type is ControlCommandType.MODEL_UNLOAD:
+            if set(command.payload) != {"provider", "model"}:
+                raise ValueError("Unload requires the exact active provider and model")
+            provider, model = command.payload["provider"], command.payload["model"]
+            if not all(isinstance(value, str) and value.strip() for value in (provider, model)):
+                raise ValueError("Unload requires non-blank route IDs")
+            if self._bindings.execute_local_control is None:
+                raise ValueError("Model unload is unavailable")
+            result = await self._bindings.execute_local_control(
+                LocalControlIntent(LocalControlKind.UNLOAD_INFERENCE, provider, model),
+                command.command_id,
+            )
+            return self._local_result(command, result)
         elif command_type in {ControlCommandType.PROVIDERS_RESCAN, ControlCommandType.MODEL_SELECT}:
             if self._bindings.refresh_providers is None and (
                 command_type is ControlCommandType.PROVIDERS_RESCAN

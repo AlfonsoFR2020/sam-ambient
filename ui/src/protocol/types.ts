@@ -44,6 +44,7 @@ export const CONTROL_COMMAND_TYPES = [
   "control.capability.cancel",
   "control.providers.rescan",
   "control.model.select",
+  "control.model.unload",
   "control.visual_settings.set",
   "control.audio_settings.set",
   "control.lifecycle_settings.set",
@@ -127,6 +128,7 @@ export type StartupLifecycle =
   | "scanning"
   | "waiting_for_model_choice"
   | "loading_model"
+  | "unloading_model"
   | "blocked"
   | "ready_transition"
   | "dismissed";
@@ -156,11 +158,14 @@ export interface UiState {
   applicationStopped?: boolean;
   provider?: string;
   model?: string;
+  modelUnloadSupported?: boolean;
   pendingProvider?: string;
   pendingModel?: string;
+  desiredProvider?: string;
+  desiredModel?: string;
   selectionReason?: string;
   lastLocalControl?: {
-    kind: "switch_inference" | "stop_speaking";
+    kind: "switch_inference" | "unload_inference" | "stop_speaking";
     outcome: "started" | "success" | "unavailable" | "ambiguous" | "blocked" | "invalid" | "failed";
     provider?: string;
     model?: string;

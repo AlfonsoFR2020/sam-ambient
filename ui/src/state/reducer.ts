@@ -488,8 +488,11 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       samAuthor: boundedText(event.payload.sam_author, 160),
       provider: boundedText(event.payload.provider),
       model: readyModel,
+      modelUnloadSupported: event.payload.model_unload_supported === true,
       pendingProvider: readyPendingProvider,
       pendingModel: readyPendingModel,
+      desiredProvider: boundedText(event.payload.desired_provider, 80),
+      desiredModel: boundedText(event.payload.desired_model, 256),
       selectionReason: boundedText(event.payload.selection_reason, 500),
       sttStatus: boundedText(event.payload.stt_status, 500),
       voiceInputHealth: startsNewSession ? undefined : next.voiceInputHealth,
@@ -514,11 +517,13 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         reason: boundedText(event.payload.provider_discovery_reason, 500),
       },
       startupLifecycle: readyScanning
-        ? readyPendingModel &&
-          !readyRetrying &&
-          event.payload.provider_discovery_state !== "scanning"
-          ? "loading_model"
-          : "scanning"
+        ? event.payload.provider_discovery_state === "unloading_model"
+          ? "unloading_model"
+          : readyPendingModel &&
+              !readyRetrying &&
+              event.payload.provider_discovery_state !== "scanning"
+            ? "loading_model"
+            : "scanning"
         : readyModel
           ? "ready_transition"
           : readyPendingModel
@@ -585,14 +590,14 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     const outcome = event.payload.outcome;
     const requestId = boundedText(event.payload.request_id, 120);
     if (
-      kind === "switch_inference" &&
+      (kind === "switch_inference" || kind === "unload_inference") &&
       requestId &&
       next.providerDiscovery.requestId &&
       requestId !== next.providerDiscovery.requestId
     )
       return state;
     if (
-      (kind !== "switch_inference" && kind !== "stop_speaking") ||
+      (kind !== "switch_inference" && kind !== "unload_inference" && kind !== "stop_speaking") ||
       !["started", "success", "unavailable", "ambiguous", "blocked", "invalid", "failed"].includes(
         String(outcome),
       )
@@ -642,7 +647,15 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     if (next.providerDiscovery.requestId && requestId !== next.providerDiscovery.requestId)
       return state;
     if (
-      !["scanning", "loading_model", "ready", "blocked", "failed"].includes(phase ?? "") ||
+      ![
+        "scanning",
+        "loading_model",
+        "unloading_model",
+        "unloaded",
+        "ready",
+        "blocked",
+        "failed",
+      ].includes(phase ?? "") ||
       (event.payload.catalog !== undefined && !Array.isArray(event.payload.catalog))
     ) {
       return {
@@ -659,7 +672,8 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     const provider = boundedText(event.payload.provider, 80);
     const model = boundedText(event.payload.model, 256);
     const reason = boundedText(event.payload.reason, 500);
-    const inProgress = phase === "scanning" || phase === "loading_model";
+    const inProgress =
+      phase === "scanning" || phase === "loading_model" || phase === "unloading_model";
     const preserveCurrent =
       event.payload.preserve_current === true && !!next.provider && !!next.model;
     const discoveryStatus = inProgress
@@ -675,8 +689,8 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         ? "ready_transition"
         : phase === "ready"
           ? "ready_transition"
-          : phase === "loading_model"
-            ? "loading_model"
+          : phase === "loading_model" || phase === "unloading_model"
+            ? phase
             : phase === "scanning"
               ? "scanning"
               : phase === "blocked" &&
@@ -690,19 +704,27 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
           ? next.provider
           : phase === "ready"
             ? provider
-            : phase === "blocked" || phase === "failed"
-              ? undefined
-              : next.provider,
+            : phase === "unloaded"
+              ? provider
+              : phase === "blocked" || phase === "failed"
+                ? undefined
+                : next.provider,
       model:
         preserveCurrent && phase !== "ready"
           ? next.model
           : phase === "ready"
             ? model
-            : phase === "blocked" || phase === "failed"
+            : phase === "blocked" || phase === "failed" || phase === "unloaded"
               ? undefined
               : next.model,
       pendingProvider: inProgress ? provider : undefined,
       pendingModel: inProgress ? model : undefined,
+      desiredProvider: boundedText(event.payload.desired_provider, 80) ?? next.desiredProvider,
+      desiredModel: boundedText(event.payload.desired_model, 256) ?? next.desiredModel,
+      modelUnloadSupported:
+        typeof event.payload.model_unload_supported === "boolean"
+          ? event.payload.model_unload_supported
+          : next.modelUnloadSupported,
       selectionReason: preserveCurrent ? next.selectionReason : (reason ?? next.selectionReason),
       diagnosticReason: phase === "ready" ? undefined : (reason ?? next.diagnosticReason),
       providerCatalog: catalog.length
@@ -928,7 +950,8 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     const commandId = event.payload.command_id;
     const discoveryResponse =
       event.payload.command_type === "control.providers.rescan" ||
-      event.payload.command_type === "control.model.select";
+      event.payload.command_type === "control.model.select" ||
+      event.payload.command_type === "control.model.unload";
     if (
       discoveryResponse &&
       next.providerDiscovery.requestId &&

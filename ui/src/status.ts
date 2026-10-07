@@ -16,6 +16,8 @@ const unavailable = (value: string | undefined): boolean => {
 
 export const friendlyStartupReason = (reason: string | undefined): string | undefined => {
   if (!reason) return undefined;
+  if (/model unloaded/i.test(reason))
+    return "Model is unloaded. Load the selected model when you’re ready.";
   if (/inventory.*temporarily unavailable|waiting for.*model inventory/i.test(reason))
     return "Sam is waiting for LM Studio’s model inventory.";
   if (/inventory could not be read/i.test(reason))
@@ -57,12 +59,15 @@ export function statusPresentation(state: UiState): StatusPresentation {
   }
   if (state.providerDiscovery.status === "scanning") {
     return {
-      label: "Checking local models",
+      label:
+        state.startupLifecycle === "unloading_model" ? "Unloading model" : "Checking local models",
       notice: state.providerDiscovery.retrying
         ? "Sam is waiting for its model inventory and will retry shortly."
         : state.startupLifecycle === "loading_model"
           ? `Loading ${state.pendingModel ?? "a local model"}…`
-          : "Checking available local services and conversational models…",
+          : state.startupLifecycle === "unloading_model"
+            ? `Unloading ${state.pendingModel ?? "the active model"}…`
+            : "Checking available local services and conversational models…",
       limitations: [],
     };
   }

@@ -619,6 +619,30 @@ def _print_doctor(report: dict[str, object], *, verbose: bool = False) -> None:
     print(f"Authorized roots: {', '.join(report['authorized_roots'])}")
 
 
+async def _unload_selected_model(discoveries, provider_id: str, model_id: str):
+    """Explicit authenticated owner request; never stops the external service."""
+    from sam_ambient.adapters.local_discovery import CleanupStatus, unload_owned_model
+    from sam_ambient.runtime import ProviderRefresh
+
+    service = next(
+        (s for d in reversed(discoveries) for s in d.services if s.id == provider_id), None
+    )
+    if service is None or service.id != "lm-studio":
+        raise RuntimeError("Provider has no supported owner unload operation")
+    outcome = await unload_owned_model(service, model_id)
+    if outcome.status is not CleanupStatus.SUCCEEDED:
+        raise RuntimeError("Could not confirm requested model unload")
+    for discovery in discoveries:
+        for entry in discovery.services:
+            if entry.id == provider_id:
+                entry.models_loaded_by_sam = [
+                    m for m in entry.models_loaded_by_sam if m != model_id
+                ]
+    return ProviderRefresh(
+        None, None, "Owner model unload confirmed", tuple(discoveries[-1].to_dict()["providers"])
+    )
+
+
 async def run_runtime(args: argparse.Namespace) -> int:
     args.state_db = args.state_db or str(Path(args.root) / ".sam/state.db")
     provider, model, discovery = await discover_provider(args, bootstrap=False)
@@ -685,9 +709,26 @@ async def run_runtime(args: argparse.Namespace) -> int:
             discoveries.append(refreshed)
         return ProviderRefresh(refreshed_provider, refreshed_model, reason, catalog)
 
+    async def unload(provider_id: str, model_id: str):
+        result = await _unload_selected_model(discoveries, provider_id, model_id)
+        if ownership_store is not None:
+            ownership["lm_studio_models"] = [
+                m for m in ownership.get("lm_studio_models", []) if m != model_id
+            ]
+            ownership_store.remember_instance_resource_ownership(
+                args.application_instance_id, ownership
+            )
+        return result
+
     try:
         lifecycle_intent, effective_policy = await _serve_runtime(
-            args, provider, model, discovery, refresh, runtime_observer=runtime_holder.append
+            args,
+            provider,
+            model,
+            discovery,
+            refresh,
+            runtime_observer=runtime_holder.append,
+            provider_unloader=unload,
         )
         lifecycle_policy = CleanupPolicy(
             str(effective_policy["model_on_exit"]),
@@ -718,6 +759,7 @@ async def _serve_runtime(
     discovery: Discovery | None,
     provider_refresher=None,
     runtime_observer=None,
+    provider_unloader=None,
 ) -> tuple[LifecycleIntent, dict[str, object]]:
     from sam_ambient.adapters.mcp import McpClient, McpError
 
@@ -806,6 +848,7 @@ async def _serve_runtime(
         tts=tts,
         audio_output=output,
         provider_refresher=provider_refresher,
+        provider_unloader=provider_unloader,
         owner_session=owner_session,
     )
     mcp_clients: list[McpClient] = []

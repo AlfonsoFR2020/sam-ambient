@@ -232,6 +232,13 @@ are separate release gates. Browser and Chromium app-window modes remain support
 
 ## Configuration and readiness
 
+Core Experience V adds `control.model.unload` at the authenticated local-control
+boundary, naming the exact idle route. LM Studio reuses inventory-verified unload;
+the runtime fences generation until terminal, preserves desired identity and reports
+unloading/unloaded independently from active. Reload uses existing exact selection.
+An explicit owner unload never grants service/process ownership; conditional Quit
+cleanup retains its existing rule. No named profile or automatic swapping is added.
+
 `SamSettings` is the validated, versioned user-intent boundary. Standard-library
 TOML loading merges safe defaults, per-user and workspace files, bounded `SAM_*`
 environment overrides, then options explicitly present on the CLI. The same
