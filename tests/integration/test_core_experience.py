@@ -140,6 +140,8 @@ async def core_experience_scenario(root: Path, language="es"):
     snapshots = [Discovery([service], service, "chat", "synthetic bootstrap")]
 
     async def refresh(_provider, _model):
+        service.models = ["chat"]
+        service.models_loaded_by_sam = ["chat"]
         return ProviderRefresh(
             provider,
             "chat",
@@ -149,6 +151,25 @@ async def core_experience_scenario(root: Path, language="es"):
                     "id": provider.id,
                     "running": True,
                     "models": ["chat"],
+                    "installed_models": ["chat"],
+                    "detail": "ready",
+                },
+            ),
+        )
+
+    async def unload(_provider, _model):
+        assert _provider == provider.id and _model == "chat"
+        service.models.clear()
+        service.models_loaded_by_sam.clear()
+        return ProviderRefresh(
+            None,
+            None,
+            "confirmed owner unload",
+            (
+                {
+                    "id": provider.id,
+                    "running": True,
+                    "models": [],
                     "installed_models": ["chat"],
                     "detail": "ready",
                 },
@@ -171,6 +192,7 @@ async def core_experience_scenario(root: Path, language="es"):
         tts=speech,
         audio_output=SoundDeviceOutput(AudioFormat(), stream_factory=output_factory),
         provider_refresher=refresh,
+        provider_unloader=unload,
         owner_session=owner,
     )
     records = []
@@ -212,6 +234,14 @@ async def core_experience_scenario(root: Path, language="es"):
                     ).to_json()
                 )
 
+            await until(lambda: runtime.voice_turns.state.value == "LISTENING")
+            await send(
+                ControlCommandType.RECOGNITION_LANGUAGE_SET,
+                "recognition-initial",
+                {"language": language},
+            )
+            await until(lambda: runtime.config.language == language)
+
             await send(
                 ControlCommandType.USER_MESSAGE_SUBMIT,
                 "typed-one",
@@ -233,6 +263,25 @@ async def core_experience_scenario(root: Path, language="es"):
                 for event in records
             )
             assert runtime.state.recent(limit=4)[-2].content == "Synthetic voice request."
+
+            await until(lambda: runtime.voice_turns.state.value == "LISTENING")
+            other_language = "en" if language == "es" else "es"
+            old_listen = runtime._voice_listen_token
+            await send(
+                ControlCommandType.RECOGNITION_LANGUAGE_SET,
+                "recognition-switch",
+                {"language": other_language},
+            )
+            await until(
+                lambda: (
+                    runtime.config.language == other_language
+                    and runtime._voice_listen_token is not old_listen
+                    and runtime.voice_turns.state.value == "LISTENING"
+                )
+            )
+            capture.utterances.put_nowait(True)
+            await until(lambda: len(provider.contexts) == 3 and runtime._active_done.is_set())
+            assert stt.contexts[-1].language == other_language
 
             stt.fail = True
             await until(
@@ -256,7 +305,7 @@ async def core_experience_scenario(root: Path, language="es"):
                 "typed-recovery",
                 {"text": "Typed recovery request."},
             )
-            await until(lambda: len(provider.contexts) == 3 and runtime._active_done.is_set())
+            await until(lambda: len(provider.contexts) == 4 and runtime._active_done.is_set())
             await send(ControlCommandType.PROVIDERS_RESCAN, "rescan-core")
             await until(
                 lambda: any(
@@ -265,10 +314,24 @@ async def core_experience_scenario(root: Path, language="es"):
                 )
             )
             assert runtime._model == "chat"
-            assert [item.role for item in runtime.state.recent(limit=6)] == [
+            assert [item.role for item in runtime.state.recent(limit=8)] == [
                 "user",
                 "assistant",
-            ] * 3
+            ] * 4
+            await send(
+                ControlCommandType.MODEL_UNLOAD,
+                "explicit-unload",
+                {"provider": provider.id, "model": "chat"},
+            )
+            await until(lambda: runtime._provider_phase == "unloaded")
+            assert runtime._model is None and runtime._desired_model == "chat"
+            await send(
+                ControlCommandType.MODEL_SELECT,
+                "exact-reload",
+                {"provider": provider.id, "model": "chat", "remember": False},
+            )
+            await until(lambda: runtime._model == "chat" and not runtime._provider_scan_active)
+            assert runtime.memory is not None
             await send(ControlCommandType.APPLICATION_QUIT, "quit-core")
             await until(runtime.shutdown_requested.is_set)
     finally:
@@ -309,7 +372,7 @@ async def core_experience_scenario(root: Path, language="es"):
 
 def test_composed_core_experience_and_shutdown(tmp_path):
     records = asyncio.run(core_experience_scenario(tmp_path))
-    assert sum(event["type"] == "model.completed" for event in records) == 3
+    assert sum(event["type"] == "model.completed" for event in records) == 4
 
 
 def test_core_restart_changes_recognition_language_without_stale_session_ownership(tmp_path):
@@ -322,7 +385,7 @@ def test_core_restart_changes_recognition_language_without_stale_session_ownersh
         # is newly authenticated and revoked in each scenario.
         assert english[0]["session_id"] == spanish[0]["session_id"]
         for records in (english, spanish):
-            assert sum(event["type"] == "model.completed" for event in records) == 3
+            assert sum(event["type"] == "model.completed" for event in records) == 4
             assert any(
                 event["type"] == EventType.CAPABILITY_AUTHORITY_CHANGED
                 and event["payload"].get("active") is False

@@ -69,6 +69,8 @@ test("composed core events preserve history, speech response and Controls throug
     "Sam",
     "You",
     "Sam",
+    "You",
+    "Sam",
   ]);
   await expect(history).toContainText("Synthetic voice request.");
   await expect(history).toContainText("Typed recovery request.");

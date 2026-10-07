@@ -1,6 +1,7 @@
 """Freeze tiny scalar-only fixtures from the opt-in installed speech gates."""
 
 import json
+from datetime import date
 from pathlib import Path
 
 
@@ -27,7 +28,7 @@ def export():
             ]
             output[language] = bounded_levels(rows)
     fixture = {
-        "provenance": "2026-10-01 installed Hazel/Helena PCM; runtime TTS meters "
+        "provenance": f"{date.today().isoformat()} installed Hazel/Helena PCM; runtime TTS meters "
         "and paced capture/VAD meters; no audio",
         "output": output,
         "input": {report["language"]: bounded_levels(report["input_levels"]) for report in voice},

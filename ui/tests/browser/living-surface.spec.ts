@@ -247,6 +247,7 @@ test("shared WebGL material visibly changes with fixed Orb orientation and light
       { RENDER_BUDGETS },
       { DEFAULT_VISUAL_ENGINE_SETTINGS },
       { WebGLBackend },
+      { reduceProtocolEvent },
     ] = await Promise.all([
       import("../../src/protocol/types"),
       import("../../src/visual-engine/input"),
@@ -254,6 +255,7 @@ test("shared WebGL material visibly changes with fixed Orb orientation and light
       import("../../src/visual-engine/quality"),
       import("../../src/visual-engine/types"),
       import("../../src/visual-engine/webgl"),
+      import("../../src/state/reducer"),
     ]);
     const canvas = document.createElement("canvas");
     const gl = canvas.getContext("webgl2", { antialias: false, preserveDrawingBuffer: true });
@@ -273,6 +275,35 @@ test("shared WebGL material visibly changes with fixed Orb orientation and light
     for (let time = 100; time <= 6_000; time += 50)
       motion.evaluate(input, time, DEFAULT_VISUAL_ENGINE_SETTINGS, RENDER_BUDGETS.low);
     const last = motion.currentFrame;
+    const stoppedState = reduceProtocolEvent(INITIAL_UI_STATE, {
+      protocol: 1,
+      type: "control.acknowledged",
+      monotonic_ms: 1,
+      payload: {
+        visual_settings: {
+          quality: "auto",
+          device_profile: "auto",
+          intensity: 0.82,
+          motion_intensity: 0.6,
+          surface_flow: 0,
+          audio_reactivity: 0.7,
+          particle_density: 0.65,
+          reduced_motion: "off",
+        },
+      },
+    });
+    const stoppedSettings = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, ...stoppedState.visualSettings };
+    const stoppedMotion = new MotionEvaluator(seed);
+    stoppedMotion.evaluate(input, 0, stoppedSettings, RENDER_BUDGETS.low);
+    for (let time = 100; time <= 6000; time += 50)
+      stoppedMotion.evaluate(input, time, stoppedSettings, RENDER_BUDGETS.low);
+    const frozen = {
+      ...first,
+      fieldPhase1: stoppedMotion.currentFrame.fieldPhase1,
+      fieldPhase2: stoppedMotion.currentFrame.fieldPhase2,
+      fieldTwist1: stoppedMotion.currentFrame.fieldTwist1,
+      fieldTwist2: stoppedMotion.currentFrame.fieldTwist2,
+    };
     // Keep orientation, relief breath, lighting and palette fixed: only field transport changes.
     const nextFrame = {
       ...first,
@@ -313,6 +344,8 @@ test("shared WebGL material visibly changes with fixed Orb orientation and light
     const afterFrame = read();
     current = second;
     const after = read();
+    current = frozen;
+    const stoppedPixels = read();
     let total = 0;
     let changed = 0;
     let frameTotal = 0;
@@ -344,6 +377,9 @@ test("shared WebGL material visibly changes with fixed Orb orientation and light
       changedFraction: changed / count,
       count,
       error,
+      stoppedChannelDelta:
+        stoppedPixels.reduce((sum, value, index) => sum + Math.abs(value - before[index]), 0) /
+        before.length,
     };
   });
   console.info("Fixed-orientation material pixel change:", {
@@ -355,6 +391,7 @@ test("shared WebGL material visibly changes with fixed Orb orientation and light
   expect(result.count).toBeGreaterThan(2_000);
   expect(result.error).toBe(0);
   expect(result.meanChannelDelta).toBeGreaterThan(8);
+  expect(result.stoppedChannelDelta).toBe(0);
   expect(result.frameChannelDelta).toBeLessThan(3);
   expect(result.changedFraction).toBeGreaterThan(0.25);
 });

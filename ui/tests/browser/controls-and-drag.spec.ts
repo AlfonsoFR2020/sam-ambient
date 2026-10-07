@@ -7,6 +7,7 @@ async function openDemo(page: Page) {
 
 async function dragSlider(page: Page, name: string) {
   const slider = page.getByRole("slider", { name });
+  await slider.scrollIntoViewIfNeeded();
   const box = await slider.boundingBox();
   if (!box) throw new Error(`${name} is not visible`);
   const y = box.y + box.height / 2;

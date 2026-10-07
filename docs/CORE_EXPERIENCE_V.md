@@ -82,3 +82,42 @@ scrolling. Closing Controls restores history composition and reading position.
 Wide history/diagnostics separation and mutually exclusive Controls/diagnostics
 remain. STT readiness text no longer embeds a stale startup-language value;
 the separate live recognition preference is authoritative.
+
+## Composed everyday and installed speech evidence (2026-10-07)
+
+The simulator now uses one authenticated runtime with isolated real SQLite stores,
+paced continuous capture, ordinary text → voice → idle recognition switch → voice,
+injected STT failure → typed recovery, Rescan, confirmed owner unload → exact
+reload, and ordered authority/audio/store/provider cleanup. Its four answers retain
+clean roles/content; actual protocol events replay through frontend state and motion.
+
+Fresh installed System.Speech en→es→en→es selected Hazel/Helena (both inventory
+female), emitted 1,079 level events, peak envelope 0.3354, and correctly fell back
+from a missing preferred voice. PCM was discarded, never physically played/stored.
+Actual installed whisper.cpp/base + generated paced capture transcribed four en/es
+sentences with zero word/character errors in this **small confirmation subset**;
+edge words survived, failure → typed → voice re-entry passed. This does not replace
+the larger earlier baseline or establish owner accent/room quality.
+
+Fresh scalar-only measurements replay to fixed WebGL: en/es output pulse
+0.5295/0.4110, input response 0.3042/0.2669 with zero output imitation, radius-area
+gain 5,035/3,905 pixels and mean light gain 7.99/6.18. Half output magnitude gives
+half the pulse; zero reactivity gives zero modulation; silence decays below 1e-7.
+Ordinary RMS 0.04 adds radius 0.0172; emphasis pulse rises 0.2123→0.4449. No gains
+needed adjustment. Four draws/noise samples and existing tier geometry stay unchanged.
+
+Fixed high-tier membrane changes 3,317 body pixels and adds 765 lifted coverage
+samples. Shared tint agreement 0.9854, light spatial deviation 15.04 and palette
+delta 6.68 demonstrate coherent material/separation/local evolution, not aesthetic
+acceptance. At fixed orientation/light, six-second material mean change 29.57,
+changed fraction 0.832 versus adjacent-frame change 1.20; acknowledged Surface Flow
+zero gives identical isolated material pixels. All tiers compile without GL errors.
+Existing geometry/normal, particle 12/24/40 visibility, pointer-hold and Reduced Motion
+tests remain the technical form/density boundary; no new artistic design is inferred.
+
+The bounded Chrome gate passed 17 cases after correcting two test assumptions:
+sliders must be scrolled into view before pointer drag in the taller Controls;
+reduced-motion protocol values are enum strings, not booleans. Those corrections
+required no product gain/shader changes. Defaults remain intensity .82, Motion .6,
+Flow .6, Audio Reactivity .7, Particle amount .6, auto quality/profile and system
+Reduced Motion. Legacy Flow migration inherits saved Motion; no blanket reset.
