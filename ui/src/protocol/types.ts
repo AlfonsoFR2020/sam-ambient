@@ -47,6 +47,7 @@ export const CONTROL_COMMAND_TYPES = [
   "control.model.unload",
   "control.visual_settings.set",
   "control.audio_settings.set",
+  "control.recognition_language.set",
   "control.lifecycle_settings.set",
   "control.application.restart",
   "control.application.quit",
@@ -171,6 +172,7 @@ export interface UiState {
     model?: string;
   };
   sttStatus?: string;
+  recognitionLanguage?: string;
   voiceInputHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };
   sttHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };
   synthesisHealth?: { status: "healthy" | "degraded"; reason?: string; retrying: boolean };

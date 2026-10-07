@@ -114,6 +114,10 @@ language voice; nothing is installed automatically. INFO logs report the request
 language, selected voice/locale and fallback reason. eSpeak receives the requested
 language; no cloud TTS service is connected.
 
+**Conversation → Recognition language** saves Automatic / English / Spanish
+locally. Change it while idle; an utterance or response in progress blocks changes.
+The saved owner choice takes precedence over the launch default on later sessions.
+Other language codes remain available through source configuration.
 Recognition is independently configured: `[voice] stt_language = "es"` or `"en"`
 forces that language through supervisor, capture/STT context and whisper.cpp.
 The equivalent source-launch option is `--stt-language es`; `SAM_STT_LANGUAGE`

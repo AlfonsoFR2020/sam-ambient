@@ -57,6 +57,7 @@ test("Controls tabs retain their settings and particle amount reaches the render
   await expect(controls.getByText("Quality", { exact: true })).toBeVisible();
   await expect(controls.getByText("Performance profile", { exact: true })).toBeVisible();
   await controls.getByRole("button", { name: "Conversation" }).click();
+  await expect(controls.getByRole("combobox", { name: "Recognition language" })).toBeVisible();
   await expect(controls.getByRole("slider", { name: "Microphone sensitivity" })).toBeVisible();
   await expect(controls.getByRole("slider", { name: "Output volume" })).toBeVisible();
   await controls.getByRole("button", { name: "System" }).click();

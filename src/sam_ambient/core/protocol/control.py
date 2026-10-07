@@ -55,6 +55,7 @@ class CoreControlBindings:
     request_shutdown: Callable[[ControlCommand], Awaitable[None]] | None = None
     set_visual_settings: SetVisualSettings | None = None
     set_audio_settings: SetAudioSettings | None = None
+    set_recognition_language: Callable[[str], Awaitable[Mapping[str, object]]] | None = None
     set_lifecycle_settings: SetLifecycleSettings | None = None
     execute_local_control: ExecuteLocalControl | None = None
     execute_capability: Callable[[ControlCommand, OwnerConnection], Awaitable[None]] | None = None
@@ -251,6 +252,18 @@ class ControlDispatcher:
             if self._bindings.set_audio_settings is None:
                 raise RuntimeError("Audio settings are unavailable")
             payload.update(await self._bindings.set_audio_settings(command.payload))
+        elif command_type is ControlCommandType.RECOGNITION_LANGUAGE_SET:
+            if set(command.payload) != {"language"} or command.payload["language"] not in (
+                "auto",
+                "en",
+                "es",
+            ):
+                raise ValueError("Recognition mode must be Automatic, English or Spanish")
+            if self._bindings.set_recognition_language is None:
+                raise RuntimeError("Recognition mode is unavailable")
+            payload.update(
+                await self._bindings.set_recognition_language(command.payload["language"])
+            )
         elif command_type is ControlCommandType.LIFECYCLE_SETTINGS_SET:
             if self._bindings.set_lifecycle_settings is None:
                 raise RuntimeError("Lifecycle settings are unavailable")

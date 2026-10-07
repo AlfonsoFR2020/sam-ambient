@@ -67,6 +67,7 @@ class ControlCommandType(StrEnum):
     MODEL_UNLOAD = "control.model.unload"
     VISUAL_SETTINGS_SET = "control.visual_settings.set"
     AUDIO_SETTINGS_SET = "control.audio_settings.set"
+    RECOGNITION_LANGUAGE_SET = "control.recognition_language.set"
     LIFECYCLE_SETTINGS_SET = "control.lifecycle_settings.set"
     APPLICATION_RESTART = "control.application.restart"
     APPLICATION_QUIT = "control.application.quit"

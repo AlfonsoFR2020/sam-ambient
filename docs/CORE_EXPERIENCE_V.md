@@ -55,3 +55,20 @@ explicit unload retires that model's automatic-cleanup ownership record.
 Fake tests cover active-generation block, failure recovery, deduplication,
 superseded late completion and typed progress after reload; Chrome covers actual
 Controls phases, reload selection and stale terminal rejection.
+
+## Recognition discoverability
+
+Conversation now exposes Automatic / English / Spanish recognition. This is a
+saved owner preference through the authenticated command channel, not parsing a
+diagnostic string. Explicit modes reach the next actual STT stream; changing an
+idle listener cancels/recreates its capture context. A speaking/transcribing
+utterance or active response blocks the change rather than losing audio. Invalid
+values are rejected. TOML/environment may still configure other supported codes;
+the UI displays that configured code honestly. Existing installed TTS persona
+selection remains automatic and its effective voice/fallback remains visible;
+no voice downloads or new artistic voice controls were introduced.
+
+Focused validation: 29 Python checks (including paced bilingual sequence),
+51 frontend command/reducer checks, TypeScript, changed-file Ruff/Biome. A real
+pipeline regression switches idle capture Spanish → English in one runtime and
+verifies the next STT contexts, plus restart persistence and mid-utterance rejection.

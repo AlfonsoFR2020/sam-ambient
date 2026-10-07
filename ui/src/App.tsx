@@ -842,6 +842,41 @@ export default function App() {
               <dl className="controls__speech-status" aria-label="Current speech status">
                 <SpeechStatusFields state={state} />
               </dl>
+              <label
+                className="visual-setting"
+                title="Automatic detection, or force English/Spanish decoding. Applies while idle; preference is saved locally."
+              >
+                <span>Recognition language</span>
+                <select
+                  aria-label="Recognition language"
+                  value={state.recognitionLanguage ?? ""}
+                  disabled={
+                    pending ||
+                    state.connection !== "connected" ||
+                    !["IDLE", "LISTENING", "OFFLINE", "ERROR"].includes(state.conversationalState)
+                  }
+                  onChange={(event) =>
+                    applyAction({
+                      type: "recognition_language.set",
+                      language: event.currentTarget.value as "auto" | "en" | "es",
+                    })
+                  }
+                >
+                  {!state.recognitionLanguage && <option value="">Waiting for readiness</option>}
+                  {state.recognitionLanguage &&
+                    !["auto", "en", "es"].includes(state.recognitionLanguage) && (
+                      <option value={state.recognitionLanguage}>
+                        Configured: {state.recognitionLanguage}
+                      </option>
+                    )}
+                  <option value="auto">Automatic detection</option>
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                </select>
+                <small>
+                  Change while idle. Explicit English/Spanish disables automatic language guessing.
+                </small>
+              </label>
               <form
                 className="controls__request"
                 onSubmit={(event) => {

@@ -705,3 +705,10 @@ master specification are recorded here.
   Failure, supersession, correlation and terminal guards preserve recovery.
 - Confirmed unload retires Sam's load-ownership entry. Automatic exit cleanup still
   applies only to Sam-owned resources; Rescan retains its existing bootstrap behavior.
+# D042 — idle owner recognition mode
+
+Core Experience V exposes existing Auto/en/es recognition through the authenticated
+owner command path. SQLite remembers an explicit owner choice over startup defaults;
+invalid data is ignored/rejected. Only idle capture may be replaced; an ongoing
+utterance/response must finish first. This does not change Whisper capacity or TTS
+persona selection. Effective voice and separate input/output health remain status.

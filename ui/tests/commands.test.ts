@@ -18,6 +18,29 @@ import { DEFAULT_VISUAL_ENGINE_SETTINGS } from "../src/visual-engine/types";
 const runtime = { nowMs: () => 123, nextId: () => "command-1" };
 
 describe("control command protocol", () => {
+  it("recognition preference uses an exact typed owner command and acknowledged state", () => {
+    const command = commandForAction(
+      { type: "recognition_language.set", language: "es" },
+      INITIAL_UI_STATE,
+      runtime,
+    );
+    expect(command?.type).toBe("control.recognition_language.set");
+    expect(command?.payload).toEqual({ language: "es" });
+    const ready = reduceProtocolEvent(resetUiState(), {
+      protocol: 1,
+      type: "system.ready",
+      monotonic_ms: 1,
+      payload: { recognition_language: "auto" },
+    });
+    expect(ready.recognitionLanguage).toBe("auto");
+    const applied = reduceProtocolEvent(ready, {
+      protocol: 1,
+      type: "control.acknowledged",
+      monotonic_ms: 2,
+      payload: { recognition_language: "es" },
+    });
+    expect(applied.recognitionLanguage).toBe("es");
+  });
   it("keeps speech-input retry visible after an unrelated diagnostic replaces its reason", () => {
     const health = (component: string, state: "degraded" | "healthy", at: number) => ({
       protocol: 1 as const,

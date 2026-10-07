@@ -25,7 +25,7 @@ export interface DemoStep {
 }
 
 const firstConnection: DemoStep[] = [
-  { afterMs: 0, event: event("system.ready", 0, { state: "IDLE" }) },
+  { afterMs: 0, event: event("system.ready", 0, { state: "IDLE", recognition_language: "auto" }) },
   { afterMs: 800, event: event("voice.state_changed", 800, { from: "IDLE", to: "LISTENING" }) },
   {
     afterMs: 1200,
@@ -270,6 +270,9 @@ export class DemoTransport implements ProtocolTransport {
               : {}),
             ...(command.type === "control.tts_output.set"
               ? { tts_output_enabled: command.payload.enabled }
+              : {}),
+            ...(command.type === "control.recognition_language.set"
+              ? { recognition_language: command.payload.language }
               : {}),
           }),
         );

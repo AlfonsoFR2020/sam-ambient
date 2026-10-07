@@ -12,7 +12,7 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
   inventory/server state; CLI dispatch success alone is insufficient.
   [Cold readiness](COLD_PROVIDER_RECOVERY.md) classifies inventory outcomes and
   bounds transient retries; exact intent, cancellation and stale-result gates pass.
-- Explicit `voice.stt_language` reaches local STT; [real generated bilingual STT](SPEECH_BASELINE_2026-10-01.md)
+- Persisted Controls recognition mode and explicit `voice.stt_language` reach STT; [generated bilingual STT](SPEECH_BASELINE_2026-10-01.md)
   has 7.95%/8.75% literal WER and intact 250 ms sentence pauses. Physical quality is unaccepted.
 - System.Speech defaults to an installed cross-language persona, honoring explicit
   voice preference and reporting fallbacks. First PCM reports effective selection

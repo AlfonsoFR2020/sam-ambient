@@ -154,6 +154,24 @@ class SQLiteSessionStore:
         except (sqlite3.DatabaseError, ValueError, TypeError):
             return None
 
+    def recognition_language(self) -> str | None:
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT value FROM runtime_metadata WHERE key='recognition_language'"
+                ).fetchone()
+            return row[0] if row and row[0] in {"auto", "en", "es"} else None
+        except sqlite3.DatabaseError:
+            return None
+
+    def remember_recognition_language(self, language: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """INSERT OR REPLACE INTO runtime_metadata(key,value)
+                   VALUES ('recognition_language',?)""",
+                (language,),
+            )
+
     def remember_lifecycle_preferences(self, value: dict[str, object]) -> None:
         with self._connect() as connection:
             connection.execute(

@@ -44,6 +44,7 @@ export type ControlAction =
   | { type: "brightness.set"; value: number }
   | { type: "visual_settings.set"; settings: VisualEngineSettings }
   | { type: "audio_settings.set"; inputGain: number; outputGain: number }
+  | { type: "recognition_language.set"; language: "auto" | "en" | "es" }
   | {
       type: "lifecycle_settings.set";
       modelOnExit: "keep" | "unload_if_sam_loaded";
@@ -121,6 +122,14 @@ export function commandForAction(
     return createControlCommand(
       "control.audio_settings.set",
       { input_gain: action.inputGain, output_gain: action.outputGain },
+      state,
+      runtime,
+    );
+  }
+  if (action.type === "recognition_language.set") {
+    return createControlCommand(
+      "control.recognition_language.set",
+      { language: action.language },
       state,
       runtime,
     );

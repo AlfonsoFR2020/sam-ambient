@@ -544,6 +544,8 @@ class SamRuntime:
         self._model_unavailable_reason = config.model_unavailable_reason
         self.config = config
         self.state = SQLiteSessionStore(config.state_db) if config.state_db is not None else None
+        if self.state is not None and (language := self.state.recognition_language()) is not None:
+            self.config = replace(config, language=language)
         self._visual_settings = dict(config.visual_settings)
         self._audio_settings = dict(config.audio_settings)
         self._lifecycle_settings = dict(config.lifecycle_settings)
@@ -706,6 +708,7 @@ class SamRuntime:
                 request_shutdown=self._request_shutdown,
                 set_visual_settings=self._set_visual_settings,
                 set_audio_settings=self._set_audio_settings,
+                set_recognition_language=self._set_recognition_language,
                 set_lifecycle_settings=self._set_lifecycle_settings,
                 execute_local_control=self.execute_local_control,
                 execute_capability=self._execute_owner_action,
@@ -904,6 +907,23 @@ class SamRuntime:
         if self.state is not None:
             self.state.remember_audio_preferences(settings)
         return {"audio_settings": settings}
+
+    async def _set_recognition_language(self, language: str) -> Mapping[str, object]:
+        if not self._active_done.is_set() or self.voice_turns.state not in {
+            VoiceState.IDLE,
+            VoiceState.LISTENING,
+            VoiceState.ERROR,
+            VoiceState.OFFLINE,
+        }:
+            raise RuntimeError(
+                "Wait for the current utterance or response before changing language"
+            )
+        if self.state is not None:
+            self.state.remember_recognition_language(language)
+        self.config = replace(self.config, language=language)
+        if self._voice_listen_token is not None:
+            self._voice_listen_token.cancel("recognition_language_changed")
+        return {"recognition_language": language}
 
     async def _set_lifecycle_settings(self, value: Mapping[str, object]) -> Mapping[str, object]:
         settings = _validated_lifecycle_settings(value)
@@ -3094,6 +3114,7 @@ class SamRuntime:
                 "provider_catalog": list(self._provider_catalog),
                 "model_unavailable_reason": self._model_unavailable_reason,
                 "stt_status": self.config.stt_status,
+                "recognition_language": self.config.language,
                 "tts_backend": getattr(
                     self.tts, "backend_id", "configured" if self.tts else "disabled/unavailable"
                 ),

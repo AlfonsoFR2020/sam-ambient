@@ -495,6 +495,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       desiredModel: boundedText(event.payload.desired_model, 256),
       selectionReason: boundedText(event.payload.selection_reason, 500),
       sttStatus: boundedText(event.payload.stt_status, 500),
+      recognitionLanguage: boundedText(event.payload.recognition_language, 12),
       voiceInputHealth: startsNewSession ? undefined : next.voiceInputHealth,
       lastLocalControl: startsNewSession ? undefined : next.lastLocalControl,
       sttHealth: startsNewSession ? undefined : next.sttHealth,
@@ -1017,6 +1018,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         event.type === "control.acknowledged" && event.payload.application_restarting === true
           ? "starting"
           : next.startupLifecycle,
+      recognitionLanguage:
+        event.type === "control.acknowledged"
+          ? (boundedText(event.payload.recognition_language, 12) ?? next.recognitionLanguage)
+          : next.recognitionLanguage,
       visualSettings: visualSettings(event.payload.visual_settings) ?? next.visualSettings,
       audioSettings: audioSettings(event.payload.audio_settings) ?? next.audioSettings,
       lifecycleSettings:

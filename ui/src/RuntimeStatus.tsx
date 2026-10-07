@@ -12,6 +12,17 @@ export function SpeechStatusFields({ state }: { state: UiState }) {
           : (state.sttStatus ?? "Waiting for readiness")}
         {lastKnown}
       </dd>
+      <dt>Recognition mode</dt>
+      <dd>
+        {state.recognitionLanguage === "auto"
+          ? "Automatic language detection"
+          : state.recognitionLanguage === "es"
+            ? "Spanish (forced)"
+            : state.recognitionLanguage === "en"
+              ? "English (forced)"
+              : (state.recognitionLanguage ?? "Waiting for readiness")}
+        {lastKnown}
+      </dd>
       <dt>Microphone</dt>
       <dd>
         {state.voiceInputHealth?.status === "degraded"
