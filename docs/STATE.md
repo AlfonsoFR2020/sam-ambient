@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-10-01. This is current development truth, not a release acceptance claim.
+Updated: 2026-10-07. This is current development truth, not a release acceptance claim.
 Historical implementation/release detail remains in [changelog](../CHANGELOG.md),
 [architecture](ARCHITECTURE.md), [decisions](DECISIONS.md) and specialist evidence.
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
@@ -31,7 +31,6 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
   preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
   and Sam-loaded unload passed. Reused serving remained; broader hosts are unverified.
   Actual en/es synthesis/meters reach fixed WebGL without physical playback.
-
 - v0.2.3 is published. Its commit/tag/public wheel and sdist are unchanged by these
   post-release repairs. The unsigned Windows development installer remains withheld.
 - Windows-first development; Linux compatibility/native CI has a documented deferred
@@ -145,10 +144,11 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 - Local speech uses PortAudio/WebRTC VAD/whisper.cpp and System.Speech on Windows
   (eSpeak fallback on supported Linux). Raw audio is not persisted; missing speech
   components degrade to text. Physical timing/device recovery is not broadly accepted.
-- The lightweight [AEC probe](AEC_PROTOTYPE_2026-09-30.md) and optional
-  [Windows filter probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) fail the echo gate.
+- The [lightweight](AEC_PROTOTYPE_2026-09-30.md) and
+  [Windows filter](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) probes fail the echo gate.
   Windows near-end preservation passes; runtime AEC/early barge-in remain absent.
-  Next acoustic step is a separately maintained pinned full upstream APM build/probe.
+  [Full M153 APM](AEC_FULL_APM_GATE_2026-10-07.md) is now probed through a pinned
+  DLL/small ABI: onset suppression versus linear delay-recovery gates still fail.
 
 See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 
@@ -194,7 +194,7 @@ real provider/hardware/human evidence. Exact counts are recorded in the memory d
 No new dependencies, provider/audio models or published-release metadata were changed.
 
 The [core matrix](CORE_EXPERIENCE_ACCEPTANCE.md) separates I, II and III evidence;
-III's 127-Python / 89-frontend gate and two Chrome cases pass. [ROADMAP](ROADMAP.md)
-prioritizes representative timing and proven acoustic interruption after cold recovery;
+III's 127-Python / 89-frontend gate and two Chrome cases pass. IV-A adds 99 focused
+acoustic/voice tests, not engine acceptance. [ROADMAP](ROADMAP.md) retains basic repair;
 new capabilities remain parked. Automated visuals are not human perceptual acceptance.
 Human testing is scarce and reserved for a substantial integrated checkpoint; unavailable now.

@@ -14,7 +14,7 @@ review/provenance, bounded lexical retrieval/context, typed proposals and restar
 privacy/recovery simulation are implemented; [memory evidence](MEMORY_FOUNDATION_I.md).
 An existing LM Studio/Gemma owner-window structured workspace read, inert returned
 instructions and cancellation passed. No human memory/visual/audio acceptance is claimed.
-The acoustic prototype failed its integration gate. Prompt barge-in still requires
+The acoustic probes, including full M153 APM, fail their integration gate. Prompt barge-in requires
 a proven processor; it does not block improvements to the ordinary voice loop.
 The ordered basic-experience cards below supersede the former expansion queue.
 See [owner authority](OWNER_AUTHORITY.md) for the first agency checkpoint.
@@ -131,17 +131,19 @@ Do not reopen this as an unimplemented configuration or mock-only benchmark task
 - **Reasoning / quota:** Sol Medium; medium. Stop on missing hardware/timers; report
   limitations. **Human acceptance:** later speech pleasantness and natural embodied timing.
 
-### 2. Pinned upstream APM feasibility and falsifying processor probe
+### 2. Full-APM near-end onset and delay-recovery gate
 
 - **Objective / why after ordinary paths:** prompt full-duplex interruption is a basic
   requirement, but needs a proven processor rather than raw VAD or a lower threshold.
 - **Prerequisites:** [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md), the preserved
   [failed extraction probe](AEC_PROTOTYPE_2026-09-30.md), the later
   [failed Windows filter probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md), and verified
-  license/build provenance. Full upstream APM itself has not been tested.
-- **Scope:** establish one pinned maintainable full WebRTC APM artifact/build, then
-  replay unchanged echo/noise/double-talk/delay/reset gates. Separate build and
-  measurement checkpoints. **Non-scope:** production integration, a large WebRTC
+  license/build provenance. [IV-A full-APM evidence](AEC_FULL_APM_GATE_2026-10-07.md)
+  now supplies a working pinned DLL/local ABI and unchanged fixture results.
+- **Scope:** diagnose processed-output onset loss versus supported linear-output
+  delay recovery/cold VAD risk using that one upstream path and unchanged gates.
+  Verify any fix through the same echo/noise/double-talk/delay/reset cases, with
+  independently reproducible build ownership before adoption. **Non-scope:** production integration, a large WebRTC
   fork, lowering thresholds or repeating a DSP catalogue.
 - **Deliverable / validation:** binary pass/fail, near-end preservation/convergence,
   real-time cost and bounded memory/build implications. No physical success inferred.

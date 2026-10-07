@@ -1,0 +1,597 @@
+{
+  "baseline": "c6d34eae47f4db32ae2d5d41821682283ee410ea",
+  "recorded": "2026-10-07",
+  "selected_for_runtime": false,
+  "fixture_source": "scripts/aec_prototype.py",
+  "publisher_release": "m153.8010.0.2",
+  "publisher_commit": "65f1b3b959d3aaff17bd6611418980f49a5af3b8",
+  "upstream_revision": "9ea5afcad008b940468c2a15aec339592cf5a935",
+  "package_sha256": "76085b8fc409cfadec17c0c58e3eea829370668f33e91fc93327f891e93692b1",
+  "upstream_dll_sha256": "15061610ffc7283a4f588899dcedb968cce575829194761d6b5c77ea114e4ba7",
+  "shim_bytes": 15872,
+  "configurations": {
+    "0": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 8.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 42.2383340145293,
+          "reduction_by_second_db": [
+            23.08673301930735,
+            27.267323560837518,
+            36.85664542443953,
+            41.903201479595715,
+            46.0242100727367,
+            47.99588931870149,
+            49.201758584188646,
+            50.51588668476954
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 40.06594198294646,
+          "reduction_by_second_db": [
+            21.34524806442212,
+            24.616644640540187,
+            34.47625148550803,
+            40.68042313319256,
+            43.849191247061,
+            45.393106870405965,
+            46.18108654347217,
+            47.796524219600585
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 39.69855303543609,
+          "reduction_by_second_db": [
+            21.692044887009207,
+            24.235547241929154,
+            33.45661831283485,
+            40.11144055735457,
+            44.38763040808609,
+            46.016026763137646,
+            46.43203371302221,
+            48.00634649561644
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 38.866726696555546,
+          "reduction_by_second_db": [
+            21.59656197786287,
+            23.316518936670647,
+            32.46222853367065,
+            39.20512641207261,
+            42.566843046325246,
+            45.58350702746236,
+            47.097584917040294,
+            48.11219652034047
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 23.404197432067896,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.2925559187978488,
+          "near_sdr_db": -6.113057924787047,
+          "pass": false
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.5225523125590494,
+          "near_sdr_db": -2.8781739182076835,
+          "pass": false
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 41.823165040516166,
+          "pass": true
+        }
+      ],
+      "processing_ms": {
+        "median": 0.041199999941454735,
+        "p95": 0.05449999939628469,
+        "max": 0.681800000165822
+      },
+      "separation_pass": false,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.84
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 0.6104912529960748,
+              "sdr_db": -1.9017295072691445
+            },
+            "1000": {
+              "gain": 0.5750434394733266,
+              "sdr_db": -2.7536834030868613
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 0.25392475841703227,
+              "sdr_db": -5.643190339853474
+            },
+            "1000": {
+              "gain": 0.2925559187978488,
+              "sdr_db": -6.113057924787047
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 0.08873451722264329,
+              "sdr_db": -10.01230525088082
+            },
+            "1000": {
+              "gain": 0.5225523125590494,
+              "sdr_db": -2.8781739182076835
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            21.34524806442212,
+            24.616644640540187,
+            34.47625148550803,
+            40.68042313319256,
+            6.223462374270142,
+            7.719576781907808,
+            41.41199322219955,
+            42.22888955477533
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 0,
+      "acoustic_gate_pass": false
+    },
+    "1": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 8.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 42.42330797885663,
+          "reduction_by_second_db": [
+            22.61650607874854,
+            26.840648414909566,
+            37.09113080365405,
+            42.330628345521774,
+            45.87320730674958,
+            47.77769854914058,
+            48.909765098563724,
+            50.20265224773866
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 39.585756961915806,
+          "reduction_by_second_db": [
+            21.63498023985997,
+            24.41571537499568,
+            33.91668268819065,
+            40.082412687218905,
+            43.79765975680531,
+            45.41627543720488,
+            46.116409107142225,
+            47.55531787472986
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 39.61793104515747,
+          "reduction_by_second_db": [
+            21.52865537126044,
+            23.743681205538234,
+            33.13086428356555,
+            40.90951573859763,
+            44.8739263546379,
+            46.094782409599176,
+            46.49034509509469,
+            47.83782713782063
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 39.619527252342685,
+          "reduction_by_second_db": [
+            21.49473138864404,
+            23.487745477806303,
+            33.25411378497512,
+            40.28286811790336,
+            43.15814731166864,
+            45.73300401428216,
+            47.05652068388537,
+            48.01274118337644
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 22.8006443008425,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.6112949850077141,
+          "near_sdr_db": 3.3806902038798126,
+          "pass": false
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.8703754049205604,
+          "near_sdr_db": 9.360445698430633,
+          "pass": true
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 42.25342978920703,
+          "pass": true
+        }
+      ],
+      "processing_ms": {
+        "median": 0.0411000000895001,
+        "p95": 0.05800500048280803,
+        "max": 0.8361000000149943
+      },
+      "separation_pass": false,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.84
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 1.0000046331795045,
+              "sdr_db": 68.55497273049986
+            },
+            "1000": {
+              "gain": 1.0000018725869084,
+              "sdr_db": 66.9492938143741
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 0.4641137594572705,
+              "sdr_db": 0.8707252904631597
+            },
+            "1000": {
+              "gain": 0.6112949850077141,
+              "sdr_db": 3.3806902038798126
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 0.1453814935441883,
+              "sdr_db": -5.875568978586489
+            },
+            "1000": {
+              "gain": 0.8703754049205604,
+              "sdr_db": 9.360445698430633
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            21.63498023985997,
+            24.41571537499568,
+            33.91668268819065,
+            40.082412687218905,
+            7.9658357641607545,
+            9.058879691400108,
+            41.84482178107109,
+            42.6563767152596
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 1,
+      "acoustic_gate_pass": false
+    },
+    "3": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 4.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 32.76146716669399,
+          "reduction_by_second_db": [
+            5.191680458727095,
+            18.577463935626803,
+            27.133163677849108,
+            33.85509835453202,
+            36.89613101822107,
+            38.211940615937934,
+            39.06549342062615,
+            40.27541911801025
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 29.959516381262056,
+          "reduction_by_second_db": [
+            2.1254289921256917,
+            14.693677444537666,
+            24.193126455233624,
+            31.49239841306835,
+            33.79086573401122,
+            35.3395889773013,
+            35.987730675981496,
+            37.386258964225235
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 30.146388284608513,
+          "reduction_by_second_db": [
+            2.4009305239353713,
+            14.270207586765357,
+            23.77094079962859,
+            31.890370427074394,
+            34.32813234671084,
+            35.735372440998624,
+            36.409856085445874,
+            37.77147198736931
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 30.49500300684514,
+          "reduction_by_second_db": [
+            2.612229361076277,
+            14.95064066583234,
+            24.383480797809185,
+            31.300313169354226,
+            33.37108384146433,
+            35.72877716376093,
+            36.36244684743048,
+            37.42191020454689
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 19.46427838253798,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.9986054041355472,
+          "near_sdr_db": 20.02725145626116,
+          "pass": true
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.9999261452682827,
+          "near_sdr_db": 30.335585591318672,
+          "pass": true
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 19.53042139557795,
+          "pass": false
+        }
+      ],
+      "processing_ms": {
+        "median": 0.041000000237545464,
+        "p95": 0.055504999681943376,
+        "max": 1.7035999999279738
+      },
+      "separation_pass": false,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.25,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.25,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.96
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 1.0000046331795045,
+              "sdr_db": 68.55497273049986
+            },
+            "1000": {
+              "gain": 1.0000018725869084,
+              "sdr_db": 66.9492938143741
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 0.9940540414580168,
+              "sdr_db": 17.951049541949576
+            },
+            "1000": {
+              "gain": 0.9986054041355472,
+              "sdr_db": 20.02725145626116
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "200": {
+              "gain": 1.0058896101792392,
+              "sdr_db": 18.36947334884175
+            },
+            "1000": {
+              "gain": 0.9999261452682827,
+              "sdr_db": 30.335585591318672
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            2.1254289921256917,
+            14.693677444537666,
+            24.193126455233624,
+            31.49239841306835,
+            0.8621172609330531,
+            2.8210581431821518,
+            16.80141972910412,
+            26.21629635426693
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 3,
+      "acoustic_gate_pass": false
+    }
+  },
+  "process_resource_observations": {
+    "before_library": {
+      "private_bytes": 799604736,
+      "working_set_bytes": 40259584,
+      "os_threads": 27
+    },
+    "after_create": {
+      "private_bytes": 799809536,
+      "working_set_bytes": 40366080,
+      "os_threads": 27
+    },
+    "after_8_seconds": {
+      "private_bytes": 799133696,
+      "working_set_bytes": 40468480,
+      "os_threads": 27
+    },
+    "after_10_reset_replays": {
+      "private_bytes": 799141888,
+      "working_set_bytes": 40484864,
+      "os_threads": 27
+    },
+    "after_close": {
+      "private_bytes": 799809536,
+      "working_set_bytes": 40484864,
+      "os_threads": 27
+    }
+  },
+  "source_spot_comparison": "Four core files matched the official pinned source after newline normalization; not a complete source audit or binary attestation."
+}

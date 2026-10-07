@@ -645,3 +645,21 @@ master specification are recorded here.
 - Diagnostics expose safe outcome classes/counts/attempts, never raw CLI/provider
   bodies or credentials. [Cold recovery](COLD_PROVIDER_RECOVERY.md) records tests
   and the real Gemma session; prior II CLI failure attribution remains unproven.
+
+## D-038 — Distinguish full-APM build feasibility from acoustic acceptance
+
+- **Accepted:** 2026-10-07. Keep the hash-pinned standalone full WebRTC M153 APM
+  experiment outside runtime. A small Sam C ABI compiles with existing MSVC/SDK;
+  vendor types and source stay outside the production voice boundary.
+- [Evidence](AEC_FULL_APM_GATE_2026-10-07.md): processed output strongly suppresses
+  fixed-delay echo but fails first-second near-end gain/SDR. Supported linear
+  output preserves onset but fails unchanged changed-delay rejection at 19.53 dB.
+  Warm existing-VAD separation does not override either acoustic failure; cold
+  residual speech detections also prevent treating VAD as ownership authority.
+- Next resolve the output/recovery trade-off on this pinned path and preserve
+  all gates. Do not lower thresholds, combine outputs without validation or
+  integrate a failed configuration. The existing TurnManager remains authoritative;
+  eventual processed evidence may stop delivery, never directly commit user text.
+- The independent young package's hash/source spot checks are not binary
+  attestation or guaranteed maintenance. Production redistribution needs an owned
+  reproducible build and all notices. Physical room acceptance remains unverified.

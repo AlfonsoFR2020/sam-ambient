@@ -4,7 +4,10 @@ Status: **architecture recommendation, not an implemented AEC feature** (2026-09
 
 Consolidation II [probed Windows filter-mode AEC](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md).
 Near-end preservation passes, echo rejection fails; early barge-in remains absent.
-Full upstream APM has not been measured and needs a separate pinned native build.
+The later [full upstream M153 APM gate](AEC_FULL_APM_GATE_2026-10-07.md) now
+has a pinned Windows binary and a locally compiled narrow ABI. Processed output
+rejects echo strongly but loses early near-end speech; supported linear output
+preserves onset but misses the unchanged changed-delay gate. No engine is selected.
 
 The first [offline Windows AEC3 probe](AEC_PROTOTYPE_2026-09-30.md) runs through
 an optional native binding but **fails the declared separation gate**. No runtime
@@ -41,7 +44,16 @@ The existing `webrtcvad-wheels` package is only VAD. It does **not** provide Web
 
 ## Smallest falsifying prototype and current result
 
-The isolated optional adapter and signal fixtures now exist; see the probe result above. It did not pass, so production alignment, 22.05 → 16 kHz output conversion and ownership/decision integration remain deferred. A later upstream adapter must replay the same declared cases before routing live Sam turns or adding UI controls. Verify its source/license, Windows build path, binary size and 10 ms frame/delay API. Retain playback-only leakage; delayed and attenuated leakage; leakage plus background noise; independent human-like speech over playback; speech starting just before playback ends; changing delay; cancellation/reset and a subsequent clean operation.
+The isolated optional adapters and unchanged signal fixtures now include the
+full upstream M153 APM comparison. Build/ABI feasibility is established for this
+probe, not a production packaging commitment. All tested output paths still fail
+at least one separation gate. Next diagnose onset suppression and linear-output
+delay recovery rather than repeating artifact discovery or integrating a failed
+processor. Production alignment, 22.05 → 16 kHz conversion and ownership/decision
+integration remain deferred. Retain playback-only leakage; delayed/attenuated
+leakage; noise; independent overlap; speech near playback end; changing delay;
+cancellation/reset and a subsequent clean operation. The original preferred
+integration contract remains conditional on a passing engine and owned build.
 
 **Pass:** echo-only fixtures never become confirmed user speech or stop playback; independent overlapping speech is preserved as intelligible near-end PCM with its onset/pre-roll and can produce a timely sustained decision before final STT; changing delay and reset do not contaminate a later operation; all buffers are bounded and no stale identity can commit. Measure elapsed simulated capture duration from onset to decision; the clear double-talk case should permit a decision around the one-second product target, not require end-of-utterance STT. Record processor latency and package cost. **Fail/stop:** false interruption, lost near-end onset, unbounded buffering, unstable delay handling, excessive native/build cost or incompatible licensing. Deterministic success is only a feasibility gate; one later bounded physical speaker/microphone check across representative devices is needed before claiming real acoustic reliability.
 

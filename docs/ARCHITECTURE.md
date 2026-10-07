@@ -169,7 +169,11 @@ by runtime audio, and no live reference buffer or early-interruption path exists
 The [Windows filter-mode probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) uses an
 optional authored C++/COM shim and the installed OS DSP, not PortAudio replacement.
 Its near-end gate passes, but echo reduction fails; it remains outside runtime.
-Full upstream APM requires a separately pinned native build before comparison.
+The [full upstream M153 APM comparison](AEC_FULL_APM_GATE_2026-10-07.md) uses
+a separate hash-pinned Windows library and Sam-authored C ABI. Processed output
+fails near-end onset preservation; linear output fails changed-delay recovery.
+It remains optional offline tooling, with no imports/dependencies in production
+voice. A passing engine and reproducible owned build still precede integration.
 
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. `dev` implements its
