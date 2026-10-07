@@ -162,7 +162,7 @@ See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
   embodiment have no human perceptual acceptance; low-power/full-app cost remains open.
 - Controls inventory is audited: Conversation, Appearance, Device, System, Diagnostics.
   particle_density persists and chooses a visible fraction of 12/24/40 tier counts;
-  Canvas has no particles. Dedicated flow/membrane/reactivity art controls remain deferred.
+  Canvas has no particles. Persisted Surface Flow separates transport from Motion.
 - Wide diagnostics/history occupy separate independently scrolling regions; constrained
   viewports use a bounded overlay. Current health/errors precede conversation, audio,
   collapsed renderer detail and bounded event history. No product settings moved there.

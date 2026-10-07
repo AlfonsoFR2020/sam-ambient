@@ -41,6 +41,7 @@ quality = "auto" # auto, low, medium, high
 device_profile = "auto" # auto, mobile_2020, low_power, desktop, high_end
 intensity = 0.82
 motion_intensity = 0.6
+surface_flow = 0.6 # Independent material transport; 0 pauses pigment, not body motion
 audio_reactivity = 0.7
 particle_density = 0.6
 reduced_motion = "system" # system, on, off

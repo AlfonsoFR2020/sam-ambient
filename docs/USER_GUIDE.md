@@ -200,13 +200,16 @@ normal `--ui-mode browser` tab does not stop Sam.
 - **Transcript**, **Reduced motion**, **Intensity**, and fullscreen are local
   presentation preferences, not permissions for the model.
 
-**Appearance** provides motion, visual intensity, audio reactivity, particle amount,
+**Appearance** provides motion, Surface Flow, visual intensity, audio reactivity, particle amount,
 reduced motion and fullscreen. **Device** provides quality and performance profile.
 **Particle amount** changes the visible share of particles in WebGL; the resolved
 quality tier caps the budget at 12, 24 or 40. The Canvas fallback has no particles.
 The Motion speed upper range is faster while its default is unchanged. It scales
 several autonomous motions; Sam internally slows surface circulation while you
-drag the Orb and eases it back afterward. There is no separate Surface Flow control yet.
+drag the Orb and eases it back afterward. **Surface Flow** separately moves and
+deforms pigment territories; zero pauses transport while breathing, lights and
+rotation continue. Default 60 retains the previous default circulation. Old saved
+settings inherit their prior Motion speed once; reduced motion freezes both.
 **2020 smartphone** deliberately
 uses Sam's low-power mobile budget even on a desktop; **Auto** starts conservatively
 and adapts only from measured render cost. These owner preferences survive interface

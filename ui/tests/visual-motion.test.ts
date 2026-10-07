@@ -45,6 +45,30 @@ const evaluateTwice = (input: VisualInputV1, seed = 12) => {
 };
 
 describe("continuous Visual Engine motion", () => {
+  it("Surface Flow pauses material transport independently from body motion and light", () => {
+    const input = visualInput("idle");
+    const frozen = new MotionEvaluator(42);
+    const flowing = new MotionEvaluator(42);
+    const slow = { ...DEFAULT_VISUAL_ENGINE_SETTINGS, surfaceFlow: 0 };
+    const fast = { ...slow, surfaceFlow: 1 };
+    const first = { ...frozen.evaluate(input, 0, slow, RENDER_BUDGETS.high) };
+    flowing.evaluate(input, 0, fast, RENDER_BUDGETS.high);
+    for (let ms = 50; ms <= 500; ms += 50) {
+      frozen.evaluate(input, ms, slow, RENDER_BUDGETS.high);
+      flowing.evaluate(input, ms, fast, RENDER_BUDGETS.high);
+    }
+    const a = frozen.evaluate(input, 500, slow, RENDER_BUDGETS.high);
+    const b = flowing.evaluate(input, 500, fast, RENDER_BUDGETS.high);
+    expect(a.fieldPhase1).toBe(first.fieldPhase1);
+    expect(b.fieldPhase1).not.toBe(first.fieldPhase1);
+    expect(a.spin).toBe(b.spin);
+    expect(a.spin).not.toBe(first.spin);
+    expect(a.breathPhase).toBe(b.breathPhase);
+    expect(a.lightPhase).toBe(b.lightPhase);
+    expect(a.paletteBalance).toBe(b.paletteBalance);
+    expect(a.paletteContrast).toBe(b.paletteContrast);
+  });
+
   it("defines distinct state targets without separate clips", () => {
     expect(STATE_TARGETS.listening.opening).toBeGreaterThan(STATE_TARGETS.idle.opening);
     expect(STATE_TARGETS.thinking.opening).toBeLessThan(STATE_TARGETS.idle.opening);

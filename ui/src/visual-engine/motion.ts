@@ -4,7 +4,7 @@ import type { AudioFeatures, VisualEngineSettings, VisualForeground, VisualInput
 
 const TWO_PI = Math.PI * 2;
 export const MAX_FRAME_DELTA_SECONDS = 0.05;
-/** Independent material clock; a future Surface Flow setting can scale this rate. */
+/** Independent material clock, scaled only by the owner's Surface Flow setting. */
 export const SURFACE_FLOW = Object.freeze({
   phaseA: 0.14,
   phaseB: -0.09,
@@ -438,15 +438,22 @@ export class MotionEvaluator {
     const inputResponse = inputPresence;
 
     const motion = spatiallyFrozen ? 0 : motionRateScale(settings.motionIntensity);
+    const flow = spatiallyFrozen ? 0 : motionRateScale(settings.surfaceFlow);
     const flowTarget = this.pointerHolding ? SURFACE_FLOW.pointerRate : 1;
     const flowTau = this.pointerHolding
       ? SURFACE_FLOW.pointerEaseSeconds
       : SURFACE_FLOW.releaseEaseSeconds;
     const flowResponse = 1 - Math.exp(-dt / flowTau);
     const surfaceFlowDelta =
-      motion * (flowTarget * dt + (this.surfaceFlowGate - flowTarget) * flowTau * flowResponse);
+      flow * (flowTarget * dt + (this.surfaceFlowGate - flowTarget) * flowTau * flowResponse);
     this.surfaceFlowGate += (flowTarget - this.surfaceFlowGate) * flowResponse;
-    const surfaceFlowRate = motion * this.surfaceFlowGate;
+    const surfaceFlowRate = flow * this.surfaceFlowGate;
+    if (dt > 0 && flow > 0) {
+      this.fieldPhase1 = wrap(this.fieldPhase1 + SURFACE_FLOW.phaseA * surfaceFlowDelta);
+      this.fieldPhase2 = wrap(this.fieldPhase2 + SURFACE_FLOW.phaseB * surfaceFlowDelta);
+      this.fieldTwistPhase1 = wrap(this.fieldTwistPhase1 + SURFACE_FLOW.shearA * surfaceFlowDelta);
+      this.fieldTwistPhase2 = wrap(this.fieldTwistPhase2 + SURFACE_FLOW.shearB * surfaceFlowDelta);
+    }
     if (dt > 0 && motion > 0) {
       const speedInfluence = 1 + Math.min(0.35, this.envelope * 0.3);
       this.spinPhase = wrap(this.spinPhase + this.spinSpeed * motion * dt);
@@ -459,10 +466,6 @@ export class MotionEvaluator {
           0.18 * (1 + this.ambientReactivity.current.particleDrift) * motion * dt,
       );
       this.particleDriftPhase = wrap(this.particleDriftPhase + 0.051 * motion * dt);
-      this.fieldPhase1 = wrap(this.fieldPhase1 + SURFACE_FLOW.phaseA * surfaceFlowDelta);
-      this.fieldPhase2 = wrap(this.fieldPhase2 + SURFACE_FLOW.phaseB * surfaceFlowDelta);
-      this.fieldTwistPhase1 = wrap(this.fieldTwistPhase1 + SURFACE_FLOW.shearA * surfaceFlowDelta);
-      this.fieldTwistPhase2 = wrap(this.fieldTwistPhase2 + SURFACE_FLOW.shearB * surfaceFlowDelta);
       this.palettePhase = wrap(this.palettePhase + PALETTE_EVOLUTION_RATE * motion * dt);
       this.paletteContrastPhase = wrap(
         this.paletteContrastPhase + PALETTE_CONTRAST_RATE * motion * dt,

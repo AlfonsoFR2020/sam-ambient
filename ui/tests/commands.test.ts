@@ -123,6 +123,7 @@ describe("control command protocol", () => {
           quality: "high",
           deviceProfile: "mobile_2020",
           motionIntensity: 0.2,
+          surfaceFlow: 0.9,
           particleDensity: 0.25,
         },
       },
@@ -135,6 +136,7 @@ describe("control command protocol", () => {
         quality: "high",
         device_profile: "mobile_2020",
         motion_intensity: 0.2,
+        surface_flow: 0.9,
         particle_density: 0.25,
       },
     });

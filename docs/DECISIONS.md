@@ -681,3 +681,15 @@ master specification are recorded here.
   before more algorithm tuning. No invasive DSP changes, owned build installation
   or runtime integration follows from this failed gate. Eventual acoustic evidence
   may stop speech delivery; only normal STT/TurnManager rules may commit user text.
+
+## D-040 — Persist one independent material-transport control
+
+- **Accepted:** 2026-10-07. Surface Flow is an ordinary Appearance control, using
+  the existing authenticated visual settings path, bounded 0–1 with default 0.6.
+  It scales shared body/membrane transport/shear, not rotation, breathing, lights,
+  particles, audio gains or palette clocks. Reduced motion freezes spatial phases.
+- Old configuration/runtime preferences without surface_flow inherit their previous
+  motion_intensity, preserving their material rate. Explicit values persist across
+  reload/restart. Defaults, shader samples, geometry and draw budgets remain unchanged.
+- No membrane/palette debug sliders: their durable material concepts still require
+  human acceptance of the existing composition before independent owner controls.

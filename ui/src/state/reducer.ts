@@ -164,6 +164,7 @@ const visualSettings = (value: unknown): UiState["visualSettings"] => {
   };
   const intensity = unit("intensity");
   const motionIntensity = unit("motion_intensity");
+  const surfaceFlow = item.surface_flow === undefined ? motionIntensity : unit("surface_flow");
   const audioReactivity = unit("audio_reactivity");
   const particleDensity = unit("particle_density");
   if (
@@ -172,6 +173,7 @@ const visualSettings = (value: unknown): UiState["visualSettings"] => {
     !["system", "on", "off"].includes(String(reducedMotion)) ||
     intensity === undefined ||
     motionIntensity === undefined ||
+    surfaceFlow === undefined ||
     audioReactivity === undefined ||
     particleDensity === undefined
   )
@@ -181,6 +183,7 @@ const visualSettings = (value: unknown): UiState["visualSettings"] => {
     deviceProfile: deviceProfile as NonNullable<UiState["visualSettings"]>["deviceProfile"],
     intensity,
     motionIntensity,
+    surfaceFlow,
     audioReactivity,
     particleDensity,
     reducedMotion: reducedMotion as NonNullable<UiState["visualSettings"]>["reducedMotion"],

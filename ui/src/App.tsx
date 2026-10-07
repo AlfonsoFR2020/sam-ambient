@@ -1091,13 +1091,27 @@ export default function App() {
                 <span>Motion speed</span>
                 <input
                   aria-label="Motion speed"
-                  title="Scales autonomous rotation, surface flow, peels, particles and breathing. The upper range is faster; 0 pauses autonomous motion."
+                  title="Scales autonomous rotation, peels, particles, breathing and lighting. Surface Flow separately controls material transport."
                   type="range"
                   min="0"
                   max="100"
                   value={Math.round(visualSettings.motionIntensity * 100)}
                   onChange={(event) =>
                     persistVisual({ motionIntensity: Number(event.currentTarget.value) / 100 })
+                  }
+                />
+              </label>
+              <label className="visual-setting">
+                <span>Surface Flow</span>
+                <input
+                  aria-label="Surface Flow"
+                  title="Moves and deforms the living pigment field only. Zero pauses transport; body motion and lighting continue. Pointer hold slows this flow."
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(visualSettings.surfaceFlow * 100)}
+                  onChange={(event) =>
+                    persistVisual({ surfaceFlow: Number(event.currentTarget.value) / 100 })
                   }
                 />
               </label>

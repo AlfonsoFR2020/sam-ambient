@@ -77,6 +77,11 @@ export function resolveVisualEngineSettings(
       value.audioReactivity,
       DEFAULT_VISUAL_ENGINE_SETTINGS.audioReactivity,
     ),
+    surfaceFlow: bounded(
+      "visual.surface_flow",
+      value.surfaceFlow,
+      DEFAULT_VISUAL_ENGINE_SETTINGS.surfaceFlow,
+    ),
     particleDensity: bounded(
       "visual.particle_density",
       value.particleDensity,

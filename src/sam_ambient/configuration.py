@@ -69,6 +69,7 @@ class VisualSettings:
     device_profile: str = "auto"
     intensity: float = 0.82
     motion_intensity: float = 0.6
+    surface_flow: float = 0.6
     audio_reactivity: float = 0.7
     particle_density: float = 0.6
     reduced_motion: str = "system"
@@ -130,6 +131,7 @@ _SCHEMA: dict[str, frozenset[str]] = {
             "device_profile",
             "intensity",
             "motion_intensity",
+            "surface_flow",
             "audio_reactivity",
             "particle_density",
             "reduced_motion",
@@ -421,6 +423,10 @@ def _build_settings(values: Mapping[str, Any], sources: tuple[Path, ...]) -> Sam
             ),
             intensity=_unit(visual.get("intensity", 0.82), "visual.intensity"),
             motion_intensity=_unit(visual.get("motion_intensity", 0.6), "visual.motion_intensity"),
+            surface_flow=_unit(
+                visual.get("surface_flow", visual.get("motion_intensity", 0.6)),
+                "visual.surface_flow",
+            ),
             audio_reactivity=_unit(visual.get("audio_reactivity", 0.7), "visual.audio_reactivity"),
             particle_density=_unit(visual.get("particle_density", 0.6), "visual.particle_density"),
             reduced_motion=_choice(

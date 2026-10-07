@@ -50,7 +50,7 @@ test("Controls tabs retain their settings and particle amount reaches the render
   await controls.getByRole("button", { name: "Appearance" }).click();
   for (const name of ["Visual intensity", "Motion speed", "Audio reactivity", "Particle amount"])
     await expect(controls.getByRole("slider", { name })).toBeVisible();
-  await expect(controls.getByText("Surface Flow", { exact: true })).toHaveCount(0);
+  await expect(controls.getByRole("slider", { name: "Surface Flow" })).toBeVisible();
   await controls.getByRole("slider", { name: "Particle amount" }).press("End");
   await expect(controls.getByRole("slider", { name: "Particle amount" })).toHaveValue("100");
   await controls.getByRole("button", { name: "Device" }).click();

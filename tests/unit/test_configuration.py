@@ -57,12 +57,30 @@ def test_missing_config_uses_safe_defaults_and_explicit_missing_fails(tmp_path):
     assert not settings.privacy.allow_cloud
     assert settings.visual.quality == "auto"
     assert settings.visual.device_profile == "auto"
+    assert settings.visual.surface_flow == 0.6
     assert settings.lifecycle.model_on_exit == "keep"
     assert settings.lifecycle.provider_on_exit == "keep"
     with pytest.raises(ConfigurationError, match="does not exist"):
         load_settings(
             project_root=tmp_path, explicit_path=tmp_path / "missing.toml", environment={}
         )
+
+
+def test_surface_flow_is_bounded_and_old_motion_preference_migrates(tmp_path):
+    config = tmp_path / "settings.toml"
+    _write(config, "[visual]\nmotion_intensity = 0.2\n")
+    assert (
+        load_settings(
+            project_root=tmp_path, explicit_path=config, environment={}
+        ).visual.surface_flow
+        == 0.2
+    )
+    _write(config, "[visual]\nmotion_intensity = 0.2\nsurface_flow = 0.9\n")
+    visual = load_settings(project_root=tmp_path, explicit_path=config, environment={}).visual
+    assert visual.motion_intensity == 0.2 and visual.surface_flow == 0.9
+    _write(config, "[visual]\nsurface_flow = 2\n")
+    with pytest.raises(ConfigurationError, match="surface_flow"):
+        load_settings(project_root=tmp_path, explicit_path=config, environment={})
 
 
 @pytest.mark.parametrize(

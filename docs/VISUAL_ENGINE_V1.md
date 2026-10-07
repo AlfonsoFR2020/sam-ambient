@@ -299,7 +299,9 @@ particleExcitation = sat(0.15 + 0.60*e(H))
 `stateWidth` is zero in v1; `stateRadius`, `stateGlow`, `stateOpening` and
 `stateAngularSpeed` come from section 6. Apply intensity to final emission and
 glow_intensity to halo emission, not geometry. Apply motion_intensity to all
-time-varying spatial excursions and speeds, but retain static state geometry.
+time-varying body/light excursions and speeds, but retain static state geometry.
+Material transport uses the separate persisted surface_flow rate; reduced motion
+still freezes both. Old saved settings without this key inherit motion_intensity.
 Reactivity zero removes measured audio modulation without removing idle motion.
 
 For unit direction `n`, define fixed seeded unit axes `a,b,c,d_i`:
@@ -507,6 +509,7 @@ quality = "auto"         # auto | low | medium | high
 device_profile = "auto"  # auto | mobile_2020 | low_power | desktop | high_end
 intensity = 0.82         # 0..1, overall emission scale
 motion_intensity = 0.6   # 0..1, scales spatial speeds/excursions
+surface_flow = 0.6       # 0..1, material transport/shear only
 audio_reactivity = 0.7   # 0..1, scales measured feature contribution
 particle_density = 0.6   # 0..1, scales preset particle count
 glow_intensity = 0.5     # 0..1, halo strength, not blur size

@@ -104,7 +104,11 @@ describe("protocol state reduction", () => {
       resetUiState(),
       event("system.ready", 1, { state: "IDLE", visual_settings: payload }),
     );
-    expect(state.visualSettings).toMatchObject({ quality: "high", deviceProfile: "mobile_2020" });
+    expect(state.visualSettings).toMatchObject({
+      quality: "high",
+      deviceProfile: "mobile_2020",
+      surfaceFlow: 0.4,
+    });
     state = reduceProtocolEvent(
       state,
       event("control.acknowledged", 2, {

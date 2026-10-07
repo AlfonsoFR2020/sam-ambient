@@ -99,6 +99,7 @@ export function commandForAction(
         device_profile: settings.deviceProfile,
         intensity: settings.intensity,
         motion_intensity: settings.motionIntensity,
+        surface_flow: settings.surfaceFlow,
         audio_reactivity: settings.audioReactivity,
         particle_density: settings.particleDensity,
         reduced_motion: settings.reducedMotion,

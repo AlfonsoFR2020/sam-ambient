@@ -206,7 +206,13 @@ _VISUAL_CHOICES = {
     "device_profile": {"auto", "mobile_2020", "low_power", "desktop", "high_end"},
     "reduced_motion": {"system", "on", "off"},
 }
-_VISUAL_UNITS = {"intensity", "motion_intensity", "audio_reactivity", "particle_density"}
+_VISUAL_UNITS = {
+    "intensity",
+    "motion_intensity",
+    "surface_flow",
+    "audio_reactivity",
+    "particle_density",
+}
 
 
 def _validated_audio_settings(value: Mapping[str, object]) -> dict[str, float]:
@@ -236,6 +242,9 @@ def _validated_lifecycle_settings(value: Mapping[str, object]) -> dict[str, str]
 
 
 def _validated_visual_settings(value: Mapping[str, object]) -> dict[str, object]:
+    # Older persisted/protocol settings used Motion for transport too. Preserve
+    # that rate once when the separate owner control is absent.
+    value = {"surface_flow": value.get("motion_intensity", 0.6), **value}
     if set(value) != {*_VISUAL_CHOICES, *_VISUAL_UNITS}:
         raise ValueError("visual settings must contain the supported fields exactly")
     result: dict[str, object] = {}
@@ -279,6 +288,7 @@ class RuntimeConfig:
             "device_profile": "auto",
             "intensity": 0.82,
             "motion_intensity": 0.6,
+            "surface_flow": 0.6,
             "audio_reactivity": 0.7,
             "particle_density": 0.6,
             "reduced_motion": "system",

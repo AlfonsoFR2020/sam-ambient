@@ -206,6 +206,7 @@ export interface UiState {
     deviceProfile: "auto" | "mobile_2020" | "low_power" | "desktop" | "high_end";
     intensity: number;
     motionIntensity: number;
+    surfaceFlow: number;
     audioReactivity: number;
     particleDensity: number;
     reducedMotion: "system" | "on" | "off";
