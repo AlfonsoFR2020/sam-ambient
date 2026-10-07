@@ -131,7 +131,7 @@ Do not reopen this as an unimplemented configuration or mock-only benchmark task
 - **Reasoning / quota:** Sol Medium; medium. Stop on missing hardware/timers; report
   limitations. **Human acceptance:** later speech pleasantness and natural embodied timing.
 
-### 2. Full-APM near-end onset and delay-recovery gate
+### 2. Acoustic timing/reference validity before further engine selection
 
 - **Objective / why after ordinary paths:** prompt full-duplex interruption is a basic
   requirement, but needs a proven processor rather than raw VAD or a lower threshold.
@@ -139,16 +139,20 @@ Do not reopen this as an unimplemented configuration or mock-only benchmark task
   [failed extraction probe](AEC_PROTOTYPE_2026-09-30.md), the later
   [failed Windows filter probe](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md), and verified
   license/build provenance. [IV-A full-APM evidence](AEC_FULL_APM_GATE_2026-10-07.md)
-  now supplies a working pinned DLL/local ABI and unchanged fixture results.
-- **Scope:** diagnose processed-output onset loss versus supported linear-output
-  delay recovery/cold VAD risk using that one upstream path and unchanged gates.
-  Verify any fix through the same echo/noise/double-talk/delay/reset cases, with
-  independently reproducible build ownership before adoption. **Non-scope:** production integration, a large WebRTC
-  fork, lowering thresholds or repeating a DSP catalogue.
-- **Deliverable / validation:** binary pass/fail, near-end preservation/convergence,
-  real-time cost and bounded memory/build implications. No physical success inferred.
+  supplies a working pinned DLL/local ABI. [IV-B diagnosis](AEC_APM_DIAGNOSIS_2026-10-07.md)
+  repairs known-delay separation but rejects public-stat ownership and spectral
+  diversity; no engine is selected.
+- **Scope:** establish observable render/capture timing, drift and reference validity
+  with deterministic discontinuity tests and a separately authorized bounded
+  non-human Windows device experiment. Characterize representative acoustic paths
+  before further APM tuning; no owner speech session is needed now.
+  **Non-scope:** runtime barge-in, DSP internals, repeated library surveys or lower gates.
+- **Deliverable / validation:** measured timing/reference contract and explicit unknowns,
+  followed by a separately bounded engine/ownership falsification task if justified.
+  Original echo/noise/onset/recovery gates remain; owned reproducible build precedes
+  adoption. No synthetic result implies physical success.
 - **Reasoning / quota:** Sol High; medium with an independent evidence commit. Stop
-  if the native subsystem becomes invasive or licensing/build maintenance is unclear.
+  if device timing is unavailable or a driver/native rewrite would be required.
   **Human acceptance:** none; failure remains useful evidence and blocks task 3.
 
 ### 3. Proven acoustic boundary and delivery-only early barge-in

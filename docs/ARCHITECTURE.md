@@ -171,7 +171,10 @@ optional authored C++/COM shim and the installed OS DSP, not PortAudio replaceme
 Its near-end gate passes, but echo reduction fails; it remains outside runtime.
 The [full upstream M153 APM comparison](AEC_FULL_APM_GATE_2026-10-07.md) uses
 a separate hash-pinned Windows library and Sam-authored C ABI. Processed output
-fails near-end onset preservation; linear output fails changed-delay recovery.
+fails near-end onset preservation; initial linear output fails changed-delay recovery.
+[IV-B](AEC_APM_DIAGNOSIS_2026-10-07.md) repairs known external-delay alignment,
+but public-statistics readiness plus linear VAD fails unannounced delay changes,
+and additional render spectra fail rejection. No ownership engine is selected.
 It remains optional offline tooling, with no imports/dependencies in production
 voice. A passing engine and reproducible owned build still precede integration.
 

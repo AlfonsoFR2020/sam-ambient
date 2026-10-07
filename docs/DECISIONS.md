@@ -663,3 +663,21 @@ master specification are recorded here.
 - The independent young package's hash/source spot checks are not binary
   attestation or guaranteed maintenance. Production redistribution needs an owned
   reproducible build and all notices. Physical room acceptance remains unverified.
+
+## D-039 — Acoustic separation and public ERLE are not ownership authority
+
+- **Accepted:** 2026-10-07. [IV-B evidence](AEC_APM_DIAGNOSIS_2026-10-07.md)
+  keeps the pinned full APM outside runtime. Public external-delay alignment
+  repairs the original linear recovery fixture without DSP edits or lower gates.
+- Fresh public ERLE/delay plus linear-output VAD falsely proposes human speech
+  after an unannounced echo delay change; genuine near-end onset can also disarm
+  that readiness candidate. Two additional render spectra fail separation.
+  Structural readiness tests and an original fixture pass do not override those
+  counterexamples. Neither processed nor linear output is selected.
+- Poll APM statistics during processing: its bounded reporter can return an old
+  queued snapshot when only read after a fixture. Public metrics remain smoothed
+  and do not expose a sufficient usable-filter/near-end authority verdict.
+- Preserve conservative interruption. Characterize real timing/reference validity
+  before more algorithm tuning. No invasive DSP changes, owned build installation
+  or runtime integration follows from this failed gate. Eventual acoustic evidence
+  may stop speech delivery; only normal STT/TurnManager rules may commit user text.

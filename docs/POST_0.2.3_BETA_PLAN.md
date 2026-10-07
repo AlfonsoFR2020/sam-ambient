@@ -21,6 +21,9 @@ failure, bounds retries and retains exact route intent; real automatic Gemma act
 two text turns, Rescan and owned-model unload passed. Serving was preserved according
 to ownership. This is new engineering evidence, not physical beta acceptance;
 ROADMAP owns priority and prompt acoustic interruption remains unsolved.
+[Full APM IV-B diagnosis](AEC_APM_DIAGNOSIS_2026-10-07.md) repairs an exact-delay
+synthetic separation case but fails ownership and spectral diversity. Public
+ERLE/VAD accepts hidden-delay echo; no processor is selected or integrated.
 The implemented repair status and current dependency order are maintained in
 [Roadmap](ROADMAP.md); this file preserves what the physical run falsified and
 the causal diagnosis, rather than treating every observation as a separate task.

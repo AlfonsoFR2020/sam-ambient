@@ -298,7 +298,7 @@ and limits. Other II rows remain unchanged. No new human acceptance is claimed.
 | STT configuration | Hard en/es versus auto reaches each actual stream | 36 installed base-model requests; explicit language makes one forced request | No new acceptance | No demonstrated wiring defect remains |
 | STT quality | Corpus scoring / edge-word / endpoint helpers, deterministic level/noise/silence | en 7.95% WER / 6.68% CER; es 8.75% / 5.30%; forced and auto equal; all auto languages correct | User Spanish quality remains unaccepted | Actual accent/room speech; base-model errors; no model download justified here |
 | TTS/persona | Preference/fallback/stale-generation protection | Actual en→es→en→es Hazel/Helena; first-PCM health matches adapter; missing preference falls back | Pleasantness/persona coherence unaccepted | Shared inventory gender is not proof of matching sound |
-| Interruption/barge-in | Conservative pinned candidates, full assistant text and typed recovery preserved; IV-A full-APM ABI/reset/VAD evidence | Prior probes and full M153 APM configurations fail unchanged gates; no early integration | Physical beta failed | Resolve APM onset/delay recovery, then proven-engine integration and physical double-talk |
+| Interruption/barge-in | Conservative pinned candidates, full assistant text and typed recovery preserved; IV-B known-delay separation passes, ownership/diversity fail | No production engine selected or early integration; public-stat readiness accepts hidden-delay echo | Physical beta failed | Timing/reference characterization, proven-engine ownership gate, then integration and physical double-talk |
 | Voice reactivity | Actual scalar meters replay through reducer/freshness/motion/WebGL; zero/expiry/input separation | Actual TTS and paced input produce events; en/es body/light response measurable | Naturalness/perceptibility unaccepted | Physical playback/visual timing; no artistic tuning here |
 | Orb/form | Existing high-tier geometry/normal/fixed-camera regressions retained | Isolated Chrome only | Revised form unaccepted | Perceptual softness; full-app/lower-power cost |
 | Membrane | Existing lift/shared pigment/depth coverage preserved | Isolated Chrome only | Revised living skin unaccepted | Physical appearance/perceptual edge quality |
@@ -323,6 +323,12 @@ stronger; processed output loses first-second near-end speech, while supported
 linear output preserves speech but misses changed-delay recovery (19.53 dB
 against >=20). Warm VAD discrimination passes but cold residual risk remains.
 No production engine selection, runtime integration or physical acceptance follows.
+
+[IV-B diagnosis](AEC_APM_DIAGNOSIS_2026-10-07.md) supersedes only the known-delay
+linear recovery result: external alignment passes the original separation gate,
+but public-stat readiness falsely accepts echo after a hidden delay change, and
+two additional render spectra fail rejection. Neither output is selected.
+No physical acceptance or runtime barge-in follows from the synthetic improvement.
 
 **Freeze line:** the ordinary generated speech loop, persona selection and signal
 connectivity now have real-backend evidence. Cold provider recovery has deterministic

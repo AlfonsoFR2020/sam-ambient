@@ -7,6 +7,11 @@ None of the three tested output configurations passes every unchanged acoustic
 gate. Runtime audio, TurnManager and conservative interruption are untouched.
 Physical room acceptance remains unavailable, not inferred from these fixtures.
 
+This is historical IV-A evidence. [IV-B diagnosis](AEC_APM_DIAGNOSIS_2026-10-07.md)
+subsequently repairs known-delay linear alignment, but rejects production
+selection after ownership and spectral-diversity counterexamples. Its next-task
+recommendation supersedes the historical diagnosis recommendation below.
+
 ## Artifact, provenance and build
 
 The experiment uses the complete standalone APM package from

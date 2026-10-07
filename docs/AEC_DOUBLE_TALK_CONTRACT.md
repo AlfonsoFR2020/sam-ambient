@@ -7,7 +7,11 @@ Near-end preservation passes, echo rejection fails; early barge-in remains absen
 The later [full upstream M153 APM gate](AEC_FULL_APM_GATE_2026-10-07.md) now
 has a pinned Windows binary and a locally compiled narrow ABI. Processed output
 rejects echo strongly but loses early near-end speech; supported linear output
-preserves onset but misses the unchanged changed-delay gate. No engine is selected.
+initially preserved onset but missed the unchanged changed-delay gate.
+[IV-B diagnosis](AEC_APM_DIAGNOSIS_2026-10-07.md) fixes the known-delay fixture
+using explicit external alignment, but fails ownership and spectral diversity:
+public ERLE/VAD can mistake an unreported delay change for human speech.
+No engine is selected; conservative production behavior remains.
 
 The first [offline Windows AEC3 probe](AEC_PROTOTYPE_2026-09-30.md) runs through
 an optional native binding but **fails the declared separation gate**. No runtime
@@ -46,10 +50,11 @@ The existing `webrtcvad-wheels` package is only VAD. It does **not** provide Web
 
 The isolated optional adapters and unchanged signal fixtures now include the
 full upstream M153 APM comparison. Build/ABI feasibility is established for this
-probe, not a production packaging commitment. All tested output paths still fail
-at least one separation gate. Next diagnose onset suppression and linear-output
-delay recovery rather than repeating artifact discovery or integrating a failed
-processor. Production alignment, 22.05 → 16 kHz conversion and ownership/decision
+probe, not a production packaging commitment. IV-B's external-delay linear mode
+passes the original separation fixture but fails broader diversity and ownership.
+Next characterize actual timing/reference validity before further processor
+tuning, rather than integrating a failed decision signal. Production alignment,
+22.05 → 16 kHz conversion and ownership/decision
 integration remain deferred. Retain playback-only leakage; delayed/attenuated
 leakage; noise; independent overlap; speech near playback end; changing delay;
 cancellation/reset and a subsequent clean operation. The original preferred
