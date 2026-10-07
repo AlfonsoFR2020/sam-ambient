@@ -147,8 +147,8 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 - The [lightweight](AEC_PROTOTYPE_2026-09-30.md) and
   [Windows filter](AEC_WINDOWS_FILTER_PROBE_2026-10-01.md) probes fail the echo gate.
   Windows near-end preservation passes; runtime AEC/early barge-in remain absent.
-  [Full M153 APM](AEC_FULL_APM_GATE_2026-10-07.md) is now probed through a pinned
-  DLL/small ABI: onset suppression versus linear delay-recovery gates still fail.
+  [Full APM IV-B](AEC_APM_DIAGNOSIS_2026-10-07.md) uses a pinned DLL/ABI: linear
+  external-delay passes original fixtures; safe readiness/diversity is unproven.
 
 See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 

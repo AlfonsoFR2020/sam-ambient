@@ -31,7 +31,7 @@ class FullApm:
     """One serialized owner; render precedes capture; reset recreates complete APM."""
 
     def __init__(self, dll: Path, package: Path, mode: int = 0) -> None:
-        if isinstance(mode, bool) or not isinstance(mode, int) or mode not in (0, 1, 2, 3):
+        if isinstance(mode, bool) or not isinstance(mode, int) or mode not in range(8):
             raise ValueError("unknown processing mode")
         self.mode = mode
         self.thread = threading.get_ident()
@@ -56,6 +56,11 @@ class FullApm:
         self.library.sam_apm_capture.restype = ctypes.c_int
         self.library.sam_apm_stats.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double)]
         self.library.sam_apm_stats.restype = ctypes.c_int
+        self.library.sam_apm_diagnostics.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_double),
+        ]
+        self.library.sam_apm_diagnostics.restype = ctypes.c_int
         self.handle = ctypes.c_void_p()
         self.reset()
 
@@ -111,6 +116,25 @@ class FullApm:
     def reset(self) -> None:
         self.close()
         self.check(self.library.sam_apm_create(ctypes.byref(self.handle), self.mode))
+
+    def diagnostics(self) -> dict[str, float | None]:
+        self.check_thread()
+        values = (ctypes.c_double * 5)()
+        self.check(self.library.sam_apm_diagnostics(self.handle, values))
+        return {
+            name: value if math.isfinite(value) else None
+            for name, value in zip(
+                (
+                    "erl_db",
+                    "divergent_fraction",
+                    "delay_median_ms",
+                    "delay_std_ms",
+                    "residual_recent_max",
+                ),
+                values,
+                strict=True,
+            )
+        }
 
     def close(self) -> None:
         self.check_thread()
@@ -179,7 +203,7 @@ def preservation_diagnostics(factory) -> dict[str, object]:
         try:
             segments = {}
             start = round(max(onset, 2) * RATE)
-            for milliseconds in (200, 1000):
+            for milliseconds in (50, 100, 200, 500, 1000):
                 size = RATE * milliseconds // 1000
                 desired = near[start : start + size]
                 received = output[start + latency : start + size + latency]
@@ -220,7 +244,7 @@ def main() -> int:
     parser.add_argument("--dll", type=Path, default=Path(".sam/full-apm/sam_full_apm.dll"))
     parser.add_argument("--package", type=Path, default=Path(".sam/full-apm/package"))
     parser.add_argument("--report", type=Path, default=Path(".sam/full-apm/result.json"))
-    parser.add_argument("--mode", type=int, choices=(0, 1, 2, 3), default=0)
+    parser.add_argument("--mode", type=int, choices=range(8), default=0)
     args = parser.parse_args()
     factory = lambda: FullApm(args.dll, args.package, args.mode)  # noqa: E731
     report = evaluate(factory)

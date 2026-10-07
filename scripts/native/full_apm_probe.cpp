@@ -21,13 +21,13 @@ struct Processor {
 
 extern "C" {
 __declspec(dllexport) int sam_apm_create(void** result, int mode) noexcept {
-  if (!result || mode < 0 || mode > 3) return -900;
+  if (!result || mode < 0 || mode > 7) return -900;
   *result = nullptr;
   try {
     webrtc::AudioProcessing::Config config;
     config.echo_canceller.enabled = mode != 2;
     config.echo_canceller.enforce_high_pass_filtering = mode == 0;
-    config.echo_canceller.export_linear_aec_output = mode == 3;
+    config.echo_canceller.export_linear_aec_output = mode == 3 || mode == 7;
     // Mode 0 is upstream AEC default; 1 disables its forced input high-pass;
     // 2 is bypass; 3 diagnoses linear AEC output, without its suppressor.
     // No gain boost, suppressor tuning or DSP source edit.
@@ -36,12 +36,36 @@ __declspec(dllexport) int sam_apm_create(void** result, int mode) noexcept {
     config.noise_suppression.enabled = false;
     config.high_pass_filter.enabled = false;
     auto* processor = new Processor;
-    processor->linear_output = mode == 3;
+    processor->linear_output = mode == 3 || mode == 7;
     try {
       webrtc::BuiltinAudioProcessingBuilder builder(config);
-      if (processor->linear_output) {
+      if (processor->linear_output || mode >= 4) {
         webrtc::EchoCanceller3Config aec_config;
-        aec_config.filter.export_linear_aec_output = true;
+        aec_config.filter.export_linear_aec_output = processor->linear_output;
+        // Hypothesis controls, not a parameter sweep. Retain upstream defaults
+        // except the named detector, masking or alignment hypothesis.
+        if (mode == 4) {
+          aec_config.suppressor.dominant_nearend_detection.use_unbounded_echo_spectrum = false;
+        } else if (mode == 5) {
+          aec_config.suppressor.dominant_nearend_detection.trigger_threshold = 1;
+          aec_config.suppressor.nearend_average_blocks = 1;
+        } else if (mode == 6) {
+          // The package does not export nested Tuning's assignment operator.
+          // Set public scalar masking thresholds instead; no vendor ABI patch.
+          auto& normal = aec_config.suppressor.normal_tuning;
+          const auto& nearend = aec_config.suppressor.nearend_tuning;
+          normal.mask_lf.enr_transparent = nearend.mask_lf.enr_transparent;
+          normal.mask_lf.enr_suppress = nearend.mask_lf.enr_suppress;
+          normal.mask_lf.emr_transparent = nearend.mask_lf.emr_transparent;
+          normal.mask_hf.enr_transparent = nearend.mask_hf.enr_transparent;
+          normal.mask_hf.enr_suppress = nearend.mask_hf.enr_suppress;
+          normal.mask_hf.emr_transparent = nearend.mask_hf.emr_transparent;
+        } else if (mode == 7) {
+          aec_config.delay.use_external_delay_estimator = true;
+        }
+        if (!webrtc::EchoCanceller3Config::Validate(&aec_config)) {
+          delete processor; return -904;
+        }
         builder.SetEchoCancellerConfig(aec_config, std::nullopt);
       }
       processor->apm = builder.Build(webrtc::CreateEnvironment());
@@ -101,6 +125,21 @@ __declspec(dllexport) int sam_apm_stats(void* handle, double* values) noexcept {
     values[0] = stats.echo_return_loss_enhancement.value_or(missing);
     values[1] = stats.residual_echo_likelihood.value_or(missing);
     values[2] = stats.delay_ms ? static_cast<double>(*stats.delay_ms) : missing;
+    return 0;
+  } catch (...) { return -902; }
+}
+
+// Additional public statistics only. No internal AEC state or audio dump.
+__declspec(dllexport) int sam_apm_diagnostics(void* handle, double* values) noexcept {
+  if (!handle || !values) return -900;
+  try {
+    auto stats = static_cast<Processor*>(handle)->apm->GetStatistics();
+    const double missing = std::numeric_limits<double>::quiet_NaN();
+    values[0] = stats.echo_return_loss.value_or(missing);
+    values[1] = stats.divergent_filter_fraction.value_or(missing);
+    values[2] = stats.delay_median_ms ? *stats.delay_median_ms : missing;
+    values[3] = stats.delay_standard_deviation_ms ? *stats.delay_standard_deviation_ms : missing;
+    values[4] = stats.residual_echo_likelihood_recent_max.value_or(missing);
     return 0;
   } catch (...) { return -902; }
 }

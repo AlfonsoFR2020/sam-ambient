@@ -58,7 +58,7 @@ def test_bypass_control_is_bit_exact_and_native_frame_validation_rejects():
         processor.close()
 
 
-@pytest.mark.parametrize("mode", [0, 1, 3])
+@pytest.mark.parametrize("mode", [0, 1, 3, 4, 5, 6, 7])
 def test_reset_discards_render_history_and_matches_fresh_operation(mode):
     used, fresh = factory(mode), factory(mode)
     try:
@@ -95,6 +95,13 @@ def test_wrong_thread_and_processor_failure_are_explicit():
             FRAME_BYTES
         )
         assert set(processor.statistics()) == {"erle_db", "residual_echo_likelihood", "delay_ms"}
+        assert set(processor.diagnostics()) == {
+            "erl_db",
+            "divergent_fraction",
+            "delay_median_ms",
+            "delay_std_ms",
+            "residual_recent_max",
+        }
     finally:
         processor.close()
 
@@ -115,6 +122,6 @@ def test_unverified_binary_and_unknown_mode_rejected(tmp_path):
     with pytest.raises(ValueError, match="mode"):
         FullApm(Path(DLL), Path(PACKAGE), True)
     with pytest.raises(ValueError, match="mode"):
-        FullApm(Path(DLL), Path(PACKAGE), 4)
+        FullApm(Path(DLL), Path(PACKAGE), 8)
     with pytest.raises(ValueError, match="mode"):
         FullApm(Path(DLL), Path(PACKAGE), 1.0)

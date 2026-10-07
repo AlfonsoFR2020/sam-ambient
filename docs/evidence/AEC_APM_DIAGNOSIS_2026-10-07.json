@@ -1,0 +1,1332 @@
+{
+  "baseline": "236ff49092428b8bc8fe6b8974a57baaf4cfb8a5",
+  "production_selected": false,
+  "configurations": {
+    "1": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 8.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 42.42330797885663,
+          "reduction_by_second_db": [
+            22.61650607874854,
+            26.840648414909566,
+            37.09113080365405,
+            42.330628345521774,
+            45.87320730674958,
+            47.77769854914058,
+            48.909765098563724,
+            50.20265224773866
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 39.585756961915806,
+          "reduction_by_second_db": [
+            21.63498023985997,
+            24.41571537499568,
+            33.91668268819065,
+            40.082412687218905,
+            43.79765975680531,
+            45.41627543720488,
+            46.116409107142225,
+            47.55531787472986
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 39.61793104515747,
+          "reduction_by_second_db": [
+            21.52865537126044,
+            23.743681205538234,
+            33.13086428356555,
+            40.90951573859763,
+            44.8739263546379,
+            46.094782409599176,
+            46.49034509509469,
+            47.83782713782063
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 39.619527252342685,
+          "reduction_by_second_db": [
+            21.49473138864404,
+            23.487745477806303,
+            33.25411378497512,
+            40.28286811790336,
+            43.15814731166864,
+            45.73300401428216,
+            47.05652068388537,
+            48.01274118337644
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 22.8006443008425,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.6112949850077141,
+          "near_sdr_db": 3.3806902038798126,
+          "pass": false
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.8703754049205604,
+          "near_sdr_db": 9.360445698430633,
+          "pass": true
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 42.25342978920703,
+          "pass": true
+        }
+      ],
+      "processing_ms": {
+        "median": 0.03859999924316071,
+        "p95": 0.04959999932907522,
+        "max": 0.7013999984337715
+      },
+      "separation_pass": false,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.84
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.9999651740223071,
+              "sdr_db": 57.36275209895857
+            },
+            "100": {
+              "gain": 1.000041114325012,
+              "sdr_db": 57.45141798166435
+            },
+            "200": {
+              "gain": 1.0000046331795045,
+              "sdr_db": 68.55497273049986
+            },
+            "500": {
+              "gain": 1.0000023623685137,
+              "sdr_db": 67.2474771455372
+            },
+            "1000": {
+              "gain": 1.0000018725869084,
+              "sdr_db": 66.9492938143741
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.0023343647128045816,
+              "sdr_db": -18.767558494077072
+            },
+            "100": {
+              "gain": 0.00792517032136254,
+              "sdr_db": -4.64315884770837
+            },
+            "200": {
+              "gain": 0.4641137594572705,
+              "sdr_db": 0.8707252904631597
+            },
+            "500": {
+              "gain": 0.5314496837160199,
+              "sdr_db": 2.0887455077823
+            },
+            "1000": {
+              "gain": 0.6112949850077141,
+              "sdr_db": 3.3806902038798126
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.1460526192212621,
+              "sdr_db": -1.633615756845729
+            },
+            "100": {
+              "gain": 0.4347533053920334,
+              "sdr_db": 1.009142048704694
+            },
+            "200": {
+              "gain": 0.1453814935441883,
+              "sdr_db": -5.875568978586489
+            },
+            "500": {
+              "gain": 0.6239187313492813,
+              "sdr_db": 3.808292396321166
+            },
+            "1000": {
+              "gain": 0.8703754049205604,
+              "sdr_db": 9.360445698430633
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            21.63498023985997,
+            24.41571537499568,
+            33.91668268819065,
+            40.082412687218905,
+            7.9658357641607545,
+            9.058879691400108,
+            41.84482178107109,
+            42.6563767152596
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 1,
+      "acoustic_gate_pass": false
+    },
+    "3": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 4.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 32.76146716669399,
+          "reduction_by_second_db": [
+            5.191680458727095,
+            18.577463935626803,
+            27.133163677849108,
+            33.85509835453202,
+            36.89613101822107,
+            38.211940615937934,
+            39.06549342062615,
+            40.27541911801025
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 29.959516381262056,
+          "reduction_by_second_db": [
+            2.1254289921256917,
+            14.693677444537666,
+            24.193126455233624,
+            31.49239841306835,
+            33.79086573401122,
+            35.3395889773013,
+            35.987730675981496,
+            37.386258964225235
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 30.146388284608513,
+          "reduction_by_second_db": [
+            2.4009305239353713,
+            14.270207586765357,
+            23.77094079962859,
+            31.890370427074394,
+            34.32813234671084,
+            35.735372440998624,
+            36.409856085445874,
+            37.77147198736931
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 30.49500300684514,
+          "reduction_by_second_db": [
+            2.612229361076277,
+            14.95064066583234,
+            24.383480797809185,
+            31.300313169354226,
+            33.37108384146433,
+            35.72877716376093,
+            36.36244684743048,
+            37.42191020454689
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 19.46427838253798,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.9986054041355472,
+          "near_sdr_db": 20.02725145626116,
+          "pass": true
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.9999261452682827,
+          "near_sdr_db": 30.335585591318672,
+          "pass": true
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 19.53042139557795,
+          "pass": false
+        }
+      ],
+      "processing_ms": {
+        "median": 0.04020000051241368,
+        "p95": 0.05160000000614673,
+        "max": 0.5922000000282424
+      },
+      "separation_pass": false,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.25,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.25,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.96
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.9999651740223071,
+              "sdr_db": 57.36275209895857
+            },
+            "100": {
+              "gain": 1.000041114325012,
+              "sdr_db": 57.45141798166435
+            },
+            "200": {
+              "gain": 1.0000046331795045,
+              "sdr_db": 68.55497273049986
+            },
+            "500": {
+              "gain": 1.0000023623685137,
+              "sdr_db": 67.2474771455372
+            },
+            "1000": {
+              "gain": 1.0000018725869084,
+              "sdr_db": 66.9492938143741
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 1.0245741534605919,
+              "sdr_db": 15.557118893647477
+            },
+            "100": {
+              "gain": 1.0116813271274128,
+              "sdr_db": 17.566341312037956
+            },
+            "200": {
+              "gain": 0.9940540414580168,
+              "sdr_db": 17.951049541949576
+            },
+            "500": {
+              "gain": 0.9972910656064808,
+              "sdr_db": 19.060407962226755
+            },
+            "1000": {
+              "gain": 0.9986054041355472,
+              "sdr_db": 20.02725145626116
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 1.0142736849816971,
+              "sdr_db": 24.200001474955002
+            },
+            "100": {
+              "gain": 1.014537163007198,
+              "sdr_db": 23.682480276821238
+            },
+            "200": {
+              "gain": 1.0058896101792392,
+              "sdr_db": 18.36947334884175
+            },
+            "500": {
+              "gain": 0.9997780832764305,
+              "sdr_db": 25.70896161031625
+            },
+            "1000": {
+              "gain": 0.9999261452682827,
+              "sdr_db": 30.335585591318672
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            2.1254289921256917,
+            14.693677444537666,
+            24.193126455233624,
+            31.49239841306835,
+            0.8621172609330531,
+            2.8210581431821518,
+            16.80141972910412,
+            26.21629635426693
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 3,
+      "acoustic_gate_pass": false
+    },
+    "4": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 8.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 42.42330797885663,
+          "reduction_by_second_db": [
+            22.61650607874854,
+            26.840648414909566,
+            37.09113080365405,
+            42.330628345521774,
+            45.87320730674958,
+            47.77769854914058,
+            48.909765098563724,
+            50.20265224773866
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 39.585756961915806,
+          "reduction_by_second_db": [
+            21.63498023985997,
+            24.41571537499568,
+            33.91668268819065,
+            40.082412687218905,
+            43.79765975680531,
+            45.41627543720488,
+            46.116409107142225,
+            47.55531787472986
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 39.61793104515747,
+          "reduction_by_second_db": [
+            21.52865537126044,
+            23.743681205538234,
+            33.13086428356555,
+            40.90951573859763,
+            44.8739263546379,
+            46.094782409599176,
+            46.49034509509469,
+            47.83782713782063
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 39.619527252342685,
+          "reduction_by_second_db": [
+            21.49473138864404,
+            23.487745477806303,
+            33.25411378497512,
+            40.28286811790336,
+            43.15814731166864,
+            45.73300401428216,
+            47.05652068388537,
+            48.01274118337644
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 22.8006443008425,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.5760130705995788,
+          "near_sdr_db": 2.8001567242273797,
+          "pass": false
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.8698185861047522,
+          "near_sdr_db": 9.335182781571739,
+          "pass": true
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 42.25342978920703,
+          "pass": true
+        }
+      ],
+      "processing_ms": {
+        "median": 0.03889999970851932,
+        "p95": 0.050799999371520244,
+        "max": 0.6769999999960419
+      },
+      "separation_pass": false,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.84
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.9999651740223071,
+              "sdr_db": 57.36275209895857
+            },
+            "100": {
+              "gain": 1.000041114325012,
+              "sdr_db": 57.45141798166435
+            },
+            "200": {
+              "gain": 1.0000046331795045,
+              "sdr_db": 68.55497273049986
+            },
+            "500": {
+              "gain": 1.0000023623685137,
+              "sdr_db": 67.2474771455372
+            },
+            "1000": {
+              "gain": 1.0000018725869084,
+              "sdr_db": 66.9492938143741
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.0023343647128045816,
+              "sdr_db": -18.767558494077072
+            },
+            "100": {
+              "gain": 0.00792517032136254,
+              "sdr_db": -4.64315884770837
+            },
+            "200": {
+              "gain": 0.4641137594572705,
+              "sdr_db": 0.8707252904631597
+            },
+            "500": {
+              "gain": 0.5314496837160199,
+              "sdr_db": 2.0887455077823
+            },
+            "1000": {
+              "gain": 0.5760130705995788,
+              "sdr_db": 2.8001567242273797
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.13804398467253096,
+              "sdr_db": -1.821012818200069
+            },
+            "100": {
+              "gain": 0.38056386261425845,
+              "sdr_db": 0.19258252219129496
+            },
+            "200": {
+              "gain": 0.13028816759086737,
+              "sdr_db": -6.182640907482048
+            },
+            "500": {
+              "gain": 0.6223032596145088,
+              "sdr_db": 3.7761304477316395
+            },
+            "1000": {
+              "gain": 0.8698185861047522,
+              "sdr_db": 9.335182781571739
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            21.63498023985997,
+            24.41571537499568,
+            33.91668268819065,
+            40.082412687218905,
+            16.03692310427134,
+            20.135933260145805,
+            41.84482178107109,
+            42.6563767152596
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 4,
+      "acoustic_gate_pass": false
+    },
+    "5": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 8.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 42.42330797885663,
+          "reduction_by_second_db": [
+            22.616648966103696,
+            26.840648414909566,
+            37.09113080365405,
+            42.330628345521774,
+            45.87320730674958,
+            47.77769854914058,
+            48.909765098563724,
+            50.20265224773866
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 39.585756961915806,
+          "reduction_by_second_db": [
+            21.635821396609316,
+            24.41552669095646,
+            33.91668268819065,
+            40.082412687218905,
+            43.79765975680531,
+            45.41627543720488,
+            46.116409107142225,
+            47.55531787472986
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 39.61791912704629,
+          "reduction_by_second_db": [
+            21.52413378857179,
+            23.74388491816366,
+            33.13084772163173,
+            40.90951573859763,
+            44.8739263546379,
+            46.094782409599176,
+            46.49034509509469,
+            47.83782713782063
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 39.619527252342685,
+          "reduction_by_second_db": [
+            21.49481056472152,
+            23.487780033987825,
+            33.25411378497512,
+            40.28286811790336,
+            43.15814731166864,
+            45.73300401428216,
+            47.05652068388537,
+            48.01274118337644
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 22.80059754296428,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.5764433470203171,
+          "near_sdr_db": 2.939930924980237,
+          "pass": false
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.8415208051671285,
+          "near_sdr_db": 8.276662640684473,
+          "pass": true
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 42.25342978920703,
+          "pass": true
+        }
+      ],
+      "processing_ms": {
+        "median": 0.039599999581696466,
+        "p95": 0.05731499977628097,
+        "max": 0.8343999998032814
+      },
+      "separation_pass": false,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.86
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.9999651740223071,
+              "sdr_db": 57.36275209895857
+            },
+            "100": {
+              "gain": 1.000041114325012,
+              "sdr_db": 57.45141798166435
+            },
+            "200": {
+              "gain": 1.0000046331795045,
+              "sdr_db": 68.55497273049986
+            },
+            "500": {
+              "gain": 1.0000023623685137,
+              "sdr_db": 67.2474771455372
+            },
+            "1000": {
+              "gain": 1.0000018725869084,
+              "sdr_db": 66.9492938143741
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.0023343647128045816,
+              "sdr_db": -18.767558494077072
+            },
+            "100": {
+              "gain": 0.011417491560723879,
+              "sdr_db": -3.333623816644453
+            },
+            "200": {
+              "gain": 0.5154617982762061,
+              "sdr_db": 1.9230685994131103
+            },
+            "500": {
+              "gain": 0.5430531298766622,
+              "sdr_db": 2.4199622189531196
+            },
+            "1000": {
+              "gain": 0.5764433470203171,
+              "sdr_db": 2.939930924980237
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.12228013387933476,
+              "sdr_db": -2.4602025761646744
+            },
+            "100": {
+              "gain": 0.27820798683666786,
+              "sdr_db": -0.9574606396220684
+            },
+            "200": {
+              "gain": 0.08657646090411149,
+              "sdr_db": -7.471468277939298
+            },
+            "500": {
+              "gain": 0.5402042644590664,
+              "sdr_db": 2.4244905988421053
+            },
+            "1000": {
+              "gain": 0.8415208051671285,
+              "sdr_db": 8.276662640684473
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            21.635821396609316,
+            24.41552669095646,
+            33.91668268819065,
+            40.082412687218905,
+            12.325457450402359,
+            11.319976369666918,
+            41.84482178107109,
+            42.6563767152596
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 5,
+      "acoustic_gate_pass": false
+    },
+    "6": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 8.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 42.42330797885663,
+          "reduction_by_second_db": [
+            22.613763624000427,
+            26.840648414909566,
+            37.09113080365405,
+            42.330628345521774,
+            45.87320730674958,
+            47.77769854914058,
+            48.909765098563724,
+            50.20265224773866
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 39.585756961915806,
+          "reduction_by_second_db": [
+            21.513929722633,
+            24.41571537499568,
+            33.91668268819065,
+            40.082412687218905,
+            43.79765975680531,
+            45.41627543720488,
+            46.116409107142225,
+            47.55531787472986
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 39.61793104515747,
+          "reduction_by_second_db": [
+            21.40505389006277,
+            23.743681205538234,
+            33.13086428356555,
+            40.90951573859763,
+            44.8739263546379,
+            46.094782409599176,
+            46.49034509509469,
+            47.83782713782063
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 39.619527252342685,
+          "reduction_by_second_db": [
+            21.47524227613728,
+            23.487032237736607,
+            33.25411378497512,
+            40.28286811790336,
+            43.15814731166864,
+            45.73300401428216,
+            47.05652068388537,
+            48.01274118337644
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 22.80052297749475,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.6304170628521111,
+          "near_sdr_db": 3.7611077900997207,
+          "pass": false
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.8708881712774733,
+          "near_sdr_db": 9.380400786121157,
+          "pass": true
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 42.25342978920703,
+          "pass": true
+        }
+      ],
+      "processing_ms": {
+        "median": 0.03889999970851932,
+        "p95": 0.05020500020691536,
+        "max": 0.6258000012167031
+      },
+      "separation_pass": false,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.86
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.9999651740223071,
+              "sdr_db": 57.36275209895857
+            },
+            "100": {
+              "gain": 1.000041114325012,
+              "sdr_db": 57.45141798166435
+            },
+            "200": {
+              "gain": 1.0000046331795045,
+              "sdr_db": 68.55497273049986
+            },
+            "500": {
+              "gain": 1.0000023623685137,
+              "sdr_db": 67.2474771455372
+            },
+            "1000": {
+              "gain": 1.0000018725869084,
+              "sdr_db": 66.9492938143741
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.0023343647128045816,
+              "sdr_db": -18.767558494077072
+            },
+            "100": {
+              "gain": 0.010325292562068327,
+              "sdr_db": -2.9221348406293366
+            },
+            "200": {
+              "gain": 0.5252826786293863,
+              "sdr_db": 1.9128747783903628
+            },
+            "500": {
+              "gain": 0.5619055571204897,
+              "sdr_db": 2.635204869390975
+            },
+            "1000": {
+              "gain": 0.6304170628521111,
+              "sdr_db": 3.7611077900997207
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.2004887036164379,
+              "sdr_db": -1.5076962793153716
+            },
+            "100": {
+              "gain": 0.4846555758746692,
+              "sdr_db": 1.6217003605066083
+            },
+            "200": {
+              "gain": 0.15928071810890598,
+              "sdr_db": -5.670343019152346
+            },
+            "500": {
+              "gain": 0.6254063957970644,
+              "sdr_db": 3.8326482968339226
+            },
+            "1000": {
+              "gain": 0.8708881712774733,
+              "sdr_db": 9.380400786121157
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 64.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            21.513929722633,
+            24.41571537499568,
+            33.91668268819065,
+            40.082412687218905,
+            7.748743194289165,
+            8.601019540094828,
+            41.84482178107109,
+            42.6563767152596
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 6,
+      "acoustic_gate_pass": false
+    },
+    "7": {
+      "sample_rate": 16000,
+      "samples_per_frame": 160,
+      "fixture_seconds": 8,
+      "warmup_seconds": 2,
+      "signal_latency_ms": 4.0,
+      "thresholds": {
+        "echo_reduction_db": 20,
+        "noisy_reduction_db": 10,
+        "near_gain_min": 0.7,
+        "near_gain_max": 1.3,
+        "near_sdr_db": 6
+      },
+      "cases": [
+        {
+          "case": "echo_0ms",
+          "reduction_db": 32.76146716669399,
+          "reduction_by_second_db": [
+            5.191680458727095,
+            18.577463935626803,
+            27.133163677849108,
+            33.85509835453202,
+            36.89613101822107,
+            38.211940615937934,
+            39.06549342062615,
+            40.27541911801025
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_40ms",
+          "reduction_db": 34.16580733289319,
+          "reduction_by_second_db": [
+            8.327502040541592,
+            21.55430874732113,
+            29.11949283250049,
+            34.16567349521883,
+            36.60934925052851,
+            38.578960691986815,
+            39.48046924105198,
+            40.41311688968773
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_80ms",
+          "reduction_db": 35.646136017401126,
+          "reduction_by_second_db": [
+            8.942522565018606,
+            21.516199143383155,
+            30.547101948321014,
+            35.471716451519455,
+            37.80408487903553,
+            39.09577422081448,
+            40.02216612152009,
+            40.740859581298785
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_160ms",
+          "reduction_db": 34.430637061459905,
+          "reduction_by_second_db": [
+            8.886689926887447,
+            21.22512866411739,
+            29.06475883651055,
+            34.16594126792038,
+            36.166642675720006,
+            38.230106654727074,
+            39.52284788473782,
+            40.0561307490512
+          ],
+          "pass": true
+        },
+        {
+          "case": "echo_noise",
+          "mixture_reduction_db": 19.711568166469647,
+          "pass": true
+        },
+        {
+          "case": "double_talk",
+          "first_second_near_gain": 0.9999919205001174,
+          "near_sdr_db": 23.0226759141349,
+          "pass": true
+        },
+        {
+          "case": "playback_end",
+          "first_second_near_gain": 0.9995556091679043,
+          "near_sdr_db": 32.29790518851647,
+          "pass": true
+        },
+        {
+          "case": "delay_change",
+          "reduction_after_2s_db": 39.84980735515301,
+          "pass": true
+        }
+      ],
+      "processing_ms": {
+        "median": 0.02099999983329326,
+        "p95": 0.028105001092626408,
+        "max": 0.2550999997765757
+      },
+      "separation_pass": true,
+      "discrimination": {
+        "echo_only": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.0
+        },
+        "double_talk": {
+          "cold_first_two_seconds_speech_fraction": 0.05,
+          "speech_fraction_before_onset": 0.0,
+          "speech_fraction_first_second": 0.96
+        },
+        "pass": true
+      },
+      "preservation_diagnostics": {
+        "near_only": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 0.9999651740223071,
+              "sdr_db": 57.36275209895857
+            },
+            "100": {
+              "gain": 1.000041114325012,
+              "sdr_db": 57.45141798166435
+            },
+            "200": {
+              "gain": 1.0000046331795045,
+              "sdr_db": 68.55497273049986
+            },
+            "500": {
+              "gain": 1.0000023623685137,
+              "sdr_db": 67.2474771455372
+            },
+            "1000": {
+              "gain": 1.0000018725869084,
+              "sdr_db": 66.9492938143741
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 80.0
+          }
+        },
+        "double_talk": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 1.02994012315508,
+              "sdr_db": 15.867564940471194
+            },
+            "100": {
+              "gain": 1.0065993753291949,
+              "sdr_db": 18.039506890313984
+            },
+            "200": {
+              "gain": 0.9994481858524923,
+              "sdr_db": 22.028595429017322
+            },
+            "500": {
+              "gain": 0.9998649781348057,
+              "sdr_db": 22.153150936233903
+            },
+            "1000": {
+              "gain": 0.9999919205001174,
+              "sdr_db": 23.0226759141349
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 80.0
+          }
+        },
+        "playback_end": {
+          "onset_windows_ms": {
+            "50": {
+              "gain": 1.0014034077019387,
+              "sdr_db": 38.11610436346845
+            },
+            "100": {
+              "gain": 1.0012167485394312,
+              "sdr_db": 33.92730711983574
+            },
+            "200": {
+              "gain": 1.0033485379089482,
+              "sdr_db": 22.53314989637267
+            },
+            "500": {
+              "gain": 0.9987030646529934,
+              "sdr_db": 27.668188743545663
+            },
+            "1000": {
+              "gain": 0.9995556091679043,
+              "sdr_db": 32.29790518851647
+            }
+          },
+          "statistics_at_end": {
+            "erle_db": 0.17551203072071075,
+            "residual_echo_likelihood": null,
+            "delay_ms": 80.0
+          }
+        },
+        "delay_change_recovery": {
+          "reduction_by_second_db": [
+            8.327502040541592,
+            21.55430874732113,
+            29.11949283250049,
+            34.16567349521883,
+            36.48780361362766,
+            38.57267484513726,
+            39.28922951073789,
+            40.423520825389005
+          ]
+        }
+      },
+      "processor": "Full APM M153 / m153.8010.0.2",
+      "mode": 7,
+      "acoustic_gate_pass": true
+    }
+  }
+}
