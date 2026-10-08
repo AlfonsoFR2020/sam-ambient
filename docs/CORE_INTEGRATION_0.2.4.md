@@ -5,6 +5,10 @@ Baseline `bd63e5ba52e84bdb293298e7f182a24b68db70fc` was clean, with the expected
 nine Core Experience V commits. The authorized `origin/dev` preservation push
 succeeded. Subsequent work stays local; v0.2.3 metadata/artifacts are unchanged.
 
+**Current disposition:** the later lifecycle closure below identifies the first
+attempt's corrupted probe locator and records a successful real explicit
+unload/reload/Rescan/Quit sequence. Earlier partial results remain historical.
+
 ## Stage 1 — one bounded real owner-window attempt
 
 The normal supervisor and private authenticated OwnerWindow used temporary
@@ -129,3 +133,52 @@ locator is absent while the correct model locator works; fake unload/reload/Resc
 produce correlated terminal states. A separate test rejects secret/content retention.
 Six observer/nearby lifecycle tests and changed-file Ruff/format pass. No product
 runtime, frontend behavior, authentication contract or dependency changed.
+
+### One real owner-window confirmation — passed
+
+Normal supervisor and shipped private owner UI ran once, with an automated
+headless OwnerWindow, isolated temporary settings/history/memory, and microphone
+and TTS disabled. No page reload or second exploratory launch occurred. Passive
+observation captured the actual challenge/authentication/acceptance before commands.
+Nine socket creations were counted during startup; the retained event stream shows
+one successful authentication followed by the complete operation sequence on one
+owner session. Failed socket attempts are not themselves authenticated reconnects.
+No authentication defect was observed. This validates the owner-window code path,
+not physical window perception.
+
+Initial HTTP preflight was unreachable, so its empty result did **not** prove an
+empty provider inventory. Startup subsequently found an already-running LM Studio
+service and reused it; first CLI inventory timed out with endpoint ready, then
+installed Gemma became available. Sam loaded it and retained the existing service
+ownership classification. Madrid timestamps on 2026-10-08:
+
+| Operation | Observed core/UI outcome | Independent provider truth |
+| --- | --- | --- |
+| Start 16:23:32; load began 16:23:41 | Confirmed active at 16:25:00; about 79 s load, 88 s startup. Active UI showed Unload, not Load | Loaded `google/gemma-4-e2b` present |
+| First typed request | Terminal `model.completed`; answer appeared in role-separated history; 1.671 s core completion | Real installed Gemma generation |
+| Idle Unload 16:25:02–03 | Command `858a7872-c986-4a09-ab85-3e704b9ca389` matched `unloading_model` → `unloaded`; 828 ms. Load selected model became enabled | Endpoint reachable; loaded model inventory empty |
+| Exact Reload 16:25:03–11 | Command `ae77f9e6-1b0b-4c7d-9844-30e20438c780` matched scanning → loading → ready; 7.313 s. Active UI again showed Unload, not Load | Exact Gemma present |
+| Two further typed requests | Both terminal completions/history additions; 0.469 / 2.828 s core completion | Real installed Gemma generation |
+| Rescan 16:25:14–17 | Command `f9aed709-a4d9-49d6-99d3-80b49f3558cf` matched ready in 2.437 s; same active UI route | Exact Gemma still present |
+| Quit 16:25:17–18 | Owner authority revoked, private browser closed, supervisor returned 0; configured Sam-loaded model cleanup confirmed absent | Endpoint still reachable, no loaded models; pre-existing service correctly preserved |
+
+UI, correlated terminal core outcomes and independent provider inventory agreed.
+Acknowledgements and button visibility alone were never used as completion proof.
+No product behavior change was required. Sanitized event IDs/timestamps remain in
+ignored `.sam/lifecycle-gate/events.json`; no prompt/answer, credential or audio
+content is retained by the observer.
+
+### Bounded inference/render scheduling
+
+After reload, 101 grouped WebGL draw submissions spanning the two real requests
+had median interval **36.4 ms**, p95 **42.4 ms**, and **zero gaps over 100 ms**.
+Commands and history remained usable through both requests. Sampling wrapped
+`drawElements` on the existing page; it did not reload or change transport. This
+short headless default-renderer sample measures frontend submission/scheduling,
+not GPU execution time, end-to-end CPU cost, visible frame presentation, thermal
+performance or human responsiveness. It is not a tier/low-power benchmark. Speech
+was disabled: no actual speech-envelope-to-visible-update latency was captured.
+
+The current real idle lifecycle gate and missing bounded inference-contention
+observation are now closed at this scope. Physical devices, perceptual acceptance,
+wider providers and installed/native artifact checks retain their separate gates.

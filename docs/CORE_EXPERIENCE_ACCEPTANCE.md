@@ -401,10 +401,10 @@ Seventeen distinct bounded Chrome cases passed, with focused reruns for two test
 assumptions and the runtime-discovered Load invitation. No full browser matrix,
 advanced Agency/Memory stress suite, personal PCM capture or new acoustic work.
 
-**Freeze line:** no substantial new capability expansion. The immediate engineering
-gap is corrected real idle model lifecycle confirmation, followed by representative
-full-app cost/audio-device recovery. Human appearance/voice/recognition acceptance
-is explicitly outstanding; the prepared beta is for a later owner-authorized day.
+**Freeze line:** no substantial new capability expansion. At V closure the immediate
+gap was real idle model lifecycle confirmation; the October 8 delta below records
+its resolution and bounded inference scheduling/device evidence. Human appearance/
+voice/recognition acceptance is outstanding; the beta is for a later authorized day.
 Prompt full-duplex interruption remains an unmet BASIC requirement with conservative
 behavior, not a passing engine waiting to be wired. ROADMAP owns subsequent order.
 
@@ -416,15 +416,18 @@ All unchanged fundamental rows retain V evidence; there is **no new human accept
 
 | Fundamental area | Current automated / runtime evidence | Remaining |
 | --- | --- | --- |
-| Startup / exact route | Normal supervisor cold inventory recovery; core Gemma active after ~80 s load | Owner-window route observation after probe reload timed out; UI truth not confirmed in this session |
-| Explicit unload/reload / Rescan / typed work | Existing exact lifecycle simulator + Chrome passes | October 8 session never reached explicit operations/text/Rescan; real gate remains open |
-| Quit / ownership | Authenticated UI Quit, confirmed Sam-loaded model absent, reused service preserved | Sam-owned service-stop and wider hosts remain untested |
-| Rendering / reactivity | Mounted Chrome Low/Medium/High cadence, en/es scalar next-draw scheduling, zero/Reduced Motion; fixed WebGL magnitude regression passes | No current full-app inference/GPU/low-power/thermal sample; scheduling is not perceived latency/aesthetic acceptance |
+| Startup / exact route | Normal supervisor cold inventory recovery; repaired passive probe confirmed owner handshake, active UI and independent Gemma inventory after ~79 s load | Other hosts/installed artifact and perceived startup experience |
+| Explicit unload/reload / Rescan / typed work | Actual owner UI unload → correlated unloaded / inventory absent; exact reload → ready / inventory present; three typed completions; Rescan same route. Six observer/nearby lifecycle regressions pass | Gate closed for current source/Gemma; wider providers and installed path remain |
+| Quit / ownership | Authenticated UI Quit, confirmed Sam-loaded model absent, reused service preserved; authority revoked/private browser closed/supervisor exit 0 | Sam-owned service-stop and wider hosts remain untested |
+| Rendering / reactivity | Existing tier/zero/Reduced Motion and fixed WebGL evidence; current full-app headless sample across two real requests: 101 submissions, median 36.4 ms/p95 42.4 ms, zero >100 ms gaps | GPU/native/low-power/thermal and real speech-visible latency unmeasured; scheduling is not perceived latency/aesthetic acceptance |
 | Speech/device mechanics / Stop | Actual generated Hazel/Helena synthesis closes; default capture opened inactive/unread; silence-only output closes; failure/re-entry/full-text Stop regressions pass | Physical loss/replug, audible-stop timing, owner accent and persona pleasantness |
 | Authority / memory / installation | Current contracts reviewed; normal core initialized; existing store/rotation/recovery evidence retained | Native smoke's unauthenticated assumption is stale; current package resources/notices and installed/upgrade data preservation need candidate validation |
 
 This assessment adds 33 focused Python checks and three targeted Chrome cases,
 TypeScript/Biome and unchanged-version checks. It does not repeat V's full gate.
 No product/art/dependency change is inferred from a failed probe or numerical motion.
-Beta preparation remains appropriate; actual scarce owner session follows the open
-runtime gate. Public native signing/security and candidate checks remain separate.
+The encoding-corrupted old probe locator was repaired without product changes;
+one real private owner-window session closes the current lifecycle gate. The prepared
+scarce beta is now justified when the owner separately becomes available. No human
+test was requested/performed. Public native signing/security and candidate checks
+remain separate; automated visual correctness is not perceptual acceptance.

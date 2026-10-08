@@ -160,7 +160,7 @@ See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
   the existing Audio Reactivity control. Zero retains autonomous motion.
 - High-tier form/membrane and broad pigment transport were revised; fixed-camera
   signal/render tests and isolated cost evidence exist. Revised appearance and speech
-  embodiment have no human perceptual acceptance; low-power/full-app cost remains open.
+  embodiment lack human acceptance; sustained/low-power cost remains unmeasured.
 - Controls inventory is audited: Conversation, Appearance, Device, System, Diagnostics.
   particle_density persists and chooses a visible fraction of 12/24/40 tier counts;
   Canvas has no particles. Persisted Surface Flow separates transport from Motion.
@@ -192,9 +192,9 @@ Memory's store/authority/provenance/recovery gate remains in its specialist docu
 no new dependencies, models or published-release metadata changed in this pass.
 
 The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) retains V's 190 Python / 199
-frontend gate and adds October 8's 33 Python / three Chrome checks. Cold core
-activation/Quit passed; timed-out probe used an encoding-corrupted locator, real lifecycle
-and full-app contention remain open. Safe device opening/generated speech pass.
+frontend gate adds October 8's 33 Python / three Chrome and six observer/lifecycle checks.
+Probe repaired: owner UI unload/reload, three replies, Rescan and verified Quit passed.
+Headless inference cadence and safe device/generated speech assessed.
 [Release proposal](RELEASE_READINESS_0.2.4.md) records native-auth smoke, installed
 state, candidate/CI/signing and human gates. No new beta or release approval;
-ROADMAP parks expansion/acoustic tuning. Automated visuals are not human acceptance.
+Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.

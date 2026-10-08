@@ -47,18 +47,19 @@ Published v0.2.3 release notes/metadata remain historical and unchanged.
 | Area | Current evidence | Disposition before next alpha |
 | --- | --- | --- |
 | Conversation/recovery/Controls/history | Prior V gate: 190 Python, 199 frontend, 17 Chrome cases; current 28 focused Python / three Chrome checks | No new reproduced product regression; retain full candidate regression gate |
-| Current real model operations | Cold Gemma core activation and confirmed Quit unload passed; Oct 8 owner-window route observation timed out before explicit operations | **Open engineering gate:** successful owner UI + correlated unload/reload/two replies/Rescan/Quit required; root cause unresolved |
+| Current real model operations | Corrected passive observer: private owner UI, correlated unload/reload, three typed replies, Rescan and Quit passed against independent inventory | **Closed on current source/installed Gemma:** previous timeout was an encoding-corrupted probe locator; candidate/installed path still needs validation |
 | Provider service ownership | Reused service preserved; Sam-loaded model absent after Quit | Supported semantics; broader hosts and Sam-started service-stop still limited, disclose rather than claim |
 | Speech/device mechanics | Generated installed en/es synthesis/meters; input open-only without capture; output digital silence; fake failure/re-entry/Stop regressions | Physical device loss/replug and audible stop timing remain unverified; generated STT is not owner-accent recognition |
-| Renderer/performance | Fixed-WebGL magnitude/zero tests, isolated GPU sample, mounted frontend tier/scheduling sample | **Open assessment:** no current full-app inference-contention measurement; no low-power/native/thermal guarantee |
+| Renderer/performance | Fixed-WebGL/isolated tier evidence plus 101 full-app headless draw submissions across two real Gemma requests: median 36.4 ms, p95 42.4 ms, no >100 ms gaps | Bounded default inference scheduling assessed; no GPU/native/low-power/thermal or human presentation guarantee |
 | Voice/visual product quality | Technical transport/form/light properties, generated bilingual baseline | **Human gate:** revised appearance/persona/recognition/embodiment still unaccepted |
 | Authentication/memory | Actual store/auth/rotation/restart/adversarial fixtures and source-owner initialization | Candidate package must prove same boundaries and persistence on installed/upgrade path |
 | Windows distribution | Prepared source launch; older package architecture and guarded unsigned-development path | **Public native blocker:** current authenticated native smoke, frozen runtime/driver assets/notices, clean-host validation and signing/reputation |
 
 A usable prepared-source development alpha is distinct from a public Windows
 installer. Technical source correctness does not waive packaging, physical or
-perceptual evidence. No confirmed new source defect was fixed in this assessment;
-the live route-observation failure remains unresolved, not classified as harmless.
+perceptual evidence. The live route-observation failure was traced to corrupted
+probe text, repaired and independently confirmed through one real lifecycle session.
+No product behavior, authentication, dependency or art change was needed.
 
 Known alpha limitations that may be disclosed/explicitly accepted rather than
 silently promoted to solved: conservative acoustic interruption, base STT capacity,
@@ -123,11 +124,11 @@ dependency, branch, advisory configuration or workflow was modified.
 ## Human beta decision and proportionate release procedure
 
 The existing 5–10-minute script covers the right owner-satisfaction questions.
-**Prepared, but not the next action yet:** first close the unresolved current
-owner-window lifecycle check and collect bounded inference/render cadence without
-perturbing bootstrap. Then it is justified on the prepared source build when the
-owner separately becomes available. A public signed installer is not required
-merely to judge that source build. No beta is requested/scheduled here.
+**Justified as the next owner acceptance action when the owner separately becomes
+available:** the current owner-window lifecycle and bounded inference scheduling
+prerequisites passed without perturbing bootstrap. A public signed installer is not
+required merely to judge the prepared source build. No beta is requested/scheduled
+here; this does not grant release approval or establish subjective quality.
 
 The session must decide: does the current Orb feel alive/soft, is membrane/flow
 convincing, do speech/listening pulses feel natural, is owner en/es transcription
@@ -138,8 +139,9 @@ ready provider/model; separate engineering load timing from subjective beta time
 
 Small next-release sequence (each future mutation needs its own authorization):
 
-1. Close current runtime observation/lifecycle and inference cadence; fix only an
-   evidenced fault. Keep existing gains/art direction unless owner evidence contradicts.
+1. **Completed:** close current runtime observation/lifecycle and bounded inference
+   cadence ([evidence](CORE_INTEGRATION_0.2.4.md)). Preserve existing gains/art
+   direction unless owner evidence contradicts them.
 2. Conduct the prepared beta later; address its highest-impact basic failures and
    record accepted alpha limits. Keep capability/acoustic expansion parked.
 3. Repair authenticated native smoke/resource/notices and agree public artifact
