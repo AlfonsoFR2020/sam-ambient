@@ -2,6 +2,9 @@
 
 Prepared 2026-10-07. **For a later owner-authorized session, not a request to test
 now.** Published v0.2.3 is unchanged; test the current integrated dev checkpoint.
+The [October 8 readiness review](RELEASE_READINESS_0.2.4.md) keeps this session
+prepared but conditional on the current real owner-window lifecycle gate. Long
+model loading is engineering preparation, outside the short subjective session.
 Use the [current acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and
 [V evidence](CORE_EXPERIENCE_V.md). Stop on discomfort, unsafe self-interruption or
 loss of typed recovery. Do not improvise a settings/model-comparison project.

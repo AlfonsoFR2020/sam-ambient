@@ -191,10 +191,10 @@ and the beta record; numerical visual change does not establish perceptual succe
 Memory's store/authority/provenance/recovery gate remains in its specialist document;
 no new dependencies, models or published-release metadata changed in this pass.
 
-The [current V matrix](CORE_EXPERIENCE_ACCEPTANCE.md) records 190 Python / 199 frontend
-tests, 17 distinct Chrome cases and fresh installed speech→WebGL evidence. Real V
-cold activation/two replies/Quit pass; corrected explicit unload/reload/Rescan still
-needs runtime confirmation. [October 8 attempt](CORE_INTEGRATION_0.2.4.md) confirms
-core activation/Quit cleanup, but owner-UI observation timed out. ROADMAP parks expansion.
-Automated visuals are not human perceptual acceptance.
-Human testing is scarce and reserved for a substantial integrated checkpoint; unavailable now.
+The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) retains V's 190 Python / 199
+frontend gate and adds October 8's 33 Python / three Chrome checks. Cold core
+activation/Quit passed; owner-UI observation timed out, explicit real lifecycle
+and full-app contention remain open. Safe device opening/generated speech pass.
+[Release proposal](RELEASE_READINESS_0.2.4.md) records native-auth smoke, installed
+state, candidate/CI/signing and human gates. No new beta or release approval;
+ROADMAP parks expansion/acoustic tuning. Automated visuals are not human acceptance.

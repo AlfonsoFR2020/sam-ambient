@@ -2,6 +2,9 @@
 
 **Current policy: Basics Before Expansion (2026-10-01).** See the authoritative
 [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and [Roadmap](ROADMAP.md).
+The [October 8 release review](RELEASE_READINESS_0.2.4.md) keeps the current real
+owner-window lifecycle and full-app contention gates open; source alpha usability
+is distinct from authenticated native-package validation and public signing.
 Hard STT language, installed multilingual persona selection, effective speech
 status, confirmed provider cleanup and explicit runtime/supervisor SQLite closure
 are implemented. Consolidation I's supervised Gemma lifecycle passed; II exposed

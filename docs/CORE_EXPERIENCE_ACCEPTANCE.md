@@ -3,7 +3,8 @@
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
 Expansion**. Published v0.2.3 is unchanged. Automated evidence does not establish
 human acoustic, voice-persona or visual acceptance. No human session is available.
-The **current** matrix is [Core Experience V below](#core-experience-v-current-matrix).
+The **current** status is [October 8 integration delta below](#october-8-integration-delta),
+which updates [Core Experience V](#core-experience-v-current-matrix) without rewriting it.
 Earlier sections preserve historical evidence, not a second current task queue.
 
 ## Baseline before consolidation (2026-10-01)
@@ -406,3 +407,24 @@ full-app cost/audio-device recovery. Human appearance/voice/recognition acceptan
 is explicitly outstanding; the prepared beta is for a later owner-authorized day.
 Prompt full-duplex interruption remains an unmet BASIC requirement with conservative
 behavior, not a passing engine waiting to be wired. ROADMAP owns subsequent order.
+
+## October 8 integration delta
+
+[Detailed observations](CORE_INTEGRATION_0.2.4.md) and
+[v0.2.4 release decision](RELEASE_READINESS_0.2.4.md) are authoritative for this update.
+All unchanged fundamental rows retain V evidence; there is **no new human acceptance**.
+
+| Fundamental area | Current automated / runtime evidence | Remaining |
+| --- | --- | --- |
+| Startup / exact route | Normal supervisor cold inventory recovery; core Gemma active after ~80 s load | Owner-window route observation after probe reload timed out; UI truth not confirmed in this session |
+| Explicit unload/reload / Rescan / typed work | Existing exact lifecycle simulator + Chrome passes | October 8 session never reached explicit operations/text/Rescan; real gate remains open |
+| Quit / ownership | Authenticated UI Quit, confirmed Sam-loaded model absent, reused service preserved | Sam-owned service-stop and wider hosts remain untested |
+| Rendering / reactivity | Mounted Chrome Low/Medium/High cadence, en/es scalar next-draw scheduling, zero/Reduced Motion; fixed WebGL magnitude regression passes | No current full-app inference/GPU/low-power/thermal sample; scheduling is not perceived latency/aesthetic acceptance |
+| Speech/device mechanics / Stop | Actual generated Hazel/Helena synthesis closes; default capture opened inactive/unread; silence-only output closes; failure/re-entry/full-text Stop regressions pass | Physical loss/replug, audible-stop timing, owner accent and persona pleasantness |
+| Authority / memory / installation | Current contracts reviewed; normal core initialized; existing store/rotation/recovery evidence retained | Native smoke's unauthenticated assumption is stale; current package resources/notices and installed/upgrade data preservation need candidate validation |
+
+This assessment adds 33 focused Python checks and three targeted Chrome cases,
+TypeScript/Biome and unchanged-version checks. It does not repeat V's full gate.
+No product/art/dependency change is inferred from a failed probe or numerical motion.
+Beta preparation remains appropriate; actual scarce owner session follows the open
+runtime gate. Public native signing/security and candidate checks remain separate.

@@ -25,3 +25,13 @@ Vitest 4 required **no Sam test, helper, configuration or product-code edits**: 
 Pytest, setuptools and GLib remain deliberately deferred as classified above. Treat upstream advisory severity as distinct from Sam product exposure. The current development server remains loopback-bound; do not infer that the published v0.2.3 Windows runtime was remotely vulnerable from these dev-tool findings.
 
 Source: authenticated, read-only GitHub Dependabot alerts API for this repository (open alerts 1–20) on 2026-09-30; local `ui/package.json`, `ui/pnpm-lock.yaml`, `pyproject.toml`, `uv.lock`, `ui/src-tauri/Cargo.lock`.
+
+## Read-only recheck — 2026-10-08
+
+Sam's API still returns the same 20 open default-branch records: 17 frontend
+manifest/lock records plus pytest, setuptools and GLib. Current dev Vite 7.3.5 /
+Vitest and mocker 4.1.11 are outside every returned applicable range. No new
+advisory/package appeared in that source compared with this triage; this is not
+a universal security audit or a remote alert closure. Deferred versions/exposure
+remain unchanged. No dependency, workflow, settings or advisory mutation occurred.
+See [current release-readiness decision](RELEASE_READINESS_0.2.4.md).

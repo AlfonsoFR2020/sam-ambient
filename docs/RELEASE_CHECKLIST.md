@@ -7,6 +7,8 @@ from a green branch.
 The [0.2.3 readiness and scope freeze](RELEASE_READINESS_0.2.3.md) is the
 historical record of that release's accepted validation limits and gates.
 Keep the checklist below for a future release; an unrun physical path is not a pass.
+The [current v0.2.4 proposal](RELEASE_READINESS_0.2.4.md) identifies source-runtime,
+owner-proof native smoke, package-job gating and signing/acceptance prerequisites.
 
 ## Patch-alpha cadence
 

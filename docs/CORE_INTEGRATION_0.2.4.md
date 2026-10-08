@@ -27,6 +27,9 @@ Observed local times (Europe/Madrid):
 - 12:18:00: authenticated UI Quit; 12:18:05: core stopped;
   12:18:06: Sam-loaded Gemma unload independently confirmed absent. Serving cleanup
   was skipped because the core had classified it reused; supervisor stopped.
+- A separate read-only HTTP inventory at 12:30 confirmed the endpoint still reachable
+  with zero loaded models. This independently verifies post-Quit absence/preservation,
+  not the unattempted explicit unload/reload sequence.
 
 **Result: partial, not a lifecycle pass.** The failure could be probe/reconnect
 observation or UI state; logs do not identify its root cause. Do not weaken the

@@ -1,7 +1,8 @@
 # Sam development plan: post-v0.2.3 toward v0.2.4
 
 **HQ priority change (2026-10-01): Basics Before Expansion.**
-The current [core-experience acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md)
+The current [release-readiness decision](RELEASE_READINESS_0.2.4.md) and
+[core-experience acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md)
 owns the next milestone: ordinary voice, truthful model lifecycle, stable installed
 persona, connected embodiment, complete Controls and clean startup/shutdown.
 The completed agency/memory foundations remain assets; new powers are parked.
@@ -102,102 +103,56 @@ runtime/GPU/dependency/license suitability requires evaluation before adoption.
 
 ## Next basic-experience tasks — after Core Experience V
 
-[Core Experience V](CORE_EXPERIENCE_V.md) completes persisted Surface Flow, idle
-recognition mode, typed idle model unload/reload, narrow Controls/history separation,
-fresh installed speech→WebGL evidence and the composed everyday simulator.
-Automated visual behavior is not human acceptance. The one real V session passed
-cold activation/two text turns/owned-model Quit cleanup, but stopped before explicit
-unload/reload/Rescan confirmation because the probe observed an already-visible
-Load button. That invitation is corrected and browser-proven; do not label its
-real verification complete. This queue supersedes the prior synthetic-acoustic
-sequence and is ordered by owner value and available evidence.
+Updated 2026-10-08 by the [current release-readiness decision](RELEASE_READINESS_0.2.4.md).
+The nine V commits are preserved remotely. The bounded current real session confirms
+core Gemma activation/Quit cleanup, but owner-window observation timed out before
+explicit operations. Mounted frontend timing and safe device opening are measured;
+full-app inference contention remains unmeasured. Do not mark those tasks complete.
 
-### 1. Confirm corrected ordinary model lifecycle in one real owner session
+### 1. Close the passive owner-window lifecycle / inference-cadence gate
 
-- **Objective / why first:** close the remaining V runtime evidence gap for an
-  everyday control the owner can now use, without more architecture or UI design.
-- **Prerequisites:** corrected Load-button condition, fake exact unload/reload tests,
-  shipped current assets, existing LM Studio/Gemma and separately authorized session.
-- **Scope:** wait for core-confirmed unloaded state/enabled Load choice, verify actual
-  inventory absence, reload exact model, two short text turns, Rescan, clean Quit and
-  external ownership. Record initial resource ownership and terminal states.
-- **Non-scope:** audio tuning, repeated cold launches, profiles, downloads, capability
-  expansion. If no installed environment is available, record the limit and stop.
-- **Deliverable / validation:** concise timestamped outcome, true provider state,
-  minimal regression only for a reproduced defect. No human speech or aesthetic test.
-- **Reasoning / quota:** Sol Medium; small, one clean checkpoint. Escalate to High only
-  for an actual stale-operation/concurrency fault; stop rather than widening scope.
-- **Human checkpoint contribution:** closes model-operation readiness before the
-  later integrated beta. It comes before cost measurement because false lifecycle
-  readiness would invalidate that normal full-app workload.
+- **Objective / why first:** establish current ordinary UI/provider truth before
+  scarce owner time. Retain the same supervisor/installed Gemma and external ownership.
+- **Scope:** attach passive protocol observation before navigation, avoid bootstrap
+  reload; capture content-free UI snapshots; correlate unload/reload terminal IDs,
+  independently verify absence/presence, two replies, Rescan, Quit. Sample mounted
+  cadence during inference in that same bounded session.
+- **Non-scope:** repeated exploratory launches, audio/art tuning, downloads, profiles,
+  AEC or capability expansion. Stop on unavailable environment; no false pass.
+- **Deliverable / validation:** actual runtime truth and minimal reproduced regression
+  only if a defect is identified. Medium / small; High only for a demonstrated race.
 
-### 2. Representative full-app speech/visual timing and low-power budget
+### 2. Use the prepared qualitative beta when owner availability permits
 
-- **Objective / why next:** ensure the now-connected living composition remains
-  usable alongside local inference rather than optimizing isolated screenshots.
-- **Prerequisites:** task 1 or an explicit provider limitation; current fixed-WebGL
-  properties and isolated performance evidence; bounded installed-runtime access.
-- **Scope:** warm-up then observe CPU submission/frame interval and available GPU
-  timing honestly; low/medium/high, speech envelopes, Reduced Motion and fallback.
-  Measure actual level-to-visible-update timing; optimize only a demonstrated cost.
-- **Non-scope:** new art direction, reduced quality to flatter a benchmark, hardware
-  installation, provider/voice/model downloads or arbitrary FPS CI thresholds.
-- **Deliverable / validation:** representative resource/timing evidence and relative
-  budget invariants; preserve interaction, material and envelope checks if changed.
-- **Reasoning / quota:** Sol Medium; medium, checkpoint evidence before any fix. Stop
-  on unavailable timers/hardware; High only for a demonstrated scheduling root cause.
-- **Human contribution / order:** prepares perceptibility/latency questions before
-  physical-device recovery; no aesthetic acceptance inferred from timing metrics.
+- **Prerequisite:** task 1 green or a consciously scoped non-blocking limitation;
+  not the current unresolved UI observation. No beta is requested now.
+- **Scope:** existing [5–10-minute script](CORE_EXPERIENCE_V_BETA_SCRIPT.md), with cold
+  loading outside the subjective time budget. Gather at most three high-impact
+  appearance/voice/recognition/history/Controls observations; no on-the-fly redesign.
+- **Deliverable:** acceptable/distracting/broken judgments distinct from automated
+  evidence. Medium / tiny preparation; then one bounded evidence-led basic repair.
 
-### 3. Bounded Windows audio-device recovery and explicit Stop speaking
+### 3. Establish authenticated candidate packaging and safe install/upgrade
 
-- **Objective / why next:** ordinary device start/restart and owner-clicked silence
-  must be dependable independently of the unsolved acoustic overlap requirement.
-- **Prerequisites:** current paced pipeline/persona tests, authorized installed-device
-  window, task 2 cost limits or explicit measurement limitations.
-- **Scope:** capture mute/re-enable, unavailable/default-device recovery, output stop,
-  English/Spanish mode switching, STT failure→typed recovery, resource retirement.
-  Non-personal generated PCM where possible; no owner recording requested.
-- **Non-scope:** AEC tuning, larger Whisper/voice installation, raw audio logging,
-  source separation or a repeated physical tuning loop.
-- **Deliverable / validation:** bounded real-device outcome and narrow reproduced
-  lifecycle regressions; complete assistant text and text recovery remain invariant.
-- **Reasoning / quota:** Sol Medium; medium, High only for a reproduced lifetime race.
-  Stop on unavailable/intrusive hardware, unsafe self-interruption or lost recovery.
-- **Human contribution / order:** verifies device mechanics before consuming scarce
-  owner time on qualitative speech/embodiment acceptance.
+- **Why:** current native smoke assumes unauthenticated readiness; driver assets/
+  notices and installed SQLite/owner lifecycle have not been validated after agency.
+- **Scope:** trusted owner-proof smoke, frozen manifest/driver/notices, stable app-data
+  and failure recovery, native lifecycle, hosted package dependency policy. Follow
+  [release prerequisites](RELEASE_READINESS_0.2.4.md); no security weakening to pass.
+- **Non-scope:** installer publication/signing without owner decision, dependency
+  modernization, new features. Medium / medium, split a demonstrated packaging
+  migration before changes. Can proceed independently while qualitative time is scarce.
 
-### 4. Later integrated 5–10-minute human beta, only when owner is available
+### 4. Prepare one accepted alpha candidate, then request release execution separately
 
-- **Objective / why later:** obtain the missing evidence machines cannot supply:
-  owner-accent recognition, pleasant/persona-coherent speech and living visual feel.
-- **Prerequisites:** tasks 1–3 green or truthfully limited, the current acceptance
-  matrix, and separate owner authorization/availability. No human testing is possible now.
-- **Scope / deliverable:** [prepared script](CORE_EXPERIENCE_V_BETA_SCRIPT.md), compact
-  acceptable/distracting/broken observations with timestamps and at most three
-  concrete priorities. Include history, Controls, model operations and conservative
-  interruption as an explicitly limited baseline.
-- **Non-scope:** new feature demonstration, compulsive acoustic repeats or artistic
-  tuning during the session. Stop on discomfort or loss of typed recovery.
-- **Validation / reasoning / quota:** direct human observations, Sol Medium for the
-  preparation/reconciliation; tiny. This is the actual human acceptance checkpoint.
-- **Order:** qualitative correction should follow this evidence rather than guessed
-  gain/palette/membrane changes based solely on automated pixels.
-
-### 5. Correct the highest-impact basic defect established by that evidence
-
-- **Objective / why conditional:** improve owner satisfaction from a reproduced
-  remaining fundamental, one issue per task instead of another omnibus polish pass.
-- **Prerequisites:** a concrete engineering or later beta finding, bounded reproduction
-  and an unchanged safety/performance contract. Split unrelated findings first.
-- **Scope:** only the selected basic failure; document expected visible/voice behavior.
-- **Non-scope:** Agency/Memory/browser expansion, speculative redesign, unrelated
-  settings, dependency modernization. No acoustic tuning without the evidence below.
-- **Deliverable / validation:** failing regression then coherent fix, relevant browser
-  or installed-runtime check; human aesthetic claims wait for later review.
-- **Reasoning / quota:** Sol Medium; small/medium, High for demonstrated concurrency
-  or cross-layer root cause. Stop if a new architecture would dominate; commit useful
-  evidence and split. Contributes to the next integrated acceptance checkpoint.
+- **Prerequisites:** runtime and human acceptance/explicit limits, package/security
+  evidence and an approved artifact scope. Current metadata remains 0.2.3.
+- **Scope:** consistent candidate versions/notes, full relevant release/static/native
+  gates, clean-host smoke, required hosted jobs and hashes. Signed/reputation-checked
+  public Windows installer only; source/package alpha is a distinct owner decision.
+- **Deliverable:** inspectable readiness/limits, no automatic tag/merge/publication.
+  Medium / medium with checkpoint before build; stop on unresolved authority,
+  state-loss, native packaging or signing/security fault. No expansion.
 
 ### Parked acoustic re-entry contract
 
