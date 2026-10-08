@@ -25,7 +25,7 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - Operational conversation-state transactions explicitly close their SQLite handles
   on success/failure; shutdown no longer relies on garbage collection for these.
 - A composed authenticated runtime/voice/PCM/history/Controls simulator proves
-  typed â†’ voice â†’ STT failure â†’ typed recovery â†’ Rescan â†’ ordered Quit. Its real
+  typed → voice → STT failure → typed recovery → Rescan → ordered Quit. Its real
   core events also drive the isolated frontend and bounded visual response.
 - Consolidation III classifies cold inventory failures and bounds recovery. A real
   preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
@@ -73,7 +73,7 @@ See [owner contract](OWNER_AUTHORITY.md), [capabilities](AGENCY_CAPABILITIES.md)
 [trust boundaries](TRUST_BOUNDARIES.md). Vite 7.3.5 / Vitest and mocker 4.1.11 advisory
 maintenance is complete; separately triaged build/test/Linux findings remain deferred.
 
-## Durable personal memory â€” Foundation I implemented
+## Durable personal memory — Foundation I implemented
 
 - Separate standard-library SQLite schema 1 lives in Windows user app data
   `%LOCALAPPDATA%/Sam/memory.sqlite3`, not the checkout or session history.
@@ -192,7 +192,7 @@ Memory's store/authority/provenance/recovery gate remains in its specialist docu
 no new dependencies, models or published-release metadata changed in this pass.
 
 The [current V matrix](CORE_EXPERIENCE_ACCEPTANCE.md) records 190 Python / 199 frontend
-tests, 17 distinct Chrome cases and fresh installed speechâ†’WebGL evidence. Real V
+tests, 17 distinct Chrome cases and fresh installed speech→WebGL evidence. Real V
 cold activation/two replies/Quit pass; corrected explicit unload/reload/Rescan still
 needs runtime confirmation. [October 8 attempt](CORE_INTEGRATION_0.2.4.md) confirms
 core activation/Quit cleanup, but owner-UI observation timed out. ROADMAP parks expansion.
