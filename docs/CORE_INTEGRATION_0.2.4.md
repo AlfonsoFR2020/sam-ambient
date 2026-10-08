@@ -102,3 +102,30 @@ runtime changes. No art/gain/default/performance optimization was justified.
 Physical device-loss/replug, owner-click-to-audible-silence timing, sustained thermal
 load, low-power hardware, full-app inference competition and aesthetic acceptance
 remain unmeasured. This is a usable partial assessment, not the intended full-app pass.
+
+## Lifecycle closure — reliable observation, 2026-10-08
+
+The retained previous probe establishes an instrumentation defect: its source was
+read using Windows' legacy default encoding and rewritten as UTF-8. The actual
+locator contains `lm-studio Â· google/gemma-4-e2b`, while the shipped UI renders
+`lm-studio · google/gemma-4-e2b`. Its `Ask Sam…` placeholder was also corrupted.
+Consequently the route locator could not match, regardless of model readiness.
+Reload was used only to install an init-script WebSocket replacement; it was
+unnecessary and made observation more intrusive. This does not establish that
+reload/authentication failed in the product.
+
+`scripts/owner_lifecycle_probe.py` now attaches Playwright's passive WebSocket
+frame listeners at the first private asset request, before shipped JS/authentication.
+It neither replaces WebSocket nor reloads/navigates an established session. Locators
+use the ASCII exact model identity and accessible **Text request** label. It retains
+only bounded whitelisted event/command identifiers, phases and operational timestamps;
+never proofs/challenges, model answers, prompts or raw PCM. Long provider commands
+remain pending until correlated terminal state, not acknowledgement. Failure capture
+includes redacted/masked UI screenshot, operational state and independent inventory.
+
+Before any real launch, the shipped UI/current owner handshake fixture passes:
+challenge → authentication → acceptance → readiness on one connection; the damaged
+locator is absent while the correct model locator works; fake unload/reload/Rescan
+produce correlated terminal states. A separate test rejects secret/content retention.
+Six observer/nearby lifecycle tests and changed-file Ruff/format pass. No product
+runtime, frontend behavior, authentication contract or dependency changed.
