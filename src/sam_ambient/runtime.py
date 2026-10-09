@@ -106,6 +106,7 @@ from sam_ambient.core.voice import (
     normalized_audio_metrics,
 )
 from sam_ambient.core.voice.language import response_language
+from sam_ambient.core.voice.text import speech_text
 
 _GENERATION_TERMINAL_EVENTS = frozenset(
     {EventType.MODEL_COMPLETED, EventType.MODEL_CANCELLED, EventType.COMPONENT_ERROR}
@@ -142,7 +143,19 @@ def _screen_playback_transcript(
     normalized = " ".join(candidate.split())
     heard_original = _WORD.findall(normalized)
     heard = [word.casefold() for word in heard_original]
-    spoken = _WORD.findall(assistant_text.casefold())
+    spoken = _WORD.findall(speech_text(assistant_text).casefold())
+    # Older delivery spoke Markdown literally. Its formatting words are neither
+    # novel owner requests nor a reason to evade a strong known-output match.
+    if "*" in assistant_text:
+        pairs = [
+            (word, folded)
+            for word, folded in zip(heard_original, heard, strict=True)
+            if folded not in {"asterisk", "asterisks", "asterisco", "asteriscos"}
+        ]
+        heard_original = [word for word, _ in pairs]
+        heard = [folded for _, folded in pairs]
+        if not heard and len(_WORD.findall(normalized)) >= 3:
+            return None, "playback_echo"
     if len(heard) < 3 or not spoken:
         return normalized, None
     joined_heard = " ".join(heard)
@@ -2075,7 +2088,7 @@ class SamRuntime:
                         generation_id,
                     )
                     frames = self._metered_tts_frames(
-                        text,
+                        speech_text(text),
                         generation_id=generation_id,
                         session_id=session_id,
                         turn_id=turn_id,

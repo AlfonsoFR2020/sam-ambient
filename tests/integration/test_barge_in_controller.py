@@ -47,6 +47,19 @@ def test_model_finishes_during_false_candidate_can_start_tts_and_recover():
     assert manager.state is VoiceState.SPEAKING
 
 
+def test_thinking_noise_cannot_cancel_a_typed_generation_before_stt_evidence():
+    manager = TurnManager("session")
+    manager.start_listening(0, cancellation_id="c")
+    manager.on_vad(20, 1)
+    manager.on_transcript(200, "Typed request", is_final=True, confidence=0.9)
+    manager.on_vad(250, 0)
+    manager.on_time(1000)
+    manager.on_model_started(1001, generation_id="g")
+    events = manager.on_vad(1020, 1) + manager.on_vad(1300, 1) + manager.on_time(1320)
+    assert not any(e.type == EventType.MODEL_CANCELLED for e in events)
+    assert manager.state is VoiceState.INTERRUPTION_CANDIDATE
+
+
 def make_controller(
     manager: TurnManager,
     events: list[ProtocolEvent],

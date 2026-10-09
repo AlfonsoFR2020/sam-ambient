@@ -782,12 +782,22 @@ def test_committed_voice_turn_replaces_generation_waiting_for_first_output(tmp_p
     asyncio.run(asyncio.wait_for(scenario(), 3))
 
 
-def test_playback_echo_is_explicitly_rejected_without_false_user_turn(tmp_path):
+@pytest.mark.parametrize(
+    "spoken,candidate",
+    [
+        ("The answer is forty two and here is why.", "The answer is forty two and here is why."),
+        (
+            "I am **Gemma**, a **large language model** from **Google DeepMind**.",
+            "I am asterisk asterisk Gemma asterisk asterisk "
+            "a large language model from Google DeepMind",
+        ),
+    ],
+)
+def test_playback_echo_is_explicitly_rejected_without_false_user_turn(tmp_path, spoken, candidate):
     async def scenario():
-        spoken = "The answer is forty two and here is why."
         provider = HandoffProvider(first_answer=spoken)
         output = BlockingFirstOutput()
-        stt = SequencedStt([(spoken, None)])
+        stt = SequencedStt([(candidate, None)])
         capture = PlaybackCandidateCapture(None)
         events = EventBus()
         subscription = await events.subscribe(max_queue=128)
@@ -1152,6 +1162,31 @@ def test_stop_speaking_preserves_answer_and_allows_future_playback(tmp_path):
             output.release_first.set()
             await runtime.close()
             await subscription.close()
+
+    asyncio.run(asyncio.wait_for(scenario(), 3))
+
+
+def test_formatted_answer_is_plain_only_at_synthesis_boundary(tmp_path):
+    async def scenario():
+        answer = "# Answer\n\nI am **Sam**.\n- Read [the guide](https://example.com)."
+        tts = TrackingTts()
+        runtime = SamRuntime(
+            HandoffProvider(first_answer=answer),
+            RuntimeConfig(tmp_path, port=0, state_db=tmp_path / "state.db"),
+            tts=tts,
+            audio_output=_FakeOutput(),
+        )
+        try:
+            generation = runtime.submit_user_message("hello")
+            await runtime._active_response_task
+            assert tts.texts == ["Answer I am Sam. Read the guide."]
+            assert runtime.delivery.snapshot(generation).generated_text == answer
+            assert runtime._active_done.is_set()
+            runtime.submit_user_message("next")
+            await runtime._active_response_task
+            assert tts.texts[-1] == "answer B"
+        finally:
+            await runtime.close()
 
     asyncio.run(asyncio.wait_for(scenario(), 3))
 

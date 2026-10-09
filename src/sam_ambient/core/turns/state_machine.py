@@ -327,13 +327,10 @@ class TurnManager:
                 )
             )
         elif self.state is VoiceState.INTERRUPTION_CANDIDATE:
-            if (
-                is_speech
-                and self._should_confirm_interruption(at_ms)
-                and self._candidate_origin_state is not VoiceState.SPEAKING
-            ):
-                events.extend(self._confirm_interruption(at_ms, "sustained_speech"))
-            elif not is_speech:
+            # Binary VAD does not establish owner intent, including while a typed
+            # answer is still generating. Noise may only open a provisional STT
+            # candidate; credible transcript evidence authorizes cancellation.
+            if not is_speech:
                 self._end_interruption_speech(at_ms)
                 self._recovery_started_ms = at_ms
                 events.append(
@@ -440,16 +437,6 @@ class TurnManager:
                 or silence_ms >= self.config.max_endpoint_wait_ms
             ):
                 return self._commit(at_ms)
-        elif (
-            self.state is VoiceState.INTERRUPTION_CANDIDATE
-            and self._vad_active
-            and self._should_confirm_interruption(at_ms)
-            # While audio is physically playing, sustained VAD alone cannot
-            # distinguish the owner from speaker bleed. A credible transcript
-            # must confirm the interruption; THINKING remains duration-capable.
-            and self._candidate_origin_state is not VoiceState.SPEAKING
-        ):
-            return self._confirm_interruption(at_ms, "sustained_speech")
         elif self.state is VoiceState.RECOVERING:
             recovery_ms = self._elapsed_since(self._recovery_started_ms, at_ms)
             if recovery_ms >= self.config.false_interrupt_recovery_ms:

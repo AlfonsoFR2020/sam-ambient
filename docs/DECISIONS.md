@@ -1,5 +1,15 @@
 # Decision log
 
+## 2026-10-09 — Conservative evidence applies during generation as well as playback
+
+The owner beta and deterministic reproduction exposed VAD-only cancellation of
+THINKING, allowing ambient activity to retire typed generation without a transcript.
+Provisional capture remains enabled; credible transcript evidence now authorizes
+interruption in both THINKING and SPEAKING. No acoustic source-separation claim is
+made. Empty final recognition retires input without commitment. Speech presentation
+normalizes common Markdown at synthesis only, preserving original answer/history.
+See [triage and evidence](BETA_TRIAGE_2026-10-09.md).
+
 ## 2026-10-01 — Durable memory is reviewed local context, never authority
 
 HQ authorized a post-MVP single-owner SQLite foundation without external database

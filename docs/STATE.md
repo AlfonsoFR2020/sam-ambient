@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-10-08. This is current development truth, not a release acceptance claim.
+Updated: 2026-10-09. This is current development truth, not a release acceptance claim.
 Historical implementation/release detail remains in [changelog](../CHANGELOG.md),
 [architecture](ARCHITECTURE.md), [decisions](DECISIONS.md) and specialist evidence.
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
@@ -38,7 +38,7 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - The five-minute physical beta initially completed voice/model/TTS turns, then exposed
   self-output contamination, ineffective interruption, eventual no-response, messy
   history and inadequate visual embodiment. [Beta record](POST_0.2.3_BETA_PLAN.md)
-  remains primary evidence; these dev changes have not received a new human beta.
+  remains historical; [October 9 triage](BETA_TRIAGE_2026-10-09.md) records new failures.
 - Deterministic lifecycle tests had missed the simultaneous playback/listening race.
   Renderer metrics prove numerical properties, not human perceptual visual acceptance.
 
@@ -127,7 +127,8 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
   history scrolling/autofollow are implemented.
 - Unverified playback candidates are never promoted just because playback completes;
   they retain the playback generation needed for late transcript screening and retire
-  safely. VAD alone cannot distinguish a human from Sam's loudspeaker leakage.
+  safely. VAD cannot establish intent in THINKING either; transcript evidence is required.
+  Empty finals never commit; delivery-only Markdown normalization preserves history.
 - Superseded streams relinquish active model/delivery ownership before new typed
   work. Old voice handoffs and late model/TTS events cannot reclaim it. Stale terminal
   events release their pending command; unrelated Controls cannot disable text input.

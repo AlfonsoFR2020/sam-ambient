@@ -353,7 +353,7 @@ class VoiceInputPipeline:
                             ),
                         )
                         final_transcript = await stt_stream.finalize(cancellation)
-                        if not final_transcript.text:
+                        if not final_transcript.text.strip():
                             return VoiceInputResult(final_transcript, audio_frames)
                         if await self._consume_control(final_transcript, frame.monotonic_ms):
                             return VoiceInputResult(final_transcript, audio_frames, True)
@@ -377,13 +377,16 @@ class VoiceInputPipeline:
                     frame.monotonic_ms, candidate_since_ms
                 ):
                     log.info(
-                        "conversation_timing stage=speech_endpoint_detected audio_ms=%d",
+                        "conversation_timing stage=speech_endpoint_detected audio_ms=%d "
+                        "cancellation=%s turn=%s",
                         frame.monotonic_ms
                         - (
                             evidence.opened_ms
                             if evidence.opened_ms is not None
                             else frame.monotonic_ms
                         ),
+                        cancellation.cancellation_id,
+                        self._turn_manager.turn_id,
                     )
                     await self._publish(
                         ProtocolEvent(
@@ -402,9 +405,21 @@ class VoiceInputPipeline:
                     stt_started = time.monotonic()
                     final_transcript = await stt_stream.finalize(cancellation)
                     log.info(
-                        "conversation_timing stage=stt_final_available stt_ms=%d",
+                        "conversation_timing stage=stt_final_available stt_ms=%d "
+                        "cancellation=%s turn=%s nonempty=%s",
                         round((time.monotonic() - stt_started) * 1000),
+                        cancellation.cancellation_id,
+                        self._turn_manager.turn_id,
+                        bool(final_transcript.text.strip()),
                     )
+                    if not final_transcript.text.strip():
+                        # A final empty/no-speech decision supersedes any earlier
+                        # partial. Do not let endpoint time commit stale or blank text.
+                        log.info(
+                            "voice_candidate_rejected reason=empty_final cancellation=%s",
+                            cancellation.cancellation_id,
+                        )
+                        return VoiceInputResult(final_transcript, audio_frames)
                     if await self._consume_control(final_transcript, frame.monotonic_ms):
                         return VoiceInputResult(final_transcript, audio_frames, True)
                     if final_transcript != last_partial:

@@ -154,6 +154,43 @@ class FakeStt:
         return None
 
 
+def test_empty_final_retires_partial_without_committing_bogus_turn():
+    class EmptyFinal(FakeSttStream):
+        async def finalize(self, cancellation):
+            return Transcript("   ", is_final=True)
+
+    class EmptyStt(FakeStt):
+        async def start_stream(self, context, cancellation):
+            self.stream = EmptyFinal(context, cancellation)
+            return self.stream
+
+    async def scenario():
+        # Continuous paced frames, with a real speech-sized interval then silence.
+        class PacedVad:
+            def analyze(self, frame):
+                speaking = frame.sequence < 15
+                return VadResult(speaking, float(speaking))
+
+        frames = [AudioFrame(AudioFormat(), b"\0" * 640, i * 20, i) for i in range(90)]
+        manager, events = TurnManager("session"), []
+
+        async def publish(event):
+            events.append(event)
+
+        result = await VoiceInputPipeline(
+            capture=FakeCapture(frames),
+            vad=PacedVad(),
+            stt=EmptyStt(),
+            turn_manager=manager,
+            publish=publish,
+        ).run(CancellationToken("c"))
+        assert not result.transcript.text.strip()
+        assert not any(e.type == EventType.TURN_COMMITTED for e in events)
+        assert manager.state is VoiceState.IDLE
+
+    asyncio.run(scenario())
+
+
 class FinalOnlySttStream:
     def __init__(self, context, token: CancellationToken, text: str) -> None:
         self.context = context
