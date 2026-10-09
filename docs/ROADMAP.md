@@ -114,65 +114,38 @@ no shader tuning or new visual identity belongs in this closure. Themes remain l
 
 ## Next basic-experience tasks — after Core Experience V
 
-**Current incremental-alpha override:** [candidate evidence](ALPHA_CANDIDATE_0.2.4.md)
-supersedes the precautionary integrity hold below. First resolve the demonstrated
-Windows build-helper execution failure, then validate native owner UI/proof and
-installed persistence/cleanup and present artifact scope to HQ. Unreproduced voice
-and subjective visual failures remain disclosed, not permanent release vetoes.
-STT modernization, artistic Orb redesign, refined persona settings and Console/
-Memory presentation remain later work. No second beta or v0.2.5 task is initiated.
+**October 9 source-release policy:** v0.2.4 closes as an experimental wheel/sdist
+pre-release after exact-commit hosted source/package gates. Native build failure is
+separate; unsigned Windows artifacts remain withheld. No additional feature work
+is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposition.
 
-Updated 2026-10-09 by the [release hold](RELEASE_READINESS_0.2.4.md).
-The corrected October 8 observer closed real unload/reload/Rescan/Quit and bounded
-inference scheduling; the October 9 beta is complete. Those tasks are not open.
-This is a small alpha-closure sequence, not another capability programme.
+### Next-cycle handoff (not started)
 
-### 1. Isolate residual spurious commitment and delayed-response ownership
+1. **Diagnostic launch contract** — Medium / small. Preserve the default convenient
+   one-action launch. Diagnostic mode keeps its console open and writes bounded,
+   useful timings/terminal/ownership evidence. Explicit temporary flags may retain
+   the selected model or provider on exit without changing persisted defaults.
+   Never expose credentials, owner proofs, unnecessary conversation text or raw
+   private audio. Cleanup remains safe, ownership-aware and truthful. Define the
+   concrete interface before implementation; do not weaken owner authentication.
+2. **Intermittent latency and false speech turns** — Medium initially, High only for
+   demonstrated cross-lifetime ownership. Use those diagnostics and paced mixed
+   typed/voice/playback sequences; reproduce before changing product behavior.
+   Preserve legitimate short speech and typed recovery, avoid arbitrary timeout
+   resets. These remain the highest reliability concerns, not claimed solved.
+3. **Major multilingual STT replacement** — dedicated scoped evaluation/implementation,
+   not an incidental release dependency. Owner speech quality is still inadequate;
+   separate language/endpoint/model capacity and future physical acceptance.
+4. **Orb/membrane/palette and voice embodiment** — dedicated artistic/technical pass
+   grounded in October 9 owner rejection. Automated motion is not aesthetic acceptance;
+   do not continue synthetic AEC or speculative shader tuning during closure.
+5. **Windows native packaging/Cargo** — separate bounded host/toolchain diagnosis,
+   then authenticated installed/upgrade data checks and signing/reputation policy.
+   Never bypass security software or publish unsigned development binaries.
 
-- **Why first:** these are conversation-integrity reports, not acceptable polish.
-  Empty-final, VAD-only cancellation and known spoken-format echo are fixed, but
-  plausible wrong STT and the minutes-long stall remain unresolved.
-- **Scope:** correlate the existing/new content-free endpoint/STT/model/delivery
-  timings in paced mixed typed/voice/playback fixtures; reproduce before altering
-  ownership. Include plausible hallucinated final text and late/cancelled operations.
-- **Deliverable:** bounded causal regression/fix or explicit missing evidence. High
-  only for demonstrated cross-lifetime difficulty; stop rather than invent a timeout,
-  disable all listening, blacklist legitimate short utterances or re-enter AEC.
-- **Dependency:** this release hold precedes candidate version/artifact preparation;
-  no immediate human session is required for deterministic defects.
-
-### 2. Settle LM Studio preflight ownership without terminating shared processes
-
-- **Why next:** the beta's desktop process observation is not endpoint failure,
-  but inventory may wake the daemon before initial status is sampled.
-- **Scope:** one ordered status/inventory fake reproduction; determine whether the
-  serving endpoint changes, retain explicit start/ownership and external preservation.
-  Use a bounded real confirmation only if justified; no provider reconfiguration.
-- **Deliverable:** proved ownership semantics or precise unresolved condition;
-  Medium / small, no desktop-kill workaround. This clarifies the cleanup claim
-  before package/native lifecycle validation.
-
-### 3. Establish authenticated candidate packaging and safe install/upgrade
-
-- **Why:** current native smoke assumes unauthenticated readiness; driver assets/
-  notices and installed SQLite/owner lifecycle have not been validated after agency.
-- **Scope:** trusted owner-proof smoke, frozen manifest/driver/notices, stable app-data
-  and failure recovery, native lifecycle, hosted package dependency policy. Follow
-  [release prerequisites](RELEASE_READINESS_0.2.4.md); no security weakening to pass.
-- **Non-scope:** installer publication/signing without owner decision, dependency
-  modernization, new features. Medium / medium, split a demonstrated packaging
-  migration before changes. Can proceed independently while qualitative time is scarce.
-
-### 4. Prepare one accepted alpha candidate, then request release execution separately
-
-- **Prerequisites:** residual integrity hold closed, explicit owner scope/limits, package/security
-  evidence and an approved artifact scope. Current metadata remains 0.2.3.
-- **Scope:** consistent candidate versions/notes, full relevant release/static/native
-  gates, clean-host smoke, required hosted jobs and hashes. Signed/reputation-checked
-  public Windows installer only; source/package alpha is a distinct owner decision.
-- **Deliverable:** inspectable readiness/limits, no automatic tag/merge/publication.
-  Medium / medium with checkpoint before build; stop on unresolved authority,
-  state-loss, native packaging or signing/security fault. No expansion.
+Refined system/persona settings and Console/Memory presentation remain later;
+Agency/Memory capability expansion, profiles, arbitrary shell and diarization stay
+parked. No next-cycle task is executed by this release action set.
 
 ### Parked acoustic re-entry contract
 

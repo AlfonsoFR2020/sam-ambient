@@ -479,3 +479,14 @@ private companion ZIP built; driver/resources/notices included. Installer not
 built: Windows denied generated Cargo helper execution (OS error 5). Installed
 native/package smoke is unpassed. [Candidate evidence](ALPHA_CANDIDATE_0.2.4.md)
 owns the minimum correction. No second beta, new powers or publication occurred.
+
+
+## Final source/Python release boundary — October 9
+
+The source/Python experimental alpha is explicitly authorized conditional on its
+exact-commit gates. Fresh 27 focused composed/browser/storage/normalization checks
+and authenticated frozen companion startup/Quit pass without personal audio or real
+models. No production runtime behavior changed. Prior full frontend evidence remains
+valid. Native installer is unavailable/unvalidated and not uploaded; hosted source
+quality/package checks remain required. Voice contamination/latency and owner visual
+rejection remain disclosed, not marked solved. See [current readiness](RELEASE_READINESS_0.2.4.md).

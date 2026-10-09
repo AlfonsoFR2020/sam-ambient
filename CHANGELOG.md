@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.4 — experimental alpha candidate (not published)
+## 0.2.4 — experimental source/Python alpha (2026-10-09)
 
 - Repair VAD-only cancellation during typed inference, empty final STT commitment
   and literal spoken Markdown; preserve original history and conservative interruption.

@@ -46,6 +46,7 @@ packages = ["src/sam_ambient"]
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers -p no:cacheprovider"
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = ["live_ollama: optional test against a separately installed live Ollama service"]
 
 [tool.ruff]

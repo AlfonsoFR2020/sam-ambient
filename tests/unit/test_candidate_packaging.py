@@ -1,7 +1,11 @@
 import importlib.util
+import sys
 from pathlib import Path
 
+import pytest
 
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows frozen companion resource contract")
 def test_companion_includes_private_driver_and_license_inventory():
     root = Path(__file__).resolve().parents[2]
     spec = importlib.util.spec_from_file_location(

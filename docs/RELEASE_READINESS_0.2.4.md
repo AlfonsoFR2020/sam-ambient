@@ -1,51 +1,70 @@
-# Sam v0.2.4 — proposed everyday alpha / release decision
+# Sam v0.2.4 — experimental source/Python pre-release
 
-Updated 2026-10-09. **Partial 0.2.4 candidate: Windows packaging blocked.**
-HQ explicitly supersedes the earlier precautionary hold on unreproduced complaints.
-The October 9 owner beta is actual
-product evidence and supersedes the previous recommendation to conduct it.
-This is the current readiness index. [Runtime evidence](CORE_INTEGRATION_0.2.4.md),
-[acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md), [ROADMAP](ROADMAP.md),
-[release checklist](RELEASE_CHECKLIST.md) and [future beta](CORE_EXPERIENCE_V_BETA_SCRIPT.md)
-own their respective technical, sequencing and acceptance details.
+Updated 2026-10-09. HQ authorizes publication of the **source/Python artifact class**
+when exact-commit source quality and package gates pass. Native Windows installer:
+**unavailable and still unvalidated**. Its Cargo helper execution failure does not
+block a valid wheel/sdist pre-release; unsigned native artifacts remain private.
 
-## Current candidate result
+## Acceptance and publication gate
 
-[Exact evidence and minimum correction](ALPHA_CANDIDATE_0.2.4.md): 104 focused
-Python checks, 235 frontend tests, TypeScript/Vite, version/artifact consistency,
-Ruff/format and authenticated frozen companion startup/Quit pass. Private driver
-and runtime notices are explicitly included and the bundled driver executes.
-Versions are coordinated at 0.2.4; [candidate notes](RELEASE_NOTES_0.2.4.md) disclose
-the actual delta, experimental foundations and owner-reported limitations.
+Secure owner-authenticated startup/shutdown, successive typed requests, recovery
+from synthetic voice errors/cancellation, empty-STT rejection, speech-only Markdown
+normalization, SQLite initialization/persistence/migration protection and sandboxed
+responsive owner-window behavior pass the representative candidate tests. The prior
+104 Python / 235 frontend gate remains valid for unchanged product source. Fresh
+bounded verification adds 27 focused checks and an authenticated frozen companion
+startup/Quit smoke with isolated data, offline provider and speech disabled.
+No microphone, disruptive playback, real model loop or personal database is used.
 
-Wheel/sdist and private unsigned companion ZIP exist locally, with SHA-256 inventory
-in `dist/SHA256SUMS-0.2.4.txt`. **No installer was produced:** Windows denied
-execution of three generated Cargo build-helper aliases (OS error 5); the exact
-host-policy/filesystem cause is unknown. No bypass, whitelist or global change.
-Native installed smoke therefore did not pass. The existing package smoke also
-still needs the actual native owner UI/proof path; companion smoke is repaired.
+The first hosted candidate run exposed a test-runner collection defect: console
+`pytest` did not include repository helper scripts on its import path. Explicit
+pytest `pythonpath` restores the same imports used by local `python -m pytest`;
+no tests are removed. The Windows-only companion resource test is now explicitly
+scoped to Windows, retaining all driver/license assertions on that platform.
+Exact final commit CI and installed-package verification must pass before tagging.
+No workflow, dependency version, authentication or sandbox policy is weakened.
 
-This packaging failure is the actual candidate blocker. Unreproduced intermittent
-voice/visual complaints are disclosed alpha limitations under the explicit owner
-policy, not a permanent veto. No demonstrated unrecoverable stall, new authority
-failure or data-loss regression was exposed by the current representative tests.
-Do not claim the reported intermittent stalls or poor visual/STT experience solved.
-No new human beta is required. **Not yet ready for HQ release approval.**
+## Approved scope and limitations
 
-## Proportionate experimental-alpha acceptance
+Only `sam_ambient-0.2.4-py3-none-any.whl`, `sam_ambient-0.2.4.tar.gz` and their
+source-only SHA-256 manifest may be public. Rebuild after the final source commit;
+compare metadata, notices/resources and archive contents, then independently
+verify uploaded hashes. Preserve dev/main history by fast-forward and tag the
+exact validated commit. Native CI must be reported separately, never as source
+quality evidence. No installer, unsigned companion ZIP or diagnostic artifact upload.
 
-Owner-authorized incremental release policy: secure authenticated startup/exit,
-several ordinary typed turns, recovery after voice failure/cancellation, operational
-model discovery/load/unload, intact settings/data and protected core operations.
-Intermittent unreproduced voice failures and failed aesthetic judgments are known
-alpha limitations, not permanent release vetoes. Do not claim them resolved.
-Demonstrated unrecoverable stalls, security failure, data loss or failed packaging
-remain blockers. No second human beta is required for the tested repairs.
-Candidate artifacts and frozen authenticated smoke must actually pass before HQ
-approval readiness is claimed. Unsigned development installers remain private.
+Intermittent false/noise/self-playback turns and prolonged inference stalls remain
+reported, incompletely reproduced limitations. The concrete beta repairs do not
+prove every cause resolved. Poor real-accent STT, conservative interruption and
+owner-rejected Orb/membrane/voice embodiment remain candid experimental limitations.
+A reproducible unrecoverable conversation failure, serious authority defect,
+corrupted persistent data or broken distributed package would still block release.
+No second human beta is required for deterministic repairs; no subjective acceptance
+is claimed. [Release notes](RELEASE_NOTES_0.2.4.md) describe the actual delta and
+experimental Agency/Memory foundations. [Acceptance](CORE_EXPERIENCE_ACCEPTANCE.md)
+and [candidate evidence](ALPHA_CANDIDATE_0.2.4.md) preserve evidence boundaries.
 
-The October 9 repair-stage hold and evidence below remain historical; this policy
-changes disposition, not the findings or the negative acoustic/perceptual record.
+## Dependency review
+
+Read-only GitHub review on October 9 returned 20 default-branch alerts. Current dev
+Vite 7.3.5 and Vitest/mocker 4.1.11 are outside the returned vulnerable ranges;
+17 duplicate frontend alerts refer to older default-branch versions. Remaining
+pytest 8.4.2 (test tooling), setuptools 82.0.1 (build/macOS sdist path) and GLib
+0.18.5 (Linux native GTK dependency) are deferred as previously triaged, not runtime
+wheel security certifications. No blanket upgrade or zero-vulnerability claim.
+See [triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md).
+
+## Native distribution — separate blocker
+
+Windows refused generated Cargo helper execution (OS error 5); exact host cause
+remains unknown. No NSIS installer or installed Tauri smoke passed. A repaired
+private-parent proof smoke passes for the existing frozen companion, but that is
+not native installer acceptance. Public Windows distribution still needs a
+maintainable build, authenticated installed/upgrade and data-recovery checks,
+signing and reputation review. No security bypass or global tooling change.
+
+The historical hold below is retained as dated evidence, with its disposition
+superseded by the explicit source/Python alpha policy above.
 
 ## October 9 repair-stage decision — historical, disposition superseded above
 

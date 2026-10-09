@@ -32,6 +32,16 @@ issue is explicitly deferred to the dedicated 0.3.0 compatibility review and
 does not by itself block this Windows-first patch alpha; do not mark the Ubuntu
 job successful artificially or weaken its tests.
 
+## v0.2.4 source/Python artifact profile
+
+HQ explicitly authorizes this pre-release with only wheel, sdist and checksums.
+Exact-commit source quality/package checks, owner authority, persistence and package
+content smoke are required. Report native job outcomes separately; an isolated native
+installer/build failure is non-blocking for this profile, never a package pass.
+No unsigned native companion/installer upload. Native signing and clean-host gates
+below remain mandatory when that artifact class is eventually published. This
+explicit profile supersedes the earlier all-artifact patch-alpha requirement above.
+
 ## Future release checklist
 
 - [ ] `dev` is clean and synchronized; required Windows jobs are green and the

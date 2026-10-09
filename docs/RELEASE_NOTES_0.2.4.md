@@ -1,6 +1,6 @@
-# Sam 0.2.4 experimental alpha — candidate notes
+# Sam 0.2.4 experimental source/Python alpha
 
-Local candidate, not published or approved. Windows-first incremental alpha;
+Owner-approved artifact scope: experimental source/Python pre-release. Windows-first alpha;
 typed conversation is the recommended dependable path, voice remains experimental.
 This is not production certification or human visual acceptance.
 
@@ -39,11 +39,15 @@ voice persona/pleasantness and real-room interruption are limited. Major STT,
 visual/artistic Orb, refined persona settings and Console/Memory presentation
 remain later work. No second beta is required for the deterministic fixes.
 
-## Artifacts and approval boundary
+## Distribution boundary
 
-Wheel/sdist and frozen companion are local candidate material. The unsigned
-development installer must never be published. Public native distribution requires
-signed/reputation-checked artifacts and installed/upgrade smoke. Current exact
-build disposition, hashes and blockers are in
-[candidate evidence](ALPHA_CANDIDATE_0.2.4.md) and
-[readiness](RELEASE_READINESS_0.2.4.md). No merge/tag/upload/publication is authorized.
+The GitHub pre-release contains only the Python wheel, source archive and SHA-256
+manifest. Python 3.12+ and the documented local setup/provider/speech prerequisites
+remain necessary; this is not a one-click Windows application release.
+
+**Native Windows installer: unavailable and unvalidated.** No unsigned companion,
+development installer or executable binary is published. Public native distribution
+requires authenticated installed/upgrade smoke, signing and reputation review.
+Current native Cargo helper execution failure remains separate from source/package
+acceptance. See [readiness](RELEASE_READINESS_0.2.4.md) and
+[candidate evidence](ALPHA_CANDIDATE_0.2.4.md) for the validation boundaries.

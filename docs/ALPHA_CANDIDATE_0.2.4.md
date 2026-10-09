@@ -2,7 +2,9 @@
 
 October 9, 2026. HQ authorized incremental alpha acceptance, superseding the
 precautionary hold on unreproduced intermittent voice and aesthetic complaints.
-No approval, merge/tag/upload or publication occurred. No second human beta.
+That original candidate had no publication approval. The final source/Python
+release task now authorizes publication after exact-commit checks; native remains
+unavailable. No second human beta.
 
 ## Candidate gate
 
@@ -49,8 +51,8 @@ helpers under its security policy, rerun the guarded same-version installer buil
 Then close the separately stale package smoke through the actual native owner
 UI/private proof path (never the old unauthenticated socket), installed persistence/
 shutdown checks and artifact manifest. No voice/visual research programme is needed.
-Public installer additionally requires signing/reputation checks. Until then this
-is a partial candidate, not “ready for HQ release approval.”
+Public installer additionally requires signing/reputation checks. Until then native distribution remains unavailable. This does not block the
+separately authorized source/Python pre-release under the final release policy.
 
 ## Known alpha limits
 
@@ -62,3 +64,14 @@ membrane/embodiment and Console/Memory presentation remain experimental. Artisti
 redesign, serious STT modernization and refined persona settings remain later.
 See [notes](RELEASE_NOTES_0.2.4.md), [beta evidence](BETA_TRIAGE_2026-10-09.md) and
 [readiness](RELEASE_READINESS_0.2.4.md). No v0.2.5 work was begun.
+
+## Final source verification — October 9
+
+Fresh 27-test composed/authenticated owner-window, SQLite, normalization and native
+resource gate passes; existing frozen companion authenticated startup/Quit passes
+with isolated data, offline endpoint and no speech. Previous unchanged-source
+104-Python/235-frontend evidence is retained. Console pytest script imports and
+Windows-only freezer test scope are corrected without removing security assertions.
+Final artifacts are rebuilt from the exact committed release tree; source-only
+checksums supersede the earlier mixed internal candidate inventory. Hosted checks,
+installed-package contents and published downloads must be independently verified.

@@ -2,9 +2,9 @@
   <img src="sam-logo.png" alt="Sam" width="520">
 </p>
 
-Current dev prepares a local **0.2.4 experimental-alpha candidate**. See
-[candidate status and limits](docs/ALPHA_CANDIDATE_0.2.4.md); this is not a published
-release or permission to publish unsigned native development artifacts.
+Sam **0.2.4 experimental source/Python alpha** is prepared for the authorized GitHub
+pre-release. See [scope and limitations](docs/RELEASE_NOTES_0.2.4.md). No Windows
+installer is available; unsigned native development artifacts are not distributed.
 
 # Sam
 
