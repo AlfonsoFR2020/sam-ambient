@@ -1,12 +1,28 @@
 # Sam v0.2.4 — proposed everyday alpha / release decision
 
-Updated 2026-10-09. **HOLD: not ready for final HQ publication approval.**
-No version/tag/candidate artifact changed. The October 9 owner beta is actual
+Updated 2026-10-09. **Experimental-alpha candidate preparation authorized; validation pending.**
+HQ explicitly supersedes the earlier precautionary hold on unreproduced complaints.
+The October 9 owner beta is actual
 product evidence and supersedes the previous recommendation to conduct it.
 This is the current readiness index. [Runtime evidence](CORE_INTEGRATION_0.2.4.md),
 [acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md), [ROADMAP](ROADMAP.md),
 [release checklist](RELEASE_CHECKLIST.md) and [future beta](CORE_EXPERIENCE_V_BETA_SCRIPT.md)
 own their respective technical, sequencing and acceptance details.
+
+## Proportionate experimental-alpha acceptance
+
+Owner-authorized incremental release policy: secure authenticated startup/exit,
+several ordinary typed turns, recovery after voice failure/cancellation, operational
+model discovery/load/unload, intact settings/data and protected core operations.
+Intermittent unreproduced voice failures and failed aesthetic judgments are known
+alpha limitations, not permanent release vetoes. Do not claim them resolved.
+Demonstrated unrecoverable stalls, security failure, data loss or failed packaging
+remain blockers. No second human beta is required for the tested repairs.
+Candidate artifacts and frozen authenticated smoke must actually pass before HQ
+approval readiness is claimed. Unsigned development installers remain private.
+
+The October 9 repair-stage hold and evidence below remain historical; this policy
+changes disposition, not the findings or the negative acoustic/perceptual record.
 
 ## October 9 beta closure decision
 

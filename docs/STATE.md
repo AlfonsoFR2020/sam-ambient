@@ -196,5 +196,6 @@ The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gate
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider
 Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Release proposal](RELEASE_READINESS_0.2.4.md) retains native/auth/install/signing gates.
-Candidate preparation is held: residual spurious turns/stalls remain unresolved.
+HQ authorizes experimental-alpha preparation: unreproduced voice issues remain disclosed;
+demonstrated security, data-loss, unrecoverable or packaging failure still blocks.
 Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.
