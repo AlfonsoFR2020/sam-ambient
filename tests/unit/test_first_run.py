@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import threading
 from unittest.mock import AsyncMock
 
@@ -44,9 +45,10 @@ def test_browser_waits_for_http_and_opens_once_even_after_restart(monkeypatch):
 
 
 def test_frozen_supervisor_uses_only_trusted_sibling_components(monkeypatch, tmp_path):
-    supervisor = tmp_path / "sam-supervisor.exe"
-    core = tmp_path / "sam-core.exe"
-    ui = tmp_path / "sam-ui.exe"
+    suffix = ".exe" if os.name == "nt" else ""
+    supervisor = tmp_path / f"sam-supervisor{suffix}"
+    core = tmp_path / f"sam-core{suffix}"
+    ui = tmp_path / f"sam-ui{suffix}"
     for executable in (supervisor, core, ui):
         executable.touch()
     monkeypatch.setattr("sam_ambient.supervisor.cli.sys.frozen", True, raising=False)

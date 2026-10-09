@@ -2,6 +2,9 @@
 
 import asyncio
 import json
+import os
+
+import pytest
 
 from sam_ambient.core.owner import OwnerSession
 from sam_ambient.runtime import ProviderRefresh, RuntimeConfig, SamRuntime
@@ -9,6 +12,7 @@ from scripts.owner_lifecycle_probe import MODEL, ObservedWindow, Observer, activ
 from tests.unit.test_cli import FakeProvider
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Windows real owner-window observer gate")
 def test_observer_preserves_handshake_correlates_controls_and_avoids_encoding_locator(tmp_path):
     class Provider(FakeProvider):
         id = "lm-studio"

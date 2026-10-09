@@ -10,6 +10,8 @@ import pytest
 from sam_ambient.core.owner import OwnerSession
 from sam_ambient.supervisor.owner_window import OwnerWindow
 
+pytestmark = pytest.mark.skipif(os.name != "nt", reason="Windows owner app acceptance gate")
+
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows source app presentation gate")
 def test_sandboxed_app_window_resizes_and_fullscreen_uses_real_viewport(tmp_path):
