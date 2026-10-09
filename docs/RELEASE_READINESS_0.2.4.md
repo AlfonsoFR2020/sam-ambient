@@ -21,7 +21,21 @@ The first hosted candidate run exposed a test-runner collection defect: console
 pytest `pythonpath` restores the same imports used by local `python -m pytest`;
 no tests are removed. The Windows-only companion resource test is now explicitly
 scoped to Windows, retaining all driver/license assertions on that platform.
-Exact final commit CI and installed-package verification must pass before tagging.
+Hosted full-suite verification also exposed a stale 0.2.3 version assertion and
+Windows-only executable filenames in a platform-neutral frozen fixture. Both are
+corrected. Real owner-window acceptance is Windows-scoped; hosted Linux Edge aborts
+on a misconfigured SUID sandbox helper, and no sandbox weakening is used. Linux
+core/authentication/package tests remain enabled; Linux desktop acceptance is open.
+
+The Windows resize fixture requested widths beyond the runner desktop; it now
+checks two screen-relative sizes with the same viewport/fullscreen assertions.
+Hosted concurrent memory writes also exhausted the external SQLite lock wait.
+A delayed-commit reproduction confirms that contention; same-store transactions
+are now serialized with a reentrant lock. External locked-database failure, schema
+protection and privacy/rollback semantics remain unchanged. The new regression and
+existing persistence/recovery/owner-window checks pass (22 focused tests).
+Fresh isolated Python 3.12 wheel installation with locked runtime dependencies
+passes CLI, imports and resources. Exact final commit CI must pass before tagging.
 No workflow, dependency version, authentication or sandbox policy is weakened.
 
 ## Approved scope and limitations

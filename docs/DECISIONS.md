@@ -722,3 +722,14 @@ owner command path. SQLite remembers an explicit owner choice over startup defau
 invalid data is ignored/rejected. Only idle capture may be replaced; an ongoing
 utterance/response must finish first. This does not change Whisper capacity or TTS
 persona selection. Effective voice and separate input/output health remain status.
+
+
+## 2026-10-09 — source alpha publication and same-store transaction ownership
+
+HQ authorizes v0.2.4 wheel/sdist/checksum pre-release independently of unavailable
+Windows installer packaging. Exact-commit source quality/package checks remain
+mandatory; native security/signing gates apply to future native publication.
+Same-store SQLite transactions serialize through a reentrant lock after hosted
+concurrent writers and a delayed-commit fixture demonstrated bounded lock-wait
+failures. Connections remain per-operation, external lock timeout unchanged,
+private content deletion and authority guards preserved; no storage schema change.

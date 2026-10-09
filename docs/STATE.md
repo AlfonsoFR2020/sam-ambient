@@ -29,8 +29,7 @@ History remains in [changelog](../CHANGELOG.md), [architecture](ARCHITECTURE.md)
   preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
   and Sam-loaded unload passed. Reused serving remained; broader hosts are unverified.
   Actual en/es synthesis/meters reach fixed WebGL without physical playback.
-- v0.2.4 source/Python pre-release is authorized pending exact-commit hosted gates.
-  Unsigned native development artifacts are withheld from publication.
+- v0.2.4 is the authorized experimental source/Python pre-release artifact class.
 - Windows-first development; Linux compatibility/native CI has a documented deferred
   failure. Native packaging, signing/reputation and clean-host installation remain open.
 - The five-minute physical beta initially completed voice/model/TTS turns, then exposed
@@ -196,6 +195,7 @@ The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gate
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider
 Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Release proposal](RELEASE_READINESS_0.2.4.md) retains native/auth/install/signing gates.
-HQ accepts disclosed voice/art limits; fresh 27-test and frozen-owner smoke pass.
-Windows installer is unavailable: Cargo helper access denied; installed smoke remains open.
+HQ accepts disclosed voice/art limits; fresh composed and frozen-owner smoke pass.
+Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
+Windows installer remains unavailable; Cargo/helper and installed smoke are separate.
 Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.

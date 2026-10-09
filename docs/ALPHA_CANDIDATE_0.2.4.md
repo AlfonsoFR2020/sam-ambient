@@ -75,3 +75,16 @@ Windows-only freezer test scope are corrected without removing security assertio
 Final artifacts are rebuilt from the exact committed release tree; source-only
 checksums supersede the earlier mixed internal candidate inventory. Hosted checks,
 installed-package contents and published downloads must be independently verified.
+
+
+Final hosted-gate corrections: version smoke now expects 0.2.4; frozen sibling
+fixture names follow the platform. Windows owner-window acceptance stays sandboxed
+and authenticated; unsupported Linux runner Edge/SUID desktop acceptance is explicitly
+unverified. Screen-relative resize requests retain the live viewport/fullscreen gate.
+Concurrent same-store writes failed under delayed commit; a reentrant transaction
+lock fixes that reproduced contention without increasing external lock timeouts.
+22 focused memory/persistence/recovery/window checks pass, including delayed commit,
+locked external DB, future schema and actual content deletion. No schema migration,
+new memory feature, authority change or browser security bypass was introduced.
+Artifacts are rebuilt again from the final release commit; every included tracked
+source file is compared to that commit, and only two source artifacts enter the manifest.

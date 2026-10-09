@@ -1,4 +1,5 @@
 import sqlite3
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -99,6 +100,25 @@ def test_concurrent_transactions_and_future_schema_fail_closed(tmp_path):
     with pytest.raises(MemoryError, match="Unsupported"):
         MemoryStore(path)
     assert path.read_bytes() == before
+
+
+def test_same_store_delayed_commit_does_not_reject_another_writer(tmp_path, monkeypatch):
+    store = MemoryStore(tmp_path / "memory.db")
+    connect = sqlite3.connect
+
+    class DelayedCommit(sqlite3.Connection):
+        def __exit__(self, *args):
+            if self.in_transaction:
+                time.sleep(0.6)  # Exceeds the external SQLite lock wait.
+            return super().__exit__(*args)
+
+    monkeypatch.setattr(
+        sqlite3, "connect", lambda *args, **kwargs: connect(*args, **kwargs, factory=DelayedCommit)
+    )
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        records = tuple(pool.map(lambda n: add(store, f"Owner preference {n}"), range(2)))
+    assert len({record.id for record in records}) == 2
+    assert len(store.list(store.owner_id)) == 2
 
 
 def test_invalid_database_and_locked_write_fail_safely(tmp_path):

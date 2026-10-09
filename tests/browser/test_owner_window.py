@@ -54,7 +54,14 @@ def test_sandboxed_app_window_resizes_and_fullscreen_uses_real_viewport(tmp_path
             # App titlebar is allowed; ordinary browser tabs/address/toolbars are not.
             assert await page.evaluate("outerHeight - innerHeight") < 100
             target = await session.send("Browser.getWindowForTarget")
-            for width, height in ((980, 720), (1300, 900)):
+            available = await page.evaluate(
+                "({width: screen.availWidth, height: screen.availHeight})"
+            )
+            # Hosted desktops can be smaller than the owner's monitor. Request
+            # two distinct sizes that the window manager can actually realize.
+            for fraction in (0.65, 0.85):
+                width = int(available["width"] * fraction)
+                height = int(available["height"] * fraction)
                 await session.send(
                     "Browser.setWindowBounds",
                     {

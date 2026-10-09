@@ -490,3 +490,11 @@ models. No production runtime behavior changed. Prior full frontend evidence rem
 valid. Native installer is unavailable/unvalidated and not uploaded; hosted source
 quality/package checks remain required. Voice contamination/latency and owner visual
 rejection remain disclosed, not marked solved. See [current readiness](RELEASE_READINESS_0.2.4.md).
+
+
+Final gate correction: same-store delayed commits no longer reject concurrent
+writes; external DB locks still fail safely and ordinary text remains usable.
+22 targeted persistence/recovery/owner-window tests pass. Version and frozen sibling
+fixtures match 0.2.4 and the host platform. Linux desktop Edge sandbox acceptance is
+not established on the hosted runner; Windows resize/fullscreen/authentication is
+retained, with screen-fitting sizes. No subjective or real-room acceptance added.

@@ -11,6 +11,7 @@ from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from threading import RLock
 from uuid import UUID, uuid4
 
 SCHEMA_VERSION = 1
@@ -100,6 +101,7 @@ class MemoryStore:
 
     def __init__(self, path: Path) -> None:
         self.path = path.resolve()
+        self._transaction_lock = RLock()
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             with self._db() as db:
@@ -144,6 +146,13 @@ class MemoryStore:
 
     @contextmanager
     def _db(self) -> Iterator[sqlite3.Connection]:
+        # One store's workers must not consume SQLite's bounded external-lock
+        # wait while another worker of that same store is committing.
+        with self._transaction_lock, self._connection() as db:
+            yield db
+
+    @contextmanager
+    def _connection(self) -> Iterator[sqlite3.Connection]:
         db = None
         try:
             db = sqlite3.connect(self.path, timeout=0.25)
