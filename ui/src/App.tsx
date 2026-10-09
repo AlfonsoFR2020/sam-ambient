@@ -844,7 +844,7 @@ export default function App() {
                 <SpeechStatusFields state={state} />
               </dl>
               <label
-                className="visual-setting"
+                className="visual-setting visual-setting--language"
                 title="Automatic detection, or force English/Spanish decoding. Applies while idle; preference is saved locally."
               >
                 <span>Recognition language</span>

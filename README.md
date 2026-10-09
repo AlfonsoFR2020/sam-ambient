@@ -73,6 +73,8 @@ Chromium through Playwright's private pipes (no browser download). Only this
 owner window or a native shell using bundled trusted assets can authenticate; normal
 browser/debug tabs do not receive authority. An unavailable owner window fails
 closed. See [owner authority](docs/OWNER_AUTHORITY.md).
+The source window uses sandboxed Chromium app mode, follows the actual window size,
+and supports the Appearance fullscreen action; it is not a normal personal browser tab.
 Starting the same Sam root twice reports the existing local UI instead of creating
 competing runtimes. Closing the dedicated window gracefully stops Sam.
 The integrated Tauri 2 shell provides the same ambient UI in a native

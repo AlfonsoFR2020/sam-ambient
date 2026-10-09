@@ -50,6 +50,8 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
 - Source OwnerWindow fulfills canonical shipped assets privately; ordinary HTTP tabs
   cannot supply signer-bearing code. Native proof accepts bundled origins, not native
   HTTP development pages. Host memory/code compromise remains an OS/trusted-code limit.
+- Source owner launch explicitly enables Chromium sandbox/app mode and actual-window sizing;
+  Recognition is keyboard usable and Controls tabs remain visible while scrolling.
 - Registry, typed schemas, trusted policy, exact approval, epoch leases, cancellation
   and result limits govern both manual and structured model actions. Model prose,
   transcripts, webpage text, tool results and stored memories are data, never authority.
@@ -192,10 +194,8 @@ and the beta record; numerical visual change does not establish perceptual succe
 Memory's store/authority/provenance/recovery gate remains in its specialist document;
 no new dependencies, models or published-release metadata changed in this pass.
 
-The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) retains V's 190 Python / 199
-frontend gate adds October 8's 33 Python / three Chrome and six observer/lifecycle checks.
-Probe repaired: owner UI unload/reload, three replies, Rescan and verified Quit passed.
-Headless inference cadence and safe device/generated speech assessed.
-[Release proposal](RELEASE_READINESS_0.2.4.md) records native-auth smoke, installed
-state, candidate/CI/signing and human gates. No new beta or release approval;
+The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gates;
+[October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider
+Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
+[Release proposal](RELEASE_READINESS_0.2.4.md) retains native/auth/install/signing gates.
 Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.

@@ -62,7 +62,13 @@ class OwnerWindow:
                 str(self.profile),
                 executable_path=executable,
                 headless=self.headless,
-                args=["--app=about:blank"],
+                # Launch an actual application window from a harmless local stub.
+                # Playwright's persistent default about:blank opens a normal tab
+                # instead; no HTTP content may precede the private owner bootstrap.
+                args=["--app=data:text/html,<title>Sam</title>"],
+                ignore_default_args=["about:blank"],
+                chromium_sandbox=True,
+                no_viewport=True,
                 env=environment,
                 accept_downloads=False,
                 service_workers="block",

@@ -253,6 +253,12 @@ arrived, choosing both conditional options still leaves them running; close or
 unload them in LM Studio yourself. Where eligible, Sam requests model unload
 before stopping the service. A failed or unsupported cleanup does not hold Sam
 open. “Stop” targets the LM Studio serving endpoint, not its desktop window.
+Sam does not promise to close LM Studio's desktop application. Inventory inspection
+can wake LM Studio's daemon; that is distinct from ownership of its serving endpoint.
+
+Recognition language has a full-width keyboard-accessible selector. Controls tabs
+remain at the top while scrolling. In the source owner app, Appearance fullscreen
+uses the browser fullscreen API and the scene follows actual window resizing.
 
 Keyboard: **Ctrl+M** toggles the microphone outside text fields;
 **Ctrl+Shift+X** performs Emergency stop even while a text field is focused;

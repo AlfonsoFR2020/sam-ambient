@@ -7,6 +7,12 @@ bounded review; real hostile-local-process testing was not performed.
 
 ## Boundaries and current controls
 
+The October 9 beta exposed Playwright's source-owner launch default disabling the
+Chromium sandbox. Source launch now explicitly enables it, retains the private
+asset/proof boundary and uses an isolated app window. An actual Windows fixture
+checks process arguments, owner proof, resizing and fullscreen. This fixes a
+browser protection regression; owner authentication is not a substitute for it.
+
 | Boundary | Current enforcement | Untrusted input / remaining limit |
 | --- | --- | --- |
 | Browser UI → core | Loopback, Origin and subprotocol checks plus fresh mutual HMAC owner proof before any private state or command. Root bootstrap uses private process pipes. | Origin is not authority. Authentication does not isolate trusted memory/code from host-account compromise; see [owner contract](OWNER_AUTHORITY.md). |

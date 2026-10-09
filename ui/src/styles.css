@@ -727,6 +727,8 @@ select {
   max-height: calc(100dvh - 200px);
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #a17955 #181411;
 }
 
 .controls__group {
@@ -750,6 +752,11 @@ select {
 }
 
 .controls__tabs {
+  position: sticky;
+  top: -14px;
+  z-index: 2;
+  padding: 10px 0;
+  background: #181411;
   display: flex;
   grid-column: 1 / -1;
   flex-wrap: wrap;
@@ -913,6 +920,28 @@ select {
 
 .visual-setting select:focus-visible {
   border-color: #e1a96f99;
+}
+
+.visual-setting--language {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  color: #d9c2a9;
+}
+
+.visual-setting--language select {
+  width: 100%;
+  min-height: 38px;
+}
+
+.visual-setting--language small {
+  color: #bda58f;
+  line-height: 1.4;
+}
+
+.visual-setting select:focus-visible {
+  outline: 2px solid #e1a96f;
+  outline-offset: 2px;
 }
 
 .controls__hint {

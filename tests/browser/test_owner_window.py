@@ -1,11 +1,82 @@
 """An isolated existing-browser check; no Sam runtime, provider or audio."""
 
 import asyncio
+import json
+import os
+import subprocess
 
 import pytest
 
 from sam_ambient.core.owner import OwnerSession
 from sam_ambient.supervisor.owner_window import OwnerWindow
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows source app presentation gate")
+def test_sandboxed_app_window_resizes_and_fullscreen_uses_real_viewport(tmp_path):
+    async def run():
+        assets = tmp_path / "static"
+        assets.mkdir()
+        (assets / "index.html").write_text(
+            "<!doctype html><title>Sam fixture</title>"
+            '<button onclick="document.documentElement.requestFullscreen()">Fullscreen</button>',
+            encoding="utf-8",
+        )
+        window = OwnerWindow(tmp_path, OwnerSession(), asset_root=assets)
+        try:
+            assert await window.open("http://127.0.0.1:8766")
+            page = window._page
+            session = await window._context.new_cdp_session(page)
+            # Current Edge does not expose Browser.getBrowserCommandLine without
+            # an extra automation flag. Inspect only this temporary owned profile.
+            profile = str(window.profile.resolve()).replace("'", "''")
+            result = await asyncio.to_thread(
+                subprocess.run,
+                [
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-Command",
+                    "Get-CimInstance Win32_Process | Where-Object { "
+                    f"$_.CommandLine -and $_.CommandLine.Contains('{profile}') "
+                    "} | Select-Object -ExpandProperty CommandLine | ConvertTo-Json -Compress",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=15,
+            )
+            commands = json.loads(result.stdout)
+            if isinstance(commands, str):
+                commands = [commands]
+            assert commands and all("--no-sandbox" not in command for command in commands)
+            assert any("--app=data:text/html," in command for command in commands)
+            # App titlebar is allowed; ordinary browser tabs/address/toolbars are not.
+            assert await page.evaluate("outerHeight - innerHeight") < 100
+            target = await session.send("Browser.getWindowForTarget")
+            for width, height in ((980, 720), (1300, 900)):
+                await session.send(
+                    "Browser.setWindowBounds",
+                    {
+                        "windowId": target["windowId"],
+                        "bounds": {"windowState": "normal", "width": width, "height": height},
+                    },
+                )
+                await page.wait_for_function("w => Math.abs(outerWidth-w) < 10", arg=width)
+                assert await page.evaluate("outerWidth-innerWidth") < 40
+            await page.get_by_role("button", name="Fullscreen").click()
+            await page.wait_for_function("Boolean(document.fullscreenElement)")
+            await page.evaluate("document.exitFullscreen()")
+            challenge = window.owner.challenge("fixture")
+            assert window.owner.verify(
+                challenge,
+                await page.evaluate(
+                    "c => window.samOwnerProof(c)",
+                    challenge,
+                ),
+            )
+        finally:
+            await window.aclose()
+
+    asyncio.run(run())
 
 
 def test_shipped_owner_ui_connects_and_submits_text(tmp_path):

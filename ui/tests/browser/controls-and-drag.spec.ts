@@ -30,6 +30,33 @@ const pitch = async (page: Page) => {
   return Number(text?.split("/")[0]);
 };
 
+test("recognition is readable and keyboard usable while Controls tabs stay pinned", async ({
+  page,
+}) => {
+  await openDemo(page);
+  await page.getByRole("button", { name: "Controls", exact: true }).click();
+  const controls = page.getByRole("region", { name: "Sam controls" });
+  const language = controls.getByRole("combobox", { name: "Recognition language" });
+  await expect(language).toBeEnabled();
+  const box = await language.boundingBox();
+  expect(box?.width).toBeGreaterThan(250);
+  expect(box?.height).toBeGreaterThanOrEqual(38);
+  await language.focus();
+  await expect(language).toBeFocused();
+  await language.press("s");
+  await language.press("Enter");
+  await expect(language).toHaveValue("es");
+  const tabs = controls.getByRole("navigation", { name: "Controls categories" });
+  await controls.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  const panelBox = await controls.boundingBox();
+  const tabsBox = await tabs.boundingBox();
+  expect(tabsBox?.y).toBeGreaterThanOrEqual((panelBox?.y ?? 0) - 1);
+  await tabs.getByRole("button", { name: "Appearance", exact: true }).click();
+  await expect(controls.getByRole("slider", { name: "Surface Flow" })).toBeVisible();
+});
+
 test("startup has one status explanation and reports observed facts", async ({ page }) => {
   await page.goto("/?transport=demo");
   const card = page.getByRole("complementary", { name: "Sam startup" });

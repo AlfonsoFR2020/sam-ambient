@@ -55,7 +55,37 @@ correlated recognition/model/delivery timings. Do not claim those symptoms solve
 | Three attempts for spoken interruption | Known conservative alpha limitation; acoustic research parked |
 | Quit ejects model, LM Studio remains | Model cleanup physically confirmed; distinguish desktop app from serving endpoint/ownership |
 
-## Closure boundary
+## Stage 2 — owner window and Controls
+
+Playwright's persistent context supplied `--no-sandbox`, a fixed viewport and a
+default blank tab. The blank tab prevented the requested app window from being
+the actual owner surface. Launch now explicitly enables Chromium sandboxing,
+omits that default tab, starts a harmless local app stub before private bootstrap,
+and lets the viewport follow the window. No warning-suppression flag or weaker
+owner proof was added. An isolated real Windows app fixture confirms no
+`--no-sandbox`, app arguments, resize, fullscreen and valid private proof.
+The shipped owner UI also authenticates and submits text against a fake core.
+
+The three-child flex label squeezed Recognition into an unreadable narrow column.
+It now has its own full-width grid selector/help and visible keyboard focus.
+Controls tabs remain sticky while the panel scrolls. Shipped assets are rebuilt.
+Two targeted Chrome cases cover Recognition/keyboard/scroll and fullscreen gain
+controls; 77 focused frontend tests retain history/command/native state behavior.
+TypeScript, production Vite build, changed-file Biome, Ruff/format and
+diff check pass. **110 Python checks** cover owner app/bootstrap/proof, passive
+observer, provider/model lifecycle, cold readiness, first-run and WebSocket authority.
+
+Provider source review and fake tests retain external-serving ownership and
+bounded verified cleanup. `lms server stop` stops serving, not the desktop app;
+the beta's remaining desktop window alone does not establish failed cleanup.
+Inventory `lms ls` can wake the daemon, and it runs concurrently with initial
+status sampling. This is an ownership-observation uncertainty requiring a bounded
+preflight/ordering reproduction, not permission to terminate shared processes.
+No live provider was started/stopped here; October 8's independent inventory
+confirmation remains the last real endpoint evidence. Native package/driver and
+installed-shell acceptance are not inferred from the source-window fixture.
+
+## Release preparation boundary
 
 Conversation integrity and launcher security are not waivable alpha polish.
 Version stays 0.2.3 pending essential gates. Native authenticated smoke, actual
