@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased — post-v0.2.3 development
+## 0.2.4 — experimental alpha candidate (not published)
+
+- Repair VAD-only cancellation during typed inference, empty final STT commitment
+  and literal spoken Markdown; preserve original history and conservative interruption.
+- Enable Chromium sandbox/app mode and actual window sizing; repair keyboard
+  Recognition selection and persistent Controls navigation.
+- Include private Playwright driver/runtime notices in the frozen companion and
+  authenticate its smoke through the existing parent pipe. Known intermittent
+  voice and failed aesthetic judgments remain disclosed, not represented as solved.
+- See [candidate notes](docs/RELEASE_NOTES_0.2.4.md) for complete scope and limitations.
 
 - Add separate persisted Surface Flow and idle Auto/English/Spanish recognition
   Controls, preserving legacy material rates and ongoing utterances.

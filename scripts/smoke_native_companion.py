@@ -28,6 +28,7 @@ async def _run(executable: Path, data_root: Path, timeout_s: float) -> None:
         "--root",
         str(data_root),
         "--no-ui",
+        "--native-owner-channel",
         "--no-voice",
         "--no-tts",
         "--provider",
@@ -37,15 +38,23 @@ async def _run(executable: Path, data_root: Path, timeout_s: float) -> None:
         "--port",
         str(port),
         cwd=executable.parent,
-        stdin=asyncio.subprocess.DEVNULL,
+        stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT,
     )
     output = bytearray()
+    proofs: asyncio.Queue[dict] = asyncio.Queue(maxsize=8)
 
     async def drain_output() -> None:
         assert process.stdout is not None
-        while chunk := await process.stdout.read(4096):
+        while chunk := await process.stdout.readline():
+            try:
+                record = json.loads(chunk)
+                if isinstance(record, dict) and "id" in record:
+                    proofs.put_nowait(record)
+                    continue  # Proof material never enters diagnostic output.
+            except (ValueError, asyncio.QueueFull):
+                pass
             output.extend(chunk)
             if len(output) > 256 * 1024:
                 del output[: len(output) - 256 * 1024]
@@ -66,7 +75,27 @@ async def _run(executable: Path, data_root: Path, timeout_s: float) -> None:
                     origin="http://tauri.localhost",
                     subprotocols=[SAM_PROTOCOL_SUBPROTOCOL],
                 ) as websocket:
-                    ready = json.loads(await asyncio.wait_for(websocket.recv(), 2))
+                    challenge = json.loads(await asyncio.wait_for(websocket.recv(), 2))
+                    assert process.stdin is not None
+                    process.stdin.write(
+                        (
+                            json.dumps({"id": challenge["nonce"], "challenge": challenge}) + "\n"
+                        ).encode()
+                    )
+                    await process.stdin.drain()
+                    response = await asyncio.wait_for(proofs.get(), 4)
+                    if response.get("id") != challenge["nonce"] or "proof" not in response:
+                        raise RuntimeError("private owner proof failed")
+                    await websocket.send(
+                        json.dumps({"type": "sam.owner.authenticate", "proof": response["proof"]})
+                    )
+                    accepted = json.loads(await asyncio.wait_for(websocket.recv(), 2))
+                    if accepted["type"] != "sam.owner.accepted":
+                        raise RuntimeError("owner authentication failed")
+                    while True:
+                        ready = json.loads(await asyncio.wait_for(websocket.recv(), 2))
+                        if ready["type"] == "system.ready":
+                            break
                     await websocket.send(
                         ControlCommand(
                             type=ControlCommandType.APPLICATION_QUIT,

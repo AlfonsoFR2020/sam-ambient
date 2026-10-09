@@ -59,6 +59,9 @@ if (-not $manifest.version) { throw "Companion manifest has no version" }
 $configPath = Join-Path $work "tauri.package.json"
 $resourceSource = ($companion -replace '\\', '/') + "/"
 $config = @{
+    build = @{
+        beforeBuildCommand = "node node_modules/typescript/bin/tsc -b && node node_modules/vite/bin/vite.js build"
+    }
     bundle = @{
         active = $true
         targets = @("nsis")
@@ -78,7 +81,9 @@ try {
     $env:CARGO_TARGET_DIR = $cargoTarget
     Push-Location (Join-Path $repository "ui")
     try {
-        pnpm tauri build --config $configPath
+        $tauri = Join-Path $repository "ui/node_modules/.bin/tauri.cmd"
+        if (-not (Test-Path -LiteralPath $tauri)) { throw "Locked frontend build tools are missing" }
+        & $tauri build --config $configPath
         if ($LASTEXITCODE -ne 0) { throw "Tauri NSIS build failed" }
     } finally {
         Pop-Location

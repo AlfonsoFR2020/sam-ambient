@@ -18,6 +18,10 @@ _RUNTIME_DISTRIBUTIONS = (
     "httpx",
     "idna",
     "langdetect",
+    "playwright",
+    "pyee",
+    "greenlet",
+    "typing-extensions",
     "pycparser",
     "sounddevice",
     "webrtcvad-wheels",
@@ -47,6 +51,12 @@ def included_resources(root: Path) -> list[tuple[str, str]]:
     if not python_license.is_file():
         raise RuntimeError(f"Python runtime license is missing: {python_license}")
     resources.append((str(python_license), "licenses/Python.txt"))
+    import playwright
+
+    driver = Path(playwright.__file__).parent / "driver"
+    if not (driver / "node.exe").is_file() or not (driver / "package/cli.js").is_file():
+        raise RuntimeError("Windows Playwright private driver is missing")
+    resources.append((str(driver), "lib/playwright/driver"))
     for name in _RUNTIME_DISTRIBUTIONS:
         distribution = importlib.metadata.distribution(name)
         license_files = [
@@ -127,7 +137,14 @@ def main() -> int:
             "build_exe": {
                 "build_exe": str(output),
                 "packages": ["sam_ambient"],
-                "excludes": ["_pytest", "cx_Freeze", "idlelib", "pytest", "setuptools", "unittest"],
+                "excludes": [
+                    "_pytest",
+                    "cx_Freeze",
+                    "idlelib",
+                    "pytest",
+                    "setuptools",
+                    "unittest",
+                ],
                 "include_files": included_resources(root),
                 "include_msvcr": True,
                 "silent_level": 1,
