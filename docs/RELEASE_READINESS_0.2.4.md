@@ -1,6 +1,6 @@
 # Sam v0.2.4 — proposed everyday alpha / release decision
 
-Updated 2026-10-09. **Experimental-alpha candidate preparation authorized; validation pending.**
+Updated 2026-10-09. **Partial 0.2.4 candidate: Windows packaging blocked.**
 HQ explicitly supersedes the earlier precautionary hold on unreproduced complaints.
 The October 9 owner beta is actual
 product evidence and supersedes the previous recommendation to conduct it.
@@ -8,6 +8,29 @@ This is the current readiness index. [Runtime evidence](CORE_INTEGRATION_0.2.4.m
 [acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md), [ROADMAP](ROADMAP.md),
 [release checklist](RELEASE_CHECKLIST.md) and [future beta](CORE_EXPERIENCE_V_BETA_SCRIPT.md)
 own their respective technical, sequencing and acceptance details.
+
+## Current candidate result
+
+[Exact evidence and minimum correction](ALPHA_CANDIDATE_0.2.4.md): 104 focused
+Python checks, 235 frontend tests, TypeScript/Vite, version/artifact consistency,
+Ruff/format and authenticated frozen companion startup/Quit pass. Private driver
+and runtime notices are explicitly included and the bundled driver executes.
+Versions are coordinated at 0.2.4; [candidate notes](RELEASE_NOTES_0.2.4.md) disclose
+the actual delta, experimental foundations and owner-reported limitations.
+
+Wheel/sdist and private unsigned companion ZIP exist locally, with SHA-256 inventory
+in `dist/SHA256SUMS-0.2.4.txt`. **No installer was produced:** Windows denied
+execution of three generated Cargo build-helper aliases (OS error 5); the exact
+host-policy/filesystem cause is unknown. No bypass, whitelist or global change.
+Native installed smoke therefore did not pass. The existing package smoke also
+still needs the actual native owner UI/proof path; companion smoke is repaired.
+
+This packaging failure is the actual candidate blocker. Unreproduced intermittent
+voice/visual complaints are disclosed alpha limitations under the explicit owner
+policy, not a permanent veto. No demonstrated unrecoverable stall, new authority
+failure or data-loss regression was exposed by the current representative tests.
+Do not claim the reported intermittent stalls or poor visual/STT experience solved.
+No new human beta is required. **Not yet ready for HQ release approval.**
 
 ## Proportionate experimental-alpha acceptance
 
@@ -24,7 +47,7 @@ approval readiness is claimed. Unsigned development installers remain private.
 The October 9 repair-stage hold and evidence below remain historical; this policy
 changes disposition, not the findings or the negative acoustic/perceptual record.
 
-## October 9 beta closure decision
+## October 9 repair-stage decision — historical, disposition superseded above
 
 [Complete triage and repair evidence](BETA_TRIAGE_2026-10-09.md) records every
 supplied finding, including screenshot and bounded diagnostic interpretation.
@@ -129,20 +152,15 @@ memory exposure or persistent UI failure is a blocker, not an accepted limitatio
 
 ## Installation, security and persistent-state checks still required
 
-1. **Native smoke is stale:** `scripts/smoke_native_companion.py` and
-   `scripts/smoke_native_package.py` connect without owner proof and treat the first
-   received frame as `system.ready`. Current core first sends a challenge and emits
-   no private readiness until authenticated. Repair the smoke through trusted
-   bootstrap/native proof, test absent/replayed proof rejection, never weaken core
-   authentication to make a packaging test pass. This source mismatch is identified
-   statically; no native artifact was built/run here.
-2. **Frozen resources/notices:** `build_native_companion.py` has no explicit
-   Playwright driver/data inclusion or license inventory entry for its runtime
-   distribution. Import discovery alone does not establish inclusion of bundled
-   Node/driver assets, pyee/greenlet or constituent notices. Audit actual candidate
-   manifest, invoke the private driver, exercise native signer RPC and verify
-   clean-host behavior without a development Python/Node checkout. Missing content
-   is not yet proven by an artifact, but packaging completeness is not established.
+1. **Frozen companion smoke closed; native package smoke remains open:** companion
+   now proves ownership over the private parent pipe and passed frozen startup/Quit.
+   The native package script still assumes unauthenticated readiness; replace its
+   observation through the actual native UI/proof when an installer builds, never
+   weaken core authentication. No installed shell smoke passed in this task.
+2. **Frozen resources/notices closed at companion scope:** private driver, Node
+   LICENSE, Playwright NOTICE/ThirdPartyNotices and runtime dependency licenses
+   are explicitly bundled; manifest and bundled driver execution pass. Clean-host
+   installed/native resource behavior remains unverified because installer build failed.
 3. **SQLite:** preserve stable owner principal/app-data locations across upgrade;
    existing history/settings plus memory schema 1 are separate stores. Transactional
    initialization, 250 ms lock bounds, future-schema rejection and corrupt-store

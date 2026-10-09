@@ -26,7 +26,8 @@ The owner completed a new physical beta October 9. [Full triage](BETA_TRIAGE_202
 records spurious turns, intermittent stalls, literal spoken Markdown, source-window
 security/presentation defects and failed visual/embodiment judgments. Bounded repairs
 do not close all integrity reports. **Deterministic visual behavior is not human
-acceptance.** No additional human beta is available now; candidate preparation is held.
+acceptance.** No additional human beta is available now. HQ authorizes proportionate
+alpha acceptance; current native build-host failure blocks installer completion.
 
 ## Reconciled baseline
 
@@ -112,6 +113,14 @@ no shader tuning or new visual identity belongs in this closure. Themes remain l
 **Current:** prepared-checkout Windows launch is one action; v0.2.3 wheel/sdist are public; unsigned Windows development installer is withheld. Supervisor/update authority remains distinct from conversation with staged activation/rollback contracts. **Unmet:** signed, reputation-tested, clean-host public Windows installation and owner-controlled update/release. Signing identity and security-software response need owner/security decisions; do not invent a workaround. This blocks a non-developer distribution claim, not the AEC prototype. Split signing prerequisites, clean-host package test and publication. Linux/mobile distribution remain later tracks.
 
 ## Next basic-experience tasks — after Core Experience V
+
+**Current incremental-alpha override:** [candidate evidence](ALPHA_CANDIDATE_0.2.4.md)
+supersedes the precautionary integrity hold below. First resolve the demonstrated
+Windows build-helper execution failure, then validate native owner UI/proof and
+installed persistence/cleanup and present artifact scope to HQ. Unreproduced voice
+and subjective visual failures remain disclosed, not permanent release vetoes.
+STT modernization, artistic Orb redesign, refined persona settings and Console/
+Memory presentation remain later work. No second beta or v0.2.5 task is initiated.
 
 Updated 2026-10-09 by the [release hold](RELEASE_READINESS_0.2.4.md).
 The corrected October 8 observer closed real unload/reload/Rescan/Quit and bounded

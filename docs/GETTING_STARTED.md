@@ -130,6 +130,10 @@ ordinary browser mode is an unauthenticated debugging surface.
 The repository also contains guarded companion and NSIS packaging scripts for
 later release work. They are intentionally outside this source-integration flow;
 do not treat their presence as package, signing, antivirus, or release acceptance.
+The current [0.2.4 candidate](ALPHA_CANDIDATE_0.2.4.md) validates frozen private-parent
+authentication and explicit Playwright resources/notices. NSIS uses installed local
+build tools without reinstalling dependencies; Windows helper execution failure
+currently blocks installer acceptance. No security bypass or unsigned publication.
 
 ## First launch
 

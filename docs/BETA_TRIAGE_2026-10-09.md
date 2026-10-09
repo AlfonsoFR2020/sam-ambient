@@ -1,5 +1,10 @@
 # October 9 owner beta — v0.2.4 closure triage
 
+This records the repair stage before candidate preparation. HQ subsequently
+authorized proportionate alpha acceptance of unreproduced voice/aesthetic limits;
+[current candidate evidence](ALPHA_CANDIDATE_0.2.4.md) supersedes the hold below.
+Findings and unknown causes remain, rather than being rewritten as solved.
+
 Source: complete HQ attachment `Texto pegado.txt`, its diagnostics/event dump and
 the supplied Edge/Controls/history screenshot. No personal audio or full chat dump
 is checked in. October 8 headless correctness was not physical/perceptual acceptance.

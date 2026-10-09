@@ -4,7 +4,8 @@ This is the post-Memory Foundation baseline and evidence index for **Basics Befo
 Expansion**. Published v0.2.3 is unchanged. Automated evidence does not establish
 human acoustic, voice-persona or visual acceptance. The October 9 beta completed;
 no additional human session is available now.
-The **current** status is [October 9 beta delta below](#october-9-beta-delta),
+The **current** disposition is [alpha candidate evidence](ALPHA_CANDIDATE_0.2.4.md);
+the [October 9 beta delta below](#october-9-beta-delta)
 which updates [Core Experience V](#core-experience-v-current-matrix) without rewriting it.
 Earlier sections preserve historical evidence, not a second current task queue.
 
@@ -467,3 +468,14 @@ passed normally with test execution permitted. No toolchain/dependency changed.
 and existing native package/security gates. No version bump, release, new powers,
 synthetic AEC tuning or art retuning. Major STT/visual improvement remains later;
 automated visuals do not constitute human perceptual acceptance.
+
+## Experimental-alpha candidate delta
+
+HQ permits incremental alpha acceptance without explaining every unreproduced
+voice/aesthetic complaint. This supersedes the earlier precautionary hold, not
+the October 9 findings. 104 Python and 235 frontend checks, TypeScript/Vite and
+the actual frozen private-parent authenticated startup/Quit pass. Wheel/sdist and
+private companion ZIP built; driver/resources/notices included. Installer not
+built: Windows denied generated Cargo helper execution (OS error 5). Installed
+native/package smoke is unpassed. [Candidate evidence](ALPHA_CANDIDATE_0.2.4.md)
+owns the minimum correction. No second beta, new powers or publication occurred.

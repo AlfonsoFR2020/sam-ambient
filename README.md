@@ -2,6 +2,10 @@
   <img src="sam-logo.png" alt="Sam" width="520">
 </p>
 
+Current dev prepares a local **0.2.4 experimental-alpha candidate**. See
+[candidate status and limits](docs/ALPHA_CANDIDATE_0.2.4.md); this is not a published
+release or permission to publish unsigned native development artifacts.
+
 # Sam
 
 **A local-first ambient AI interface exploring what happens when artificial intelligence becomes a native layer of the computer itself.**

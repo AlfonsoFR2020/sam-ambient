@@ -2,6 +2,10 @@
 
 **Current policy: Basics Before Expansion (2026-10-01).** See the authoritative
 [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and [Roadmap](ROADMAP.md).
+HQ's incremental-alpha override accepts disclosed unreproduced voice/aesthetic
+limits. [Current partial candidate](ALPHA_CANDIDATE_0.2.4.md) is blocked by actual
+Windows packaging execution failure; the repair-stage hold below is historical.
+No new human beta is required for the tested repairs.
 The [October 9 release hold](RELEASE_READINESS_0.2.4.md) records repaired VAD-only
 generation cancellation, empty final commitment, spoken Markdown and source launch/
 Controls defects. Residual plausible spurious turns and long stalls are unresolved;
