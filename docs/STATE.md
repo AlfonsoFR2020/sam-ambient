@@ -1,8 +1,7 @@
 # Sam implementation state
 
 Updated: 2026-10-09. This is current development truth, not a release acceptance claim.
-Historical implementation/release detail remains in [changelog](../CHANGELOG.md),
-[architecture](ARCHITECTURE.md), [decisions](DECISIONS.md) and specialist evidence.
+History remains in [changelog](../CHANGELOG.md), [architecture](ARCHITECTURE.md), [decisions](DECISIONS.md) and specialist evidence.
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 
 ## Release and evidence boundary
@@ -13,20 +12,19 @@ Historical implementation/release detail remains in [changelog](../CHANGELOG.md)
   [Cold readiness](COLD_PROVIDER_RECOVERY.md) classifies inventory outcomes and
   bounds transient retries; exact intent, cancellation and stale-result gates pass.
 - Persisted Controls recognition mode and explicit `voice.stt_language` reach STT; [generated bilingual STT](SPEECH_BASELINE_2026-10-01.md)
-  has 7.95%/8.75% literal WER and intact 250 ms sentence pauses. Physical quality is unaccepted.
+  has 7.95%/8.75% literal WER and intact 250 ms sentence pauses. October 9 owner quality was poor.
 - System.Speech defaults to an installed cross-language persona, honoring explicit
   voice preference and reporting fallbacks. First PCM reports effective selection
   through correlated synthesis health, independently of coalesced meters.
 - Core experience now verifies ordinary RMS through the reducer to actual WebGL
   expansion/light, rather than only near-full-scale visual fixtures. Human visual
-  acceptance remains distinct and outstanding.
+  acceptance remains distinct; October 9 owner found the revised response detached.
 - Conversation Controls exposes core-confirmed speech health/mode/effective voice;
   preferences, actual readiness and disconnected last-known facts remain distinct.
 - Operational conversation-state transactions explicitly close their SQLite handles
   on success/failure; shutdown no longer relies on garbage collection for these.
-- A composed authenticated runtime/voice/PCM/history/Controls simulator proves
-  typed → voice → STT failure → typed recovery → Rescan → ordered Quit. Its real
-  core events also drive the isolated frontend and bounded visual response.
+- The composed authenticated runtime/voice/history/Controls simulator protects
+  typed/voice/failure recovery, Rescan, ordered Quit and bounded frontend response.
 - Consolidation III classifies cold inventory failures and bounds recovery. A real
   preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
   and Sam-loaded unload passed. Reused serving remained; broader hosts are unverified.
@@ -161,9 +159,9 @@ See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 - Autonomous Living Surface, shared membrane pigment, lighting and particles remain;
   measured input/output envelopes have distinct bounded form/light response under
   the existing Audio Reactivity control. Zero retains autonomous motion.
-- High-tier form/membrane and broad pigment transport were revised; fixed-camera
-  signal/render tests and isolated cost evidence exist. Revised appearance and speech
-  embodiment lack human acceptance; sustained/low-power cost remains unmeasured.
+- High-tier form/membrane and broad pigment have numeric evidence; October 9 owner
+  still found polygonal/dull body and absent peels. No human visual acceptance;
+  sustained/low-power cost remains unmeasured. No art retuning in this repair pass.
 - Controls inventory is audited: Conversation, Appearance, Device, System, Diagnostics.
   particle_density persists and chooses a visible fraction of 12/24/40 tier counts;
   Canvas has no particles. Persisted Surface Flow separates transport from Motion.
@@ -198,4 +196,5 @@ The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gate
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider
 Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Release proposal](RELEASE_READINESS_0.2.4.md) retains native/auth/install/signing gates.
+Candidate preparation is held: residual spurious turns/stalls remain unresolved.
 Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.

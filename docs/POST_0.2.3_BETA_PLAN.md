@@ -1,5 +1,9 @@
 # Post-v0.2.3 human beta: diagnosis and repair order
 
+This remains the original published-build history. The later October 9 dev beta,
+its screenshots/diagnostics and bounded repairs are in the
+[current triage](BETA_TRIAGE_2026-10-09.md); [ROADMAP](ROADMAP.md) owns current order.
+
 This plan records a roughly five-minute physical Windows session of the published
 0.2.3 build. It is product evidence, not acceptance inferred from synthetic tests.
 Sam started through the supervisor with the existing LM Studio

@@ -1,10 +1,53 @@
 # Sam v0.2.4 — proposed everyday alpha / release decision
 
-Updated 2026-10-08. **Not approved for release; no version/tag/artifact changed.**
+Updated 2026-10-09. **HOLD: not ready for final HQ publication approval.**
+No version/tag/candidate artifact changed. The October 9 owner beta is actual
+product evidence and supersedes the previous recommendation to conduct it.
 This is the current readiness index. [Runtime evidence](CORE_INTEGRATION_0.2.4.md),
 [acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md), [ROADMAP](ROADMAP.md),
 [release checklist](RELEASE_CHECKLIST.md) and [future beta](CORE_EXPERIENCE_V_BETA_SCRIPT.md)
 own their respective technical, sequencing and acceptance details.
+
+## October 9 beta closure decision
+
+[Complete triage and repair evidence](BETA_TRIAGE_2026-10-09.md) records every
+supplied finding, including screenshot and bounded diagnostic interpretation.
+Two coherent repair stages are validated; candidate preparation stops here.
+
+| Classification | Finding / disposition |
+| --- | --- |
+| Confirmed blocker, fixed and verified | Binary VAD could cancel a typed generation in THINKING without recognized intent. Credible transcript is now required, as during SPEAKING. Noise-only candidates remain provisional. |
+| Confirmed blocker, fixed and verified | Empty/whitespace final STT could commit a turn after a partial. It now retires without commitment; paced regression retains typed recovery and legitimate utterances. |
+| Fixed and verified | Delivery received literal Markdown; repeated spoken “asterisk” evaded known-output screening. A delivery-only normalization boundary preserves original history; the demonstrated legacy echo is rejected. This is not general acoustic source separation. |
+| Confirmed security/presentation blocker, fixed on source path | Playwright supplied `--no-sandbox`, a normal blank tab and fixed viewport. Sandbox-enabled actual app mode, live sizing and fullscreen pass in an isolated Windows fixture with private owner proof intact. |
+| Fixed and verified | Recognition flex layout squeezed its label/selector. Full-width keyboard selection and sticky Controls tabs pass Chrome checks; shipped UI assets are refreshed. |
+| Unresolved cause; release hold | Plausible wrong/noise/self-playback STT text may still commit; unsolicited responses and minutes-long stalls are not fully reproduced or attributable from the supplied snapshot. These integrity symptoms are not waived as alpha polish. No claim that all spurious turns, premature delivery stops or stalls are solved. |
+| Unresolved observation / bounded follow-up | “LM Studio remains” may mean its desktop app, which cleanup deliberately does not close. CLI inventory can wake the daemon before status sampling; initial ownership observation needs an ordered-preflight reproduction. Never terminate shared/external resources to satisfy presentation expectations. |
+| Accepted experimental-alpha limitation, disclosed | Conservative acoustic interruption/explicit Stop; base-model real-accent STT and installed voice choices are limited. Safety against bogus commitments is still required; these limitations do not excuse the release hold. |
+| Deferred major improvement; failed owner judgment retained | Owner found polygonal/dull form, inadequate membrane and detached speech embodiment. Existing numeric tests remain valid technical evidence, not human acceptance. Major STT/visual work and persona editing are outside this closure. |
+| Existing distribution blockers, still open | Current authenticated native smoke, frozen driver/resources/notices, installed SQLite/upgrade/recovery, hosted Windows gate outcomes, clean-host validation and public signing/reputation are not established for this tree. |
+
+**Minimum remaining work:** use the correlated endpoint/STT/model/delivery timings
+and deterministic paced mixed typed/voice sequences to isolate the residual
+spurious-commit/stall path. Preserve unknowns when it cannot be reproduced; do not
+hide it with a timer or disable the microphone globally. Resolve the daemon versus
+serving-endpoint ownership observation without weakening external ownership. Then
+validate the existing authenticated candidate/package gates for the intended
+artifact scope. No second human beta is required merely for these deterministic
+repairs, and none is requested. Later qualitative passes need later owner judgment.
+
+This pass adds 90 focused voice Python checks, 110 owner/provider/auth checks,
+30 final generation/context/storage recovery checks, 77 frontend tests and two
+targeted Chrome cases, plus a refreshed-shipped-UI
+authentication/text check. TypeScript, Vite build, changed-file Ruff/format/Biome
+and diff check pass. The Windows app fixture is real browser launch evidence,
+not a fresh LM Studio session or an installed native-package smoke.
+Source version consistency remains 0.2.3; 107 relative document targets pass.
+
+Metadata remains 0.2.3. No candidate wheel/sdist/companion/installer, candidate
+hash inventory, Cargo release run or hosted gate is represented as completed.
+The rebuilt development frontend assets are not release candidate artifacts.
+The unsigned-installer restriction remains absolute for public distribution.
 
 ## Proposed scope and designation
 
@@ -46,12 +89,12 @@ Published v0.2.3 release notes/metadata remain historical and unchanged.
 
 | Area | Current evidence | Disposition before next alpha |
 | --- | --- | --- |
-| Conversation/recovery/Controls/history | Prior V gate: 190 Python, 199 frontend, 17 Chrome cases; current 28 focused Python / three Chrome checks | No new reproduced product regression; retain full candidate regression gate |
+| Conversation/recovery/Controls/history | Prior gates plus October 9 deterministic repairs above | Residual spurious commitment/stall evidence remains a release hold; no blanket correctness claim |
 | Current real model operations | Corrected passive observer: private owner UI, correlated unload/reload, three typed replies, Rescan and Quit passed against independent inventory | **Closed on current source/installed Gemma:** previous timeout was an encoding-corrupted probe locator; candidate/installed path still needs validation |
 | Provider service ownership | Reused service preserved; Sam-loaded model absent after Quit | Supported semantics; broader hosts and Sam-started service-stop still limited, disclose rather than claim |
 | Speech/device mechanics | Generated installed en/es synthesis/meters; input open-only without capture; output digital silence; fake failure/re-entry/Stop regressions | Physical device loss/replug and audible stop timing remain unverified; generated STT is not owner-accent recognition |
 | Renderer/performance | Fixed-WebGL/isolated tier evidence plus 101 full-app headless draw submissions across two real Gemma requests: median 36.4 ms, p95 42.4 ms, no >100 ms gaps | Bounded default inference scheduling assessed; no GPU/native/low-power/thermal or human presentation guarantee |
-| Voice/visual product quality | Technical transport/form/light properties, generated bilingual baseline | **Human gate:** revised appearance/persona/recognition/embodiment still unaccepted |
+| Voice/visual product quality | Technical transport/form/light properties, generated bilingual baseline; October 9 real owner report | Owner reported poor recognition/form/membrane/embodiment; not accepted from metrics; retain alpha limits and later major passes |
 | Authentication/memory | Actual store/auth/rotation/restart/adversarial fixtures and source-owner initialization | Candidate package must prove same boundaries and persistence on installed/upgrade path |
 | Windows distribution | Prepared source launch; older package architecture and guarded unsigned-development path | **Public native blocker:** current authenticated native smoke, frozen runtime/driver assets/notices, clean-host validation and signing/reputation |
 
@@ -107,7 +150,7 @@ memory exposure or persistent UI failure is a blocker, not an accepted limitatio
 
 ### Dependency alerts — read-only comparison
 
-On 2026-10-08 the authorized Sam alerts API still returned 20 open default-branch
+On 2026-10-09 the authorized Sam alerts API still returned 20 open default-branch
 records: 17 duplicate manifest/lock records for Vite/Vitest/mocker and three other
 findings. Current dev pins Vite 7.3.5 and Vitest/mocker 4.1.11, outside **all ranges
 returned in this inspection**. No newly reported package/advisory appeared relative
@@ -123,12 +166,11 @@ dependency, branch, advisory configuration or workflow was modified.
 
 ## Human beta decision and proportionate release procedure
 
-The existing 5–10-minute script covers the right owner-satisfaction questions.
-**Justified as the next owner acceptance action when the owner separately becomes
-available:** the current owner-window lifecycle and bounded inference scheduling
-prerequisites passed without perturbing bootstrap. A public signed installer is not
-required merely to judge the prepared source build. No beta is requested/scheduled
-here; this does not grant release approval or establish subjective quality.
+The prepared session was completed October 9. Its report now drives the triage
+above; another beta is unavailable for several days and is not a prerequisite for
+the reproducible repairs. Do not schedule or request it here. The source alpha is
+still distinct from a signed public installer, and the report does not grant
+release approval or qualitative acceptance of the Orb/voice.
 
 The session must decide: does the current Orb feel alive/soft, is membrane/flow
 convincing, do speech/listening pulses feel natural, is owner en/es transcription
@@ -142,8 +184,9 @@ Small next-release sequence (each future mutation needs its own authorization):
 1. **Completed:** close current runtime observation/lifecycle and bounded inference
    cadence ([evidence](CORE_INTEGRATION_0.2.4.md)). Preserve existing gains/art
    direction unless owner evidence contradicts them.
-2. Conduct the prepared beta later; address its highest-impact basic failures and
-   record accepted alpha limits. Keep capability/acoustic expansion parked.
+2. Close the remaining October 9 conversation-integrity hold with bounded evidence
+   and regressions; preserve failed qualitative observations and accepted alpha limits.
+   Keep capability/acoustic expansion parked. No new beta is requested now.
 3. Repair authenticated native smoke/resource/notices and agree public artifact
    scope/signing path. These packaging tasks can proceed independently of owner
    qualitative availability; a package build is not perceptual acceptance.

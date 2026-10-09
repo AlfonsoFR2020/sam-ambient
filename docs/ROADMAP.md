@@ -22,7 +22,11 @@ See [owner authority](OWNER_AUTHORITY.md) for the first agency checkpoint.
 
 This is the **authoritative execution order**, not a promise that every later capability belongs in v0.2.4. [STATE](STATE.md) records implemented truth; [BACKLOG](BACKLOG.md) retains unresolved items; [ARCHITECTURE](ARCHITECTURE.md) and [DECISIONS](DECISIONS.md) contain current contracts. The [physical beta record](POST_0.2.3_BETA_PLAN.md) remains primary product evidence. Specialist sources: [AEC decision](AEC_DOUBLE_TALK_CONTRACT.md), [trust review](TRUST_BOUNDARIES.md), [dependency triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md), [visual direction](VISUAL_DIRECTION.md) and [isolated performance sample](VISUAL_PERFORMANCE_0.2.3_DEV.md). The [published v0.2.3 release scope](RELEASE_READINESS_0.2.3.md) is historical; this plan changes neither it nor its tag.
 
-The last physical beta preceded the recent dev repairs. Its simultaneous playback/listening failure and perception of an insufficiently living Orb remain valid observations. Deterministic lifecycle and renderer checks established corrected properties; **they did not establish physical acoustic reliability or human visual acceptance**. No human beta is available now.
+The owner completed a new physical beta October 9. [Full triage](BETA_TRIAGE_2026-10-09.md)
+records spurious turns, intermittent stalls, literal spoken Markdown, source-window
+security/presentation defects and failed visual/embodiment judgments. Bounded repairs
+do not close all integrity reports. **Deterministic visual behavior is not human
+acceptance.** No additional human beta is available now; candidate preparation is held.
 
 ## Reconciled baseline
 
@@ -95,7 +99,13 @@ runtime/GPU/dependency/license suitability requires evaluation before adoption.
 
 ### Embodiment and interface
 
-**Current:** autonomous Living Surface, related membrane/lighting/particles, source-specific measured audio response, tiered quality, Canvas/reduced-motion fallback and usable Controls/history/diagnostics. **Unmet:** the *revised* voice response and visual composition have no human perceptual acceptance. The earlier beta found static-feeling pigment, polygonal membrane/form and no useful audio response before the revisions. The isolated desktop high-tier GPU draw was near 1.8 ms; sustained full-app model contention, low-power hardware, native composition and audio latency are unmeasured. A bounded integrated performance/accessibility pass precedes scarce human viewing. Turn specific later observations into art tasks; do not tune blindly. Tests protect bounded motion/fallback/cost, while human acceptance decides whether it feels alive. Themes, wider palette and richer status UI are later.
+**Current:** autonomous Living Surface, membrane/lighting/particles and source-specific
+audio response have deterministic evidence. October 9 owner assessment still found
+polygonal/dull body, absent peels and detached response despite noticing dynamism.
+These are failed judgments, not missing beta scheduling. A short real-inference
+submission-cadence sample exists; sustained/low-power/native/GPU/visible audio latency
+remains limited. Later evidence-led visual work may address those observations;
+no shader tuning or new visual identity belongs in this closure. Themes remain later.
 
 ### Distribution and productization
 
@@ -103,34 +113,35 @@ runtime/GPU/dependency/license suitability requires evaluation before adoption.
 
 ## Next basic-experience tasks — after Core Experience V
 
-Updated 2026-10-08 by the [current release-readiness decision](RELEASE_READINESS_0.2.4.md).
-The nine V commits are preserved remotely. The bounded current real session confirms
-core Gemma activation/Quit cleanup, but owner-window observation timed out before
-explicit operations. Mounted frontend timing and safe device opening are measured;
-full-app inference contention remains unmeasured. Do not mark those tasks complete.
+Updated 2026-10-09 by the [release hold](RELEASE_READINESS_0.2.4.md).
+The corrected October 8 observer closed real unload/reload/Rescan/Quit and bounded
+inference scheduling; the October 9 beta is complete. Those tasks are not open.
+This is a small alpha-closure sequence, not another capability programme.
 
-### 1. Close the passive owner-window lifecycle / inference-cadence gate
+### 1. Isolate residual spurious commitment and delayed-response ownership
 
-- **Objective / why first:** establish current ordinary UI/provider truth before
-  scarce owner time. Retain the same supervisor/installed Gemma and external ownership.
-- **Scope:** attach passive protocol observation before navigation, avoid bootstrap
-  reload; capture content-free UI snapshots; correlate unload/reload terminal IDs,
-  independently verify absence/presence, two replies, Rescan, Quit. Sample mounted
-  cadence during inference in that same bounded session.
-- **Non-scope:** repeated exploratory launches, audio/art tuning, downloads, profiles,
-  AEC or capability expansion. Stop on unavailable environment; no false pass.
-- **Deliverable / validation:** actual runtime truth and minimal reproduced regression
-  only if a defect is identified. Medium / small; High only for a demonstrated race.
+- **Why first:** these are conversation-integrity reports, not acceptable polish.
+  Empty-final, VAD-only cancellation and known spoken-format echo are fixed, but
+  plausible wrong STT and the minutes-long stall remain unresolved.
+- **Scope:** correlate the existing/new content-free endpoint/STT/model/delivery
+  timings in paced mixed typed/voice/playback fixtures; reproduce before altering
+  ownership. Include plausible hallucinated final text and late/cancelled operations.
+- **Deliverable:** bounded causal regression/fix or explicit missing evidence. High
+  only for demonstrated cross-lifetime difficulty; stop rather than invent a timeout,
+  disable all listening, blacklist legitimate short utterances or re-enter AEC.
+- **Dependency:** this release hold precedes candidate version/artifact preparation;
+  no immediate human session is required for deterministic defects.
 
-### 2. Use the prepared qualitative beta when owner availability permits
+### 2. Settle LM Studio preflight ownership without terminating shared processes
 
-- **Prerequisite:** task 1 green or a consciously scoped non-blocking limitation;
-  not the current unresolved UI observation. No beta is requested now.
-- **Scope:** existing [5–10-minute script](CORE_EXPERIENCE_V_BETA_SCRIPT.md), with cold
-  loading outside the subjective time budget. Gather at most three high-impact
-  appearance/voice/recognition/history/Controls observations; no on-the-fly redesign.
-- **Deliverable:** acceptable/distracting/broken judgments distinct from automated
-  evidence. Medium / tiny preparation; then one bounded evidence-led basic repair.
+- **Why next:** the beta's desktop process observation is not endpoint failure,
+  but inventory may wake the daemon before initial status is sampled.
+- **Scope:** one ordered status/inventory fake reproduction; determine whether the
+  serving endpoint changes, retain explicit start/ownership and external preservation.
+  Use a bounded real confirmation only if justified; no provider reconfiguration.
+- **Deliverable:** proved ownership semantics or precise unresolved condition;
+  Medium / small, no desktop-kill workaround. This clarifies the cleanup claim
+  before package/native lifecycle validation.
 
 ### 3. Establish authenticated candidate packaging and safe install/upgrade
 
@@ -145,7 +156,7 @@ full-app inference contention remains unmeasured. Do not mark those tasks comple
 
 ### 4. Prepare one accepted alpha candidate, then request release execution separately
 
-- **Prerequisites:** runtime and human acceptance/explicit limits, package/security
+- **Prerequisites:** residual integrity hold closed, explicit owner scope/limits, package/security
   evidence and an approved artifact scope. Current metadata remains 0.2.3.
 - **Scope:** consistent candidate versions/notes, full relevant release/static/native
   gates, clean-host smoke, required hosted jobs and hashes. Signed/reputation-checked

@@ -35,3 +35,9 @@ advisory/package appeared in that source compared with this triage; this is not
 a universal security audit or a remote alert closure. Deferred versions/exposure
 remain unchanged. No dependency, workflow, settings or advisory mutation occurred.
 See [current release-readiness decision](RELEASE_READINESS_0.2.4.md).
+
+October 9 read-only recheck returned the same 20 records and same package/fixed
+version ranges. Current manifest/lock still pins Vite 7.3.5 and Vitest/mocker
+4.1.11 outside those ranges; pytest 8.4.2, setuptools 82.0.1 and GLib 0.18.5
+retain the exposure-specific deferred actions above. No dependencies or remote
+alert state changed; this is not a claim of zero vulnerabilities.

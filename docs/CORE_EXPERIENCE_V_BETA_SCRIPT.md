@@ -2,8 +2,10 @@
 
 Prepared 2026-10-07. **For a later owner-authorized session, not a request to test
 now.** Published v0.2.3 is unchanged; test the current integrated dev checkpoint.
-The [October 8 readiness review](RELEASE_READINESS_0.2.4.md) keeps this session
-prepared but conditional on the current real owner-window lifecycle gate. Long
+The owner completed this session October 9; [complete triage](BETA_TRIAGE_2026-10-09.md)
+and [release hold](RELEASE_READINESS_0.2.4.md) now own its outcome. Retain the script
+for a later separately authorized qualitative pass; do not request a rerun for
+the deterministic repairs. Long
 model loading is engineering preparation, outside the short subjective session.
 Use the [current acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and
 [V evidence](CORE_EXPERIENCE_V.md). Stop on discomfort, unsafe self-interruption or

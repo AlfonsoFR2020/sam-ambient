@@ -2,8 +2,9 @@
 
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
 Expansion**. Published v0.2.3 is unchanged. Automated evidence does not establish
-human acoustic, voice-persona or visual acceptance. No human session is available.
-The **current** status is [October 8 integration delta below](#october-8-integration-delta),
+human acoustic, voice-persona or visual acceptance. The October 9 beta completed;
+no additional human session is available now.
+The **current** status is [October 9 beta delta below](#october-9-beta-delta),
 which updates [Core Experience V](#core-experience-v-current-matrix) without rewriting it.
 Earlier sections preserve historical evidence, not a second current task queue.
 
@@ -431,3 +432,38 @@ one real private owner-window session closes the current lifecycle gate. The pre
 scarce beta is now justified when the owner separately becomes available. No human
 test was requested/performed. Public native signing/security and candidate checks
 remain separate; automated visual correctness is not perceptual acceptance.
+
+## October 9 beta delta
+
+[Complete report triage](BETA_TRIAGE_2026-10-09.md) and
+[release hold](RELEASE_READINESS_0.2.4.md) supersede the October 8 invitation.
+The owner actually assessed this integrated build; failed judgments are not erased
+by the technical regressions. This pass used fixtures, not another human session.
+
+| Fundamental area | Automated / actual runtime evidence | Owner beta / remaining |
+| --- | --- | --- |
+| Startup / owner shell | Actual isolated sandbox-enabled app, private proof, refreshed shipped-UI text submission; full window resize/fullscreen | Normal Edge chrome, warning and blank-space resize reported; source defects repaired. Installed native path still unverified. |
+| Provider discovery / model load/select | Prior real exact Gemma load/Rescan retained; cold/idle fake regressions pass | Beta loaded Gemma; long load ETA remains UX work, no invented ETA. |
+| Model unload / provider shutdown | Prior real unload/reload and model-absence evidence; external/owned cleanup tests pass | Quit ejected model but desktop remained; stop means serving endpoint. CLI implicit daemon wake/initial observation unresolved; no new live ownership proof. |
+| Typed / voice turn integrity | VAD-only THINKING cancellation and empty-final commitment reproduced/fixed; mixed/failure/recovery tests pass | Noise/typing/self-output commitment and intermittent long stalls reported; residual cause remains a release hold, not solved by these fixes alone. |
+| STT configuration / quality | Hard en/es wiring retained; empty final never commits, paced tests preserve capture retirement | Automatic language confusion and poor owner recognition confirmed. Base capacity/room tuning deferred; do not waive bogus turn safety. |
+| TTS / persona / text | New owned Markdown-to-speech boundary; formatted full answer remains in history; bilingual installed policy unchanged | Literal “asterisk” reproduced/fixed; subjective voice pleasantness/persona not newly accepted. |
+| Interruption / delivery | Conservative transcript evidence in THINKING/SPEAKING; explicit Stop, full answer and late-event/typed recovery protected | Several spoken attempts and unexplained long-answer stops; no prompt AEC claim, research parked. |
+| Voice reactivity / Orb / membrane / Living Surface | Previous PCM→WebGL/material/form/zero/Reduced Motion tests retained; no gains or shaders changed | Dynamic surface noticed, but body polygonal/dull, peels absent and response detached. These judgments contradict acceptance; later visual pass, not numeric success. |
+| Particles | Existing persisted amount/tier path retained | Prior positive judgment retained; no particle redesign. |
+| Controls / history / diagnostics | Keyboard Recognition, sticky tabs, fullscreen and owner resize checks; 77 frontend regressions protect state/history | History clearer and diagnostics useful; Controls label/scroll repaired. Reload-history and broader visual layout observations unresolved/deferred. |
+| Memory / authority initialization | Current auth/bootstrap/revocation fixtures retained; no memory feature/schema change | Experimental foundation usefulness/appearance not accepted in basics beta; native package and installed data gates remain open. |
+| Shutdown / recovery | Owner/profile cleanup and bounded provider failure/ownership regressions pass; no live shared service touched | Desktop versus endpoint distinction retained; initial inventory/wake observation needs follow-up. |
+
+Current focused repairs: **90 voice Python + 110 owner/provider/auth Python**,
+plus **30 generation/context/storage recovery checks**,
+**77 frontend tests**, two Chrome cases, real isolated Windows owner app fixture,
+TypeScript, rebuilt shipped frontend, Ruff/format/Biome and diff check. No candidate
+artifact or native installed smoke passed here. A Windows sandbox cache-permission
+failure prevented the first Vitest invocation from starting; the same seven suites
+passed normally with test execution permitted. No toolchain/dependency changed.
+
+**Freeze:** candidate preparation held on residual conversation-integrity evidence
+and existing native package/security gates. No version bump, release, new powers,
+synthetic AEC tuning or art retuning. Major STT/visual improvement remains later;
+automated visuals do not constitute human perceptual acceptance.

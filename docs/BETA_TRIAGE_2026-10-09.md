@@ -87,6 +87,21 @@ installed-shell acceptance are not inferred from the source-window fixture.
 
 ## Release preparation boundary
 
+**Decision: HOLD, not ready for final HQ publication approval.** Stages 1 and 2
+are coherent green repairs. Residual plausible unwanted commitments/long stalls
+remain unresolved; they are not downgraded to alpha polish. Candidate/version/
+native-packaging preparation stops, retaining the existing separate auth, driver/
+notices, installed data/recovery, hosted gates and signing restrictions. The
+October 9 alerts recheck matches prior exposure-specific triage; no upgrades.
+Major STT and visual improvement are deferred, with failed owner judgments preserved.
+No second beta, new feature, packaging build, version bump or publication is requested.
+Final focused integration adds **30 generation/context/storage recovery checks**,
+for 230 Python checks across the repair gates (plus shipped-UI rerun), 77 frontend
+tests and two Chrome cases. Version consistency remains 0.2.3; 107 relative
+document targets and diff check pass. No full repository/native-package suite was
+run for this blocked candidate. Local test-cache permissions required permitted
+execution; the existing bundled Node avoided changing the inactive global shim.
+
 Conversation integrity and launcher security are not waivable alpha polish.
 Version stays 0.2.3 pending essential gates. Native authenticated smoke, actual
 driver/notices, installed SQLite/upgrade behavior, hosted gates and signing remain

@@ -2,9 +2,11 @@
 
 **Current policy: Basics Before Expansion (2026-10-01).** See the authoritative
 [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and [Roadmap](ROADMAP.md).
-The [October 8 release review](RELEASE_READINESS_0.2.4.md) keeps the current real
-owner-window lifecycle and full-app contention gates open; source alpha usability
-is distinct from authenticated native-package validation and public signing.
+The [October 9 release hold](RELEASE_READINESS_0.2.4.md) records repaired VAD-only
+generation cancellation, empty final commitment, spoken Markdown and source launch/
+Controls defects. Residual plausible spurious turns and long stalls are unresolved;
+candidate preparation is held. October 8 closed real owner-window model operations
+and bounded inference cadence. Native package validation/public signing stay separate.
 Hard STT language, installed multilingual persona selection, effective speech
 status, confirmed provider cleanup and explicit runtime/supervisor SQLite closure
 are implemented. Consolidation I's supervised Gemma lifecycle passed; II exposed
@@ -24,6 +26,13 @@ promotion, generation retirement, typed recovery and history integrity now have
 post-release repairs. Acoustic source discrimination and prompt barge-in remain
 open. The dependency-aware priority order is in [Roadmap](ROADMAP.md); older
 items below are directions, not evidence that the physical beta passed them.
+
+[October 9 complete finding inventory](BETA_TRIAGE_2026-10-09.md) preserves later
+major STT/visual work, persona identity, load ETA, startup alignment/motion pauses,
+Console/Memory presentation, shader ranges/tooltips/wireframe requests and reload
+history observation. No feature or art expansion is authorized by those findings.
+LM Studio desktop persistence is distinct from serving cleanup; CLI inventory's
+implicit wake/initial status ordering needs bounded ownership evidence.
 
 Memory Foundation I is implemented: app-data SQLite, owner CRUD, review-first
 proposals, scoped lexical recall/context, deletion/correction and restart/adversarial
