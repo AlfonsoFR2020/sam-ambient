@@ -557,3 +557,9 @@ Live provider/audio checks and publishing are deliberately human-controlled.
 The supervisor alone rotates operational JSONL; supervised children send filtered
 records on existing stdout. No transcript/audio/proof recording or new authority.
 Session retention flags affect only final owned-resource cleanup, never settings.
+
+Conversation instrumentation projects authoritative EventBus events synchronously
+without adding subscriber backpressure. Projection failures do not fail events or
+commands. Runtime-owned bounded timers correlate commands, generation-local HTTP
+headers, first tokens, STT and delivery. No diagnostic timer alters turn ownership
+or grants authority; raw payloads and transcript/model text are excluded.

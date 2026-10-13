@@ -20,6 +20,7 @@ from sam_ambient.core.protocol import (
     ProtocolError,
     ProtocolEvent,
 )
+from sam_ambient.diagnostic_log import diagnostic
 
 DEFAULT_UI_BRIDGE_HOST = "127.0.0.1"
 DEFAULT_UI_BRIDGE_PORT = 8765
@@ -167,6 +168,17 @@ class WebSocketCoreBridge:
                 await socket.close(1008, "Owner session revoked")
                 return
             await socket.send(event.to_json())
+            if event.type in {
+                EventType.CONTROL_ACKNOWLEDGED,
+                EventType.CONTROL_REJECTED,
+                EventType.MODEL_COMPLETED,
+                EventType.MODEL_CANCELLED,
+            }:
+                diagnostic(
+                    "protocol.sent",
+                    command_id=event.payload.get("command_id"),
+                    generation_id=event.generation_id,
+                )
 
     async def _consume(
         self, socket: ServerConnection, owner: OwnerSession, connection: OwnerConnection

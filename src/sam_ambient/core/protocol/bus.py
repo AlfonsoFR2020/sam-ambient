@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import deque
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 
 from sam_ambient.core.protocol.models import ProtocolEvent
 
@@ -20,6 +20,7 @@ class EventSubscription:
         self._items: deque[ProtocolEvent] = deque()
         self._condition = asyncio.Condition()
         self._closed = False
+
         self.dropped_lossy = 0
 
     @property
@@ -92,6 +93,14 @@ class EventBus:
         self._subscriptions: set[EventSubscription] = set()
         self._lock = asyncio.Lock()
         self._closed = False
+        self._observers: set[Callable[[ProtocolEvent], None]] = set()
+
+    def add_observer(self, observer: Callable[[ProtocolEvent], None]) -> None:
+        """Read-only synchronous projections do not add subscriber backpressure."""
+        self._observers.add(observer)
+
+    def remove_observer(self, observer: Callable[[ProtocolEvent], None]) -> None:
+        self._observers.discard(observer)
 
     async def subscribe(self, *, max_queue: int = 64) -> EventSubscription:
         if max_queue < 1:
@@ -108,6 +117,14 @@ class EventBus:
             if self._closed:
                 raise RuntimeError("event bus is closed")
             subscriptions = tuple(self._subscriptions)
+        for observer in tuple(self._observers):
+            try:
+                observer(event)
+            except Exception:
+                # Optional observability can never fail or strand a user turn.
+                from sam_ambient.diagnostic_log import diagnostic
+
+                diagnostic("observer.failed", state="failed")
         for subscription in subscriptions:
             await subscription._deliver(event)
 
@@ -123,5 +140,6 @@ class EventBus:
             self._closed = True
             subscriptions = tuple(self._subscriptions)
             self._subscriptions.clear()
+            self._observers.clear()
         for subscription in subscriptions:
             await subscription._mark_closed()

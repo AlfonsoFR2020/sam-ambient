@@ -1,6 +1,6 @@
 # Diagnostic launch and conversation evidence
 
-Implementation checkpoint 1 — 2026-10-13. No version bump or release publication.
+Implementation checkpoints 1–2 — 2026-10-13. No version bump or release publication.
 
 ## Owner launch
 
@@ -55,3 +55,48 @@ keeps the error console open; a log cannot be promised for an unwritable locatio
 checks pass using temporary data. Existing sandbox/authentication code is unchanged.
 Conversation timing/ownership projection and its composed scenario follow in the
 next checkpoint; this does not claim the beta's intermittent stall is solved.
+
+
+## Conversation timing and ownership
+
+A bounded read-only event projection at the runtime records existing voice state,
+first partial/final presence (never text), committed user turns, generation/stream
+terminal events, candidate retirement, delivery and component health. Command
+owners record queued → dispatch → acknowledged/rejected/cancelled; protocol sending
+is separately visible. A queue wait is not a provider wait or a frontend-rendering
+measurement. Replay and late terminal events cannot retire a different request.
+
+Generation-local context correlates the real HTTP transport's accepted response
+headers with request/first-token/stream-complete records. Fake/non-HTTP adapters
+cannot establish HTTP acceptance, so that event is absent rather than invented.
+STT finalization records elapsed time and whether meaningful final text exists;
+playback screening records suspected known-output echo. This is not AEC or a
+classifier for every plausible hallucinated final.
+
+The core emits `conversation.summary` with longest first-token wait, full stream,
+STT finalization, command and delivery durations; endpoint resumptions; bounded
+pending/nonterminal entries, dropped trace entries and active generation/delivery/
+task counts after shutdown. Up to eight nonterminal operations include age and
+hashed identities. Ongoing waits contribute to maxima even if they never finish.
+There is no magic stall-reset timer. Detailed history caps at 256 entries and
+pending projection at 128; eviction/drops are explicit. Meters and token contents
+are not dumped frame by frame. UTC timestamps describe supervisor receipt; child
+`source_ms` and explicit elapsed values preserve source monotonic timing.
+
+### Synthetic scope and findings
+
+One continuous 20 ms PCM journey uses actual runtime, event/command owners,
+SQLite history and safe fake capture/STT/TTS/playback/provider boundaries. It covers
+successive typed and two voice turns, endpoint resumption, subminimum noise,
+hallucination-like partial superseded by empty final, STT failure then typed recovery
+and explicit microphone reentry, copied-output playback overlap, a provider ignoring
+cancellation until released, immediate typed replacement, late data and shutdown.
+The tested noise/empty/known-output cases do not create bogus committed turns;
+replacement text and completed answers remain available and owners retire cleanly.
+
+The trace exposed a fixture error: exhausted queued silence did not imply endpoint
+retirement; the fixture now waits for actual listening state. Correlation mapping
+also needed to link successful generation terminals back to their originating
+command. These are observability/fixture repairs, not proof of a new production
+stall cause. The beta's minutes-long stall and plausible wrong final transcripts
+remain unresolved. Synthetic PCM is not real-room/accent or human acceptance.

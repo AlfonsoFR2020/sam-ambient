@@ -10,6 +10,7 @@ from typing import Any, Protocol
 import httpx
 
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
+from sam_ambient.diagnostic_log import diagnostic
 
 
 class HttpTransportError(RuntimeError):
@@ -122,6 +123,7 @@ class HttpxJsonTransport:
                 if response.status_code >= 400:
                     raw = await self._read_limited(response)
                     self._raise_for_status(response, raw, headers)
+                diagnostic("provider.headers", state="accepted")
                 async for line in response.aiter_lines():
                     cancellation.raise_if_cancelled()
                     if len(line.encode("utf-8")) > self._max_response_bytes:

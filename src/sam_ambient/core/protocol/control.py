@@ -71,18 +71,41 @@ class ControlDispatcher:
         *,
         max_history: int = 256,
         clock_ms: Callable[[], int] | None = None,
+        observer: Callable[[ControlCommand, str], None] | None = None,
     ) -> None:
         if max_history < 1:
             raise ValueError("max_history must be positive")
         self._bindings = bindings
         self._max_history = max_history
         self._clock_ms = clock_ms or (lambda: time.monotonic_ns() // 1_000_000)
+        self._observer = observer
         self._history: OrderedDict[str, ProtocolEvent] = OrderedDict()
         self._lock = asyncio.Lock()
         self.microphone_enabled = True
         self.tts_output_enabled = True
 
     async def dispatch(
+        self, command: ControlCommand, *, owner_connection: OwnerConnection | None = None
+    ) -> ProtocolEvent:
+        self._observe(command, "queued")
+        try:
+            event = await self._dispatch(command, owner_connection=owner_connection)
+        except BaseException:
+            self._observe(command, "cancelled")
+            raise
+        self._observe(
+            command, "acknowledged" if event.type == EventType.CONTROL_ACKNOWLEDGED else "rejected"
+        )
+        return event
+
+    def _observe(self, command: ControlCommand, phase: str) -> None:
+        if self._observer is not None:
+            try:
+                self._observer(command, phase)
+            except Exception:
+                pass  # Optional instrumentation cannot change command authority/terminality.
+
+    async def _dispatch(
         self, command: ControlCommand, *, owner_connection: OwnerConnection | None = None
     ) -> ProtocolEvent:
         async with self._lock:
@@ -100,6 +123,7 @@ class ControlDispatcher:
             prior = self._history.get(key)
             if prior is not None:
                 return prior
+            self._observe(command, "dispatch")
             try:
                 event = await self._apply(command, owner_connection)
             except Exception as error:

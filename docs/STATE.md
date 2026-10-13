@@ -119,6 +119,8 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 
 ## Conversation, inference and voice
 
+- Bounded read-only command/turn/STT/provider/delivery traces distinguish queue,
+  recognition and stream waits; shutdown reports nonterminal owners and maxima.
 - Authoritative turn/generation identities, stale-event rejection and cancellation
   survive voice/model/TTS overlap. Committed typed/voice messages share clean history;
   provisional/rejected candidates stay out. Full assistant text survives stopped

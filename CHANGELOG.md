@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Correlated read-only conversation timing, content-free lifecycle records and
+  bounded shutdown nonterminal/latency summaries; paced mixed-turn regression.
+
 - Shared diagnostic launcher, bounded private operational logs and session-only
   model/provider retention; ordinary launch and saved preferences unchanged.
 

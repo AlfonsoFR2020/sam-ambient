@@ -16,6 +16,7 @@ from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
 from sam_ambient.core.voice.delivery import InterruptionCoordinator, InterruptionEffects
 from sam_ambient.core.voice.interfaces import AudioInput, SpeechToText, VoiceActivityDetector
 from sam_ambient.core.voice.models import AudioFrame, SampleFormat, Transcript, VoiceStreamContext
+from sam_ambient.diagnostic_log import diagnostic
 
 log = logging.getLogger(__name__)
 
@@ -332,6 +333,13 @@ class VoiceInputPipeline:
                 if stt_stream is not None:
                     evidence.observe(frame, vad_result.speech_probability)
                     if evidence.sparse_too_long(frame.monotonic_ms):
+                        diagnostic(
+                            "candidate.rejected",
+                            state="rejected",
+                            intent="low_density",
+                            operation_id=cancellation.cancellation_id,
+                            turn_id=self._turn_manager.turn_id,
+                        )
                         log.info(
                             "Rejecting low-density voice candidate after %d ms",
                             frame.monotonic_ms
@@ -404,6 +412,13 @@ class VoiceInputPipeline:
                     )
                     stt_started = time.monotonic()
                     final_transcript = await stt_stream.finalize(cancellation)
+                    diagnostic(
+                        "stt.final",
+                        elapsed_ms=round((time.monotonic() - stt_started) * 1000),
+                        nonempty=bool(final_transcript.text.strip()),
+                        operation_id=cancellation.cancellation_id,
+                        turn_id=self._turn_manager.turn_id,
+                    )
                     log.info(
                         "conversation_timing stage=stt_final_available stt_ms=%d "
                         "cancellation=%s turn=%s nonempty=%s",

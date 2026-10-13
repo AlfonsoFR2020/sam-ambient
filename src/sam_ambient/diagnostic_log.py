@@ -8,6 +8,7 @@ import logging
 import re
 import sys
 import time
+from contextvars import ContextVar
 from datetime import UTC, datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -16,6 +17,7 @@ PREFIX = b"SAM_DIAGNOSTIC "
 MAX_RECORD_BYTES = 4096
 LOG_BYTES = 1_048_576
 LOG_BACKUPS = 3
+correlation: ContextVar[dict | None] = ContextVar("diagnostic_correlation", default=None)
 _LOGGER = logging.getLogger("sam_ambient.operational")
 _TAG = re.compile(r"[a-zA-Z][a-zA-Z0-9_.:-]{0,63}\Z")
 _NUMBERS = frozenset(
@@ -33,10 +35,16 @@ _NUMBERS = frozenset(
         "longest_inference_ms",
         "longest_stt_ms",
         "longest_command_ms",
+        "longest_stream_ms",
+        "longest_delivery_ms",
         "dropped",
         "active_generation",
         "active_delivery",
         "tasks",
+        "nonempty",
+        "source_ms",
+        "keep_model",
+        "keep_provider",
     }
 )
 _TAGS = frozenset({"state", "component", "intent", "resource", "error_class", "policy"})
@@ -44,6 +52,10 @@ _IDS = frozenset({"turn_id", "generation_id", "command_id", "operation_id", "ins
 _STATES = frozenset(
     {
         "ready",
+        "healthy",
+        "unhealthy",
+        "unsupported",
+        "unloaded",
         "starting",
         "stopping",
         "stopped",
@@ -75,6 +87,7 @@ _STATES = frozenset(
         "SPEAKING",
         "INTERRUPTION_CANDIDATE",
         "RECOVERING",
+        "INTERRUPTED",
         "ERROR",
         "OFFLINE",
         "HEALTHY",
@@ -105,7 +118,9 @@ def safe_record(stage: str, fields: dict) -> dict:
 
 
 def diagnostic(stage: str, **fields: object) -> None:
-    _LOGGER.info(stage, extra={"sam_diagnostic": safe_record(stage, fields)})
+    _LOGGER.info(
+        stage, extra={"sam_diagnostic": safe_record(stage, {**(correlation.get() or {}), **fields})}
+    )
 
 
 class DiagnosticHandler(logging.Handler):
@@ -141,7 +156,7 @@ class DiagnosticHandler(logging.Handler):
             if self._second != second:
                 self._second, self._rate = second, 0
             self._rate += 1
-            if self._rate > 100:
+            if self._rate > 100 and not str(data.get("stage", "")).endswith("summary"):
                 self.dropped += 1
                 return
             data = dict(data)
@@ -179,6 +194,8 @@ def forward_diagnostic(line: bytes) -> None:
         if not isinstance(data, dict):
             return
         stage = data.pop("stage")
+        if type(data.get("monotonic_ms")) is int:
+            data["source_ms"] = data["monotonic_ms"]
         # Child IDs already contain only pseudonyms; preserve correlation.
         ids = {k: v for k, v in data.items() if k in _IDS and re.fullmatch(r"[a-f0-9]{16}", str(v))}
         clean = safe_record(stage, {k: v for k, v in data.items() if k not in _IDS})

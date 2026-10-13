@@ -25,6 +25,7 @@ from sam_ambient.adapters.stt.whisper_cpp import (
     SpeechRecognitionUnavailable,
 )
 from sam_ambient.adapters.ui import DEFAULT_UI_BRIDGE_PORT, WebSocketCoreBridge
+from sam_ambient.conversation_diagnostics import ConversationTrace
 from sam_ambient.core.memory import MemoryError, MemoryStore
 from sam_ambient.core.memory.policy import ProposalSource
 from sam_ambient.core.memory.retrieval import MAX_CONTEXT_CHARS, LexicalMemoryRetriever
@@ -107,6 +108,7 @@ from sam_ambient.core.voice import (
 )
 from sam_ambient.core.voice.language import response_language
 from sam_ambient.core.voice.text import speech_text
+from sam_ambient.diagnostic_log import correlation, diagnostic
 
 _GENERATION_TERMINAL_EVENTS = frozenset(
     {EventType.MODEL_COMPLETED, EventType.MODEL_CANCELLED, EventType.COMPONENT_ERROR}
@@ -585,6 +587,8 @@ class SamRuntime:
             len(self.state.recent(limit=50)) if self.state is not None else 0
         )
         self.events = events or EventBus()
+        self.trace = ConversationTrace()
+        self.events.add_observer(self.trace.event)
         self.cancellations = CancellationRegistry()
         self.voice_turns = TurnManager(self.session_id)
         self.voice = voice
@@ -728,6 +732,7 @@ class SamRuntime:
                 cancel_capability=self._cancel_owner_action,
             ),
             clock_ms=self._next_event_ms,
+            observer=self.trace.command,
         )
         self.controls.microphone_enabled = self.voice is not None
         self.controls.tts_output_enabled = self.tts is not None
@@ -815,6 +820,11 @@ class SamRuntime:
         await self.bridge.close()
         await self.provider.aclose()
         await self.events.close()
+        self.trace.summary(
+            active_generation=int(self._active_generation_id is not None),
+            active_delivery=int(self._active_playback_generation_id is not None),
+            tasks=sum(not task.done() for task in closing_tasks),
+        )
 
     async def _submit_from_control(self, text: str, command: ControlCommand) -> None:
         self.submit_user_message(
@@ -1575,6 +1585,9 @@ class SamRuntime:
         inference_target: CommittedInferenceTarget,
     ) -> None:
         timing_started = time.monotonic()
+        diagnostic_context = correlation.set(
+            {"generation_id": generation_id, "turn_id": turn_id, "command_id": origin_command_id}
+        )
         first_model_output = False
         stage = "turn"
         manager = turn_manager or (self.voice_turns if voice_managed else None)
@@ -1661,6 +1674,20 @@ class SamRuntime:
             memory_proposals = 0
             for tool_round in range(self.config.max_tool_rounds + 1):
                 cancellation.raise_if_cancelled()
+                self.trace.begin(
+                    "inference",
+                    generation_id,
+                    generation_id=generation_id,
+                    turn_id=turn_id,
+                    command_id=origin_command_id,
+                )
+                self.trace.begin(
+                    "stream",
+                    generation_id,
+                    generation_id=generation_id,
+                    turn_id=turn_id,
+                    command_id=origin_command_id,
+                )
                 log.info(
                     "conversation_timing stage=model_request_start elapsed_ms=%d generation=%s",
                     round((time.monotonic() - timing_started) * 1000),
@@ -1701,6 +1728,9 @@ class SamRuntime:
                     elif event.kind is ModelEventKind.TOOL_CALL:
                         calls.add(event.payload)
                 cancellation.raise_if_cancelled()
+                diagnostic(
+                    "provider.stream_complete", generation_id=generation_id, count=tool_round
+                )
                 if calls:
                     if tool_round >= self.config.max_tool_rounds:
                         raise RuntimeError("model exceeded the bounded tool round limit")
@@ -1961,6 +1991,13 @@ class SamRuntime:
                 self._active_done.set()
             self.cancellations.discard(cancellation.cancellation_id)
             response_done.set()
+            self.trace.record(
+                "generation.retired",
+                generation_id=generation_id,
+                command_id=origin_command_id,
+                active_generation=int(self._active_generation_id == generation_id),
+            )
+            correlation.reset(diagnostic_context)
 
     async def _memory_context(
         self,
@@ -2071,6 +2108,7 @@ class SamRuntime:
                     generation_id,
                 )
                 self._active_playback_generation_id = generation_id
+                diagnostic("synthesis.requested", generation_id=generation_id)
                 try:
                     chunk = await self.speech_queue.enqueue(
                         generation_id,
@@ -2094,6 +2132,7 @@ class SamRuntime:
                         turn_id=turn_id,
                         cancellation=cancellation,
                     )
+                    diagnostic("playback.pull_begin", generation_id=generation_id)
                     try:
                         try:
                             await self.audio_output.play(frames, cancellation)
@@ -2110,6 +2149,11 @@ class SamRuntime:
                         # A playback adapter that stops early must not retain it.
                         await frames.aclose()
                     self.speech_queue.mark_spoken(chunk, self._next_event_ms())
+                    diagnostic(
+                        "playback.complete",
+                        generation_id=generation_id,
+                        elapsed_ms=round((time.monotonic() - tts_started) * 1000),
+                    )
                     await self._audio_health("playback", "ready")
                     log.info(
                         "conversation_timing stage=playback_complete elapsed_ms=%d generation=%s",
@@ -2497,10 +2541,25 @@ class SamRuntime:
                     finalizing, candidate_stream = candidate_stream, None
                     endpoint_since = None
                     try:
+                        candidate_key = turn_manager.candidate_turn_id or turn_manager.turn_id
+                        self.trace.begin(
+                            "stt",
+                            candidate_key,
+                            turn_id=candidate_key,
+                            generation_id=playback_generation_id,
+                            operation_id=candidate_token.cancellation_id,
+                        )
                         final_transcript = await finalizing.finalize(candidate_token)
                     except BaseException:
+                        self.trace.end("stt", candidate_key, state="failed")
                         await finalizing.cancel(candidate_token.cancellation_id, "finalize_failed")
                         raise
+                    self.trace.end("stt", candidate_key)
+                    self.trace.record(
+                        "stt.final",
+                        turn_id=candidate_key,
+                        nonempty=bool(final_transcript.text.strip()),
+                    )
                     if self.voice_turns is not turn_manager:
                         await finalizing.cancel(candidate_token.cancellation_id, "stale_final")
                         return None
@@ -2535,6 +2594,13 @@ class SamRuntime:
                         else (" ".join(final_transcript.text.split()), None)
                     )
                     if rejection_reason is not None:
+                        self.trace.record(
+                            "candidate.rejected",
+                            turn_id=candidate_key,
+                            generation_id=playback_generation_id,
+                            state="rejected",
+                            intent=rejection_reason,
+                        )
                         events = turn_manager.reject_interruption(
                             self._next_event_ms(), rejection_reason
                         )
