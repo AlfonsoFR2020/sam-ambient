@@ -4,6 +4,11 @@ Updated: 2026-10-13. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 ## Release and evidence boundary
 
+- Visual Identity I starts from the October 9 failed visual judgment. A direct,
+  explicitly headless renderer fixture identifies the membrane's conical center,
+  coarse radial sampling and correlated blue/teal palette allocation. See
+  [diagnosis/evidence](VISUAL_IDENTITY_I.md); no desktop/audio or human test.
+
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
   inventory/server state; CLI dispatch success alone is insufficient.
