@@ -11,6 +11,7 @@ import os
 import platform
 import shutil
 import sys
+import time
 from collections.abc import Callable, Sequence
 from dataclasses import asdict
 from importlib.resources import files
@@ -242,6 +243,8 @@ async def discover_provider(
 ) -> tuple[LLMProvider, str | None, Discovery | None]:
     if args.provider == "openai-compatible" and not args.compatible_is_local:
         return create_provider(args), args.model, None
+    discovery_started = time.monotonic()
+    diagnostic("provider.discovery_begin", state="scanning")
     preferred = None
     if bootstrap or getattr(args, "command", None) in {"doctor", "runtime"}:
         from sam_ambient.core.storage import SQLiteSessionStore
@@ -274,6 +277,12 @@ async def discover_provider(
         )
         log.debug("Discovery endpoint: %s", service.endpoint)
     selected = discovery.selected
+    diagnostic(
+        "provider.discovery_end",
+        state="available" if selected else "unavailable",
+        elapsed_ms=round((time.monotonic() - discovery_started) * 1000),
+        count=sum(len(service.models) for service in discovery.services),
+    )
     log.info(
         "Selected provider=%s model=%s; %s",
         selected.id if selected else "none",
@@ -757,7 +766,8 @@ async def run_runtime(args: argparse.Namespace) -> int:
                     "cleanup.begin",
                     intent=lifecycle_intent.value,
                     policy=exit_policy.model_on_exit,
-                    count=int(getattr(args, "keep_provider", False)),
+                    keep_model=exit_policy.model_on_exit == "keep",
+                    keep_provider=exit_policy.provider_on_exit == "keep",
                 )
                 results = await cleanup_discoveries(
                     discoveries, intent=lifecycle_intent, policy=exit_policy
@@ -813,6 +823,11 @@ async def _serve_runtime(
             output = None
             log.warning("Spoken output unavailable: %s; text output remains available", error)
     log.info("TTS: %s", tts.backend_id if tts else "disabled/unavailable")
+    diagnostic(
+        "speech.init",
+        component="synthesis",
+        state="disabled" if args.no_tts else "available" if tts else "unavailable",
+    )
     voice = None
     stt_status = "disabled by --no-voice"
     if not args.no_voice:
@@ -833,6 +848,11 @@ async def _serve_runtime(
     log.info(
         "Microphone/STT: %s",
         stt_status + "; default audio device checked on capture" if voice else stt_status,
+    )
+    diagnostic(
+        "speech.init",
+        component="stt",
+        state="disabled" if args.no_voice else "available" if voice else "unavailable",
     )
     runtime = SamRuntime(
         provider,

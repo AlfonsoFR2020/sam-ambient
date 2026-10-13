@@ -1,6 +1,8 @@
 import argparse
 import json
 import logging
+import os
+import subprocess
 from pathlib import Path
 from unittest.mock import AsyncMock
 
@@ -131,3 +133,54 @@ def test_startup_failure_still_has_final_summary(tmp_path, monkeypatch, diagnost
     lock = InstanceLock(tmp_path / ".sam/supervisor.lock")
     assert lock.acquire()
     lock.release()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows diagnostic wrapper failure path")
+def test_windows_wrapper_keeps_failed_environment_message(tmp_path):
+    root = Path(__file__).resolve().parents[2]
+    for name in ("Start Sam.cmd", "Diagnose Sam.cmd"):
+        (tmp_path / name).write_bytes((root / name).read_bytes())
+    # No executable/environment exists: no Sam or provider process can start.
+    result = subprocess.run(
+        ["cmd.exe", "/d", "/c", str(tmp_path / "Diagnose Sam.cmd")],
+        cwd=root,
+        input="\n\n",
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    assert result.returncode == 1
+    assert "source environment is not ready" in result.stdout
+    assert "never installs or updates dependencies" in result.stdout
+
+
+def test_duplicate_instance_does_not_replace_active_log(tmp_path, diagnostic_logging):
+    import asyncio
+
+    from sam_ambient.supervisor.single_instance import InstanceLock
+
+    lock = InstanceLock(tmp_path / ".sam/supervisor.lock")
+    assert lock.acquire()
+    args = build_parser().parse_args(["--diagnostic", "--root", str(tmp_path)])
+    configure_logging(args)
+    try:
+        assert asyncio.run(run(args)) == 0
+        assert not (tmp_path / ".sam/diagnostics/session.jsonl").exists()
+    finally:
+        lock.release()
+
+
+def test_log_io_failure_is_bounded_and_does_not_raise(tmp_path, diagnostic_logging, monkeypatch):
+    configure_logging(
+        argparse.Namespace(diagnostic=True, diagnostic_child=False, verbose=False, log_level="INFO")
+    )
+    handler = DiagnosticHandler(tmp_path / "session.jsonl")
+    logging.getLogger().handlers = [handler]
+
+    def unavailable(_record):
+        raise OSError("private injected failure")
+
+    monkeypatch.setattr(handler.file, "emit", unavailable)
+    diagnostic("fixture.progress")
+    assert handler.dropped == 1
+    handler.close()

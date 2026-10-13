@@ -498,3 +498,20 @@ writes; external DB locks still fail safely and ordinary text remains usable.
 fixtures match 0.2.4 and the host platform. Linux desktop Edge sandbox acceptance is
 not established on the hosted runner; Windows resize/fullscreen/authentication is
 retained, with screen-fitting sizes. No subjective or real-room acceptance added.
+
+
+## 2026-10-13 — local diagnostic increment, no new beta
+
+Shared normal/diagnostic launch, session retention, content-free rotation and
+correlated command/candidate/STT/provider/delivery projection are implemented.
+One actual isolated supervisor/core/shipped owner UI session passes authentication,
+text, log forwarding and non-forced Quit with fake discovery, temporary memory and
+no audio. The paced mixed-turn fixture protects noise/empty-final/known-output
+screening, non-cooperative stream cancellation, typed recovery and normal owner
+retirement. [Evidence and limits](DIAGNOSTIC_LAUNCH.md).
+
+No new product stall/false-commit defect was established. Projection correlation
+and fixture endpoint-completion assumptions were corrected. This does not solve
+plausible wrong final transcripts, the beta's minutes-long stall, physical acoustic
+interruption, owner speech quality or visual/persona acceptance. STT/visual work
+remains high-priority and separate; expansion and AEC research stay parked.

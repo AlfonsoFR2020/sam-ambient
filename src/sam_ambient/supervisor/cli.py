@@ -233,7 +233,11 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
             )
         )
     log.info("Sam %s starting", __version__)
-    diagnostic("supervisor.start", count=int(args.keep_model) + int(args.keep_provider))
+    diagnostic(
+        "supervisor.start",
+        keep_model=args.keep_model,
+        keep_provider=args.keep_model or args.keep_provider,
+    )
     owner_session = OwnerSession()
     browser = BrowserHandoff(
         args.ui_port, mode=args.ui_mode, root=root, owner_session=owner_session
@@ -326,6 +330,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (OSError, ValueError) as error:
         detail = type(error).__name__ if args.diagnostic else str(error)
         print(f"Supervisor error: {detail}", file=sys.stderr)
+        if args.diagnostic:
+            print(
+                "Check the checkout, configuration and .sam/diagnostics permissions; "
+                "the diagnostic launcher keeps this console open.",
+                file=sys.stderr,
+            )
         return 2
     except KeyboardInterrupt:
         return 130

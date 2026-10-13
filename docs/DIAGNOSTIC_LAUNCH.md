@@ -1,6 +1,6 @@
 # Diagnostic launch and conversation evidence
 
-Implementation checkpoints 1–2 — 2026-10-13. No version bump or release publication.
+Implementation checkpoints 1–3 — 2026-10-13. No version bump or release publication.
 
 ## Owner launch
 
@@ -10,7 +10,7 @@ no dependency installation, provider download or persisted default change.
 
 Double-click `Diagnose Sam.cmd` for diagnostic mode. It delegates to the same
 launcher, opens the normal Sam window and leaves the console available after exit
-or failure. From a terminal: `Diagnose Sam.cmd --keep-model`, or
+or failure. From PowerShell: `& ".\Diagnose Sam.cmd" --keep-model`, or
 `uv run --no-sync sam-ambient --diagnostic --keep-provider`.
 
 - `--diagnostic`: content-free operational console/log records and final summary.
@@ -20,7 +20,9 @@ or failure. From a terminal: `Diagnose Sam.cmd --keep-model`, or
   follows ordinary preferences unless `--keep-model` is present.
 - No flags: existing persisted cleanup preferences remain authoritative.
 
-Flags never write configuration or lifecycle preferences. They apply at final
+Controls continues to show saved cleanup preferences; diagnostic startup and cleanup
+records show the session override and effective policy. Flags never write configuration
+or lifecycle preferences. They apply at final
 cleanup after live preference changes. Existing external services/models remain
 externally owned. Retaining LM Studio serving is distinct from its desktop app;
 Sam does not terminate a pre-existing desktop application.
@@ -100,3 +102,47 @@ also needed to link successful generation terminals back to their originating
 command. These are observability/fixture repairs, not proof of a new production
 stall cause. The beta's minutes-long stall and plausible wrong final transcripts
 remain unresolved. Synthetic PCM is not real-room/accent or human acceptance.
+
+
+## Isolated application verification and current limits
+
+One real supervised source session uses a fake provider, temporary state/memory,
+audio disabled and the shipped headless sandboxed owner UI. Passive observation
+attaches before navigation/authentication, without reloading or replacing the
+socket. Authentication precedes private readiness; owner typing completes, Quit
+correlates and core/UI stop without forced termination. Child command, first-token,
+model terminal, conversation summary, cleanup and final supervisor summary all
+reach the same rotating file. The configured cleanup preferences stay unchanged;
+`--keep-model` takes precedence at final cleanup. No external model/service is touched.
+
+The actual Windows wrapper missing-environment path fails visibly and pauses,
+without launching Sam or installing anything. Startup failure, duplicate-instance
+log ownership, rotation/rate/history limits, redaction, malformed child records and
+injected log-I/O failure have focused coverage. A log that cannot be created cannot
+provide persisted evidence; its console gives a short actionable error. Changing
+filesystem policy, credentials, devices or installed provider software is outside
+this task. No additional full application launch, physical audio or frontend art pass.
+
+### Next priorities
+
+Intermittent latency/false turns remain the highest reliability concerns; use the
+new operational evidence before changing ownership. Serious multilingual STT and
+Orb/membrane/palette/voice embodiment remain dedicated high-priority efforts. Keep
+Windows packaging/Cargo and deferred pytest/setuptools/Linux GLib advisories visible
+as separate maintenance. Agency/memory/browser/profile expansion stays parked.
+Numerical tests are not owner perceptual acceptance. No next workstream starts here.
+
+
+Final focused gate: **187 tests passed** across launch/privacy/retention,
+configuration, owner authentication, provider bootstrap/ownership, command
+correlation, supervisor/first-run, paced conversation, voice and generation
+terminality, and HTTP transport. The separate actual supervisor/owner-window
+session passed once (about five seconds), and was not relaunched by the final
+suite. Ruff lint/format, release-version consistency and local documentation links
+pass. No frontend source changes, dependency updates, release build or GitHub work.
+
+Normal mode creates no persistent diagnostic file. Diagnostic mode is available
+in this updated source checkout; older installed/staged cores may not understand
+new flags. Do not bypass trusted version activation/rollback to force compatibility.
+Actual-room latency/noise, real provider long-stream behavior and owner speech/art
+acceptance remain future evidence, not claims made from these fixtures.

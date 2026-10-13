@@ -110,7 +110,7 @@ no shader tuning or new visual identity belongs in this closure. Themes remain l
 
 ### Distribution and productization
 
-**Current:** prepared-checkout Windows launch is one action; v0.2.3 wheel/sdist are public; unsigned Windows development installer is withheld. Supervisor/update authority remains distinct from conversation with staged activation/rollback contracts. **Unmet:** signed, reputation-tested, clean-host public Windows installation and owner-controlled update/release. Signing identity and security-software response need owner/security decisions; do not invent a workaround. This blocks a non-developer distribution claim, not the AEC prototype. Split signing prerequisites, clean-host package test and publication. Linux/mobile distribution remain later tracks.
+**Current:** normal and diagnostic checkout launch share one supervisor; v0.2.4 experimental wheel/sdist are public; unsigned Windows development installer is withheld. Supervisor/update authority remains distinct from conversation with staged activation/rollback contracts. **Unmet:** signed, reputation-tested, clean-host public Windows installation and owner-controlled update/release. Signing identity and security-software response need owner/security decisions; do not invent a workaround. This blocks a non-developer distribution claim, not the AEC prototype. Split signing prerequisites, clean-host package test and publication. Linux/mobile distribution remain later tracks.
 
 ## Next basic-experience tasks — after Core Experience V
 
@@ -119,15 +119,15 @@ pre-release after exact-commit hosted source/package gates. Native build failure
 separate; unsigned Windows artifacts remain withheld. No additional feature work
 is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposition.
 
-### Next-cycle handoff (not started)
+### Next-cycle handoff — diagnostic foundation completed locally (2026-10-13)
 
-1. **Diagnostic launch contract** — Medium / small. Preserve the default convenient
-   one-action launch. Diagnostic mode keeps its console open and writes bounded,
-   useful timings/terminal/ownership evidence. Explicit temporary flags may retain
-   the selected model or provider on exit without changing persisted defaults.
-   Never expose credentials, owner proofs, unnecessary conversation text or raw
-   private audio. Cleanup remains safe, ownership-aware and truthful. Define the
-   concrete interface before implementation; do not weaken owner authentication.
+1. **Diagnostic launch and conversation observability: implemented.** Shared
+   `Diagnose Sam.cmd` / `--diagnostic`, session-only retention, rotating private
+   metadata and correlated latency/terminal summaries pass focused and isolated
+   owner-window/supervisor checks. [Contract and evidence](DIAGNOSTIC_LAUNCH.md).
+   v0.2.4 remains published; this increment has no version bump or remote push.
+   The next small alpha can include this coherent slice after HQ review, rather
+   than waiting for STT or artistic work to finish. Do not call incident causes fixed.
 2. **Intermittent latency and false speech turns** — Medium initially, High only for
    demonstrated cross-lifetime ownership. Use those diagnostics and paced mixed
    typed/voice/playback sequences; reproduce before changing product behavior.
@@ -145,7 +145,8 @@ is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposi
 
 Refined system/persona settings and Console/Memory presentation remain later;
 Agency/Memory capability expansion, profiles, arbitrary shell and diarization stay
-parked. No next-cycle task is executed by this release action set.
+parked. The diagnostic increment executes only the completed first item; later
+workstreams remain separate. Prefer frequent bounded green alpha increments.
 
 ### Parked acoustic re-entry contract
 

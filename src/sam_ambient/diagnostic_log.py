@@ -52,6 +52,10 @@ _IDS = frozenset({"turn_id", "generation_id", "command_id", "operation_id", "ins
 _STATES = frozenset(
     {
         "ready",
+        "disabled",
+        "starting_provider",
+        "loading_model",
+        "unloading_model",
         "healthy",
         "unhealthy",
         "unsupported",

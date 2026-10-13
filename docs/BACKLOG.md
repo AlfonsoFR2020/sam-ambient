@@ -2,15 +2,15 @@
 
 **Current policy: Basics Before Expansion (2026-10-01).** See the authoritative
 [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and [Roadmap](ROADMAP.md).
-HQ's incremental-alpha override accepts disclosed unreproduced voice/aesthetic
-limits. [Current partial candidate](ALPHA_CANDIDATE_0.2.4.md) is blocked by actual
-Windows packaging execution failure; the repair-stage hold below is historical.
-No new human beta is required for the tested repairs.
-The [October 9 release hold](RELEASE_READINESS_0.2.4.md) records repaired VAD-only
-generation cancellation, empty final commitment, spoken Markdown and source launch/
-Controls defects. Residual plausible spurious turns and long stalls are unresolved;
-candidate preparation is held. October 8 closed real owner-window model operations
-and bounded inference cadence. Native package validation/public signing stay separate.
+v0.2.4 is published as a source/Python experimental pre-release. Its native
+Windows build/signing problem is separate. Unreproduced intermittent false speech
+turns and long stalls remain disclosed, not declared fixed by the beta repairs.
+
+Diagnostic launch/conversation observability is implemented locally on October 13:
+shared launch, session retention, bounded operational logging and timing/owner
+summaries. See [diagnostic evidence](DIAGNOSTIC_LAUNCH.md). Use that evidence to
+reproduce reliability failures; do not open another speculative audio rewrite.
+No personal recording or new beta was needed for this increment.
 Hard STT language, installed multilingual persona selection, effective speech
 status, confirmed provider cleanup and explicit runtime/supervisor SQLite closure
 are implemented. Consolidation I's supervised Gemma lifecycle passed; II exposed
@@ -55,11 +55,11 @@ are not automatically blockers for a future release.
 
 ## Release-known issues
 
-- Recommend text interaction for the most reliable 0.2.3 alpha experience; voice
+- Recommend text interaction for the most reliable 0.2.4 alpha experience; voice
   input remains experimental.
 - Complete the dedicated Linux compatibility review around 0.3.0. Hosted Ubuntu CI
-  currently reaches Python tests but retains an unresolved Linux-only failure; it is
-  explicit deferred work, not a silently weakened or artificially green 0.2.x gate.
+  source/package gates passed for v0.2.4, while Linux desktop sandbox, voice and
+  hardware acceptance remain deferred; do not confuse package tests with that acceptance.
 - Stabilize language detection where drift can select the wrong TTS language.
 - Continue physical voice/noise/language reliability work without treating acoustic
   tuning as generation-lifecycle repair.

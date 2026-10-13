@@ -1,9 +1,7 @@
 # Sam implementation state
 
 Updated: 2026-10-13. This is current development truth, not a release acceptance claim.
-History remains in [changelog](../CHANGELOG.md), [architecture](ARCHITECTURE.md), [decisions](DECISIONS.md) and specialist evidence.
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
-
 ## Release and evidence boundary
 
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
@@ -38,7 +36,6 @@ History remains in [changelog](../CHANGELOG.md), [architecture](ARCHITECTURE.md)
   remains historical; [October 9 triage](BETA_TRIAGE_2026-10-09.md) records new failures.
 - Deterministic lifecycle tests had missed the simultaneous playback/listening race.
   Renderer metrics prove numerical properties, not human perceptual visual acceptance.
-
 ## Secure agency
 
 - All private core events/commands require fresh mutual HMAC owner proof. The random
@@ -71,7 +68,6 @@ See [owner contract](OWNER_AUTHORITY.md), [capabilities](AGENCY_CAPABILITIES.md)
 [owned browser](OWNED_BROWSER.md), [agency evidence](AGENCY_FOUNDATION_I.md) and
 [trust boundaries](TRUST_BOUNDARIES.md). Vite 7.3.5 / Vitest and mocker 4.1.11 advisory
 maintenance is complete; separately triaged build/test/Linux findings remain deferred.
-
 ## Durable personal memory — Foundation I implemented
 
 - Separate standard-library SQLite schema 1 lives in Windows user app data
@@ -116,7 +112,6 @@ maintenance is complete; separately triaged build/test/Linux findings remain def
 
 See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 [memory authority/multi-person seam](MEMORY_AUTHORITY_CONTRACT.md).
-
 ## Conversation, inference and voice
 
 - Bounded read-only command/turn/STT/provider/delivery traces distinguish queue,
@@ -154,7 +149,6 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
   ownership/diversity fail. Acoustic research is parked pending timing/physical evidence.
 
 See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
-
 ## Embodiment and basic UI
 
 - Autonomous Living Surface, shared membrane pigment, lighting and particles remain;
@@ -172,7 +166,6 @@ See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 
 See [visual direction](VISUAL_DIRECTION.md), [performance](VISUAL_PERFORMANCE_0.2.3_DEV.md)
 and the beta record; numerical visual change does not establish perceptual success.
-
 ## Supervisor, cleanup and distribution
 
 - Supervisor stays independent of LLM logic, with readiness, bounded crash backoff,
@@ -188,7 +181,6 @@ and the beta record; numerical visual change does not establish perceptual succe
   metadata-only logs and session retention overrides ([contract](DIAGNOSTIC_LAUNCH.md)),
   without silently installing/upgrading dependencies. Public signed installation,
   updater publication and non-developer distribution remain later work.
-
 ## Focused validation and next direction
 
 Memory's store/authority/provenance/recovery gate remains in its specialist document;
@@ -197,8 +189,10 @@ no new dependencies, models or published-release metadata changed in this pass.
 The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gates;
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider
 Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
-[Release proposal](RELEASE_READINESS_0.2.4.md) retains native/auth/install/signing gates.
-HQ accepts disclosed voice/art limits; fresh composed and frozen-owner smoke pass.
+[Published alpha scope](RELEASE_READINESS_0.2.4.md) retains separate native/install/signing gates.
+Diagnostic launch/trace passes one isolated real owner-window/supervisor session;
+187 focused checks plus one isolated owner-window/supervisor smoke pass;
+privacy, auth and cleanup remain; no beta incident is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
 Windows installer remains unavailable; Cargo/helper and installed smoke are separate.
 Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.
