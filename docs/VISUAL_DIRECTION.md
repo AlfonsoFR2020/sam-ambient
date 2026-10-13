@@ -129,14 +129,14 @@ Sample one specified, self-contained **3D simplex gradient noise** function at
 two scales from this same `q`:
 
 ```text
-B = sat(.5 + .5*N3(1.8*q + seedOffset1))   // broad density
+B = sat(.5 + .5*N3(1.45*q + seedOffset1))  // broader pigment territories
 M = sat(.5 + .5*N3(3.6*q + seedOffset2))   // medium folds
 balance = .68 + .07*sin(palettePhase)
 contrast = 1 + .14*sin(paletteContrastPhase)
-palette = sat(.5 + (balance*B + (1-balance)*M - .5)*contrast)
+palette = sat(.5 + (balance*B + (1-balance)*M - .5)*1.55*contrast)
 coolBoundary = .12*(contrast-1) + .10*(balance-.68)
-cool = .94*(1-smoothstep(.29+coolBoundary,.57+coolBoundary,B))
-       *smoothstep(.39-coolBoundary,.63-coolBoundary,M)
+cool = .94*(1-smoothstep(.25+coolBoundary,.54+coolBoundary,B))
+       *(.35+.65*smoothstep(.22-coolBoundary,.66-coolBoundary,M))
 activity = smoothstep(.20,.50,abs(B-M))
 ```
 
@@ -159,15 +159,15 @@ derive final RGB, alpha and specular response from that vocabulary.
 The body uses the same `B` for small geometry variation:
 
 ```text
-d_field = .012*(B-.5) + .006*sin(breathPhase)*(1+.2*(B-.5))
+d_field = .008*(B-.5) + .006*sin(breathPhase)*(1+.2*(B-.5))
 d_total = clamp(d_field + existing_v1_audio_displacement, -.04, .04)
 position_object = diag(1,1.06,1) * n * (stateRadius + d_total)
 ```
 
 The spatial breath is therefore a deformation of the body, not canvas scaling.
-At vertices, evaluate the displaced position at `n` and two small, oriented
-tangent offsets; their cross product gives an outward normal after spheroid
-scaling. This costs three broad-field evaluations per vertex and avoids noisy
+At vertices, evaluate the displaced position at `n` and symmetric positive/negative
+0.006 offsets along two tangents; their cross product gives an outward normal after
+spheroid scaling. This costs five broad-field evaluations per vertex and avoids noisy
 per-fragment normal resampling. Interpolate unrotated `n` to fragments, normalize
 it and resample `B/M` there for colour. Broad illumination, inner warmth,
 specular/glints and the existing bounded Fresnel rim use that material plus
@@ -176,6 +176,13 @@ normals. Apply the existing object orientation (including user quaternion drag)
 therefore changes which moving currents catch the slowly orbiting lights, and
 the day/night impression arises from light/material geometry rather than a
 four-state palette animation. Preserve v1 tone, extent and no-flash bounds.
+
+Visual Identity I allocates rose within warm territories and selects cool hue
+independently enough to expose violet/blue as well as teal. Wider palette-coordinate
+contrast and more chromatic anchors preserve warm dominance without a global hue
+cycle. The lower broad frequency enlarges principal regions; the existing medium
+relative fold and independent flow clocks remain. These are deliberate artistic
+hypotheses with [fixed-camera evidence](VISUAL_IDENTITY_I.md), not human acceptance.
 
 The primary light travels in world/view space across the visible limb rather
 than remaining in a nearly front-facing arc. Its phase retains the independent
@@ -265,6 +272,17 @@ Low/medium/high keep 6/11/16 fragments and now 16/20/40 perimeter samples.
 High membrane geometry grows from 1,168 to 1,936 vertices; draw count and
 field samples are unchanged. Fixed-camera WebGL coverage and shader checks pass,
 while the human faceting/membrane observation remains open for later acceptance.
+
+Visual Identity I subsequently removes the center cusp with `(1-r²)²` lift,
+whose slope vanishes at both center and attached edge. Broader patches (0.40–0.54
+radians) lift less (0.028–0.044 units), avoiding small inflated mounds. Low/medium/high
+now use 3/4/5 radial rings (294/891/3,216 vertices) with the existing 16/20/40
+perimeter samples and 6/11/16 counts. Stored spherical gradients describe each
+seeded irregular boundary; shading combines this lift gradient with the body's
+displaced normal instead of a hard-coded width. Edges retain a 0.006 gap and soft
+fade. Shared pigment, modest satin glints and moving illumination show separation;
+one near-opaque depth-writing pass still approximates overlapping soft transparency.
+See [the comparison and limits](VISUAL_IDENTITY_I.md).
 
 The remaining visual question is whether patches read as one loosened outer
 layer rather than individual plates. If not, a connected thin shell with a

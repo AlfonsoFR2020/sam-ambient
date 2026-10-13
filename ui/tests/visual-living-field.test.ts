@@ -138,7 +138,7 @@ const sample = (direction: Vec3, state: FieldState, seed: number, balance = 0.7)
   const [a, b] = createFieldOffsets(seed);
   const noise = (scale: number, offset: readonly number[]) =>
     simplex3([scale * q[0] + offset[0], scale * q[1] + offset[1], scale * q[2] + offset[2]]);
-  const broad = Math.min(1, Math.max(0, 0.5 + 0.5 * noise(1.8, a)));
+  const broad = Math.min(1, Math.max(0, 0.5 + 0.5 * noise(1.45, a)));
   const medium = Math.min(
     1,
     Math.max(
@@ -153,7 +153,10 @@ const sample = (direction: Vec3, state: FieldState, seed: number, balance = 0.7)
     q,
     broad,
     medium,
-    palette: balance * broad + (1 - balance) * medium,
+    palette: Math.min(
+      1,
+      Math.max(0, 0.5 + (balance * broad + (1 - balance) * medium - 0.5) * 1.55),
+    ),
     activity: t * t * (3 - 2 * t),
   };
 };
@@ -183,7 +186,7 @@ const displacement = (
 ) => {
   const broad = sample(direction, state, 42).broad;
   return clamp(
-    0.012 * (broad - 0.5) +
+    0.008 * (broad - 0.5) +
       0.006 * Math.sin(breath) * (1 + 0.2 * (broad - 0.5)) +
       deformation *
         0.55 *
@@ -203,10 +206,15 @@ const bodyNormal = (direction: Vec3, breath: number): Vec3 => {
   const helper: Vec3 = Math.abs(n[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
   const tangentA = normalize(cross(helper, n));
   const tangentB = normalize(cross(n, tangentA));
-  const point = bodyPoint(n, breath);
-  const pointA = bodyPoint(normalize(add(n, scale(tangentA, 0.012))), breath);
-  const pointB = bodyPoint(normalize(add(n, scale(tangentB, 0.012))), breath);
-  return normalize(cross(subtract(pointA, point), subtract(pointB, point)));
+  const pointA = subtract(
+    bodyPoint(normalize(add(n, scale(tangentA, 0.006))), breath),
+    bodyPoint(normalize(add(n, scale(tangentA, -0.006))), breath),
+  );
+  const pointB = subtract(
+    bodyPoint(normalize(add(n, scale(tangentB, 0.006))), breath),
+    bodyPoint(normalize(add(n, scale(tangentB, -0.006))), breath),
+  );
+  return normalize(cross(pointA, pointB));
 };
 const expectNear = (
   a: ReturnType<typeof sample>,
@@ -407,7 +415,7 @@ describe("living field substrate", () => {
       expect(vertex).toContain("*u_object_orientation");
     }
     expect(ORB_VERTEX).toContain("livingBodyNormal(");
-    expect(LIVING_FIELD_GLSL).toContain("simplex3(1.8 * transportedDirection + u_field_offset_a)");
+    expect(LIVING_FIELD_GLSL).toContain("simplex3(1.45 * transportedDirection + u_field_offset_a)");
     expect(LIVING_FIELD_GLSL).toContain("simplex3(3.6 * mediumQ + u_field_offset_b)");
   });
 
@@ -459,7 +467,7 @@ describe("living field substrate", () => {
 
   it("bounds field/breath/audio displacement and keeps tangent normals stable at poles", () => {
     expect(LIVING_SURFACE_VERTEX_GLSL).toContain("sampleBroadDensity(n)");
-    expect(LIVING_SURFACE_VERTEX_GLSL).toContain("clamp(0.012 * (broad - 0.5)");
+    expect(LIVING_SURFACE_VERTEX_GLSL).toContain("clamp(0.008 * (broad - 0.5)");
     expect(LIVING_SURFACE_VERTEX_GLSL).toContain("abs(n.y) < 0.9");
     for (let i = 0; i < 512; i++) {
       const direction = fibonacciDirection(i, 512);
@@ -589,7 +597,7 @@ describe("living field substrate", () => {
         expect(fragment).toContain("LivingPigment pigment=livingPigment(field)");
       }
       expect(PEEL_VERTEX).toContain("curvedNormal");
-      expect(PEEL_FRAGMENT).toContain("smoothstep(.72,.98,v_radial)");
+      expect(PEEL_FRAGMENT).toContain("smoothstep(.80,1.,v_radial)");
       expect(PEEL_FRAGMENT).not.toContain("dFdx(v_position)");
       const normalized = fragments.map((source) =>
         source.replace(

@@ -106,7 +106,7 @@ vec3 transportFieldDirection(vec3 objectDirection) {
 }
 
 float broadDensityAt(vec3 transportedDirection) {
-  return clamp(0.5 + 0.5 * simplex3(1.8 * transportedDirection + u_field_offset_a), 0.0, 1.0);
+  return clamp(0.5 + 0.5 * simplex3(1.45 * transportedDirection + u_field_offset_a), 0.0, 1.0);
 }
 
 float sampleBroadDensity(vec3 objectDirection) {
@@ -128,7 +128,7 @@ LivingField sampleLivingField(vec3 objectDirection) {
   // A slow contrast clock moves warm-region boundaries locally; it does not tint
   // every pixel together or alter the material transport coordinates.
   field.palette = clamp(0.5 + (mix(field.medium, field.broad, u_palette_balance) - 0.5)
-    * u_palette_contrast, 0.0, 1.0);
+    * (1.55 * u_palette_contrast), 0.0, 1.0);
   field.activity = smoothstep(0.20, 0.50, abs(field.broad - field.medium));
   return field;
 }

@@ -1,7 +1,12 @@
-import { mkdirSync, writeFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 test("fixed-camera material, membrane and synthetic speech evidence", async ({ page }, info) => {
+  // Keep Node-only evidence IO outside the frontend's DOM type environment.
+  const fileSystemModule = "node:fs";
+  const { mkdirSync, writeFileSync } = (await import(fileSystemModule)) as {
+    mkdirSync(path: string, options: { recursive: boolean }): void;
+    writeFileSync(path: string, data: Uint8Array | string): void;
+  };
   await page.goto("/tests/fixtures/visual-identity.html");
   const result = await page.evaluate(async () => {
     const [
@@ -61,7 +66,7 @@ test("fixed-camera material, membrane and synthetic speech evidence", async ({ p
     const fixed = frameAt(0);
     const shots: { name: string; image: string }[] = [];
     const samples: { name: string; pixels: number[]; frame: Frame }[] = [];
-    const costs = [];
+    const costs: Record<string, string | number | boolean | null>[] = [];
     const draw = async (
       name: string,
       frame: Frame,
@@ -80,6 +85,19 @@ test("fixed-camera material, membrane and synthetic speech evidence", async ({ p
         preserveDrawingBuffer: true,
       });
       if (!gl) throw new Error("Offscreen WebGL2 unavailable");
+      if (name === "normal" || name === "lighting") {
+        const shaderSource = gl.shaderSource.bind(gl);
+        gl.shaderSource = (shader, source) =>
+          shaderSource(
+            shader,
+            source.replace(
+              "color=vec4(pow(linear,vec3(1./2.2)),1.);",
+              name === "normal"
+                ? "color=vec4(normalize(v_normal)*.5+.5,1.)+color*.00001;"
+                : "color=vec4(vec3(light.diffuse*.7+light.glint*.3),1.)+color*.00001;",
+            ),
+          );
+      }
       const evaluator = new MotionEvaluator(0x5a17);
       // Freeze camera and motion for comparisons, retaining the actual evaluated field/audio state.
       evaluator.evaluate = () => frame;
@@ -155,6 +173,8 @@ test("fixed-camera material, membrane and synthetic speech evidence", async ({ p
     };
     for (const quality of ["low", "medium", "high"] as const) await draw(quality, fixed, quality);
     await draw("body", fixed, "high", false);
+    await draw("normal", fixed, "high", false);
+    await draw("lighting", fixed, "high", false);
     await draw("quarter", fixed, "high", true, 0.75);
     await draw("quarter-body", fixed, "high", false, 0.75);
     for (const time of [8_000, 24_000, 24_040, 60_000]) {
@@ -173,6 +193,7 @@ test("fixed-camera material, membrane and synthetic speech evidence", async ({ p
       ["output", 0],
       ["output", 0.12],
       ["output", 0.45],
+      ["input", 0],
       ["input", 0.12],
     ] as const) {
       await draw(`${mode}-${envelope}`, frameAt(600, mode, envelope));
@@ -223,7 +244,7 @@ test("fixed-camera material, membrane and synthetic speech evidence", async ({ p
   for (const shot of result.shots)
     writeFileSync(
       info.outputPath(`${shot.name}.png`),
-      Buffer.from(shot.image.split(",")[1], "base64"),
+      Uint8Array.from(atob(shot.image.split(",")[1]), (character) => character.charCodeAt(0)),
     );
   writeFileSync(
     info.outputPath("measurements.json"),
@@ -236,6 +257,13 @@ test("fixed-camera material, membrane and synthetic speech evidence", async ({ p
   expect(result.metrics.speech.meanChannelDifference).toBeGreaterThan(2);
   expect(result.metrics.radius["output-0.45"]).toBeGreaterThan(
     result.metrics.radius["output-0.12"],
+  );
+  const inputResponse = Math.abs(
+    result.metrics.radius["input-0.12"] - result.metrics.radius["input-0"],
+  );
+  expect(inputResponse).toBeGreaterThan(0.001);
+  expect(inputResponse).toBeLessThan(
+    result.metrics.radius["output-0.12"] - result.metrics.radius["output-0"],
   );
   // Independent contexts can differ by one quantisation unit at a rare pixel.
   expect(result.metrics.audioZero.meanChannelDifference).toBeLessThan(0.01);

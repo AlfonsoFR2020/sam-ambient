@@ -6,11 +6,11 @@ export const PIGMENTS = Object.freeze({
   red: [0.44, 0.026, 0.045] as Color,
   copper: [0.68, 0.13, 0.038] as Color,
   orange: [1.0, 0.33, 0.065] as Color,
-  gold: [1.0, 0.72, 0.24] as Color,
-  pink: [0.82, 0.15, 0.38] as Color,
-  violet: [0.34, 0.085, 0.64] as Color,
-  blue: [0.065, 0.25, 0.76] as Color,
-  teal: [0.035, 0.58, 0.46] as Color,
+  gold: [1.0, 0.58, 0.13] as Color,
+  pink: [0.88, 0.055, 0.28] as Color,
+  violet: [0.3, 0.018, 0.58] as Color,
+  blue: [0.022, 0.12, 0.62] as Color,
+  teal: [0.018, 0.43, 0.34] as Color,
 });
 
 /** Optional luminance/roughness only; these never enter the palette coordinate. */
@@ -38,12 +38,16 @@ export function sampleLivingPigment(
   contrast = 1,
 ): { readonly albedo: Color; readonly cool: number } {
   const { broad, medium, palette } = field;
-  const warm = mix(
+  const baseWarm = mix(
     mix(PIGMENTS.red, PIGMENTS.copper, smooth(0.19, 0.46, palette)),
     mix(PIGMENTS.orange, PIGMENTS.gold, smooth(0.57, 0.78, palette)),
     smooth(0.42, 0.64, palette),
   );
-  const coolCoordinate = 0.55 * medium + 0.45 * (1 - broad);
+  // Rose lives within warm currents, rather than being unreachable behind a
+  // high-medium cool gate. Broad density places territories; medium varies hue.
+  const rose = 0.68 * (1 - smooth(0.25, 0.58, medium)) * (1 - smooth(0.58, 0.82, broad));
+  const warm = mix(baseWarm, PIGMENTS.pink, rose);
+  const coolCoordinate = 0.15 + 0.7 * medium + 0.15 * (1 - broad);
   const cool = mix(
     mix(PIGMENTS.pink, PIGMENTS.violet, smooth(0.37, 0.54, coolCoordinate)),
     mix(PIGMENTS.blue, PIGMENTS.teal, smooth(0.65, 0.82, coolCoordinate)),
@@ -52,8 +56,8 @@ export function sampleLivingPigment(
   const coolBoundary = 0.12 * (contrast - 1) + 0.1 * (balance - 0.68);
   const coolWeight =
     0.94 *
-    (1 - smooth(0.29 + coolBoundary, 0.57 + coolBoundary, broad)) *
-    smooth(0.39 - coolBoundary, 0.63 - coolBoundary, medium);
+    (1 - smooth(0.25 + coolBoundary, 0.54 + coolBoundary, broad)) *
+    (0.35 + 0.65 * smooth(0.22 - coolBoundary, 0.66 - coolBoundary, medium));
   const fold = 0.83 + 0.29 * broad + 0.13 * (smooth(0.34, 0.68, medium) - 0.5);
   const pigment = mix(warm, cool, coolWeight);
   return {
@@ -75,20 +79,23 @@ uniform float u_light_phase;
 struct LivingPigment { vec3 albedo; float cool; };
 LivingPigment livingPigment(LivingField field) {
   float p = field.palette;
-  vec3 warm = mix(
+  vec3 baseWarm = mix(
     mix(${glslColor(PIGMENTS.red)}, ${glslColor(PIGMENTS.copper)}, smoothstep(0.19, 0.46, p)),
     mix(${glslColor(PIGMENTS.orange)}, ${glslColor(PIGMENTS.gold)}, smoothstep(0.57, 0.78, p)),
     smoothstep(0.42, 0.64, p)
   );
-  float coolCoordinate = 0.55 * field.medium + 0.45 * (1.0 - field.broad);
+  float rose = .68 * (1.0 - smoothstep(.25, .58, field.medium))
+    * (1.0 - smoothstep(.58, .82, field.broad));
+  vec3 warm = mix(baseWarm, ${glslColor(PIGMENTS.pink)}, rose);
+  float coolCoordinate = .15 + .70 * field.medium + .15 * (1.0 - field.broad);
   vec3 cool = mix(
     mix(${glslColor(PIGMENTS.pink)}, ${glslColor(PIGMENTS.violet)}, smoothstep(0.37, 0.54, coolCoordinate)),
     mix(${glslColor(PIGMENTS.blue)}, ${glslColor(PIGMENTS.teal)}, smoothstep(0.65, 0.82, coolCoordinate)),
     smoothstep(0.53, 0.72, coolCoordinate)
   );
   float coolBoundary = .12 * (u_palette_contrast - 1.0) + .10 * (u_palette_balance - .68);
-  float coolWeight = 0.94 * (1.0 - smoothstep(0.29 + coolBoundary, 0.57 + coolBoundary, field.broad))
-    * smoothstep(0.39 - coolBoundary, 0.63 - coolBoundary, field.medium);
+  float coolWeight = 0.94 * (1.0 - smoothstep(.25 + coolBoundary, .54 + coolBoundary, field.broad))
+    * (.35 + .65 * smoothstep(.22 - coolBoundary, .66 - coolBoundary, field.medium));
   float fold = 0.83 + 0.29 * field.broad + 0.13 * (smoothstep(0.34, 0.68, field.medium) - 0.5);
   return LivingPigment(clamp(mix(warm, cool, coolWeight) * fold, 0.0, 1.0), coolWeight);
 }
@@ -116,12 +123,13 @@ LivingLight livingLight(vec3 normal, vec3 position) {
     // The primary light crosses the limb; secondary lights are weak fill, so
     // medium/high tiers do not flatten the same form with multiple strong keys.
     vec3 orbit = vec3(cos(phase) * 1.85, sin(phase + .35) * 1.30,
-      .62 + sin(phase - .7) * .48);
+      .65 + cos(phase) * 1.55);
     orbit.yz = mat2(cos(incline), -sin(incline), sin(incline), cos(incline)) * orbit.yz;
     vec3 light = normalize(orbit - position);
     float weight = i == 0 ? .92 : (i == 1 ? .20 : .12);
     diffuse += max(dot(n, light), 0.0) * weight;
-    glint += pow(max(dot(n, normalize(light + view)), 0.0), 38.0) * weight * .58;
+    float specular = max(dot(n, normalize(light + view)), 0.0);
+    glint += (pow(specular, 38.0) * .48 + pow(specular, 16.0) * .16) * weight;
 #if SAM_FINE_OCTAVES >= 2
     glint += pow(max(dot(n, normalize(light + view)), 0.0), 72.0) * weight * .11;
 #endif
@@ -140,7 +148,7 @@ float livingDisplacement(vec3 objectDirection, float breathPhase, float ripplePh
   float breathing = 0.006 * sin(breathPhase) * (1.0 + 0.2 * (broad - 0.5));
   float oldResponse = deformation * 0.55 * sin(3.0 * dot(normalize(AXIS_B), n) + ripplePhase)
     + ripple * 0.35 * sin(7.0 * dot(normalize(AXIS_C), n) - ripplePhase);
-  return clamp(0.012 * (broad - 0.5) + breathing + oldResponse, -0.04, 0.04);
+  return clamp(0.008 * (broad - 0.5) + breathing + oldResponse, -0.04, 0.04);
 }
 
 vec3 livingBodyPoint(vec3 direction, float radius, float breathPhase, float ripplePhase, float deformation, float ripple) {
@@ -155,8 +163,10 @@ vec3 livingBodyNormal(vec3 direction, vec3 point, float radius, float breathPhas
   vec3 helper = abs(n.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
   vec3 tangentA = normalize(cross(helper, n));
   vec3 tangentB = normalize(cross(n, tangentA));
-  vec3 pointA = livingBodyPoint(normalize(n + 0.012 * tangentA), radius, breathPhase, ripplePhase, deformation, ripple);
-  vec3 pointB = livingBodyPoint(normalize(n + 0.012 * tangentB), radius, breathPhase, ripplePhase, deformation, ripple);
-  return normalize(cross(pointA - point, pointB - point));
+  vec3 pointA = livingBodyPoint(normalize(n + 0.006 * tangentA), radius, breathPhase, ripplePhase, deformation, ripple)
+    - livingBodyPoint(normalize(n - 0.006 * tangentA), radius, breathPhase, ripplePhase, deformation, ripple);
+  vec3 pointB = livingBodyPoint(normalize(n + 0.006 * tangentB), radius, breathPhase, ripplePhase, deformation, ripple)
+    - livingBodyPoint(normalize(n - 0.006 * tangentB), radius, breathPhase, ripplePhase, deformation, ripple);
+  return normalize(cross(pointA, pointB));
 }
 `;

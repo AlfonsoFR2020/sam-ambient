@@ -5,6 +5,7 @@ import {
   createSphereGeometry,
   type IndexedGeometry,
   PEEL_EDGE_LIFT,
+  PEEL_VERTEX_STRIDE,
 } from "./geometry";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
 import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
@@ -67,12 +68,12 @@ void main(){
   LivingPigment pigment=livingPigment(field);
   LivingLight light=livingLight(v_normal,v_position);
   float fine=livingSurfaceDetail(field);
-  float illumination=0.32+light.diffuse*0.76+u_intensity*0.14;
+  float illumination=0.20+light.diffuse*0.90+u_intensity*0.10;
   vec3 innerWarmth=vec3(0.085,0.026,0.012)*(1.0-field.broad)*0.35;
   vec3 glintColor=mix(vec3(1.0,0.68,0.38),vec3(0.55,0.77,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.88,0.31,0.13),vec3(0.29,0.48,0.83),pigment.cool);
   vec3 linear=pigment.albedo*illumination*(1.0+fine)+innerWarmth
-    +glintColor*(light.glint*(0.60+max(fine,0.0)*0.24)+u_highlight*0.20)
+    +glintColor*(light.glint*(0.78+max(fine,0.0)*0.24)+u_highlight*0.20)
     +rimColor*light.rim*(0.18+u_rim*0.55);
   linear*=mix(0.22,1.15,u_intensity);
   linear=linear/(1.+linear);
@@ -84,6 +85,7 @@ precision highp float;
 layout(location=0) in vec4 a_base;
 layout(location=1) in vec4 a_surface;
 layout(location=2) in vec2 a_motion;
+layout(location=3) in vec3 a_radial_gradient;
 uniform float u_radius;
 uniform vec2 u_scale;
 uniform float u_spin;
@@ -118,17 +120,18 @@ void main(){
   vec3 direction=normalize(mix(center,normalize(a_base.xyz),clamp(u_peel_width,.85,1.15)));
   v_object_direction=direction;
   mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase))*rotateZ(.08*sin(u_breath_phase+1.4))*rotateY(u_spin)*u_object_orientation;
-  float attached=pow(1.-radial,1.35);
-  float lift=${PEEL_EDGE_LIFT.toFixed(3)}+attached*(a_surface.w+u_peel_lift*(.4+.6*u_opening));
-  lift*=1.+attached*.07*u_coherence*sin(u_peel_travel+a_motion.y)+u_rephase*.4;
+  float attached=(1.-radial*radial)*(1.-radial*radial);
+  float height=(a_surface.w+u_peel_lift*(.4+.6*u_opening))
+    *(1.+.07*u_coherence*sin(u_peel_travel+a_motion.y)+u_rephase*.4);
+  float lift=${PEEL_EDGE_LIFT.toFixed(3)}+attached*height;
   vec3 position=livingBodyPoint(direction,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
+  vec3 bodyNormal=livingBodyNormal(direction,position,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
   position+=direction*lift*vec3(1.0,1.06,1.0);
   vec3 world=rotation*position;
-  vec3 lateral=direction-center*dot(center,direction);
-  float slope=1.35*pow(max(0.,1.-radial),.35)
-    *(a_surface.w+u_peel_lift*(.4+.6*u_opening))/.42;
-  vec3 curvedNormal=direction+lateral/max(length(lateral),.0001)*slope;
-  v_normal=normalize(rotation*vec3(curvedNormal.x,curvedNormal.y/1.06,curvedNormal.z));
+  float slope=4.*radial*(1.-radial*radial)*height/(u_radius+lift);
+  vec3 curvedNormal=bodyNormal+a_radial_gradient*vec3(1.,1./1.06,1.)*slope
+    /clamp(u_peel_width,.85,1.15);
+  v_normal=normalize(rotation*curvedNormal);
   v_position=world;
   v_alpha=a_motion.x;
   v_radial=radial;
@@ -152,7 +155,7 @@ out vec4 color;
 ${LIVING_FIELD_GLSL}
 ${LIVING_MATERIAL_GLSL}
 void main(){
-  float alpha=clamp(v_alpha*(1.-smoothstep(.72,.98,v_radial))*(.88+.12*u_emission),0.,1.);
+  float alpha=clamp(v_alpha*(1.-smoothstep(.80,1.,v_radial))*(.88+.12*u_emission),0.,1.);
   if(alpha<.04) discard;
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
@@ -160,9 +163,9 @@ void main(){
   float fine=livingSurfaceDetail(field);
   vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
-  vec3 linear=pigment.albedo*(.29+light.diffuse*.82+u_intensity*.16)*(1.0+fine)
-    +glintColor*(light.glint*(.50+.36*v_lift+max(fine,0.0)*.20)+v_highlight*.15)
-    +rimColor*light.rim*(.16+.16*v_lift);
+  vec3 linear=pigment.albedo*(.20+light.diffuse*.90+u_intensity*.10+.055*v_lift)*(1.0+fine)
+    +glintColor*(light.glint*(.90+.40*v_lift+max(fine,0.0)*.20)+v_highlight*.15)
+    +rimColor*light.rim*(.18+.12*v_lift);
   linear*=mix(0.22,1.15,u_intensity);
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
@@ -516,10 +519,11 @@ export class WebGLBackend implements RendererBackend {
         { location: 1, size: 3, offset: 12 },
       ],
     );
-    this.peels = indexedResource(gl, createPeelGeometry(budget, seed), 40, [
+    this.peels = indexedResource(gl, createPeelGeometry(budget, seed), PEEL_VERTEX_STRIDE * 4, [
       { location: 0, size: 4, offset: 0 },
       { location: 1, size: 4, offset: 16 },
       { location: 2, size: 2, offset: 32 },
+      { location: 3, size: 3, offset: 40 },
     ]);
     this.halo = indexedResource(
       gl,

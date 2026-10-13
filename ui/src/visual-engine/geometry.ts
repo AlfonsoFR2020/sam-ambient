@@ -24,9 +24,15 @@ export interface PeelDescriptor {
   readonly asymmetry: number;
 }
 
-export const PEEL_WIDTH_RANGE = Object.freeze({ minimum: 0.35, maximum: 0.48 });
-export const PEEL_LIFT_RANGE = Object.freeze({ minimum: 0.045, maximum: 0.065 });
+export const PEEL_WIDTH_RANGE = Object.freeze({ minimum: 0.4, maximum: 0.54 });
+export const PEEL_LIFT_RANGE = Object.freeze({ minimum: 0.028, maximum: 0.044 });
 export const PEEL_EDGE_LIFT = 0.006;
+export const PEEL_VERTEX_STRIDE = 13;
+
+/** Smooth dome: zero slope at the center AND at the attached boundary. */
+export const peelProfile = (radius: number): number => (1 - radius * radius) ** 2;
+export const peelProfileDerivative = (radius: number): number =>
+  -4 * radius * (1 - radius * radius);
 
 const seeded = (seed: number): (() => number) => {
   let value = seed >>> 0;
@@ -89,8 +95,14 @@ export function createPeelDescriptors(count: number, seed = 0x5a17): readonly Pe
 /** Irregular spherical membrane patches, each with an attached outer edge. */
 export function createPeelGeometry(budget: RenderBudget, seed?: number): IndexedGeometry {
   const descriptors = createPeelDescriptors(budget.peels, seed);
-  const stride = 10;
-  const rings = [0.55, 0.82, 1] as const;
+  const stride = PEEL_VERTEX_STRIDE;
+  // Spend high-tier vertices on radial curvature, not more edge tessellation.
+  const rings =
+    budget.peelRings === 5
+      ? [0.22, 0.44, 0.66, 0.84, 1]
+      : budget.peelRings === 4
+        ? [0.25, 0.5, 0.75, 1]
+        : [0.32, 0.65, 1];
   const perPatch = 1 + rings.length * budget.peelSamples;
   const vertices = new Float32Array(budget.peels * perPatch * stride);
   const indices = new Uint16Array(budget.peels * budget.peelSamples * (rings.length * 6 - 3));
@@ -108,7 +120,7 @@ export function createPeelGeometry(budget: RenderBudget, seed?: number): Indexed
     const length = Math.hypot(...tangent);
     const a = tangent.map((component) => component / length);
     const b = [cy * a[2] - cz * a[1], cz * a[0] - cx * a[2], cx * a[1] - cy * a[0]];
-    const write = (direction: readonly number[], radius: number) => {
+    const write = (direction: readonly number[], radius: number, gradient: readonly number[]) => {
       vertices.set(
         [
           direction[0],
@@ -121,12 +133,15 @@ export function createPeelGeometry(budget: RenderBudget, seed?: number): Indexed
           peel.lift,
           peel.opacity,
           peel.phase,
+          gradient[0],
+          gradient[1],
+          gradient[2],
         ],
         vertexOffset,
       );
       vertexOffset += stride;
     };
-    write(peel.center, 0);
+    write(peel.center, 0, [0, 0, 0]);
     for (const radius of rings) {
       for (let sample = 0; sample < budget.peelSamples; sample++) {
         const angle = (sample / budget.peelSamples) * Math.PI * 2;
@@ -138,6 +153,19 @@ export function createPeelGeometry(budget: RenderBudget, seed?: number): Indexed
         const arc = radius * peel.angularRadius * boundary;
         const cosine = Math.cos(arc);
         const sine = Math.sin(arc);
+        const boundaryDerivative =
+          -peel.asymmetry * Math.sin(angle - peel.phase) -
+          0.33 * Math.sin(3 * angle + peel.phase) +
+          0.275 * Math.cos(5 * angle - peel.phase);
+        const polar = a.map((v, i) => v * Math.cos(angle) + b[i] * Math.sin(angle));
+        const azimuth = a.map((v, i) => -v * Math.sin(angle) + b[i] * Math.cos(angle));
+        // Spherical gradient of r = theta / (angularRadius * boundary(angle)).
+        // Includes irregular-edge slope; a hard-coded width cannot describe it.
+        const gradient = polar.map(
+          (v, i) =>
+            (-peel.center[i] * sine + v * cosine) / (peel.angularRadius * boundary) -
+            (azimuth[i] * radius * boundaryDerivative) / (boundary * sine),
+        );
         write(
           [
             cx * cosine + (a[0] * Math.cos(angle) + b[0] * Math.sin(angle)) * sine,
@@ -145,6 +173,7 @@ export function createPeelGeometry(budget: RenderBudget, seed?: number): Indexed
             cz * cosine + (a[2] * Math.cos(angle) + b[2] * Math.sin(angle)) * sine,
           ],
           radius,
+          gradient,
         );
       }
     }

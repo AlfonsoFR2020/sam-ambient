@@ -11,7 +11,7 @@ export default defineConfig({
     browserName: "chromium",
     channel: "chrome",
     headless: true,
-    launchOptions: { args: ["--mute-audio"] },
+    launchOptions: { chromiumSandbox: true, args: ["--mute-audio"] },
     viewport: { width: 720, height: 720 },
     deviceScaleFactor: 1,
   },

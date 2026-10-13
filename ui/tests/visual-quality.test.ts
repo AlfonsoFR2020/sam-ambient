@@ -6,8 +6,11 @@ import {
   createSphereGeometry,
   PEEL_EDGE_LIFT,
   PEEL_LIFT_RANGE,
+  PEEL_VERTEX_STRIDE,
   PEEL_WIDTH_RANGE,
   particleParameters,
+  peelProfile,
+  peelProfileDerivative,
 } from "../src/visual-engine/geometry";
 import {
   PARTICLE_GOLD,
@@ -81,8 +84,12 @@ describe("visual quality and geometry", () => {
       const descriptors = createPeelDescriptors(budget.peels);
       const geometry = createPeelGeometry(budget);
       expect(descriptors).toHaveLength(budget.peels);
-      expect(geometry.vertices.length).toBe(budget.peels * (1 + budget.peelSamples * 3) * 10);
-      expect(geometry.indices.length).toBe(budget.peels * budget.peelSamples * 15);
+      expect(geometry.vertices.length).toBe(
+        budget.peels * (1 + budget.peelSamples * budget.peelRings) * PEEL_VERTEX_STRIDE,
+      );
+      expect(geometry.indices.length).toBe(
+        budget.peels * budget.peelSamples * (budget.peelRings * 6 - 3),
+      );
       for (const peel of descriptors) {
         expect(Math.hypot(...peel.center)).toBeCloseTo(1);
         expect(peel.angularRadius).toBeGreaterThanOrEqual(PEEL_WIDTH_RANGE.minimum);
@@ -96,14 +103,15 @@ describe("visual quality and geometry", () => {
           Math.min(...descriptors.map((peel) => peel.lift)),
       ).toBeGreaterThan(0.004);
       expect(createPeelGeometry(budget).vertices).toEqual(geometry.vertices);
-      const patchVertices = 1 + budget.peelSamples * 3;
+      const patchVertices = 1 + budget.peelSamples * budget.peelRings;
       for (let patch = 0; patch < budget.peels; patch++) {
-        const start = patch * patchVertices * 10;
+        const start = patch * patchVertices * PEEL_VERTEX_STRIDE;
         expect(geometry.vertices[start + 3]).toBe(0);
-        expect(geometry.vertices[start + (patchVertices - 1) * 10 + 3]).toBe(1);
+        expect(geometry.vertices[start + (patchVertices - 1) * PEEL_VERTEX_STRIDE + 3]).toBe(1);
         const radii = new Set<number>();
         for (let sample = 0; sample < budget.peelSamples; sample++) {
-          const at = start + (1 + budget.peelSamples * 2 + sample) * 10;
+          const at =
+            start + (1 + budget.peelSamples * (budget.peelRings - 1) + sample) * PEEL_VERTEX_STRIDE;
           const center = descriptors[patch].center;
           const dot =
             center[0] * geometry.vertices[at] +
@@ -112,6 +120,58 @@ describe("visual quality and geometry", () => {
           radii.add(Math.round(Math.acos(dot) * 1000));
         }
         expect(radii.size).toBeGreaterThan(3);
+      }
+    }
+  });
+
+  it("removes the pointed center and joins the body with zero lift slope", () => {
+    expect(peelProfile(0)).toBe(1);
+    expect(peelProfile(1)).toBe(0);
+    expect(peelProfileDerivative(0)).toBeCloseTo(0, 12);
+    expect(peelProfileDerivative(1)).toBeCloseTo(0, 12);
+    for (let r = 0.01; r < 1; r += 0.01) {
+      expect(peelProfileDerivative(r)).toBeLessThan(0);
+      const slope = (peelProfile(r + 1e-5) - peelProfile(r - 1e-5)) / 2e-5;
+      expect(slope).toBeCloseTo(peelProfileDerivative(r), 6);
+    }
+  });
+
+  it("stores tangent gradients that describe the actual irregular membrane boundary", () => {
+    const budget = RENDER_BUDGETS.high;
+    const geometry = createPeelGeometry(budget);
+    const descriptors = createPeelDescriptors(budget.peels);
+    const dot = (a: number[], b: number[]) => a.reduce((sum, v, i) => sum + v * b[i], 0);
+    const cross = (a: number[], b: number[]) => [
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0],
+    ];
+    const normalize = (v: number[]) => v.map((c) => c / Math.hypot(...v));
+    for (let patch = 0; patch < budget.peels; patch++) {
+      const peel = descriptors[patch],
+        center = [...peel.center];
+      const a = normalize(cross(Math.abs(center[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0], center));
+      const b = cross(center, a);
+      const radialAt = (n: number[]) => {
+        const angle = Math.atan2(dot(n, b), dot(n, a));
+        const boundary =
+          1 +
+          peel.asymmetry * Math.cos(angle - peel.phase) +
+          0.11 * Math.cos(3 * angle + peel.phase) +
+          0.055 * Math.sin(5 * angle - peel.phase);
+        return Math.acos(Math.min(1, dot(n, center))) / (peel.angularRadius * boundary);
+      };
+      for (let sample = 1; sample <= budget.peelSamples * budget.peelRings; sample += 7) {
+        const at =
+          (patch * (1 + budget.peelSamples * budget.peelRings) + sample) * PEEL_VERTEX_STRIDE;
+        const n = Array.from(geometry.vertices.slice(at, at + 3));
+        const gradient = Array.from(geometry.vertices.slice(at + 10, at + 13));
+        expect(Math.abs(dot(n, gradient))).toBeLessThan(1e-5);
+        const tangent = normalize(cross(n, [0.3, 0.7, -0.4]));
+        const positive = normalize(n.map((v, i) => v + tangent[i] * 1e-4));
+        const negative = normalize(n.map((v, i) => v - tangent[i] * 1e-4));
+        const derivative = (radialAt(positive) - radialAt(negative)) / 2e-4;
+        expect(derivative).toBeCloseTo(dot(gradient, tangent), 3);
       }
     }
   });

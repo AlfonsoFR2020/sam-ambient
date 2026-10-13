@@ -741,3 +741,16 @@ A separate diagnostic wrapper delegates to ordinary launch and keeps its console
 Use standard logging with positive operational metadata and one rotating supervisor
 writer; child readiness/stop and diagnostic frames share the existing trusted pipe.
 Retaining a model also retains its serving endpoint. Overrides never persist.
+
+## 2026-10-13 — organic membrane and composed pigment
+
+Visual Identity I retains the renderer/clock/fallback architecture. Fix the cusp
+and radial undersampling rather than increasing the sphere mesh. Use a smooth
+zero-slope dome, tiered radial rings, stored irregular-boundary gradients and the
+body's displaced normals. Reduce lift while widening patches; retain one depth-writing
+membrane draw and explicitly defer exact translucent overlap.
+Enlarge broad pigment territories and decouple hue allocation from cool-region
+selection; use rose/violet/blue alongside warm dominance, not a global hue cycle.
+Adjust moving key depth and tonal separation without more lights/noise/draws.
+These are bounded technical fixes and artistic hypotheses, validated offscreen;
+the absent concept board and future human judgment remain acceptance limits.

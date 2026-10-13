@@ -44,8 +44,9 @@ rest-radius units unless stated otherwise.
 An indexed latitude/longitude UV mesh has a duplicated longitude seam and no
 zero-area pole triangles. Medium uses 72 longitude segments and 36 latitude
 segments: at most 2,701 vertices and 5,040 triangles. Keep static unit normals/UVs
-in immutable buffers. Base spheroid axes are `(1, 1.06, 0.96)`; state opening can
-change the Y axis by at most 0.04. The final radial bound in section 5 is mandatory.
+in immutable buffers. Current field-driven spheroid axes are `(1, 1.06, 1)`;
+body relief and audio remain bounded. High uses 96 × 48 segments (4,753 vertices);
+low uses 32 × 16. The final radial bound in section 5 is mandatory.
 
 ### Fragmented loxodromic peels
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Visual Identity I: smooth lower-lift organic membrane, body-consistent normals,
+  broader living pigment territories and richer rose/violet/gold color relationships;
+  preserve speech-envelope response and bounded renderer tiers. Human acceptance pending.
+
 - Correlated read-only conversation timing, content-free lifecycle records and
   bounded shutdown nonterminal/latency summaries; paced mixed-turn regression.
 
