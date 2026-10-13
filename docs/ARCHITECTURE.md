@@ -550,3 +550,10 @@ Local scripts remain authoritative for development. GitHub Actions repeats the
 deterministic Python and frontend quality gates on Windows/Linux, then builds the
 wheel/source distribution and installs the wheel for a CLI/metadata smoke check.
 Live provider/audio checks and publishing are deliberately human-controlled.
+
+## Diagnostic launch boundary
+
+[Diagnostic mode](DIAGNOSTIC_LAUNCH.md) reuses normal supervisor/owner launch.
+The supervisor alone rotates operational JSONL; supervised children send filtered
+records on existing stdout. No transcript/audio/proof recording or new authority.
+Session retention flags affect only final owned-resource cleanup, never settings.

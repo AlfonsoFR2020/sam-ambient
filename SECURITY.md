@@ -59,3 +59,8 @@ child receives a bounded environment and Sam terminates only the process it owns
 This is policy mediation and lifecycle containment, not an OS sandbox. A future
 desktop provider may exercise its process's host permissions after approval. It
 must not expose an alternate model-controlled execution channel.
+
+Diagnostic mode uses positive operational fields and pseudonymous correlation IDs,
+not transcripts, credentials, owner proofs, provider bodies or audio. Logs rotate
+locally under `.sam/diagnostics`; review metadata before sharing. See
+[diagnostic contract](docs/DIAGNOSTIC_LAUNCH.md).

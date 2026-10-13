@@ -17,6 +17,7 @@ from pathlib import Path
 from sam_ambient import __version__
 from sam_ambient.configuration import ConfigurationError, configure_namespace
 from sam_ambient.core.owner import OwnerSession
+from sam_ambient.diagnostic_log import diagnostic, finish_session, open_session_log
 from sam_ambient.logging_config import add_logging_arguments, configure_logging
 from sam_ambient.supervisor import (
     ComponentSpec,
@@ -71,6 +72,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--allow-cloud", action="store_true")
     parser.add_argument("--no-voice", action="store_true")
     parser.add_argument("--no-tts", action="store_true")
+    parser.add_argument(
+        "--keep-model", action="store_true", help="Keep Sam-loaded models for this session only"
+    )
+    parser.add_argument(
+        "--keep-provider",
+        action="store_true",
+        help="Keep Sam-started serving endpoints for this session only",
+    )
     parser.add_argument("--stt-url", default="http://127.0.0.1:8080")
     parser.add_argument(
         "--stt-language", default="auto", help="Hard recognition language code, or auto"
@@ -131,6 +140,11 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
         command.append("--no-voice")
     if args.no_tts:
         command.append("--no-tts")
+    for flag in ("diagnostic", "keep_model", "keep_provider"):
+        if getattr(args, flag, False):
+            command.append("--" + flag.replace("_", "-"))
+    if getattr(args, "diagnostic", False):
+        command.append("--diagnostic-child")
     if args.tts_voice != "default":
         command.extend(("--tts-voice", args.tts_voice))
     if args.preferred_languages != ("en", "es"):
@@ -151,6 +165,8 @@ def _trusted_ui_command(args: argparse.Namespace) -> tuple[str, ...]:
         "--log-level",
         "DEBUG" if args.verbose else args.log_level,
     ]
+    if getattr(args, "diagnostic", False):
+        command.extend(("--diagnostic", "--diagnostic-child"))
     return tuple(command)
 
 
@@ -171,9 +187,20 @@ async def run(args: argparse.Namespace) -> int:
         url = f"http://127.0.0.1:{args.ui_port}"
         log.info("Sam is already running. Existing UI: %s", url)
         return 0
+    handler = None
+    exit_code = 2
     try:
-        return await _run_locked(args, root, state_db)
+        if getattr(args, "diagnostic", False):
+            handler = open_session_log(root)
+        exit_code = await _run_locked(args, root, state_db)
+        return exit_code
+    except BaseException as error:
+        exit_code = 130 if isinstance(error, (KeyboardInterrupt, asyncio.CancelledError)) else 2
+        diagnostic("supervisor.failed", state="failed", error_class=type(error).__name__)
+        raise
     finally:
+        if handler is not None:
+            finish_session(handler, exit_code)
         instance.release()
 
 
@@ -206,6 +233,7 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
             )
         )
     log.info("Sam %s starting", __version__)
+    diagnostic("supervisor.start", count=int(args.keep_model) + int(args.keep_provider))
     owner_session = OwnerSession()
     browser = BrowserHandoff(
         args.ui_port, mode=args.ui_mode, root=root, owner_session=owner_session
@@ -296,7 +324,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         return asyncio.run(run(args))
     except (OSError, ValueError) as error:
-        print(f"Supervisor error: {error}", file=sys.stderr)
+        detail = type(error).__name__ if args.diagnostic else str(error)
+        print(f"Supervisor error: {detail}", file=sys.stderr)
         return 2
     except KeyboardInterrupt:
         return 130

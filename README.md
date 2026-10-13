@@ -297,3 +297,10 @@ Third-party software retains its own terms, recorded in
 *Sam is an independent project inspired by broader ideas of ambient and
 AI-native computing, including concepts portrayed in* Her. *It is not affiliated
 with or endorsed by the film or its rights holders.*
+
+## Diagnostic launch
+
+Use `Diagnose Sam.cmd` in a prepared Windows checkout for an open diagnostic
+console and rotating content-free session log. Normal `Start Sam.cmd` is unchanged.
+Session-only `--keep-model` / `--keep-provider` never alter saved cleanup settings.
+See [options, privacy and retention](docs/DIAGNOSTIC_LAUNCH.md).

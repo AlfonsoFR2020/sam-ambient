@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Shared diagnostic launcher, bounded private operational logs and session-only
+  model/provider retention; ordinary launch and saved preferences unchanged.
+
 ## 0.2.4 — experimental source/Python alpha (2026-10-09)
 
 - Repair VAD-only cancellation during typed inference, empty final STT commitment

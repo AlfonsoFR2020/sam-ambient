@@ -733,3 +733,11 @@ Same-store SQLite transactions serialize through a reentrant lock after hosted
 concurrent writers and a delayed-commit fixture demonstrated bounded lock-wait
 failures. Connections remain per-operation, external lock timeout unchanged,
 private content deletion and authority guards preserved; no storage schema change.
+
+## 2026-10-13 — shared diagnostic launch and single log owner
+
+Keep one startup architecture and sandbox/private owner proof unchanged.
+A separate diagnostic wrapper delegates to ordinary launch and keeps its console.
+Use standard logging with positive operational metadata and one rotating supervisor
+writer; child readiness/stop and diagnostic frames share the existing trusted pipe.
+Retaining a model also retains its serving endpoint. Overrides never persist.

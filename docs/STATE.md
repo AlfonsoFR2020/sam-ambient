@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-10-09. This is current development truth, not a release acceptance claim.
+Updated: 2026-10-13. This is current development truth, not a release acceptance claim.
 History remains in [changelog](../CHANGELOG.md), [architecture](ARCHITECTURE.md), [decisions](DECISIONS.md) and specialist evidence.
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 
@@ -29,7 +29,7 @@ History remains in [changelog](../CHANGELOG.md), [architecture](ARCHITECTURE.md)
   preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
   and Sam-loaded unload passed. Reused serving remained; broader hosts are unverified.
   Actual en/es synthesis/meters reach fixed WebGL without physical playback.
-- v0.2.4 is the authorized experimental source/Python pre-release artifact class.
+- v0.2.4 source/Python pre-release is published at ae9cdb99; its tag stays unchanged.
 - Windows-first development; Linux compatibility/native CI has a documented deferred
   failure. Native packaging, signing/reputation and clean-host installation remain open.
 - The five-minute physical beta initially completed voice/model/TTS turns, then exposed
@@ -182,7 +182,8 @@ and the beta record; numerical visual change does not establish perceptual succe
 - Non-cooperative core tasks receive two-second retirement grace, external cleanup an
   18-second bound inside supervised 24-second stop. LM Studio unload uses structured
   lms unload MODEL; lms server stop stops serving, not the desktop application.
-- Prepared Windows checkout launches through Start Sam.cmd / existing supervisor,
+- Prepared checkout uses Start Sam.cmd; Diagnose Sam.cmd shares startup with rotating
+  metadata-only logs and session retention overrides ([contract](DIAGNOSTIC_LAUNCH.md)),
   without silently installing/upgrading dependencies. Public signed installation,
   updater publication and non-developer distribution remain later work.
 

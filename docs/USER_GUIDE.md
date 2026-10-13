@@ -297,3 +297,10 @@ launch with `--verbose`. Missing voice dependencies leave text input/output;
 missing a usable model prevents answers but not the UI and diagnostics.
 See [Troubleshooting](TROUBLESHOOTING.md). Do not post sensitive conversation,
 configuration or runtime database contents in public bug reports.
+
+## Diagnostic launch
+
+Use `Diagnose Sam.cmd` in a prepared Windows checkout for an open diagnostic
+console and rotating content-free session log. Normal `Start Sam.cmd` is unchanged.
+Session-only `--keep-model` / `--keep-provider` never alter saved cleanup settings.
+See [options, privacy and retention](DIAGNOSTIC_LAUNCH.md).

@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import Protocol
 
 from sam_ambient.core.owner import OwnerSession
+from sam_ambient.diagnostic_log import PREFIX, diagnostic, forward_diagnostic
 from sam_ambient.supervisor.models import (
     ComponentSpec,
     HealthReport,
@@ -130,6 +131,7 @@ class SubprocessManagedProcess:
                     if not line:
                         raise RuntimeError("component exited before readiness")
                     if not line.startswith(_READY_PREFIX):
+                        forward_diagnostic(line)
                         continue
                     if len(line) > _MAX_READY_LINE:
                         raise RuntimeError("component readiness record is too large")
@@ -140,6 +142,9 @@ class SubprocessManagedProcess:
                         str(payload.get("detail", ""))[:500],
                     )
                     self._drain_task = asyncio.create_task(self._drain_stdout())
+                    diagnostic(
+                        "component.ready", instance_id=self._instance_id, state=report.state.value
+                    )
                     return report
         except TimeoutError:
             raise TimeoutError("component startup timed out") from None
@@ -151,7 +156,9 @@ class SubprocessManagedProcess:
             return
         try:
             while line := await self._process.stdout.readline():
-                if self._request_shutdown is not None and line.startswith(b"SAM_SHUTDOWN "):
+                if line.startswith(PREFIX):
+                    forward_diagnostic(line)
+                elif self._request_shutdown is not None and line.startswith(b"SAM_SHUTDOWN "):
                     try:
                         payload = json.loads(line[len(b"SAM_SHUTDOWN ") :])
                     except (ValueError, UnicodeError):
@@ -197,6 +204,13 @@ class SubprocessManagedProcess:
             await self._process.wait()
             forced = True
         await self._finish_drain()
+        diagnostic(
+            "component.stopped",
+            instance_id=self._instance_id,
+            forced=forced,
+            exit_code=self._process.returncode,
+            intent=intent,
+        )
         return forced
 
     def _signal(self, requested: signal.Signals) -> None:

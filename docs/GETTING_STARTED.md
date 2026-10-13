@@ -283,3 +283,10 @@ runtime's installed chat models and the reported startup failure. If ports are
 occupied, check for an earlier Sam instance. Rescan after correcting or externally
 loading a model; restart Sam only when the reported recovery action requires it.
 See [Troubleshooting](TROUBLESHOOTING.md) and [User guide](USER_GUIDE.md).
+
+## Diagnostic launch
+
+Use `Diagnose Sam.cmd` in a prepared Windows checkout for an open diagnostic
+console and rotating content-free session log. Normal `Start Sam.cmd` is unchanged.
+Session-only `--keep-model` / `--keep-provider` never alter saved cleanup settings.
+See [options, privacy and retention](DIAGNOSTIC_LAUNCH.md).

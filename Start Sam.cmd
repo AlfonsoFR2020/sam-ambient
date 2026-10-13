@@ -6,8 +6,14 @@ if errorlevel 1 goto directory_error
 if not exist ".venv\Scripts\sam-ambient.exe" goto environment_error
 
 echo Starting Sam from this checkout...
-".venv\Scripts\sam-ambient.exe"
+".venv\Scripts\sam-ambient.exe" %*
 set "sam_exit=%errorlevel%"
+if /i "%~1"=="--diagnostic" (
+    echo.
+    echo Diagnostic session finished with exit code %sam_exit%.
+    pause
+    exit /b %sam_exit%
+)
 if not "%sam_exit%"=="0" (
     echo.
     echo Sam exited with error %sam_exit%. Review the messages above.

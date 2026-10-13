@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import Protocol
 from uuid import uuid4
 
+from sam_ambient.diagnostic_log import diagnostic
 from sam_ambient.supervisor.models import (
     ComponentSpec,
     ComponentStatus,
@@ -179,6 +180,12 @@ class Supervisor:
             exit_code: int | None = None
             reason = "startup_failed"
             log.info("Starting %s (restart count %d)", spec.component_id, status.restart_count)
+            diagnostic(
+                "component.start",
+                component=spec.component_id,
+                instance_id=context.instance_id,
+                attempt=status.restart_count + 1,
+            )
             try:
                 process = await self.launcher.launch(spec, context)
                 self._processes[spec.component_id] = process
@@ -248,6 +255,14 @@ class Supervisor:
             status.last_exit_code = exit_code
             status.last_exit_reason = reason
             status.health = HealthState.UNHEALTHY
+            diagnostic(
+                "component.failed",
+                component=spec.component_id,
+                instance_id=context.instance_id,
+                state="failed",
+                intent=reason,
+                exit_code=exit_code,
+            )
             if spec.critical:
                 await self._revoke(f"{spec.component_id}:{reason}")
 

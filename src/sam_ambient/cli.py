@@ -58,6 +58,7 @@ from sam_ambient.core.providers import (
     ProviderError,
 )
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
+from sam_ambient.diagnostic_log import diagnostic
 from sam_ambient.diagnostics import ReadinessLevel, classify_readiness
 from sam_ambient.lifecycle import parent_stop_event, serve_until_stop
 from sam_ambient.logging_config import add_logging_arguments, configure_logging, log_value
@@ -192,6 +193,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     runtime.add_argument("--no-voice", action="store_true", help="Disable microphone/VAD/STT")
     runtime.add_argument("--no-tts", action="store_true", help="Disable spoken output")
+    runtime.add_argument("--keep-model", action="store_true", help="Session-only model retention")
+    runtime.add_argument(
+        "--keep-provider", action="store_true", help="Session-only serving-endpoint retention"
+    )
     runtime.add_argument("--stt-url", default=DEFAULT_WHISPER_CPP_URL)
     runtime.add_argument(
         "--stt-language", default="auto", help="Hard recognition language code, or auto"
@@ -643,6 +648,15 @@ async def _unload_selected_model(discoveries, provider_id: str, model_id: str):
     )
 
 
+def _exit_cleanup_policy(args: argparse.Namespace, policy: CleanupPolicy) -> CleanupPolicy:
+    """Session flags never mutate settings; a kept model also needs its endpoint."""
+    keep_model = getattr(args, "keep_model", False)
+    return CleanupPolicy(
+        "keep" if keep_model else policy.model_on_exit,
+        "keep" if keep_model or getattr(args, "keep_provider", False) else policy.provider_on_exit,
+    )
+
+
 async def run_runtime(args: argparse.Namespace) -> int:
     args.state_db = args.state_db or str(Path(args.root) / ".sam/state.db")
     provider, model, discovery = await discover_provider(args, bootstrap=False)
@@ -738,10 +752,23 @@ async def run_runtime(args: argparse.Namespace) -> int:
     finally:
         try:
             async with asyncio.timeout(18):
-                await cleanup_discoveries(
-                    discoveries, intent=lifecycle_intent, policy=lifecycle_policy
+                exit_policy = _exit_cleanup_policy(args, lifecycle_policy)
+                diagnostic(
+                    "cleanup.begin",
+                    intent=lifecycle_intent.value,
+                    policy=exit_policy.model_on_exit,
+                    count=int(getattr(args, "keep_provider", False)),
                 )
+                results = await cleanup_discoveries(
+                    discoveries, intent=lifecycle_intent, policy=exit_policy
+                )
+                for result in results:
+                    diagnostic(
+                        "cleanup.result", resource=result.resource, state=result.status.value
+                    )
+                diagnostic("cleanup.complete", count=len(results))
         except Exception as error:
+            diagnostic("cleanup.failed", state="failed", error_class=type(error).__name__)
             log.warning("Provider cleanup failed without blocking shutdown: %s", error)
         if (
             lifecycle_intent is LifecycleIntent.QUIT
@@ -1014,7 +1041,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("Cancelled.", file=sys.stderr)
         return 130
     except (ProviderError, StaticUiUnavailable, ValueError) as error:
-        print(f"Error: {error}", file=sys.stderr)
+        print(
+            f"Error: {type(error).__name__}" if args.diagnostic else f"Error: {error}",
+            file=sys.stderr,
+        )
         return 2
     except KeyboardInterrupt:
         print("\nCancelled.", file=sys.stderr)

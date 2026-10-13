@@ -5,6 +5,10 @@ import logging
 
 
 def add_logging_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--diagnostic", action="store_true", help="Content-free session diagnostics"
+    )
+    parser.add_argument("--diagnostic-child", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--verbose", action="store_true", help="Enable Sam DEBUG diagnostics")
     parser.add_argument(
         "--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO"
@@ -18,6 +22,14 @@ def configure_logging(args: argparse.Namespace) -> None:
         datefmt="%H:%M:%S",
         force=True,
     )
+    if getattr(args, "diagnostic", False):
+        from sam_ambient.diagnostic_log import DiagnosticHandler
+
+        logging.getLogger().handlers = [
+            DiagnosticHandler(child=getattr(args, "diagnostic_child", False))
+        ]
+        logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger("sam_ambient.operational").disabled = not getattr(args, "diagnostic", False)
     # HTTP debug logs can include credentials/query strings. Verbose is Sam-only.
     for name in ("httpx", "httpcore", "websockets", "asyncio"):
         logging.getLogger(name).setLevel(logging.WARNING)
