@@ -357,8 +357,13 @@ void main(){
   float fine=livingSurfaceDetail(field);
   vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
-  vec3 linear=pigment.albedo*(.20+light.diffuse*.90+u_intensity*.10+.055*v_lift)*(1.0+fine)
+  // Lifted skin catches a broad satin response; the attached edge inherits the
+  // body's tone. No independent color field or extra transparent layer.
+  float skinLight=.16*v_lift*(.35+.65*min(light.diffuse,1.));
+  float shoulder=4.*v_radial*v_radial*(1.-v_radial*v_radial);
+  vec3 linear=pigment.albedo*(.20+light.diffuse*.90+u_intensity*.10+skinLight)*(1.0+fine)
     +glintColor*(light.glint*(.90+.40*v_lift+max(fine,0.0)*.20)+v_highlight*.15)
+    +glintColor*.045*shoulder*min(light.diffuse,1.)
     +rimColor*light.rim*(.18+.12*v_lift);
   linear*=mix(0.22,1.15,u_intensity);
   linear=linear/(1.0+linear);

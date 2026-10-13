@@ -1,9 +1,17 @@
-# Sam development plan: post-v0.2.3 toward v0.2.4
+# Sam development plan: post-v0.2.4
+
+**HQ priority change (2026-10-13): Visual Identity within Basics Before Expansion.**
+Attractiveness is a principal product feature. Diagnostic observability is completed;
+[Visual Identity I](VISUAL_IDENTITY_I.md) now lands smooth lower-lift membrane,
+body-consistent normals and broader, richer living pigment with comparable headless
+evidence. October 9 failed visual judgment remains historical truth; neither this
+pass nor its pixel metrics establishes aesthetic acceptance. AEC and capability
+expansion remain parked. No next workstream begins automatically.
 
 **HQ priority change (2026-10-01): Basics Before Expansion.**
 The current [release-readiness decision](RELEASE_READINESS_0.2.4.md) and
 [core-experience acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md)
-owns the next milestone: ordinary voice, truthful model lifecycle, stable installed
+retain the basic acceptance scope: ordinary voice, truthful model lifecycle, stable installed
 persona, connected embodiment, complete Controls and clean startup/shutdown.
 The completed agency/memory foundations remain assets; new powers are parked.
 The previous 2026-09-30 agency priority is superseded, not erased from history.
@@ -119,34 +127,38 @@ pre-release after exact-commit hosted source/package gates. Native build failure
 separate; unsigned Windows artifacts remain withheld. No additional feature work
 is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposition.
 
-### Next-cycle handoff — diagnostic foundation completed locally (2026-10-13)
+### Next-cycle handoff — visual priority, local evidence (2026-10-13)
 
-1. **Diagnostic launch and conversation observability: implemented.** Shared
+1. **Visual identity: technical increment implemented, aesthetic acceptance open.**
+   [Fixed comparisons](VISUAL_IDENTITY_I.md) cover organic form, membrane, composed
+   pigment evolution, synthetic speech and tiers. The highest-value graphical gap
+   is coherent layered membrane depth: soft overlap remains approximate and the
+   original concept board is needed to guide a later review. Do not infer acceptance
+   or resume blind shader tuning from numeric differences alone.
+2. **Diagnostic launch and conversation observability: implemented.** Shared
    `Diagnose Sam.cmd` / `--diagnostic`, session-only retention, rotating private
    metadata and correlated latency/terminal summaries pass focused and isolated
    owner-window/supervisor checks. [Contract and evidence](DIAGNOSTIC_LAUNCH.md).
    v0.2.4 remains published; this increment has no version bump or remote push.
    The next small alpha can include this coherent slice after HQ review, rather
    than waiting for STT or artistic work to finish. Do not call incident causes fixed.
-2. **Intermittent latency and false speech turns** — Medium initially, High only for
+3. **Intermittent latency and false speech turns** — Medium initially, High only for
    demonstrated cross-lifetime ownership. Use those diagnostics and paced mixed
    typed/voice/playback sequences; reproduce before changing product behavior.
    Preserve legitimate short speech and typed recovery, avoid arbitrary timeout
    resets. These remain the highest reliability concerns, not claimed solved.
-3. **Major multilingual STT replacement** — dedicated scoped evaluation/implementation,
+4. **Major multilingual STT replacement** — dedicated scoped evaluation/implementation,
    not an incidental release dependency. Owner speech quality is still inadequate;
    separate language/endpoint/model capacity and future physical acceptance.
-4. **Orb/membrane/palette and voice embodiment** — dedicated artistic/technical pass
-   grounded in October 9 owner rejection. Automated motion is not aesthetic acceptance;
-   do not continue synthetic AEC or speculative shader tuning during closure.
 5. **Windows native packaging/Cargo** — separate bounded host/toolchain diagnosis,
    then authenticated installed/upgrade data checks and signing/reputation policy.
    Never bypass security software or publish unsigned development binaries.
 
 Refined system/persona settings and Console/Memory presentation remain later;
 Agency/Memory capability expansion, profiles, arbitrary shell and diarization stay
-parked. The diagnostic increment executes only the completed first item; later
-workstreams remain separate. Prefer frequent bounded green alpha increments.
+parked. Diagnostic and Visual Identity I are coherent local increments, with no
+version bump/publication. Later workstreams remain separate. Prefer frequent bounded
+green alpha increments and preserve the distinction between behavior and acceptance.
 
 ### Parked acoustic re-entry contract
 
@@ -161,7 +173,7 @@ Acoustic evidence may stop TTS; only normal STT/TurnManager semantics commit tex
 No raw-RMS shortcut or lowering gates. See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md)
 and [IV-B evidence](AEC_APM_DIAGNOSIS_2026-10-07.md).
 
-## Meaningful v0.2.4 integrated checkpoint
+## Published v0.2.4 integrated checkpoint — historical scope
 
 v0.2.4 should consolidate the existing fundamentals: normal startup, truthful exact
 model discovery/load/Rescan, reliable interleaved voice/text with typed recovery,

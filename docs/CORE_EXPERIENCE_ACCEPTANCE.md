@@ -1,7 +1,7 @@
-# Core Experience evidence — I through V
+# Core Experience evidence — I through V and Visual Identity I
 
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
-Expansion**. Published v0.2.3 is unchanged. Automated evidence does not establish
+Expansion**. Published v0.2.4 is unchanged. Automated evidence does not establish
 human acoustic, voice-persona or visual acceptance. The October 9 beta completed;
 no additional human session is available now.
 The **current** disposition is [alpha candidate evidence](ALPHA_CANDIDATE_0.2.4.md);
@@ -515,3 +515,17 @@ and fixture endpoint-completion assumptions were corrected. This does not solve
 plausible wrong final transcripts, the beta's minutes-long stall, physical acoustic
 interruption, owner speech quality or visual/persona acceptance. STT/visual work
 remains high-priority and separate; expansion and AEC research stay parked.
+
+## 2026-10-13 — Visual Identity I, offscreen evidence only
+
+| Area | Automated / offscreen evidence | Real full-app / human acceptance | Remaining |
+| --- | --- | --- | --- |
+| High organic form | Unchanged 96 × 48 body, symmetric displaced normals, restrained relief, fixed two-orientation comparison | No new full Sam or human run | Silhouette/shading at owner sizes and overall attractiveness |
+| Membrane | Smooth zero-slope radial profile, bounded 3/4/5-ring tiers, actual irregular-edge gradients, broad lift-dependent satin light | No human acceptance | Read as one loosened layer; exact soft-overlap transparency |
+| Living pigment | Broader territories, independent medium fold, rose/violet allocation, fixed 0/8/24/60 s outputs | No human acceptance | Palette appeal/coherent fluid character; actual concept board absent |
+| Speech embodiment | Existing RMS mapping unchanged; output emphasis expands more, input deformation smaller, zero suppresses modulation; adjacent-frame check | Synthetic only, no TTS/audio/devices | Human naturalness and perceptibility |
+| Performance/fallback | Four draws/12–24–40 particles; 103 visual tests; short RTX 3070 GPU-timer tier sample; Canvas/Reduced Motion tests | No new full-app/low-power test | Sustained model coexistence/thermal/low-power cost |
+
+[Comparisons, metrics and reproduction](VISUAL_IDENTITY_I.md) distinguish technical
+causes from artistic hypotheses. No visible browser, Sam/provider, microphone or
+speaker session was launched. This does not close the October 9 failed visual judgment.

@@ -91,6 +91,11 @@ are not automatically blockers for a future release.
   the current bounded ovoid/mountain character pending art direction: it comes from
   Y scaling 1.06, field/breath displacement and older audio response terms clamped
   to ±0.04. Tune prominence later rather than flattening it by assumption.
+- **Visual Identity I:** [form/material comparisons](VISUAL_IDENTITY_I.md) now cover
+  smooth lower-lift domes, irregular-boundary/body-consistent normals, broader pigment
+  and rose/violet allocation. Technical fixes are implemented; October 9 artistic
+  rejection is not overwritten. Layer coherence/translucency, palette appeal and
+  natural speech embodiment still need the actual reference and later human judgment.
 - **Outer membrane/peels:** high-tier edge resolution, normals and lift have
   been repaired after the beta; evaluate whether the revised seeded patches read
   as one lifted membrane rather than separate plates. Check soft edge depth writes,

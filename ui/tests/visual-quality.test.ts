@@ -124,6 +124,17 @@ describe("visual quality and geometry", () => {
     }
   });
 
+  it("keeps radial refinement inside a bounded, meaningfully cheaper tier graph", () => {
+    const vertices = Object.values(RENDER_BUDGETS).map(
+      (budget) =>
+        createSphereGeometry(budget.sphereLongitude, budget.sphereLatitude).vertices.length / 6 +
+        createPeelGeometry(budget).vertices.length / PEEL_VERTEX_STRIDE,
+    );
+    expect(vertices[0]).toBeLessThan(vertices[1] * 0.3);
+    expect(vertices[1]).toBeLessThan(vertices[2] * 0.5);
+    expect(vertices[2]).toBeLessThanOrEqual(8_500);
+  });
+
   it("removes the pointed center and joins the body with zero lift slope", () => {
     expect(peelProfile(0)).toBe(1);
     expect(peelProfile(1)).toBe(0);

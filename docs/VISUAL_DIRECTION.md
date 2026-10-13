@@ -130,7 +130,7 @@ two scales from this same `q`:
 
 ```text
 B = sat(.5 + .5*N3(1.45*q + seedOffset1))  // broader pigment territories
-M = sat(.5 + .5*N3(3.6*q + seedOffset2))   // medium folds
+M = sat(.5 + .5*N3(3.6*mediumQ + seedOffset2)) // mediumQ: existing relative quadratic fold
 balance = .68 + .07*sin(palettePhase)
 contrast = 1 + .14*sin(paletteContrastPhase)
 palette = sat(.5 + (balance*B + (1-balance)*M - .5)*1.55*contrast)

@@ -4,11 +4,8 @@ Updated: 2026-10-13. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 ## Release and evidence boundary
 
-- Visual Identity I removes the membrane's conical center, resolves radial curvature
-  and uses boundary/body-consistent normals. Broader, lower-lift patches and richer
-  rose/violet/warm pigment retain one material, four draws and bounded tiers.
-  [Headless comparisons](VISUAL_IDENTITY_I.md) prove behavior, not human acceptance;
-  no Sam, visible desktop, provider or audio-device session was used.
+- Visual Identity I refines body normals, smooth lower-lift membrane and composed
+  shared pigment. [Headless evidence](VISUAL_IDENTITY_I.md) is not human acceptance; no Sam/provider/audio/visible window.
 
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
@@ -160,10 +157,8 @@ See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 - Autonomous Living Surface, shared membrane pigment, lighting and particles remain;
   measured input/output envelopes have distinct bounded form/light response under
   the existing Audio Reactivity control. Zero retains autonomous motion.
-- High-tier form/membrane and broad pigment have numeric evidence; October 9 owner
-  still found polygonal/dull body and absent peels. No human visual acceptance;
-  sustained/low-power cost remains unmeasured. Visual Identity I updates form/color
-  after that rejection; current headless evidence does not reverse the human judgment.
+- October 9 owner rejected polygonal/dull body and absent peels; this pass does not
+  reverse that judgment. Sustained/full-app/low-power cost and visual acceptance remain open.
 - Controls inventory is audited: Conversation, Appearance, Device, System, Diagnostics.
   particle_density persists and chooses a visible fraction of 12/24/40 tier counts;
   Canvas has no particles. Persisted Surface Flow separates transport from Motion.

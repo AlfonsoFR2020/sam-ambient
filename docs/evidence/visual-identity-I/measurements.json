@@ -1,0 +1,179 @@
+{
+  "before": {
+    "costs": [
+      {
+        "quality": "low",
+        "submissionMedianMs": 0,
+        "completionMedianMs": 0,
+        "completionP95Ms": 0.012500000186264515,
+        "gpuMedianMs": 0.043008,
+        "gpuP95Ms": 0.0448,
+        "gpuSamples": 12,
+        "disjoint": false,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+      },
+      {
+        "quality": "medium",
+        "submissionMedianMs": 0,
+        "completionMedianMs": 0,
+        "completionP95Ms": 0.02500000037252903,
+        "gpuMedianMs": 0.087168,
+        "gpuP95Ms": 0.087552,
+        "gpuSamples": 12,
+        "disjoint": false,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+      },
+      {
+        "quality": "high",
+        "submissionMedianMs": 0,
+        "completionMedianMs": 0,
+        "completionP95Ms": 0.02500000037252903,
+        "gpuMedianMs": 0.140032,
+        "gpuP95Ms": 0.140544,
+        "gpuSamples": 12,
+        "disjoint": false,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+      }
+    ],
+    "metrics": {
+      "membrane": {
+        "meanChannelDifference": 4.377183641975334,
+        "changedFraction": 0.3097993827160494
+      },
+      "quarterMembrane": {
+        "meanChannelDifference": 5.22415637860072,
+        "changedFraction": 0.3705555555555556
+      },
+      "eightSeconds": {
+        "meanChannelDifference": 28.64976851851832,
+        "changedFraction": 0.9114274691358024
+      },
+      "sixtySeconds": {
+        "meanChannelDifference": 30.307402263374446,
+        "changedFraction": 0.905108024691358
+      },
+      "adjacent": {
+        "meanChannelDifference": 1.0286779835390023,
+        "changedFraction": 0.07690586419753087
+      },
+      "speech": {
+        "meanChannelDifference": 7.951249999999919,
+        "changedFraction": 0.7774151234567901
+      },
+      "emphasis": {
+        "meanChannelDifference": 7.1517875514403535,
+        "changedFraction": 0.7470524691358025
+      },
+      "audioZero": {
+        "meanChannelDifference": 0,
+        "changedFraction": 0
+      },
+      "radius": {
+        "output-0": 1.0288274444379124,
+        "output-0.12": 1.049974756944586,
+        "output-0.45": 1.0697790390156077,
+        "input-0.12": 1.0504329574721663
+      }
+    }
+  },
+  "after": {
+    "costs": [
+      {
+        "quality": "low",
+        "submissionMedianMs": 0,
+        "completionMedianMs": 0,
+        "completionP95Ms": 0.012500000186264515,
+        "gpuMedianMs": 0.045952,
+        "gpuP95Ms": 0.04736,
+        "gpuSamples": 12,
+        "disjoint": false,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+      },
+      {
+        "quality": "medium",
+        "submissionMedianMs": 0,
+        "completionMedianMs": 0,
+        "completionP95Ms": 0.012500000186264515,
+        "gpuMedianMs": 0.096256,
+        "gpuP95Ms": 0.100096,
+        "gpuSamples": 12,
+        "disjoint": false,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+      },
+      {
+        "quality": "high",
+        "submissionMedianMs": 0,
+        "completionMedianMs": 0.01249999925494194,
+        "completionP95Ms": 0.012500000186264515,
+        "gpuMedianMs": 0.16064,
+        "gpuP95Ms": 0.161792,
+        "gpuSamples": 12,
+        "disjoint": false,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+      }
+    ],
+    "metrics": {
+      "membrane": {
+        "meanChannelDifference": 5.404521604938271,
+        "changedFraction": 0.43848765432098763
+      },
+      "quarterMembrane": {
+        "meanChannelDifference": 5.573713991769507,
+        "changedFraction": 0.48388888888888887
+      },
+      "eightSeconds": {
+        "meanChannelDifference": 26.76900462962974,
+        "changedFraction": 0.8833333333333333
+      },
+      "sixtySeconds": {
+        "meanChannelDifference": 24.307968106995812,
+        "changedFraction": 0.8644984567901235
+      },
+      "adjacent": {
+        "meanChannelDifference": 0.810120884773563,
+        "changedFraction": 0.0430787037037037
+      },
+      "speech": {
+        "meanChannelDifference": 6.896111111110988,
+        "changedFraction": 0.7823225308641976
+      },
+      "emphasis": {
+        "meanChannelDifference": 6.240753600823031,
+        "changedFraction": 0.7502469135802469
+      },
+      "audioZero": {
+        "meanChannelDifference": 6.430041152263374e-05,
+        "changedFraction": 0
+      },
+      "radius": {
+        "output-0": 1.0288274444379124,
+        "output-0.12": 1.049974756944586,
+        "output-0.45": 1.0697790390156077,
+        "input-0": 1.0538274444379125,
+        "input-0.12": 1.0504329574721663
+      }
+    }
+  },
+  "provenance": {
+    "baselineSource": "a282193007e600cc8d2bb2738ad317f1284e7744",
+    "implementationSource": "878dfb0 plus final membrane-light evidence refinement; normalized source hashes identify exact implementation",
+    "sourceSHA256": {
+      "geometry.ts": "c790268ddf0990792603cc5d80b1ad71e404f7966191c36e6c6307cb15fe320b",
+      "quality.ts": "863e15346c7dcb112c2da6332ef871956db3930a51da8e015140ee87c8ac2769",
+      "living-field.ts": "402f0f3c546392c0569ddadcef82f2adf17eb5507945a7304c8b7ee226d25bf1",
+      "living-material.ts": "0b6aa8f2c7cf43e66b80902ad82d3594574e157653010efd81b2a9f66c8ac3a5",
+      "webgl.ts": "d6ccc595b48e2e6d845a5e598432d47bc87a05a54f4aff0d46027a0781a734e7"
+    },
+    "seed": "0x5a17",
+    "backingPixels": [
+      720,
+      720
+    ],
+    "dpr": 1,
+    "timestamp": "2026-10-13",
+    "capture": "explicitly headless local blank fixture; no Sam, visible window or audio/device session",
+    "contactSheets": "same 500x500 crop from 720x720 original, resampled to 400x400; alpha composited on #090b12; no exposure change",
+    "gpuMethod": "12 non-disjoint elapsed-time queries per tier; each measures 8 fixed-frame draws after warm-up, per-frame values",
+    "limitations": "isolated desktop GPU snapshot costs only; coarse CPU browser timer; no physical or perceptual acceptance"
+  }
+}
