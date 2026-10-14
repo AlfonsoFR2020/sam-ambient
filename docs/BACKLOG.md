@@ -10,7 +10,10 @@ Diagnostic launch/conversation observability is implemented locally on October 1
 shared launch, session retention, bounded operational logging and timing/owner
 summaries. See [diagnostic evidence](DIAGNOSTIC_LAUNCH.md). Use that evidence to
 reproduce reliability failures; do not open another speculative audio rewrite.
-No personal recording or new beta was needed for this increment.
+No personal recording or new beta was needed for this increment. October 14's
+[composable launcher](DIAGNOSTIC_LAUNCH.md) is complete: independent console,
+verbosity/log-path flags, diagnostic preset and session retention. 152 focused
+checks preserve redaction, quoting, settings and ownership; this adds no capability.
 Hard STT language, installed multilingual persona selection, effective speech
 status, confirmed provider cleanup and explicit runtime/supervisor SQLite closure
 are implemented. Consolidation I's supervised Gemma lifecycle passed; II exposed

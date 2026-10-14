@@ -573,7 +573,15 @@ Live provider/audio checks and publishing are deliberately human-controlled.
 [Diagnostic mode](DIAGNOSTIC_LAUNCH.md) reuses normal supervisor/owner launch.
 The supervisor alone rotates operational JSONL; supervised children send filtered
 records on existing stdout. No transcript/audio/proof recording or new authority.
-Session retention flags affect only final owned-resource cleanup, never settings.
+The shared supervisor parser owns composable verbosity, console and explicit-log
+options; `Diagnose Sam.cmd` tail-delegates as a preset. Python holds successful
+interactive sessions when requested, while the CMD wrapper retains bootstrap/runtime
+failures once. Verbose records use the same positive privacy schema, not raw DEBUG
+messages. Only the parent writes a chosen log; per-file OS locks prevent shared
+path rotation races across workspaces. Session retention flags affect only final
+owned-resource cleanup, never settings. Provider retention does not imply model
+retention; model retention implies keeping the endpoint. No UI/auth/native authority
+or external process-ownership change is introduced.
 
 Conversation instrumentation projects authoritative EventBus events synchronously
 without adding subscriber backpressure. Projection failures do not fail events or

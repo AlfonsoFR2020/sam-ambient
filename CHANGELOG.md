@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Unified Windows launch options: independent verbose metadata, console retention,
+  explicit bounded JSONL path and session-only resource retention. Diagnostic launch
+  is a preset; flag order and quoted paths are tested. Preserve normal defaults,
+  owner authentication, sandboxing and external ownership; no settings rewrite.
+
 - Living regional palette banks evolve red/gold/blue/violet/green harmonies using
   independent clocks; particles share the composition, raised film stays quieter.
 - Persistent core-confirmed model preparation status, observed waiting time and

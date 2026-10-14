@@ -148,12 +148,16 @@ is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposi
    judgment; High contact and soft intersections are approximations. Live startup
    passed, but selector instrumentation prevented inference/fullscreen measurement.
    The original concept board remains missing; do not infer aesthetic acceptance.
-2. **Diagnostic launch and conversation observability: implemented.** Shared
-   `Diagnose Sam.cmd` / `--diagnostic`, session-only retention, rotating private
+2. **Unified composable launch and conversation observability: implemented.**
+   One shared parser/path handles independent verbosity, console retention and
+   explicit rotating logs; retention overrides preserve ownership and preferences.
+   152 focused checks include actual invisible CMD quoting/failure tests with a
+   status-only stub supervisor. No full app, provider, browser or audio run needed.
+   Earlier `Diagnose Sam.cmd` / `--diagnostic`, retention, rotating private
    metadata and correlated latency/terminal summaries pass focused and isolated
    owner-window/supervisor checks. [Contract and evidence](DIAGNOSTIC_LAUNCH.md).
    v0.2.4 remains published. Diagnostic/Identity I/II/III are preserved upstream at
-   bc91a03; palette/readiness remains local, with no version bump.
+   9c5bce8 including palette/readiness; composable launch stays local, no version bump.
    The next small alpha can include this coherent slice after HQ review, rather
    than waiting for STT or artistic work to finish. Do not call incident causes fixed.
 3. **Intermittent latency and false speech turns** — Medium initially, High only for
@@ -174,7 +178,7 @@ parked. Diagnostic and Visual Identity III are coherent increments, with no
 version bump/publication. Later workstreams remain separate. Prefer frequent bounded
 green alpha increments and preserve the distinction between behavior and acceptance.
 
-**Forthcoming, separate authorization:** composable diagnostic launcher flags;
+**Composable launcher flags are complete. Forthcoming, separate authorization:**
 read-only comparison/targeted GitHub advisory maintenance; proportionate v0.2.5
 source-alpha preparation; dedicated multilingual STT improvement. Later replaceable
 visual themes and capability expansion remain parked. None is implemented by this

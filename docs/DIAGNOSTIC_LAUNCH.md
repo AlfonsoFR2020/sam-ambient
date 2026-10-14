@@ -191,3 +191,42 @@ first-run checks pass, plus changed-source Ruff lint/format and Git whitespace.
 Windows wrapper execution and the broader focused authority/process/cleanup gate
 follow as the independent verification checkpoint. No real provider/audio/UI run
 is needed for argument composition. Existing earlier real evidence above is historical.
+
+## 2026-10-14 verification closure — source launcher ready for v0.2.5
+
+**152 focused tests pass** across composable flags, Windows wrappers, diagnostic
+logging/privacy/rotation, configuration precedence, first-run, provider bootstrap
+and owner model lifecycle, process supervision/failure injection, owner authority
+and authenticated WebSocket admission/replay/revocation. Changed-source Ruff
+lint/format, local documentation links and Git whitespace checks pass.
+
+Five actual Windows CMD checks use temporary checkouts with spaces, the existing
+console entry point, a minimal non-secret environment and an injected fake
+`_run_locked`. Every invocation also includes `--status`, so even a missing test
+hook cannot launch components. CREATE_NO_WINDOW keeps them invisible. They verify
+both launchers, reordered/composed flags, model names and log paths containing
+spaces, quoted ampersands, private startup failure summaries, unknown arguments
+and failure-console retention. The first test-harness quoting attempt failed
+before invoking the launcher; correcting Windows CreateProcess/CMD quoting made
+the tests pass, without changing working product logic for that harness failure.
+
+Controlled TTY unit cases verify successful/direct-failure holds, diagnostic
+preset override and noninteractive behavior. These do not claim visual observation
+of an interactive Explorer double-click. No Sam window, real model/provider,
+STT/TTS/audio/device, native package or release build was launched. Existing owner
+sandbox/bootstrap and shutdown mechanisms are covered by focused regressions;
+no new visible owner-window smoke was necessary for this CLI-only slice.
+
+The explicit log file is owned by the parent, children receive only bounded pipe
+flags, and log creation failure releases both locks before components start.
+Rotation/rate/record limits remain; verbose cannot copy private DEBUG messages or
+HTTP bodies into the log. Option-looking values do not accidentally enable modes.
+Retention cases preserve existing external resources and independent model/service
+cleanup; settings source bytes remain unchanged. No beta reliability defect or
+Windows installer/toolchain problem is declared fixed by launcher validation.
+
+Ready for inclusion in the next v0.2.5 development/source increment. No version
+metadata or release artifacts changed. Packaged/older staged components were not
+rebuilt; use coherent trusted component versions, not an activation bypass. Security
+maintenance, v0.2.5 release preparation, STT and reference-led visual work stay
+separate. All commits from this launcher task remain local.

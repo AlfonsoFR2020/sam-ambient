@@ -191,3 +191,33 @@ def test_verbose_file_uses_same_redaction_and_single_writer(tmp_path, diagnostic
         for secret in ["private-owner-proof", "private-api-key", "private-id", "private transcript"]
     )
     assert any(r["stage"] == "log.info" for r in records)
+
+
+def test_log_creation_failure_releases_both_locks_before_any_component_starts(
+    tmp_path, monkeypatch, diagnostic_logging
+):
+    import sam_ambient.diagnostic_log as logs
+    from sam_ambient.supervisor.single_instance import InstanceLock
+
+    args = cli.build_parser().parse_args(["--root", str(tmp_path), "--log-file", "out.jsonl"])
+    configure_logging(args)
+    work = AsyncMock(return_value=0)
+    monkeypatch.setattr(cli, "_run_locked", work)
+
+    def failure(*_args, **_kwargs):
+        raise PermissionError("private injected detail")
+
+    monkeypatch.setattr(logs, "DiagnosticHandler", failure)
+    with pytest.raises(PermissionError):
+        asyncio.run(cli.run(args))
+    work.assert_not_awaited()
+    for path in [tmp_path / ".sam/supervisor.lock", tmp_path / "out.jsonl.lock"]:
+        lock = InstanceLock(path)
+        assert lock.acquire()
+        lock.release()
+
+
+def test_option_looking_values_do_not_enable_modes():
+    args = cli.build_parser().parse_args(["--model=--keep-model", "--log-file=--diagnostic"])
+    assert not args.keep_model and not args.diagnostic and args.keep_console is None
+    assert str(args.log_file) == "--diagnostic"

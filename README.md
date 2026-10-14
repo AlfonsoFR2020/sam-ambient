@@ -300,7 +300,9 @@ with or endorsed by the film or its rights holders.*
 
 ## Diagnostic launch
 
-Use `Diagnose Sam.cmd` in a prepared Windows checkout for an open diagnostic
-console and rotating content-free session log. Normal `Start Sam.cmd` is unchanged.
-Session-only `--keep-model` / `--keep-provider` never alter saved cleanup settings.
-See [options, privacy and retention](docs/DIAGNOSTIC_LAUNCH.md).
+`Start Sam.cmd` preserves normal one-action launch. Compose `--verbose`,
+`--keep-console`, `--log-file "PATH with spaces"`, `--keep-model` and `--keep-provider`
+as needed. `Diagnose Sam.cmd` is the same path with a diagnostic preset, not another
+implementation. Overrides never save cleanup preferences; external ownership,
+owner authentication and Chromium sandbox remain unchanged.
+See [commands, precedence, privacy and retention](docs/DIAGNOSTIC_LAUNCH.md).

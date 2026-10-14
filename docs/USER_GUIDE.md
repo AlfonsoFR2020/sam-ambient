@@ -307,9 +307,41 @@ missing a usable model prevents answers but not the UI and diagnostics.
 See [Troubleshooting](TROUBLESHOOTING.md). Do not post sensitive conversation,
 configuration or runtime database contents in public bug reports.
 
-## Diagnostic launch
+## Unified normal and diagnostic launch
 
-Use `Diagnose Sam.cmd` in a prepared Windows checkout for an open diagnostic
-console and rotating content-free session log. Normal `Start Sam.cmd` is unchanged.
-Session-only `--keep-model` / `--keep-provider` never alter saved cleanup settings.
-See [options, privacy and retention](DIAGNOSTIC_LAUNCH.md).
+Double-click **Start Sam.cmd** for the established normal experience. Successful
+exit closes the launch console; saved settings and ownership rules are unchanged.
+**Diagnose Sam.cmd** is the same launch path with the `--diagnostic` preset: default
+rotating JSONL plus an interactive console hold. It is not another application.
+
+From PowerShell, compose options in any order:
+
+```powershell
+& ".\Start Sam.cmd" --verbose --keep-console
+& ".\Start Sam.cmd" --keep-model --verbose --log-file ".sam\diagnostics\session.jsonl"
+& ".\Start Sam.cmd" --keep-provider --keep-console
+& ".\Start Sam.cmd" --log-file "logs with spaces\my session.jsonl"
+& ".\Diagnose Sam.cmd" --verbose --keep-provider
+& ".\Start Sam.cmd" --diagnostic --no-keep-console
+& ".\Start Sam.cmd" --help
+```
+
+- **Verbose** adds operational metadata without raw private message dumps or a file.
+- **Keep console** is independent of verbosity/logging; noninteractive input never hangs.
+- **Log file** enables bounded JSONL at the specified file; relative paths use the
+  effective Sam root. The exact path is printed at startup/completion. Without it,
+  diagnostic mode uses `<root>/.sam/diagnostics/session.jsonl`; normal/verbose-only
+  modes do not create a persistent diagnostic log. Logs rotate at 1 MiB with three
+  backups. A second writer to the same path is rejected.
+- **Keep model** skips final Sam-owned model cleanup and retains its endpoint.
+  **Keep provider** alone retains serving but leaves model cleanup to current
+  preferences. Neither controls the LM Studio desktop app or changes external ownership.
+- All retention flags are **session-only**, applied after current saved/live cleanup
+  preferences; files are not rewritten. They do not prevent an explicit model unload
+  during the session. No flag downloads models or installs dependencies.
+
+Explicit console/path choices override the diagnostic preset. Existing settings
+precedence remains CLI > environment > explicit TOML > project TOML > user TOML >
+defaults; the new launcher switches have no saved/environment counterparts. Windows
+launch failures always remain open for inspection, even with `--no-keep-console`.
+See [full semantics, privacy, precedence and validation](DIAGNOSTIC_LAUNCH.md).
