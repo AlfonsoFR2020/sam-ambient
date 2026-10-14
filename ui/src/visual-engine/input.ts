@@ -1,4 +1,5 @@
 import type { ConversationalState, UiState } from "../protocol/types";
+import { providerPresentation } from "../provider-lifecycle";
 import type { AudioFeatures, VisualForeground, VisualInputV1, VisualInteraction } from "./types";
 
 const EXPIRY_START_MS = 250;
@@ -39,13 +40,14 @@ const interactionFrom = (state: UiState, interruptSerial: number): VisualInterac
     ? "stopped"
     : state.connection === "connecting"
       ? "starting"
-      : state.connection === "offline"
+      : state.connection === "offline" || state.providerDiscovery.status === "stale"
         ? "reconnecting"
         : state.protocolError || !state.provider || !state.model
           ? "degraded"
           : "ready";
   const toolType = state.latestToolActivity?.eventType;
   return {
+    providerLifecycle: (({ phase, key }) => ({ phase, key }))(providerPresentation(state)),
     foreground: foreground(state.conversationalState, state.priorConversationalState),
     listening,
     speaking,

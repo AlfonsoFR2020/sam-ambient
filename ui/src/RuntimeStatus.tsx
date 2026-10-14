@@ -2,7 +2,10 @@ import type { UiState } from "./protocol/types";
 import { friendlyStartupReason, statusPresentation } from "./status";
 
 export function SpeechStatusFields({ state }: { state: UiState }) {
-  const lastKnown = state.connection === "connected" ? "" : " (last known)";
+  const lastKnown =
+    state.connection === "connected" && state.providerDiscovery.status !== "stale"
+      ? ""
+      : " (last known)";
   return (
     <>
       <dt>Speech input</dt>
@@ -51,19 +54,20 @@ export function SpeechStatusFields({ state }: { state: UiState }) {
 }
 
 export function RuntimeStatus({ state }: { state: UiState }) {
+  const live = state.connection === "connected" && state.providerDiscovery.status !== "stale";
   const presentation = statusPresentation(state);
   return (
     <details className="runtime-status">
       <summary>
         {state.model
-          ? `${state.provider} · ${state.model}${state.connection === "connected" ? "" : " (last known)"}`
+          ? `${state.provider} · ${state.model}${live ? "" : " (last known)"}`
           : (friendlyStartupReason(state.selectionReason) ?? "Local model not ready")}
       </summary>
       <dl>
         <dt>Local model</dt>
         <dd>
           {state.model
-            ? `${state.provider} · ${state.model}${state.connection === "connected" ? "" : " (last known)"}`
+            ? `${state.provider} · ${state.model}${live ? "" : " (last known)"}`
             : "Not ready"}
         </dd>
         <dt>Provider</dt>
@@ -73,7 +77,7 @@ export function RuntimeStatus({ state }: { state: UiState }) {
           {state.providerDiscovery.reason
             ? friendlyStartupReason(state.providerDiscovery.reason)
             : state.providerDiscovery.status}
-          {state.connection === "connected" ? "" : " (last known)"}
+          {live ? "" : " (last known)"}
         </dd>
         {state.selectionReason && (
           <>

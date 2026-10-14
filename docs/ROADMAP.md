@@ -2,6 +2,10 @@
 
 **HQ priority change (2026-10-14): Visual Identity within Basics Before Expansion.**
 Attractiveness is a principal product feature. Diagnostic observability is completed;
+[living palette and provider presentation](LIVING_PALETTE_AND_READINESS.md) now add
+regional evolving color harmonies, coordinated particle hue and truthful visible
+load/unload/replacement status with distinct restrained Orb preparation behavior.
+Focused/headless checks pass; no real runtime or human acceptance is inferred.
 [Visual Identity III](VISUAL_IDENTITY_III.md) adds full-color film/contact hierarchy
 and a spatial body/skin/particle light crest to Identity II's attached flexing sheets,
 behavior and finer High rendering. Comparable headless evidence is available;
@@ -133,7 +137,11 @@ is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposi
 ### Next-cycle handoff — visual priority, local evidence (2026-10-14)
 
 1. **Visual identity: technical increment implemented, aesthetic acceptance open.**
-   [Latest fixed comparisons](VISUAL_IDENTITY_III.md) cover shared-film optical depth,
+   [Latest palette/lifecycle comparisons](LIVING_PALETTE_AND_READINESS.md) isolate
+   color evolution over 0–300 seconds from transport and show confirmed model
+   preparation separately from inference/speech. Persistent status and scoped
+   waiting time keep long loads understandable; no percentage or new provider work.
+   [Identity III comparisons](VISUAL_IDENTITY_III.md) cover shared-film optical depth,
    curl phases, coordinated synthetic light/near particles and tier cost. Colored
    folds separate better, but some angles still read as wrapping bands. Connected
    skin/thickness/translucency remains the graphical question for reference-led
@@ -144,8 +152,8 @@ is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposi
    `Diagnose Sam.cmd` / `--diagnostic`, session-only retention, rotating private
    metadata and correlated latency/terminal summaries pass focused and isolated
    owner-window/supervisor checks. [Contract and evidence](DIAGNOSTIC_LAUNCH.md).
-   v0.2.4 remains published. Diagnostic/Identity I/II are preserved upstream at
-   a3e77b5; Identity III remains local, with no version bump.
+   v0.2.4 remains published. Diagnostic/Identity I/II/III are preserved upstream at
+   bc91a03; palette/readiness remains local, with no version bump.
    The next small alpha can include this coherent slice after HQ review, rather
    than waiting for STT or artistic work to finish. Do not call incident causes fixed.
 3. **Intermittent latency and false speech turns** — Medium initially, High only for

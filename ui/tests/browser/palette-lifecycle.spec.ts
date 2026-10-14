@@ -109,3 +109,183 @@ test("palette-only temporal compositions, transport separation and continuity", 
   expect(result.metrics.find((m) => m.name === "palette-120")?.mean).toBeGreaterThan(8);
   expect(result.adjacent20ms).toBeLessThan(0.4);
 });
+
+test("provider preparation uses real visual adapter without inference or speech", async ({
+  page,
+}, info) => {
+  await page.goto("/tests/fixtures/visual-identity.html");
+  const result = await page.evaluate(async () => {
+    const [fixtures, input, motion, types, protocol, quality] = await Promise.all(
+      [
+        "/tests/fixtures/visual-identity-II.ts",
+        "/src/visual-engine/input.ts",
+        "/src/visual-engine/motion.ts",
+        "/src/visual-engine/types.ts",
+        "/src/protocol/types.ts",
+        "/src/visual-engine/quality.ts",
+      ].map((path) => import(path)),
+    );
+    const shots: { name: string; image: string }[] = [],
+      frames: Record<string, unknown>[] = [];
+    const base = fixtures.frameAt(0);
+    for (const phase of ["discovering", "loading", "unloading", "ready", "failed", "thinking"]) {
+      const adapter = new input.VisualInputAdapter(),
+        evaluator = new motion.MotionEvaluator(0x5a17);
+      const state = {
+        ...protocol.INITIAL_UI_STATE,
+        connection: "connected",
+        sessionId: "fixture",
+        conversationalState: phase === "thinking" ? "THINKING" : "IDLE",
+        provider: phase === "ready" || phase === "thinking" ? "lm-studio" : undefined,
+        model: phase === "ready" || phase === "thinking" ? "gemma" : undefined,
+        pendingProvider: "lm-studio",
+        pendingModel: "gemma",
+        providerDiscovery: {
+          status:
+            phase === "failed"
+              ? "failed"
+              : phase === "ready" || phase === "thinking"
+                ? "available"
+                : "scanning",
+          requestId: "fixture",
+        },
+        startupLifecycle:
+          phase === "loading"
+            ? "loading_model"
+            : phase === "unloading"
+              ? "unloading_model"
+              : phase === "ready" || phase === "thinking"
+                ? "ready_transition"
+                : "scanning",
+      };
+      let frame = { ...base };
+      for (let time = 0; time <= 1600; time += 20)
+        frame = {
+          ...evaluator.evaluate(
+            adapter.ingest(state, time),
+            time,
+            { ...types.DEFAULT_VISUAL_ENGINE_SETTINGS, reducedMotion: "off" },
+            quality.RENDER_BUDGETS.high,
+          ),
+        };
+      frame = {
+        ...frame,
+        palettePhase: base.palettePhase,
+        paletteContrastPhase: base.paletteContrastPhase,
+        paletteBalance: base.paletteBalance,
+        paletteContrast: base.paletteContrast,
+        fieldPhase1: base.fieldPhase1,
+        fieldPhase2: base.fieldPhase2,
+        fieldTwist1: base.fieldTwist1,
+        fieldTwist2: base.fieldTwist2,
+      };
+      const f = fixtures.fixture("high", { size: 480 });
+      shots.push({ name: phase, image: f.draw(frame, 0.75) });
+      if (phase === "loading") {
+        let nextTime = 1620;
+        for (const seconds of [2, 4, 8]) {
+          let moving = { ...frame };
+          for (; nextTime <= seconds * 1000; nextTime += 20)
+            moving = {
+              ...evaluator.evaluate(
+                adapter.ingest(state, nextTime),
+                nextTime,
+                { ...types.DEFAULT_VISUAL_ENGINE_SETTINGS, reducedMotion: "off" },
+                quality.RENDER_BUDGETS.high,
+              ),
+            };
+          shots.push({
+            name: `loading-${seconds}s`,
+            image: f.draw({ ...frame, ripplePhase: moving.ripplePhase }, 0.75),
+          });
+        }
+      }
+      f.close();
+      frames.push({
+        phase,
+        radius: frame.radius,
+        loading: frame.providerLoading,
+        explore: frame.providerExplore,
+        settling: frame.providerSettling,
+        reasoning: frame.reasoningCue,
+      });
+    }
+    return { shots, frames };
+  });
+  const fsPath = "node:fs";
+  const fs = (await import(fsPath)) as {
+    mkdirSync(path: string, options: { recursive: boolean }): void;
+    writeFileSync(path: string, data: string | Uint8Array): void;
+  };
+  fs.mkdirSync(info.outputDir, { recursive: true });
+  for (const { name, image } of result.shots)
+    fs.writeFileSync(
+      info.outputPath(`${name}.png`),
+      Uint8Array.from(atob(image.split(",")[1]), (c) => c.charCodeAt(0)),
+    );
+  fs.writeFileSync(info.outputPath("lifecycle.json"), JSON.stringify(result.frames, null, 2));
+  expect(result.frames.find((f) => f.phase === "loading")?.loading).toBeGreaterThan(0.98);
+  expect(result.frames.filter((f) => f.phase !== "thinking").every((f) => f.reasoning === 0)).toBe(
+    true,
+  );
+  expect(result.frames.find((f) => f.phase === "thinking")?.reasoning).toBeGreaterThan(0.9);
+});
+
+test("persistent provider status stays truthful through slow loading and narrow Controls", async ({
+  page,
+}, info) => {
+  await page.setViewportSize({ width: 1100, height: 760 });
+  await page.goto("/?transport=browser");
+  const emit = async (type: string, ms: number, payload: Record<string, unknown>) =>
+    page.evaluate(
+      ({ type, ms, payload }) =>
+        window.dispatchEvent(
+          new CustomEvent("sam-protocol-event", {
+            detail: { protocol: 1, type, monotonic_ms: ms, session_id: "presentation", payload },
+          }),
+        ),
+      { type, ms, payload },
+    );
+  await emit("system.ready", 1, {
+    state: "IDLE",
+    provider_scan_active: true,
+    provider_discovery_state: "loading_model",
+    pending_provider_request_id: "A",
+    pending_provider: "lm-studio",
+    pending_model: "google/gemma-4-e2b",
+  });
+  const panel = page.locator(".provider-status");
+  await expect(panel).toHaveAttribute("data-provider-phase", "loading");
+  await expect(panel).toContainText("google/gemma-4-e2b");
+  await expect(panel).toContainText("minute or more");
+  await page.getByRole("button", { name: "Dismiss startup information" }).click();
+  await page.getByRole("button", { name: "Controls", exact: true }).click();
+  await page.getByRole("button", { name: "System", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Quit Sam", exact: true })).toBeVisible();
+  await expect(panel.locator(".provider-status__elapsed")).toContainText("Waiting", {
+    timeout: 5000,
+  });
+  await page.setViewportSize({ width: 640, height: 720 });
+  const box = await panel.boundingBox();
+  expect(box?.x).toBeGreaterThanOrEqual(0);
+  expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(640);
+  await page.screenshot({ path: info.outputPath("loading-controls.png") });
+  await emit("provider.discovery", 2, {
+    state: "ready",
+    request_id: "old",
+    provider: "lm-studio",
+    model: "wrong",
+  });
+  await expect(panel).toHaveAttribute("data-provider-phase", "loading");
+  await emit("provider.discovery", 3, {
+    state: "ready",
+    request_id: "A",
+    provider: "lm-studio",
+    model: "google/gemma-4-e2b",
+  });
+  await expect(panel).toHaveAttribute("data-provider-phase", "ready");
+  await expect(panel.locator(".provider-status__elapsed")).toHaveCount(0);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("sam-protocol-disconnect")));
+  await expect(panel).toHaveAttribute("data-provider-phase", "connecting");
+  await expect(panel).toContainText("not live");
+});

@@ -87,6 +87,15 @@ requirements only. End users will not need them merely to run a packaged Sam bui
 
 ## Conversation and status
 
+Current development shows provider/model preparation below the Sam status header,
+even after startup information is dismissed. Loading names the requested model
+and can take a minute or more. **Waiting** is elapsed time observed by this window,
+not a countdown or completion estimate; **Model ready** requires core confirmation.
+During unload/replacement, Controls and Quit remain accessible. Rescan explains
+when another operation must finish first. On reconnect, old model details remain
+last-known until a fresh snapshot. The Orb has restrained preparation/settling
+lighting separate from response generation and speech; Reduced Motion is respected.
+
 Open **Controls** for text input and settings. Type into **Text request** and
 press Send once the local service reports an active conversational model. Send
 stays unavailable while the service/model is unavailable; a current response

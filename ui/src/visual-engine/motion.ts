@@ -149,6 +149,10 @@ export interface MotionFrame {
   outputEnvelope: number;
   envelope: number;
   interruption: number;
+  providerExplore: number;
+  providerLoading: number;
+  providerSettling: number;
+  providerReady: number;
   reasoningCue: number;
   receptiveCue: number;
   delegatedCue: number;
@@ -210,7 +214,7 @@ export class MotionEvaluator {
   private coherence = 0.82;
   private rim = 0.2;
   private drift = 1;
-  private reducedTarget?: VisualForeground;
+  private reducedTarget?: string;
   private reducedTransitionMs = 0;
   private startRadius = 1;
   private startGlow = 0.24;
@@ -222,6 +226,11 @@ export class MotionEvaluator {
   private startRim = 0.2;
   private startDrift = 1;
   private interruption = 0;
+  private providerExplore = 0;
+  private providerLoading = 0;
+  private providerSettling = 0;
+  private providerReady = 0;
+  private providerPhase?: string;
   private working = 0;
   private receptive = 0;
   private spinPhase: number;
@@ -296,6 +305,10 @@ export class MotionEvaluator {
       outputEnvelope: 0,
       envelope: 0,
       interruption: 0,
+      providerExplore: 0,
+      providerLoading: 0,
+      providerSettling: 0,
+      providerReady: 0,
       reasoningCue: 0,
       receptiveCue: 0,
       delegatedCue: 0,
@@ -309,6 +322,10 @@ export class MotionEvaluator {
     this.lastMs = undefined;
     // Resume from current evidence, never from energy held while hidden.
     this.ambientReactivity.reset();
+    this.providerReady = 0;
+    this.providerLoading = 0;
+    this.providerSettling = 0;
+    this.providerExplore = 0;
     this.working = 0;
     this.receptive = 0;
   }
@@ -349,7 +366,58 @@ export class MotionEvaluator {
       input.interaction.availability === "stopped";
     const spatiallyFrozen = reduced || stationary;
     const targetForeground = stationary ? "idle" : input.interaction.foreground;
-    const target = STATE_TARGETS[targetForeground];
+    const providerPhase = input.interaction.providerLifecycle?.phase;
+    const newStream = input.streamKey !== this.streamKey;
+    if (newStream || stationary) this.providerReady = 0;
+    else if (providerPhase === "ready" && this.providerPhase && this.providerPhase !== "ready")
+      this.providerReady = reduced ? 0 : 1;
+    else this.providerReady *= Math.exp(-dt / 0.65);
+    this.providerPhase = providerPhase;
+    if (reduced) this.providerReady = 0;
+    this.providerExplore = stationary
+      ? 0
+      : blend(
+          this.providerExplore,
+          providerPhase === "discovering" || providerPhase === "connecting" ? 0.45 : 0,
+          dt,
+          0.35,
+        );
+    this.providerLoading = stationary
+      ? 0
+      : blend(
+          this.providerLoading,
+          providerPhase === "loading" || providerPhase === "switching" ? 1 : 0,
+          dt,
+          0.35,
+        );
+    this.providerSettling = stationary
+      ? 0
+      : blend(this.providerSettling, providerPhase === "unloading" ? 1 : 0, dt, 0.35);
+    const baseTarget = STATE_TARGETS[targetForeground];
+    const providerPose = targetForeground === "idle" || targetForeground === "listening";
+    const target =
+      providerPose && (providerPhase === "loading" || providerPhase === "switching")
+        ? {
+            ...baseTarget,
+            radius: 0.995,
+            glow: 0.34,
+            opening: 0.11,
+            lift: 0.006,
+            coherence: 0.94,
+            drift: 0.7,
+          }
+        : providerPose && providerPhase === "unloading"
+          ? {
+              ...baseTarget,
+              radius: 0.985,
+              glow: 0.25,
+              opening: 0.04,
+              lift: 0,
+              coherence: 1,
+              drift: 0.2,
+            }
+          : baseTarget;
+    const targetKey = `${targetForeground}:${providerPhase ?? "none"}`;
     const stateTau =
       input.interaction.foreground === "interrupted"
         ? 0.07
@@ -368,10 +436,10 @@ export class MotionEvaluator {
       this.rim = target.rim;
       this.drift = target.drift;
       this.initialized = true;
-      this.reducedTarget = reduced ? targetForeground : undefined;
+      this.reducedTarget = reduced ? targetKey : undefined;
     } else if (reduced) {
-      if (this.reducedTarget !== targetForeground) {
-        this.reducedTarget = targetForeground;
+      if (this.reducedTarget !== targetKey) {
+        this.reducedTarget = targetKey;
         this.reducedTransitionMs = safeNow;
         this.startRadius = this.radius;
         this.startGlow = this.glow;
@@ -467,7 +535,8 @@ export class MotionEvaluator {
     const motion = spatiallyFrozen ? 0 : motionRateScale(settings.motionIntensity);
     const flow = spatiallyFrozen
       ? 0
-      : motionRateScale(settings.surfaceFlow) * (1 + 0.3 * this.working);
+      : motionRateScale(settings.surfaceFlow) *
+        (1 + 0.3 * this.working + 0.15 * this.providerLoading);
     const flowTarget = this.pointerHolding ? SURFACE_FLOW.pointerRate : 1;
     const flowTau = this.pointerHolding
       ? SURFACE_FLOW.pointerEaseSeconds
@@ -543,6 +612,7 @@ export class MotionEvaluator {
         inputPresence * 0.055 +
         this.peak * 0.1 +
         reasoningCue * 0.08 +
+        this.providerReady * 0.07 +
         delegatedCue +
         expressionEnergy * 0.025) *
         settings.intensity *
@@ -612,6 +682,10 @@ export class MotionEvaluator {
     this.frame.outputEnvelope = outputEnvelope;
     this.frame.envelope = this.envelope;
     this.frame.interruption = this.interruption;
+    this.frame.providerExplore = this.providerExplore;
+    this.frame.providerLoading = this.providerLoading;
+    this.frame.providerSettling = this.providerSettling;
+    this.frame.providerReady = this.providerReady;
     this.frame.reasoningCue = reasoningCue;
     this.frame.receptiveCue = this.receptive;
     this.frame.delegatedCue = delegatedCue;

@@ -1202,3 +1202,31 @@ select {
     top: 18px;
   }
 }
+
+/* Model preparation is visible even when the larger startup card is dismissed. */
+.status {
+  flex-wrap: wrap;
+  max-width: calc(100vw - 48px);
+}
+.provider-status {
+  flex-basis: 100%;
+  display: grid;
+  gap: 3px;
+  max-width: min(560px, calc(100vw - 48px));
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+.status .provider-status small {
+  margin-left: 0;
+  color: #a79c91;
+  font-size: 0.7rem;
+}
+.provider-status__elapsed {
+  font-size: 0.7rem;
+  color: #a79c91;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-notice {
+  top: clamp(132px, 17vh, 168px);
+}

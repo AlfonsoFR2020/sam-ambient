@@ -357,6 +357,7 @@ interface DrawResource {
 
 interface CommonUniforms {
   readonly behavior: WebGLUniformLocation;
+  readonly provider: WebGLUniformLocation;
   readonly radius: WebGLUniformLocation;
   readonly intensity: WebGLUniformLocation;
   readonly scale: WebGLUniformLocation;
@@ -810,6 +811,7 @@ export class WebGLBackend implements RendererBackend {
     const gl = this.gl;
     return {
       behavior: location(gl, shader, "u_behavior"),
+      provider: location(gl, shader, "u_provider"),
       radius: location(gl, shader, "u_radius"),
       intensity: location(gl, shader, "u_intensity"),
       scale: location(gl, shader, "u_scale"),
@@ -843,6 +845,13 @@ export class WebGLBackend implements RendererBackend {
 
   private setCommonUniforms(uniforms: CommonUniforms, frame: MotionFrame): void {
     const gl = this.gl;
+    gl.uniform4f(
+      uniforms.provider,
+      frame.providerExplore,
+      frame.providerLoading,
+      frame.providerSettling,
+      frame.providerReady,
+    );
     gl.uniform4f(
       uniforms.behavior,
       frame.reactivity.inputPresence,

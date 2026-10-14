@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Living regional palette banks evolve red/gold/blue/violet/green harmonies using
+  independent clocks; particles share the composition, raised film stays quieter.
+- Persistent core-confirmed model preparation status, observed waiting time and
+  restrained Orb loading/settling/ready behavior; stale routes remain last-known
+  across reconnect until fresh readiness. No provider capability/routing expansion.
+
 - Visual Identity III: calmer raised-film pigment, front/underside satin/backlight
   and bounded High contact shading make colored folds clearer; one shared speech
   crest coordinates body, skin and nearby particles. Geometry/radius/draw bounds

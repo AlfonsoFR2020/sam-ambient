@@ -13,6 +13,7 @@ export const LIVING_MATERIAL_GLSL = `
 #endif
 uniform int u_light_count;
 uniform float u_light_phase;
+uniform vec4 u_provider; // exploratory, loading, settling, confirmed-ready transition
 uniform vec4 u_behavior; // measured input/output, lifecycle work, receptive posture
 uniform float u_ripple_phase;
 
@@ -31,7 +32,11 @@ vec3 livingBehaviorLight(LivingField field, vec3 pigment,vec3 position,float rad
   float speech=u_behavior.y>.0001 ? u_behavior.y*(.045+.28*discourseCrest(position,radius,u_ripple_phase)) : 0.;
   float current=exp(-16.*abs(sin(u_ripple_phase+2.4*field.broad-1.5*field.medium)));
   float internal=u_behavior.z*(.04+.28*field.broad*field.medium+.18*current);
-  return pigment*(receptive+speech+internal);
+  float preparation=u_provider.y>.0001 ? exp(-7.*pow(sin(u_ripple_phase+2.2*field.broad+field.medium),2.)) : 0.;
+  float search=u_provider.x>.0001 ? u_provider.x*(.025+.06*field.broad*(.5+.5*sin(u_light_phase+field.medium*3.))) : 0.;
+  float loading=u_provider.y*(.035+.45*preparation*(.3+.7*field.broad));
+  float settling=u_provider.z*.035*(1.-field.broad);
+  return pigment*(receptive+speech+internal+search+loading+settling+u_provider.w*.09);
 }
 
 float livingSurfaceDetail(LivingField field) {
@@ -91,6 +96,7 @@ LivingLight livingLight(vec3 normal,vec3 position){return livingLight(normal,pos
 
 /** Body and peels share field-driven radius; only the body tangent-samples normals. */
 export const LIVING_SURFACE_VERTEX_GLSL = `
+uniform vec4 u_provider; // exploratory, loading, settling, confirmed-ready transition
 uniform vec4 u_behavior;
 float livingDisplacement(vec3 objectDirection, float breathPhase, float ripplePhase, float deformation, float ripple) {
   vec3 n = normalize(objectDirection);

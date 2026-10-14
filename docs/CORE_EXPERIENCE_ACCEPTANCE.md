@@ -555,3 +555,18 @@ Historical beta rejection remains intact; automated visual change is not accepta
 [Comparisons, timing, resource limits and sanitized runtime record](VISUAL_IDENTITY_III.md)
 keep startup success separate from uncompleted live performance assessment. No second
 Sam launch, personal microphone/speaker test, version bump or human acceptance.
+
+## 2026-10-14 — living palette and provider preparation presentation
+
+| Area | Automated / isolated evidence | Runtime / human acceptance | Remaining |
+| --- | --- | --- | --- |
+| Evolving color composition | Three shared cyclic banks, independent existing clocks; 0/15/45/120/300 s palette-only and transport-only rows; 20 ms continuity; same tier identity | No real Sam/audio/provider session; no owner judgment | Palette appeal, real observation-period naturalness and full-app cost |
+| Membrane / particles | Quiet film/contact and six-sheet geometry retained; particles share bank phases without more points/passes | Headless only | Film readability across all evolving hues and owner sizes |
+| Provider status | Exact requested model, known provider, scoped observed wait; core-confirmed ready/unloaded; no percentages; current Controls at 640 px | Synthetic protocol seam, no real cold load | Everyday usability and broad provider environments |
+| Provider Orb cues | Separate search/preparation/settling lighting; one ready transition; actual inference remains reasoning; Reduced Motion/zero audio/retirement checks | Synthetic state/renderer only | Recognition and subtlety of the visual vocabulary |
+| Correlation / recovery | Delayed/failed/rapid replacement, stale completion, reconnect, shutdown; red/green stale-route-before-snapshot regression | Existing core ownership unchanged | Existing runtime compatibility limits remain |
+
+156 focused tests / 19 files, TypeScript, Biome and frontend build pass. Three small
+headless/sandboxed/muted cases establish real shader rendering and UI wiring;
+no visible desktop, models, microphone or speakers. [Evidence and limits](LIVING_PALETTE_AND_READINESS.md).
+This does not supersede historical owner criticism or establish new human acceptance.

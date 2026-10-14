@@ -817,3 +817,15 @@ transitions. Existing palette clocks and local fields evolve regions differently
 transport, geometry, quiet film and authority remain independent. This is not a
 whole-Orb hue offset. No extra samples/draws/counts or dependencies. Canvas remains
 an economical warm fallback. [Evidence](LIVING_PALETTE_AND_READINESS.md).
+
+## 2026-10-14 — core-confirmed provider presentation, not fabricated progress
+
+Project existing correlated reducer facts into one status/visual vocabulary for
+provider preparation. A session/operation-keyed, disposal-bound local timer reports
+observed wait, not completion. Core-confirmed unloaded is a frontend boolean from
+existing events/snapshots; no prose parsing or wire/provider changes. Loading has
+its own broad light circulation and quiet posture, separate from inference and
+speech. Reduced Motion freezes clocks and omits the short ready confirmation.
+A red/green regression keeps a stale route last-known across transport reconnect
+until the fresh snapshot. No new polling, permissions, profile or routing layer.
+[Evidence and acceptance limits](LIVING_PALETTE_AND_READINESS.md).

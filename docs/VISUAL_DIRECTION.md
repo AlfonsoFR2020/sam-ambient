@@ -18,6 +18,12 @@ naturalness remain human judgments, not consequences of GPU timings or pixel cou
 Contact shading is an ambient approximation, not refraction or a directional shadow.
 No actual concept board was found; these bounded optical changes do not replace it.
 
+**Living palette/readiness amendment:** [the current evidence](LIVING_PALETTE_AND_READINESS.md)
+replaces fixed warm allocation with three locally evolving composed color banks,
+while preserving broad field structure, quiet lifted film and independent transport.
+Core-confirmed provider preparation has its own restrained light/posture vocabulary,
+separate from inference Thinking. These changes have headless evidence, not human acceptance.
+
 ## A living object
 
 Sam should feel like one living, organic orb rather than a sphere accompanied by
@@ -84,16 +90,16 @@ follow the same deformed normals and material depth rather than sliding as an
 unrelated overlay. Internal glow, body and outer membrane may use different
 material responses without becoming disconnected layers.
 
-The existing amber/copper/gold palette is Sam's implemented identity and the safe
-baseline. The concept board's wider warm-to-cool circulation is a promising
-**experimental palette extension**: warm dominance could coexist with restrained
-violet, blue and teal passages if legibility, tone bounds and visual acceptance
-support it. It does not silently replace v1's bounded warm themes. A broad palette
-shift, true translucency or extra rendering pass needs a later contract decision;
-the current Canvas/static fallbacks still need a recognizable Sam.
-Within this warm identity, hue relationships, saturation and tonal balance should
-shift slowly enough to feel like one living organism rather than cycle through fixed
-red/cyan/yellow/orange placements or flicker through rainbow noise.
+Amber/copper/gold is the historical v1/published baseline. HQ's October 14
+living-palette direction explicitly broadens development color to composed red,
+gold, rose, blue, violet, emerald and teal families. Cyclic banks interpolate
+locally at different existing clock rates; broad territories and restrained chroma/
+luminance changes retain an organic composition rather than a global hue offset
+or rainbow static. Film optics remain quieter. This supersedes the fixed warm
+allocation described in the historical construction below. Canvas/static fallbacks
+remain an economical warm Sam. True translucency and new passes need separate
+evidence; broader hues do not authorize a geometry rewrite. Palette appeal remains
+an owner judgment, not a consequence of larger numeric color differences.
 
 The current small-scale ovoid and mountain/valley relief has naturalistic appeal.
 Retain bounded relief while comparing subtler and stronger expressions; neither a

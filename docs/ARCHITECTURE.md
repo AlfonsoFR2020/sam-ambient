@@ -196,6 +196,13 @@ separation remain. [Identity III](VISUAL_IDENTITY_III.md) adds shared-film optic
 bounded High ambient-contact shading from the same seeded sheet/curl descriptors,
 and one world-space crest over body/skin/near particles using the existing ripple
 clock. No new renderer pass, signal authority or resource owner is introduced.
+[Palette/readiness](LIVING_PALETTE_AND_READINESS.md) uses three cyclic color banks
+with the existing independent palette clocks and quieter film. A pure frontend
+projection of correlated discovery/lifecycle state supplies persistent status,
+scoped elapsed waiting and optional typed provider visual cues. Confirmed unloaded
+is retained as a frontend fact, not parsed from reason text. Stale reconnect remains
+last-known until fresh readiness. Provider work never becomes Thinking, speech or
+turn authority; provider control/admission/ownership and wire events are unchanged.
 Engine-owned elapsed-time clocks separately advance orientation,
 relief, material shears, palette evolution, lighting and particles; pointer ownership
 temporarily reduces the material rate without resetting phase. The existing quality

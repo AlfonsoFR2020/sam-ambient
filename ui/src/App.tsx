@@ -25,6 +25,7 @@ import { DemoTransport } from "./demo/scenarios";
 import { MessageContent } from "./MessageContent";
 import { MemoryManager } from "./memory/Manager";
 import { isNativeShell, nativeShellRuntime } from "./native/runtime";
+import { ProviderStatus } from "./ProviderStatus";
 import type { UiState } from "./protocol/types";
 import { QuitDialog, ShutdownStatus } from "./QuitDialog";
 import { RuntimeStatus, SpeechStatusFields } from "./RuntimeStatus";
@@ -425,7 +426,11 @@ export function StartupCard({
             state.connection !== "connected" ||
             (state.providerDiscovery.status === "scanning" && !state.providerDiscovery.retrying)
           }
-          title="Check local services and models again when Sam is connected."
+          title={
+            state.providerDiscovery.status === "scanning" && !state.providerDiscovery.retrying
+              ? "Wait for the current model operation to finish before rescanning."
+              : "Check local services and models again when Sam is connected."
+          }
           onClick={() => applyAction({ type: "providers.rescan" })}
         >
           {state.startupLifecycle === "blocked" ? "Retry / Rescan" : "Rescan"}
@@ -755,11 +760,12 @@ export default function App() {
             {state.updateActivity.componentId} · {state.updateActivity.state.toLowerCase()}
           </small>
         )}
+        <ProviderStatus state={state} />
       </header>
       {!startupVisible &&
         !quitRequested &&
         !state.applicationStopped &&
-        (commandError || runtimeStatus.notice) && (
+        (commandError || (state.model && runtimeStatus.notice)) && (
           <output className="status-notice">
             {commandError ? "Sam could not apply that control. Try again." : runtimeStatus.notice}
           </output>
@@ -1032,7 +1038,11 @@ export default function App() {
                 Unload active model
               </ControlButton>
               <ControlButton
-                help="Check again for available local AI services and models."
+                help={
+                  state.providerDiscovery.status === "scanning" && !state.providerDiscovery.retrying
+                    ? "Wait for the current model operation to finish before rescanning. Controls and Quit remain available."
+                    : "Check again for available local AI services and models."
+                }
                 disabled={
                   state.connection !== "connected" ||
                   ((pending || state.providerDiscovery.status === "scanning") &&

@@ -146,6 +146,8 @@ export interface ProviderCatalogEntry {
 }
 
 export interface ProviderDiscoveryState {
+  /** Core-confirmed unloaded outcome; presentation must not parse reason text. */
+  modelUnloaded?: boolean;
   status: "unavailable" | "idle" | "scanning" | "available" | "empty" | "failed" | "stale";
   requestId?: string;
   reason?: string;

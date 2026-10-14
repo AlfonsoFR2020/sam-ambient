@@ -38,15 +38,17 @@ export const friendlyStartupReason = (reason: string | undefined): string | unde
 
 export function statusPresentation(state: UiState): StatusPresentation {
   if (state.applicationStopped) return { label: "Stopped", limitations: [] };
-  if (state.connection !== "connected") {
+  if (state.connection !== "connected" || state.providerDiscovery.status === "stale") {
     return {
       label: state.sessionId ? "Reconnecting" : "Starting Sam",
       notice:
-        state.connection === "offline" && state.protocolError
-          ? "Sam cannot reach its local service. It will keep retrying."
-          : state.sessionId
-            ? "The local service disconnected. Sam is reconnecting."
-            : "Connecting to Sam’s local service…",
+        state.connection === "connected" && state.providerDiscovery.status === "stale"
+          ? "Reconnected to the local service; waiting for confirmed model status."
+          : state.connection === "offline" && state.protocolError
+            ? "Sam cannot reach its local service. It will keep retrying."
+            : state.sessionId
+              ? "The local service disconnected. Sam is reconnecting."
+              : "Connecting to Sam’s local service…",
       limitations: [],
     };
   }
@@ -60,7 +62,13 @@ export function statusPresentation(state: UiState): StatusPresentation {
   if (state.providerDiscovery.status === "scanning") {
     return {
       label:
-        state.startupLifecycle === "unloading_model" ? "Unloading model" : "Checking local models",
+        state.startupLifecycle === "unloading_model"
+          ? "Unloading model"
+          : state.startupLifecycle === "loading_model"
+            ? state.model
+              ? "Switching model"
+              : "Loading model"
+            : "Checking local models",
       notice: state.providerDiscovery.retrying
         ? "Sam is waiting for its model inventory and will retry shortly."
         : state.startupLifecycle === "loading_model"

@@ -116,5 +116,6 @@
     "ui/src/visual-engine/tuning.ts": "d9aab6ea483169e2e650035870c6abbdec6b06424c768b2339fd28124eaefb75",
     "ui/src/visual-engine/types.ts": "45a357b7d6a1459af773686c1b2474c5e8a6207d226cb5011be7e3772b092d3e",
     "ui/src/visual-engine/webgl.ts": "589d70932568b7d2235063bf76bc54d36c554e376498224c553544c54da72598"
-  }
+  },
+  "sourceCommit": "d381947ed189efcebc049aaaaaaa728678c7450d"
 }

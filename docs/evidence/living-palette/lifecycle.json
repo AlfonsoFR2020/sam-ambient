@@ -1,0 +1,88 @@
+{
+  "startingCommit": "bc91a0394068b5a68a3a4a88fc5bf78fd06d7b4a",
+  "paletteCheckpoint": "d381947ed189efcebc049aaaaaaa728678c7450d",
+  "fixture": "headless/sandboxed/muted; no core/provider/audio; 480 square DPR1 yaw .75",
+  "frames": [
+    {
+      "phase": "discovering",
+      "radius": 1.009422936726932,
+      "loading": 0,
+      "explore": 0.44534557206152176,
+      "settling": 0,
+      "reasoning": 0
+    },
+    {
+      "phase": "loading",
+      "radius": 1.0044229367269322,
+      "loading": 0.9896568268033816,
+      "explore": 0,
+      "settling": 0,
+      "reasoning": 0
+    },
+    {
+      "phase": "unloading",
+      "radius": 0.9944229367269322,
+      "loading": 0,
+      "explore": 0,
+      "settling": 0.9896568268033816,
+      "reasoning": 0
+    },
+    {
+      "phase": "ready",
+      "radius": 1.009422936726932,
+      "loading": 0,
+      "explore": 0,
+      "settling": 0,
+      "reasoning": 0
+    },
+    {
+      "phase": "failed",
+      "radius": 1.009422936726932,
+      "loading": 0,
+      "explore": 0,
+      "settling": 0,
+      "reasoning": 0
+    },
+    {
+      "phase": "thinking",
+      "radius": 0.9844229367269322,
+      "loading": 0,
+      "explore": 0,
+      "settling": 0,
+      "reasoning": 1
+    }
+  ],
+  "sourceSha256Lf": {
+    "ui/src/visual-engine/ambient-reactivity.ts": "5126c9f663456ac60df77ba1e29f97e380c7c0b4b0836ae5037b99ee4c91f4df",
+    "ui/src/visual-engine/backend.ts": "436d970a764d9a4deb0ab2a462a75bc8c0fe037c5537eca64825471b650a933c",
+    "ui/src/visual-engine/canvas.ts": "0ee8900f1309d0eafdd5df15350bcffad725cbd90373e0518733d05ff8712809",
+    "ui/src/visual-engine/discourse-crest.ts": "9d91f6ad576a926ef70bbec54af8347dd87a40a8db618c618ae461fd04eb1c6a",
+    "ui/src/visual-engine/engine.ts": "58e4b4c254a78d9c593c539f00766e372368f447db2a3989cb61d8efef7d180b",
+    "ui/src/visual-engine/geometry.ts": "3c7bf9af70021517d2eee7027daae82bfaffe0643963ffab41aba2a7269c0ba0",
+    "ui/src/visual-engine/governor.ts": "65c0125d3682c4d672df2547b8ba5a28e9101ee1f7f85df495eec60527a3f32b",
+    "ui/src/visual-engine/input.ts": "0acc8fe7dab9b54ed25bf452e7422005602bcbfdce3a10266588540df74c9c4f",
+    "ui/src/visual-engine/interaction.ts": "433bb8f1aaa8b99ea18cceaf6a163bad757f9f4454b90ad7aba50566e0b91e53",
+    "ui/src/visual-engine/living-field.ts": "402f0f3c546392c0569ddadcef82f2adf17eb5507945a7304c8b7ee226d25bf1",
+    "ui/src/visual-engine/living-material.ts": "974fa5e7a385da8641bc103690bcb68805d97f2308e32a1bc41f940b1bff1b77",
+    "ui/src/visual-engine/membrane-optics.ts": "ffa4f07f81b17592f2be7e60b437c4bbd63f0f7a1873e431fdf1e1b4f7a09395",
+    "ui/src/visual-engine/membrane.ts": "966e843352c244ff38affc4b28aad866641ef2f871be8076eae379250cbc922b",
+    "ui/src/visual-engine/motion.ts": "65a1ce8b6ee0f2a40380443e917487cecfc3aa8d809f98cbd527ad2685d6ae7f",
+    "ui/src/visual-engine/palette.ts": "3a9ff2873a34d096e8b6273317bae892502756e8da52fa77771f2d30a7c6c9fb",
+    "ui/src/visual-engine/particles.ts": "2c9a59a255ca097f09946e423da3a041f49194eb7bd92286eff3ac1232352d92",
+    "ui/src/visual-engine/quality.ts": "888d9395e518be71caad4c8fd66e5da7c4e5f5f1710244e538e99747436ff73b",
+    "ui/src/visual-engine/settings.ts": "6fa95395e8a81dbf252129dcc06e3429ec23f8420bedad4e45c840fdbb407bd4",
+    "ui/src/visual-engine/tuning.ts": "d9aab6ea483169e2e650035870c6abbdec6b06424c768b2339fd28124eaefb75",
+    "ui/src/visual-engine/types.ts": "40a59cf1136e9c0425d6b47043a6060bd3aa3deca33c527145dcd977cba3a138",
+    "ui/src/visual-engine/webgl.ts": "e9e600e96852e33fc11f46604b9cb30eb76aafbae030cba785d0b73c6c979d87",
+    "ui/src/provider-lifecycle.ts": "7db482ac1900f8dd6d56284188658eea9e563e4db5a6ad2a9b5a901671a14841",
+    "ui/src/ProviderStatus.tsx": "261e907a9c139d9fee2702057fc9ec0037890b3ddcd3bae1f4b8cac9f8f5c59c",
+    "ui/src/status.ts": "1407529e3a82e881984fafdb60d967d019a82a2cfe327920a70534147d484ead",
+    "ui/src/RuntimeStatus.tsx": "f58fef3cbf0f8242bcf1dcfe3a1d066bc0ee88032ed7420db761e5bc4556e860",
+    "ui/src/App.tsx": "e3efd3dad43b1d6f1dd0542068c4352e047eae90225c5cad570ce9a0b2eacbb9",
+    "ui/src/styles.css": "1cfd211f9376e2571813596f5ea26c9fdb8b97771490f855d5645be0529390b8",
+    "ui/src/protocol/types.ts": "ad018bbd8394cc2f52a1a2e3e27ef07fc4fa1aecd20f82f21adf941ed93edf09",
+    "ui/src/state/reducer.ts": "514f9cfc7c68320907cbc1090d3600c46c9bab9b4d8d3ca65aeb16289bae7f81"
+  },
+  "humanAcceptance": false,
+  "gpuTiming": null
+}

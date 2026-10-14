@@ -84,10 +84,11 @@ are not automatically blockers for a future release.
   separate persisted Surface Flow control is completed in [Core Experience V](CORE_EXPERIENCE_V.md),
   with independent field clocks, legacy migration and renderer/persistence checks.
   Default-rate human acceptance remains open. Do not claim Auto without a real signal.
-- **Palette and relief:** retain warm dominance and multicolour regions, but evolve
-  colour relationships, saturation and tonal balance beyond the new slow local
-  balance/contrast changes if human review still finds repetitive
-  red/cyan/yellow/orange. Avoid discontinuities and rainbow noise. Keep
+- **Palette and relief:** [composed local banks](LIVING_PALETTE_AND_READINESS.md)
+  now evolve broader blue/violet/green/red/gold families over existing clocks;
+  0–300 s palette-only/transport-only comparisons preserve large regions, quiet film
+  and short-frame continuity. Appeal remains unaccepted; do not equate numeric
+  color change with attractiveness or add rainbow noise. Keep
   the current bounded ovoid/mountain character pending art direction: it comes from
   Y scaling 1.06, field/breath displacement and older audio response terms clamped
   to ±0.04. Tune prominence later rather than flattening it by assumption.
@@ -167,6 +168,11 @@ are not automatically blockers for a future release.
 ## Behavior and settings
 
 - Add an owner setting for new-session versus resume-previous-conversation behavior.
+- **Provider/model presentation implemented:** core-confirmed preparation status,
+  scoped observed waiting, separate loading/unloading/ready visual cues and stale
+  reconnect protection have [focused/headless evidence](LIVING_PALETTE_AND_READINESS.md).
+  This is presentation, not new routing/polling or a claim of broader provider
+  compatibility. Real provider/performance behavior remains independently validated.
 - Validate provider/model Rescan, service disappearance, and model loading against
   real LM Studio/Ollama and reconnect timing after the deterministic state and
   isolated-browser recovery checks. The historical black-screen report was not

@@ -505,6 +505,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ttsSelection: speechSelection(event.payload.tts_selection),
       providerCatalog: readyCatalog,
       providerDiscovery: {
+        ...(event.payload.provider_discovery_state === "unloaded" ? { modelUnloaded: true } : {}),
         status: readyScanning
           ? "scanning"
           : readyDiscoveryFailed
@@ -734,6 +735,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
           ? next.providerCatalog
           : catalog,
       providerDiscovery: {
+        ...(phase === "unloaded" ? { modelUnloaded: true } : {}),
         status: discoveryStatus,
         requestId,
         reason,
