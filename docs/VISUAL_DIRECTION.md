@@ -6,6 +6,15 @@ defines today's renderer, data, interaction, accessibility and performance contr
 [State](STATE.md) records what has landed. This document gives later design work a
 shared visual aim while leaving mathematical and performance choices open.
 
+**Current dev revision (2026-10-14):** [Visual Identity II](VISUAL_IDENTITY_II.md)
+replaces the dome representation with six attached curling sheets and independent
+geometric flex. Existing state/envelopes coordinate receptive posture, internal
+working light and expressive speech across the composition. High resolves finer
+curves, satin relief and opaque-core overlaps; Low/Medium retain the same identity.
+Its current nine/ten-draw and 12/24/64-particle contracts supersede earlier historical
+four-draw/dome descriptions below. Full-color readability, character and perceived
+naturalness remain human judgments, not consequences of GPU timings or pixel counts.
+
 ## A living object
 
 Sam should feel like one living, organic orb rather than a sphere accompanied by
@@ -377,8 +386,8 @@ retains no particles. Later activity may add restrained XYZ movement only from
 timely audio/waveform evidence.
 
 Voice capture, STT, interruption, first model content, inference, UI response, TTS
-and playback take priority. The current v1 caps, including `mobile_2020`, four
-draws, bounded geometry/pixels, Canvas/static fallback, no per-frame React state,
+and playback take priority. The current caps, including `mobile_2020`, nine Low/Medium
+or ten High draws, bounded geometry/pixels, Canvas/static fallback, no per-frame React state,
 seeded determinism and zero work when hidden, remain the acceptance envelope.
 The conceptual field should first be convincing with few analytic operations,
 low internal resolution, sparse particles and simple material response. Lower

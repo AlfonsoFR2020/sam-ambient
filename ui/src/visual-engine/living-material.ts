@@ -75,7 +75,7 @@ export const LIVING_MATERIAL_GLSL = `
 #endif
 uniform int u_light_count;
 uniform float u_light_phase;
-uniform vec4 u_behavior; // measured input, measured output, lifecycle work
+uniform vec4 u_behavior; // measured input/output, lifecycle work, receptive posture
 uniform float u_ripple_phase;
 
 struct LivingPigment { vec3 albedo; float cool; };
@@ -122,6 +122,21 @@ float livingSurfaceDetail(LivingField field) {
 }
 
 struct LivingLight { float diffuse; float glint; float rim; };
+// Screen derivatives recover a world-space fine-relief gradient. Only High
+// shades this satin relief; it never changes geometry, palette or animation.
+vec3 livingMaterialNormal(vec3 normal, vec3 position, float detail) {
+  vec3 n=normalize(normal);
+#if SAM_FINE_OCTAVES >= 2
+  vec3 px=dFdx(position), py=dFdy(position);
+  vec3 a=cross(py,n), b=cross(n,px);
+  float determinant=dot(px,a);
+  if(abs(determinant)>1.e-8) {
+    vec3 gradient=(a*dFdx(detail)+b*dFdy(detail))/determinant;
+    n=normalize(n-.065*gradient/max(1.,length(gradient)));
+  }
+#endif
+  return n;
+}
 LivingLight livingLight(vec3 normal, vec3 position) {
   vec3 n = normalize(normal), view = vec3(0.0, 0.0, 1.0);
   float diffuse = 0.0, glint = 0.0;

@@ -250,7 +250,7 @@ describe("visual engine lifecycle", () => {
     engine.configure({ quality: "high", deviceProfile: "high_end" });
     engine.configure({ deviceProfile: "mobile_2020" });
 
-    expect(particleBudgets).toEqual([12, 40, 12]);
+    expect(particleBudgets).toEqual([12, 64, 12]);
     expect(disposed).toBe(2);
     engine.dispose();
   });

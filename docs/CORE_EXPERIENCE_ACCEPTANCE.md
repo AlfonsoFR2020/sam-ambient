@@ -1,4 +1,4 @@
-# Core Experience evidence — I through V and Visual Identity I
+# Core Experience evidence — I through V and Visual Identity II
 
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
 Expansion**. Published v0.2.4 is unchanged. Automated evidence does not establish
@@ -529,3 +529,16 @@ remains high-priority and separate; expansion and AEC research stay parked.
 [Comparisons, metrics and reproduction](VISUAL_IDENTITY_I.md) distinguish technical
 causes from artistic hypotheses. No visible browser, Sam/provider, microphone or
 speaker session was launched. This does not close the October 9 failed visual judgment.
+
+## 2026-10-14 — Visual Identity II, headless only
+
+| Area | Automated / offscreen evidence | Runtime / human acceptance | Remaining |
+| --- | --- | --- | --- |
+| Moving layered membrane | Six attached curled sheets; 0/12 s fixed-clock geometry comparison, neutral/isolate views, preserved hinge and finite bounds | No Sam, physical audio or human run | Full-color readability, translucency/contact shadow, original concept board |
+| Behavior | Existing adapter → receptive/working/speech posture, coupled body/light/curl/particles, zero/reduced/cancel/stale-owner regressions | Synthetic only | Naturalness and acoustic-to-display latency in normal use |
+| High fidelity | 128×64 body / 64×24 sheets, satin fine normals, opaque-core depth, 64 particles; identical-scene tier sheets and non-disjoint GPU queries | RTX 3070 isolated fixture only | Representative full-app/low-power performance and perceived superiority at owner sizes |
+
+108 focused visual unit checks, TypeScript and three explicit headless/sandboxed
+WebGL cases pass; the subsequent depth-precision correction passes its 25 targeted
+checks and refreshed browser gate. [Evidence, resources and restrictions](VISUAL_IDENTITY_II.md).
+Historical beta rejection remains intact; automated visual change is not acceptance.

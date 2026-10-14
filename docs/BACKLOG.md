@@ -70,8 +70,8 @@ are not automatically blockers for a future release.
 ## UI and Visual Engine
 
 - **Living Orb direction:** retain the shared, seam-safe body/peel field and the
-  `mobile_2020` and four-draw budgets. Irregular lifted membrane fragments now
-  replace the WebGL ribbons; compare their continuity and depth against the
+  `mobile_2020` and bounded nine/ten-draw budgets. Six attached moving curled sheets now
+  replace WebGL domes; compare their continuity and depth against the
   older loxodromic fallback on representative hardware. Broad palette,
   translucency and depth still need human visual acceptance; see
   [Visual direction](VISUAL_DIRECTION.md).
@@ -96,21 +96,19 @@ are not automatically blockers for a future release.
   and rose/violet allocation. Technical fixes are implemented; October 9 artistic
   rejection is not overwritten. Layer coherence/translucency, palette appeal and
   natural speech embodiment still need the actual reference and later human judgment.
-- **Outer membrane/peels:** high-tier edge resolution, normals and lift have
-  been repaired after the beta; evaluate whether the revised seeded patches read
-  as one lifted membrane rather than separate plates. Check soft edge depth writes,
-  overlapping fragments, opacity, silhouette and specular balance at low/mobile
-  and high tiers; the isolated WebGL check establishes tint alignment, not human
-  perception or worst-case alpha ordering. Later activity/audio may increase
-  individual lift. Consider a connected shell mask only if the measured patches
-  remain visually disconnected; avoid an expensive transparency system by default.
+- **Visual Identity II / outer membrane:** six broad attached sheets, actual curl
+  flex, receptive/working/speech response and High opaque-core depth are implemented;
+  [comparisons/cost](VISUAL_IDENTITY_II.md) are headless only. Full-color layer
+  readability and contact-shadow/translucency character still need reference-led
+  judgment; soft intersections remain approximate. Do not repeat the old dome tuning
+  or claim that dense pigment masks cannot still camouflage the layer.
 - **Lighting:** the primary light now crosses the limb and additional tier lights
   are weak fill. Fixed-body WebGL pixels show spatial variation with light phase,
   but human visibility, ambient depth and restrained glints remain unverified.
   Measure each tier on representative hardware before further art-direction tuning.
 - **Particles:** WebGL now has a seeded, biased 1.2–2.45 radius field with varied
   paths, size, opacity and warm pigment; rear particles outside the silhouette
-  survive depth testing. Counts remain 12/24/40 and the density slider reveals
+  survive depth testing. Counts are now 12/24/64 and the density slider reveals
   a share of that cap. Check whether the sparse tail actually gives useful
   atmosphere on desktop and mobile; viewport clipping still limits the farthest
   paths. Explore roughly 5–10× the high-end population only after point-fill,

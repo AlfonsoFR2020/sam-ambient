@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Visual Identity II: six broad attached, curling membrane sheets with independent
+  geometric motion; coordinated listening, processing and speech response across
+  body/light/membrane/particles; finer High geometry, satin relief and opaque-core
+  depth. Preserve Low/Medium and automatic protections. Headless evidence available;
+  artistic, acoustic and full-app performance acceptance remain separate.
+
 - Visual Identity I: smooth lower-lift organic membrane, body-consistent normals,
   broader living pigment territories and richer rose/violet/gold color relationships;
   preserve speech-envelope response and bounded renderer tiers. Human acceptance pending.

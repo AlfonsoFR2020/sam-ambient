@@ -11,6 +11,8 @@ export interface RenderBudget {
   readonly peels: number;
   readonly peelSamples: number;
   readonly peelRows: number;
+  /** Opaque membrane interiors prime depth; soft fringes remain blended. */
+  readonly membraneDepthPass: boolean;
   readonly particles: number;
   readonly lights: number;
   readonly idleFps: number;
@@ -29,6 +31,7 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     peels: 6,
     peelSamples: 16,
     peelRows: 6,
+    membraneDepthPass: false,
     particles: 12,
     lights: 1,
     idleFps: 24,
@@ -45,6 +48,7 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     peels: 6,
     peelSamples: 28,
     peelRows: 10,
+    membraneDepthPass: false,
     particles: 24,
     lights: 2,
     idleFps: 30,
@@ -56,12 +60,13 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
   high: Object.freeze({
     quality: "high",
     fineOctaves: 2,
-    sphereLongitude: 96,
-    sphereLatitude: 48,
+    sphereLongitude: 128,
+    sphereLatitude: 64,
     peels: 6,
-    peelSamples: 40,
-    peelRows: 14,
-    particles: 40,
+    peelSamples: 64,
+    peelRows: 24,
+    membraneDepthPass: true,
+    particles: 64,
     lights: 3,
     idleFps: 30,
     activeFps: 60,

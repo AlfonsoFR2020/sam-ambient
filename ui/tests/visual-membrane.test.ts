@@ -43,11 +43,14 @@ describe("attached living membrane", () => {
               peel.curlRadius,
               peel.phase,
               phase,
-              1,
+              0,
               0.075,
               1.15,
               1,
               0.12,
+              1,
+              0,
+              1,
             );
             const b = membraneOffsets(
               u,
@@ -56,16 +59,42 @@ describe("attached living membrane", () => {
               peel.curlRadius,
               peel.phase,
               phase + 0.01,
-              1,
+              0,
               0.075,
               1.15,
               1,
               0.12,
+              1,
+              0,
+              1,
             );
             expect(Math.hypot(a[0] - b[0], a[1] - b[1])).toBeLessThan(0.003);
             expect(Math.hypot(1.18 + 0.04 + a[0], a[1]) * 1.06).toBeLessThan(MEMBRANE_RADIUS_BOUND);
           }
       }
+  });
+  it("unfurls receptive lips and tightens working lips without detaching the hinge", () => {
+    const p = createPeelDescriptors(6)[0];
+    const sample = (v: number, work: number, receptive: number) =>
+      membraneOffsets(
+        0,
+        v,
+        p.lift,
+        p.curlRadius,
+        p.phase,
+        1,
+        0.1,
+        0.002,
+        1,
+        0.82,
+        0,
+        work,
+        receptive,
+      );
+    expect(sample(0, 1, 0)).toEqual([0, 0]);
+    expect(sample(0, 0, 1)).toEqual([0, 0]);
+    expect(sample(1, 1, 0)[1]).toBeLessThan(sample(1, 0, 0)[1] - 0.012);
+    expect(sample(1, 0, 1)[1]).toBeGreaterThan(sample(1, 0, 0)[1] + 0.012);
   });
   it("stores smooth carrier/side derivatives without degenerate triangles or pole seams", () => {
     const mesh = createPeelGeometry(RENDER_BUDGETS.high);

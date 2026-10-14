@@ -10,6 +10,15 @@ settings decisions. [Sam Orb visual direction](VISUAL_DIRECTION.md) records the
 post-v0.2.2 artistic aim and alternative geometry; it does not change these
 implementation bounds or voice policy by itself.
 
+**2026-10-14 current amendment:** [Visual Identity II](VISUAL_IDENTITY_II.md)
+supersedes the original WebGL rhumb/dome membrane and four-draw cap below. Six
+attached, geometrically flexing curled sheets share pigment and a coordinated
+receptive/working/speaking grammar. Low/Medium use nine draws; High uses ten,
+including opaque-core depth priming with invariant positions and a tiny depth bias.
+Soft fringes stay blended. Canvas remains deliberately simpler. Original v1 peel
+dimensions and choreography examples below are historical where superseded;
+current tier budgets in section 8 apply. This changes no audio/turn authority.
+
 ## 1. Visual identity and renderer decision
 
 Sam is a luminous amber spheroid with fragmented wrapping peels, a quiet inner glow
@@ -45,7 +54,7 @@ An indexed latitude/longitude UV mesh has a duplicated longitude seam and no
 zero-area pole triangles. Medium uses 72 longitude segments and 36 latitude
 segments: at most 2,701 vertices and 5,040 triangles. Keep static unit normals/UVs
 in immutable buffers. Current field-driven spheroid axes are `(1, 1.06, 1)`;
-body relief and audio remain bounded. High uses 96 × 48 segments (4,753 vertices);
+body relief and audio remain bounded. High uses 128 × 64 segments (8,385 vertices);
 low uses 32 × 16. The final radial bound in section 5 is mandatory.
 
 ### Fragmented loxodromic peels
@@ -126,7 +135,7 @@ orbit with radii `(1.6,1.3,1.5)`, inclinations up to 35 degrees and angular spee
 0.07–0.13 rad/s. Clamp audio speed modulation to +35%. Particles marking the light
 positions may be slightly brighter but must not look like satellites with trails.
 
-Use 12/24/40 seeded camera-facing points. The v0.2.3 field supersedes the
+Use 12/24/64 seeded camera-facing points. The v0.2.3 field supersedes the
 original 1.1–1.4 narrow shell with a near-biased 1.2–2.45 radius distribution
 and a sparse far tail. Integer-harmonic wrapped phases produce varied slow
 orbits; an independent slow phase gives bounded +/-0.035 radial drift. No
@@ -376,7 +385,7 @@ One requestAnimationFrame scheduler checks the chosen cadence; integrate using
 monotonic delta time capped at 50 ms. No catch-up simulation after a stall.
 Preallocate typed arrays, meshes and uniforms; upload only uniforms per draw.
 Batch all peels; instance particle quads. Render halo, opaque body, peels,
-particles in at most four draw calls. Body writes depth; translucent surfaces
+particles in at most nine Low/Medium or ten High draw calls. Body writes depth; translucent surfaces
 depth-test without depth writes using bounded premultiplied additive light.
 Use one active canvas, one depth buffer, no offscreen render targets or textures.
 The renderer owns the canvas inside the React-owned host; replace the canvas on
@@ -414,17 +423,18 @@ geometry at every level; optional detail must not move primary colour regions.
 
 | Budget | Low | Medium | High |
 | --- | --- | --- | --- |
-| Sphere segments longitude x latitude | 32 x 16 | 72 x 36 | 96 x 48 |
-| Sphere vertices / triangles, upper bound | 561 / 960 | 2701 / 5040 | 4753 / 9024 |
-| Peels x centerline samples | 6 x 16 | 11 x 20 | 16 x 24 |
-| Peel vertices / triangles | 192 / 180 | 440 / 418 | 768 / 736 |
-| Particles / lights | 12 / 1 | 24 / 2 | 40 / 3 |
+| Sphere segments longitude x latitude | 32 x 16 | 72 x 36 | 128 x 64 |
+| Sphere vertices / triangles | 561 / 960 | 2701 / 5040 | 8385 / 16128 |
+| Sheets x longitudinal x transverse samples | 6 x 16 x 6 | 6 x 28 x 10 | 6 x 64 x 24 |
+| Sheet vertices / triangles | 714 / 1152 | 1914 / 3360 | 9750 / 18432 |
+| Particles / lights | 12 / 1 | 24 / 2 | 64 / 3 |
+| Draws / opaque-core depth pass | 9 / no | 9 / no | 10 / yes |
 | Optional fine field samples per fragment | 0 | 1 | 2 |
 | Idle / active FPS | 24 / 30 | 30 / 60 | 30 / 60 |
 | DPR cap / backing-pixel cap | 1 / 1M | 1.5 / 2M | 2 / 3M |
 
 Enforce both caps: `effectiveDpr=min(deviceDpr,qualityCap,sqrt(pixelCap/(w*h)))`.
-Maximum four draws, eight GPU buffers, 512 KiB geometry/uniform GPU data, 256 KiB
+Maximum ten draws, eight GPU buffers, 1.5 MiB geometry/uniform GPU data (Low <100 KiB), 256 KiB
 audio scratch per channel. Incremental renderer CPU heap target <4 MiB; render
 surfaces including driver MSAA target <64 MiB at high. Disable MSAA at low;
 prefer shader edge feathering. Browser/React/Python memory is outside this budget.
@@ -440,7 +450,7 @@ Visual quality controls richness; device profile constrains the allowed envelope
 Profiles are `auto`, `mobile_2020`, `low_power`, `desktop`, and `high_end`.
 `mobile_2020` formally supports 360x640 through 390x844 CSS portrait viewports at
 effective DPR 1, low geometry, no required MSAA/offscreen targets/textures/post
-processing, <=4 draws, about 24 FPS idle and 30 FPS active. `low_power` shares the
+processing, <=9 draws, about 24 FPS idle and 30 FPS active. `low_power` shares the
 low cap at other viewport shapes. `desktop` caps AUTO at medium until measured
 headroom promotes it; `high_end` permits high but never changes visual identity.
 An explicit lower profile always caps an explicit or automatic richer quality, so
@@ -573,7 +583,7 @@ ElevenLabs/Hume-style adapters may supply such data; no integration is implied.
   maximum extent, readable controls/transcript, body diameter .56 of the free
   rectangle's short side. No pointer/focus/scroll interference.
 - Assert no React commits per animation frame, no steady-state allocations,
-  <=4 draws, buffer/pixel caps and bounded repeated mount/dispose memory.
+  <=9 Low / 10 High draws, buffer/pixel caps and bounded repeated mount/dispose memory.
 - Hidden/offscreen/stopped surfaces draw zero frames after their final state frame;
   resuming does not replay accumulated frames. Reduced motion has no continuous
   spatial animation and respects runtime OS preference changes.
@@ -779,7 +789,7 @@ idle level. Silence is not a black or frozen screen.
 Particles remain deterministic seeded satellites, not a fountain. Candidate speech
 response is bounded orbital-radius modulation, phase coherence, brightness, radial
 drift and short transient excitation. Population/visibility may reflect high-band or
-onset energy only within the existing fixed 12/24/40 quality budgets; confirmed
+onset energy only within the current fixed 12/24/64 quality budgets; confirmed
 silence should reduce both visible and computational particle activity.
 
 Audio affects the existing analytic light field rather than adding lights, passes or
@@ -804,7 +814,7 @@ allocation. Prefer a 20-40 Hz extractor cadence with queue size one/newest-value
 replacement and visual-rate interpolation. Reuse existing geometry, deterministic
 seeds, analytic shader mathematics and draw calls.
 
-The following v1 constraints remain non-negotiable: at most four draws; existing
+The following constraints remain: at most nine Low/Medium or ten High draws; current
 `mobile_2020` geometry/profile caps; bounded DPR and FPS; no postprocess bloom,
 feedback framebuffer, raymarching, compute/fluid/physics simulation, texture-driven
 displacement or unbounded particles; and Canvas/static/reduced-motion fallbacks.

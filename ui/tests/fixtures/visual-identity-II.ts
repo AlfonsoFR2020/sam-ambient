@@ -65,12 +65,14 @@ export function fixture(
     membraneOnly?: boolean;
     gray?: boolean;
     particlesOnly?: boolean;
+    depthPass?: boolean;
   } = {},
 ) {
   const size = options.size ?? 720,
     dpr = options.dpr ?? 1;
   const budget = {
     ...RENDER_BUDGETS[quality],
+    membraneDepthPass: options.depthPass ?? RENDER_BUDGETS[quality].membraneDepthPass,
     peels: options.bodyOnly || options.particlesOnly ? 0 : RENDER_BUDGETS[quality].peels,
     ...(options.membraneOnly || options.particlesOnly
       ? { sphereLongitude: 1, sphereLatitude: 1 }
@@ -115,28 +117,32 @@ export function fixture(
   );
   backend.resize(size, size, dpr);
   backend.update(visualInput(0));
+  const render = (frame: MotionFrame, yaw = 0) => {
+    current = frame;
+    backend.setObjectOrientation(
+      new Float32Array([
+        Math.cos(yaw),
+        0,
+        -Math.sin(yaw),
+        0,
+        1,
+        0,
+        Math.sin(yaw),
+        0,
+        Math.cos(yaw),
+      ]),
+    );
+    backend.render(0);
+    if (gl.getError()) throw new Error("GL error");
+  };
   return {
     canvas,
     gl,
     budget,
     backend,
+    render,
     draw(frame: MotionFrame, yaw = 0) {
-      current = frame;
-      backend.setObjectOrientation(
-        new Float32Array([
-          Math.cos(yaw),
-          0,
-          -Math.sin(yaw),
-          0,
-          1,
-          0,
-          Math.sin(yaw),
-          0,
-          Math.cos(yaw),
-        ]),
-      );
-      backend.render(0);
-      if (gl.getError()) throw new Error("GL error");
+      render(frame, yaw);
       return canvas.toDataURL("image/png");
     },
     close() {

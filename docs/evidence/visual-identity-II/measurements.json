@@ -1,0 +1,638 @@
+{
+  "baselineCommit": "49e03d53379d327cd9afbf40828331e3519b798c",
+  "implementationParent": "0e7bff3",
+  "seed": "0x5a17",
+  "headless": true,
+  "chromiumSandbox": true,
+  "syntheticOnly": true,
+  "sourceSha256Lf": {
+    "ui/src/visual-engine/ambient-reactivity.ts": "5126c9f663456ac60df77ba1e29f97e380c7c0b4b0836ae5037b99ee4c91f4df",
+    "ui/src/visual-engine/backend.ts": "436d970a764d9a4deb0ab2a462a75bc8c0fe037c5537eca64825471b650a933c",
+    "ui/src/visual-engine/canvas.ts": "0ee8900f1309d0eafdd5df15350bcffad725cbd90373e0518733d05ff8712809",
+    "ui/src/visual-engine/engine.ts": "58e4b4c254a78d9c593c539f00766e372368f447db2a3989cb61d8efef7d180b",
+    "ui/src/visual-engine/geometry.ts": "3c7bf9af70021517d2eee7027daae82bfaffe0643963ffab41aba2a7269c0ba0",
+    "ui/src/visual-engine/governor.ts": "65c0125d3682c4d672df2547b8ba5a28e9101ee1f7f85df495eec60527a3f32b",
+    "ui/src/visual-engine/input.ts": "99c73aa936b49c8afb6ccc747f38e17a8b4611b661ebe5bc3cd19a2795d0c695",
+    "ui/src/visual-engine/interaction.ts": "433bb8f1aaa8b99ea18cceaf6a163bad757f9f4454b90ad7aba50566e0b91e53",
+    "ui/src/visual-engine/living-field.ts": "402f0f3c546392c0569ddadcef82f2adf17eb5507945a7304c8b7ee226d25bf1",
+    "ui/src/visual-engine/living-material.ts": "ceb397ef48a8aa4e1938f8957249669e581b7567531a7016cdaa9d2b7f81d92f",
+    "ui/src/visual-engine/membrane.ts": "966e843352c244ff38affc4b28aad866641ef2f871be8076eae379250cbc922b",
+    "ui/src/visual-engine/motion.ts": "58df4967d39ad46f216c674fb6551e990d99c6d14f844d1d4b413daf14db6e14",
+    "ui/src/visual-engine/particles.ts": "2c9a59a255ca097f09946e423da3a041f49194eb7bd92286eff3ac1232352d92",
+    "ui/src/visual-engine/quality.ts": "888d9395e518be71caad4c8fd66e5da7c4e5f5f1710244e538e99747436ff73b",
+    "ui/src/visual-engine/settings.ts": "6fa95395e8a81dbf252129dcc06e3429ec23f8420bedad4e45c840fdbb407bd4",
+    "ui/src/visual-engine/tuning.ts": "d9aab6ea483169e2e650035870c6abbdec6b06424c768b2339fd28124eaefb75",
+    "ui/src/visual-engine/types.ts": "45a357b7d6a1459af773686c1b2474c5e8a6207d226cb5011be7e3772b092d3e",
+    "ui/src/visual-engine/webgl.ts": "92432e2a6d8655884667a822dd50b09b2fe7b9d350be7fbfe0e5438e5d8699b8"
+  },
+  "structure": {
+    "phase": [
+      1.3833104661476786e-05,
+      3.6000138331046054
+    ],
+    "changedSilhouettePixels": 4005
+  },
+  "behavior": {
+    "frames": [
+      {
+        "state": "idle",
+        "time": 160,
+        "radius": 1.0010334305696469,
+        "pulse": 0,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.002
+      },
+      {
+        "state": "idle",
+        "time": 420,
+        "radius": 1.0026970222586649,
+        "pulse": 0,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.002
+      },
+      {
+        "state": "idle",
+        "time": 760,
+        "radius": 1.0048103489670888,
+        "pulse": 0,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.002
+      },
+      {
+        "state": "idle",
+        "time": 1200,
+        "radius": 1.0073626182727369,
+        "pulse": 0,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.002
+      },
+      {
+        "state": "listening",
+        "time": 160,
+        "radius": 1.0010334305696469,
+        "pulse": 0,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.002
+      },
+      {
+        "state": "listening",
+        "time": 420,
+        "radius": 0.997076505827266,
+        "pulse": 0,
+        "input": 0.1605861837542526,
+        "work": 0,
+        "curlLift": 0.01724877075126491
+      },
+      {
+        "state": "listening",
+        "time": 760,
+        "radius": 0.9938973698230609,
+        "pulse": 0,
+        "input": 0.31179940411508217,
+        "work": 0,
+        "curlLift": 0.027753416572322
+      },
+      {
+        "state": "listening",
+        "time": 1200,
+        "radius": 1.0051041748973732,
+        "pulse": 0,
+        "input": 0.06452695358181923,
+        "work": 0,
+        "curlLift": 0.017683915857696696
+      },
+      {
+        "state": "thinking",
+        "time": 160,
+        "radius": 1.0010334305696469,
+        "pulse": 0,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.002
+      },
+      {
+        "state": "thinking",
+        "time": 420,
+        "radius": 0.9872693444080426,
+        "pulse": 0,
+        "input": 0,
+        "work": 0.6988057880877976,
+        "curlLift": 0.0007657857719502237
+      },
+      {
+        "state": "thinking",
+        "time": 760,
+        "radius": 0.9822671886071977,
+        "pulse": 0,
+        "input": 0,
+        "work": 0.9449767799435927,
+        "curlLift": 0.00019654717120872289
+      },
+      {
+        "state": "thinking",
+        "time": 1200,
+        "radius": 0.9827853049140542,
+        "pulse": 0,
+        "input": 0,
+        "work": 0.9939032534344844,
+        "curlLift": 3.3814931305410514e-05
+      },
+      {
+        "state": "speaking",
+        "time": 160,
+        "radius": 1.0010334305696469,
+        "pulse": 0,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.002
+      },
+      {
+        "state": "speaking",
+        "time": 420,
+        "radius": 1.0864444740050798,
+        "pulse": 0.48799838496994985,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.036245196541645895
+      },
+      {
+        "state": "speaking",
+        "time": 760,
+        "radius": 1.1154014465572542,
+        "pulse": 0.6289138373591056,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.04741097802749847
+      },
+      {
+        "state": "speaking",
+        "time": 1200,
+        "radius": 1.0373766863003975,
+        "pulse": 0.03883396192127658,
+        "input": 0,
+        "work": 0,
+        "curlLift": 0.01593297831783775
+      }
+    ],
+    "parts": [
+      {
+        "name": "body",
+        "changedPixels": 170109
+      },
+      {
+        "name": "skin",
+        "changedPixels": 146054
+      },
+      {
+        "name": "particles",
+        "changedPixels": 943
+      }
+    ]
+  },
+  "fidelity": {
+    "resources": [
+      {
+        "quality": "low",
+        "vertices": 1275,
+        "triangles": 2112,
+        "particles": 12,
+        "geometryBytes": 86496,
+        "draws": 9
+      },
+      {
+        "quality": "medium",
+        "vertices": 4615,
+        "triangles": 8400,
+        "particles": 24,
+        "geometryBytes": 276768,
+        "draws": 9
+      },
+      {
+        "quality": "high",
+        "vertices": 18135,
+        "triangles": 34560,
+        "particles": 64,
+        "geometryBytes": 1229648,
+        "draws": 10
+      }
+    ],
+    "measurements": [
+      {
+        "quality": "low",
+        "size": 480,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          480,
+          480
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.155648,
+          "p95": 0.187392
+        },
+        "cpuSubmissionMs": {
+          "median": 0.19999999925494194,
+          "p95": 0.20000000018626451
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "low",
+        "size": 720,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          720,
+          720
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.150528,
+          "p95": 0.442368
+        },
+        "cpuSubmissionMs": {
+          "median": 0.2999999998137355,
+          "p95": 0.40000000037252903
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "low",
+        "size": 720,
+        "requestedDpr": 2,
+        "effectiveDpr": 1,
+        "backing": [
+          720,
+          720
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.062464,
+          "p95": 0.180224
+        },
+        "cpuSubmissionMs": {
+          "median": 0.20000000018626451,
+          "p95": 0.39999999944120646
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "low",
+        "size": 960,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          960,
+          960
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.091136,
+          "p95": 0.470016
+        },
+        "cpuSubmissionMs": {
+          "median": 0.20000000018626451,
+          "p95": 0.39999999944120646
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "medium",
+        "size": 480,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          480,
+          480
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.055296,
+          "p95": 0.564224
+        },
+        "cpuSubmissionMs": {
+          "median": 0.20000000018626451,
+          "p95": 0.40000000037252903
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "medium",
+        "size": 720,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          720,
+          720
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.098304,
+          "p95": 0.123904
+        },
+        "cpuSubmissionMs": {
+          "median": 0.10000000055879354,
+          "p95": 0.20000000018626451
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "medium",
+        "size": 720,
+        "requestedDpr": 2,
+        "effectiveDpr": 1.5,
+        "backing": [
+          1080,
+          1080
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.200704,
+          "p95": 0.658432
+        },
+        "cpuSubmissionMs": {
+          "median": 0.19999999925494194,
+          "p95": 0.2999999998137355
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "medium",
+        "size": 960,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          960,
+          960
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.154624,
+          "p95": 0.191488
+        },
+        "cpuSubmissionMs": {
+          "median": 0.19999999925494194,
+          "p95": 0.30000000074505806
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "high",
+        "size": 480,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          480,
+          480
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.115712,
+          "p95": 0.512
+        },
+        "cpuSubmissionMs": {
+          "median": 0.10000000055879354,
+          "p95": 0.20000000018626451
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "high",
+        "size": 720,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          720,
+          720
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.329728,
+          "p95": 1.179648
+        },
+        "cpuSubmissionMs": {
+          "median": 0.10000000055879354,
+          "p95": 0.2999999998137355
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "high",
+        "size": 720,
+        "requestedDpr": 2,
+        "effectiveDpr": 2,
+        "backing": [
+          1440,
+          1440
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.923648,
+          "p95": 1.672192
+        },
+        "cpuSubmissionMs": {
+          "median": 0.19999999925494194,
+          "p95": 0.20000000018626451
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      },
+      {
+        "quality": "high",
+        "size": 960,
+        "requestedDpr": 1,
+        "effectiveDpr": 1,
+        "backing": [
+          960,
+          960
+        ],
+        "states": [
+          "idle",
+          "speaking",
+          "thinking"
+        ],
+        "orientations": [
+          0,
+          0.75,
+          1.6
+        ],
+        "gpuTimerAvailable": true,
+        "disjoint": false,
+        "gpuSamples": 12,
+        "gpuMs": {
+          "median": 0.504832,
+          "p95": 1.408
+        },
+        "cpuSubmissionMs": {
+          "median": 0.10000000055879354,
+          "p95": 0.20000000018626451
+        },
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "error": 0
+      }
+    ],
+    "depthComparison": [
+      false,
+      true
+    ],
+    "depthHoles": 0
+  },
+  "flex": {
+    "frameDurationMs": 500,
+    "frames": 24,
+    "loop": false,
+    "colorBodyLightHeld": true,
+    "orientation": 0.75,
+    "firstTimeMs": 0,
+    "lastTimeMs": 11500
+  },
+  "measurementLimits": "Isolated renderer GPU queries; CPU submission uses browser clock. No full-app/inference FPS, energy, total VRAM or human acceptance."
+}

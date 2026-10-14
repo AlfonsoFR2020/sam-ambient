@@ -64,6 +64,10 @@ describe("visual quality and geometry", () => {
     expect(effectivePixelRatio(390, 844, 3, budget)).toBe(1);
     expect(RENDER_BUDGETS.medium.fineOctaves).toBe(1);
     expect(RENDER_BUDGETS.high.fineOctaves).toBe(2);
+    expect(RENDER_BUDGETS.high.membraneDepthPass).toBe(true);
+    expect(RENDER_BUDGETS.medium.membraneDepthPass).toBe(false);
+    expect(RENDER_BUDGETS.low.membraneDepthPass).toBe(false);
+    expect(RENDER_BUDGETS.high.particles).toBe(64);
   });
 
   it("uses identical deterministic broad sheets with bounded tier sampling", () => {

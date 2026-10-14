@@ -1,10 +1,11 @@
 # Sam development plan: post-v0.2.4
 
-**HQ priority change (2026-10-13): Visual Identity within Basics Before Expansion.**
+**HQ priority change (2026-10-14): Visual Identity within Basics Before Expansion.**
 Attractiveness is a principal product feature. Diagnostic observability is completed;
-[Visual Identity I](VISUAL_IDENTITY_I.md) now lands smooth lower-lift membrane,
-body-consistent normals and broader, richer living pigment with comparable headless
-evidence. October 9 failed visual judgment remains historical truth; neither this
+[Visual Identity II](VISUAL_IDENTITY_II.md) now lands six attached moving curled sheets,
+coordinated receptive/working/speech behavior and meaningfully finer High rendering,
+building on Identity I pigment/form. Comparable headless evidence is available.
+October 9 failed visual judgment remains historical truth; neither this
 pass nor its pixel metrics establishes aesthetic acceptance. AEC and capability
 expansion remain parked. No next workstream begins automatically.
 
@@ -127,19 +128,22 @@ pre-release after exact-commit hosted source/package gates. Native build failure
 separate; unsigned Windows artifacts remain withheld. No additional feature work
 is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposition.
 
-### Next-cycle handoff — visual priority, local evidence (2026-10-13)
+### Next-cycle handoff — visual priority, local evidence (2026-10-14)
 
 1. **Visual identity: technical increment implemented, aesthetic acceptance open.**
-   [Fixed comparisons](VISUAL_IDENTITY_I.md) cover organic form, membrane, composed
-   pigment evolution, synthetic speech and tiers. The highest-value graphical gap
-   is coherent layered membrane depth: soft overlap remains approximate and the
-   original concept board is needed to guide a later review. Do not infer acceptance
+   [Fixed comparisons and geometry clip](VISUAL_IDENTITY_II.md) cover attached flexing
+   membrane, coordinated synthetic behavior and tier fidelity/cost. The highest-value
+   graphical gap is full-color layer readability: calibrate translucency/contact
+   shadow against the actual reference when available, rather than adding busy detail.
+   High opaque cores have coherent depth; soft intersections remain approximate.
+   The original concept board is still missing. Do not infer acceptance
    or resume blind shader tuning from numeric differences alone.
 2. **Diagnostic launch and conversation observability: implemented.** Shared
    `Diagnose Sam.cmd` / `--diagnostic`, session-only retention, rotating private
    metadata and correlated latency/terminal summaries pass focused and isolated
    owner-window/supervisor checks. [Contract and evidence](DIAGNOSTIC_LAUNCH.md).
-   v0.2.4 remains published; this increment has no version bump or remote push.
+   v0.2.4 remains published. Diagnostic/Identity I were preserved upstream at
+   49e03d5; Identity II stays local, with no version bump.
    The next small alpha can include this coherent slice after HQ review, rather
    than waiting for STT or artistic work to finish. Do not call incident causes fixed.
 3. **Intermittent latency and false speech turns** — Medium initially, High only for
@@ -156,7 +160,7 @@ is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposi
 
 Refined system/persona settings and Console/Memory presentation remain later;
 Agency/Memory capability expansion, profiles, arbitrary shell and diarization stay
-parked. Diagnostic and Visual Identity I are coherent local increments, with no
+parked. Diagnostic and Visual Identity II are coherent increments, with no
 version bump/publication. Later workstreams remain separate. Prefer frequent bounded
 green alpha increments and preserve the distinction between behavior and acceptance.
 

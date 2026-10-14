@@ -764,3 +764,20 @@ reused ranges by transformed center; soft-alpha color writes no depth. This boun
 approximation uses nine draws and keeps opaque body occlusion; exact intersecting
 transparency remains a separate fidelity question. Radius bound 1.56 accommodates
 the curled lip and existing response bounds. No voice/control authority changes.
+
+## 2026-10-14 — coordinated behavior and justified High fidelity
+
+Use existing lifecycle cues and freshness/owner-checked envelopes, not inferred
+emotion or synthetic core activity. One pulse couples body/light/curl/particles;
+receptive and working posture remain distinct at zero audio modulation. Reduced
+Motion and independent clocks remain. No additional owner knobs or audio devices.
+
+High uses 128×64 body segments and 64×24 sampling of the same six sheets, 64 points
+and bounded derivative satin shading. A tenth draw primes only alpha >=0.72
+membrane interiors; invariant positions and a minimal positive depth bias prevent
+depth precision holes. Soft fringes retain sorted alpha; this is not exact OIT,
+contact-shadow rendering or a volumetric layer. Low/Medium keep cheaper geometry,
+nine draws and no depth prepass. Revise the historical 512 KiB geometry cap to
+1.5 MiB (actual High arrays 1,229,648 bytes, Low 86,496), while profile/pixel/FPS
+protection and fallback remain. Isolated RTX 3070 GPU samples justify this bounded
+choice; no full-app/inference, low-power hardware or human acceptance is inferred.

@@ -6,8 +6,8 @@ Updated: 2026-10-14. This is current development truth, not a release acceptance
 
 - [Visual Identity II](VISUAL_IDENTITY_II.md) replaces domes with six attached,
   flexing curled sheets and bounded soft-alpha ordering, plus coordinated receptive,
-  working and measured-speech behavior. Headless evidence is not human acceptance.
-
+  working and measured-speech behavior. High adds opaque-core depth and satin relief;
+  108 visual checks / 3 headless WebGL cases pass. This is not human acceptance.
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
   inventory/server state; CLI dispatch success alone is insufficient.
@@ -161,7 +161,7 @@ See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 - October 9 owner rejected polygonal/dull body and absent peels; this pass does not
   reverse that judgment. Sustained/full-app/low-power cost and visual acceptance remain open.
 - Controls inventory is audited: Conversation, Appearance, Device, System, Diagnostics.
-  particle_density persists and chooses a visible fraction of 12/24/40 tier counts;
+  particle_density persists and chooses a visible fraction of 12/24/64 tier counts;
   Canvas has no particles. Persisted Surface Flow separates transport from Motion.
 - Wide diagnostics/history occupy separate independently scrolling regions; constrained
   viewports use a bounded overlay. Current health/errors precede conversation, audio,
@@ -193,8 +193,7 @@ The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gate
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider
 Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Published alpha scope](RELEASE_READINESS_0.2.4.md) retains separate native/install/signing gates.
-Diagnostic launch/trace passes one isolated real owner-window/supervisor session;
-187 focused checks plus one isolated owner-window/supervisor smoke pass;
+Diagnostic launch/trace passes 187 focused checks and one isolated owner-window/supervisor session;
 privacy, auth and cleanup remain; no beta incident is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
 Windows installer remains unavailable; Cargo/helper and installed smoke are separate.

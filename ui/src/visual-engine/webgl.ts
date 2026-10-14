@@ -67,8 +67,8 @@ ${LIVING_MATERIAL_GLSL}
 void main(){
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
-  LivingLight light=livingLight(v_normal,v_position);
   float fine=livingSurfaceDetail(field);
+  LivingLight light=livingLight(livingMaterialNormal(v_normal,v_position,fine),v_position);
   float illumination=0.20+light.diffuse*0.90+u_intensity*0.10;
   vec3 innerWarmth=vec3(0.085,0.026,0.012)*(1.0-field.broad)*0.35;
   vec3 glintColor=mix(vec3(1.0,0.68,0.38),vec3(0.55,0.77,1.0),pigment.cool);
@@ -84,6 +84,7 @@ void main(){
 
 export const PEEL_VERTEX = `#version 300 es
 precision highp float;
+invariant gl_Position;
 layout(location=0) in vec3 a_direction;
 layout(location=1) in vec4 a_sheet;
 layout(location=2) in vec3 a_du;
@@ -160,6 +161,7 @@ in vec3 v_normal;
 in vec3 v_position;
 uniform float u_intensity;
 uniform float u_emission;
+uniform bool u_depth_only;
 in float v_highlight;
 out vec4 color;
 ${LIVING_FIELD_GLSL}
@@ -167,10 +169,15 @@ ${LIVING_MATERIAL_GLSL}
 void main(){
   float alpha=clamp(v_alpha*(1.-smoothstep(.98,1.,v_radial))*(.88+.12*u_emission),0.,1.);
   if(alpha<.04) discard;
+  if(u_depth_only) {
+    if(alpha<.72) discard;
+    color=vec4(0.);
+    return;
+  }
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
-  LivingLight light=livingLight(gl_FrontFacing ? v_normal : -v_normal,v_position);
   float fine=livingSurfaceDetail(field);
+  LivingLight light=livingLight(livingMaterialNormal(gl_FrontFacing ? v_normal : -v_normal,v_position,fine),v_position);
   vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
   // Lifted skin catches a broad satin response; the attached edge inherits the
@@ -182,6 +189,12 @@ void main(){
     +glintColor*.045*shoulder*min(light.diffuse,1.)
     +rimColor*light.rim*(.18+.12*v_lift);
   linear+=livingBehaviorLight(field,pigment.albedo);
+  // High resolves a broad satin shoulder on the actual lifted fold, not a
+  // separate glow strip. It shares pigment and follows the existing light.
+#if SAM_FINE_OCTAVES >= 2
+  float foldSheen=exp(-32.*pow(v_radial-.78,2.))*v_lift;
+  linear+=glintColor*.14*foldSheen*(.3+.7*min(light.diffuse,1.));
+#endif
   linear*=mix(0.22,1.15,u_intensity)*(gl_FrontFacing ? 1.0 : .52);
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
@@ -425,6 +438,7 @@ export class WebGLBackend implements RendererBackend {
       readonly rephase: WebGLUniformLocation;
       readonly highlight: WebGLUniformLocation;
       readonly emission: WebGLUniformLocation;
+      readonly depthOnly: WebGLUniformLocation;
       readonly orientation: WebGLUniformLocation;
     };
   private readonly haloUniforms: {
@@ -508,6 +522,7 @@ export class WebGLBackend implements RendererBackend {
       rephase: location(gl, this.peelProgram, "u_rephase"),
       highlight: location(gl, this.peelProgram, "u_highlight"),
       emission: location(gl, this.peelProgram, "u_emission"),
+      depthOnly: location(gl, this.peelProgram, "u_depth_only"),
       orientation: location(gl, this.peelProgram, "u_object_orientation"),
     };
     this.haloUniforms = {
@@ -652,6 +667,21 @@ export class WebGLBackend implements RendererBackend {
     gl.uniform1i(this.peelUniforms.lightCount, this.budget.lights);
     this.setPeelUniforms(frame);
     gl.bindVertexArray(this.peels.vao);
+    if (this.budget.membraneDepthPass) {
+      // Only opaque sheet interiors compete for nearest depth, including curled
+      // self-overlaps. Their soft fringes retain sorted premultiplied blending.
+      gl.colorMask(false, false, false, false);
+      gl.depthMask(true);
+      gl.enable(gl.POLYGON_OFFSET_FILL);
+      gl.polygonOffset(1, 1);
+      gl.uniform1i(this.peelUniforms.depthOnly, 1);
+      gl.drawElements(gl.TRIANGLES, this.peels.count, gl.UNSIGNED_SHORT, 0);
+      gl.disable(gl.POLYGON_OFFSET_FILL);
+      gl.colorMask(true, true, true, true);
+      gl.depthMask(false);
+      gl.depthFunc(gl.LEQUAL);
+    }
+    gl.uniform1i(this.peelUniforms.depthOnly, 0);
     for (const sheet of this.peelOrder) {
       const m = this.objectOrientation,
         c = sheet.center;
@@ -672,6 +702,7 @@ export class WebGLBackend implements RendererBackend {
     this.peelOrder.sort((a, b) => a.z - b.z);
     for (const sheet of this.peelOrder)
       gl.drawElements(gl.TRIANGLES, sheet.count, gl.UNSIGNED_SHORT, sheet.offset);
+    gl.depthFunc(gl.LESS);
 
     gl.depthMask(false);
     bindProgram(gl, this.particleProgram);

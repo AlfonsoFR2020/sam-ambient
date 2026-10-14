@@ -186,10 +186,13 @@ and sparse environmental particles, with Canvas/CSS fallback. It also implements
 damped inertia, persisted typed visual settings, profile-capped mobile emulation and
 measured quality adaptation. Spectral extraction, prosodic mapping and human visual
 acceptance remain pending. The WebGL body and membrane share a deterministic
-object-space field. [Visual Identity I](VISUAL_IDENTITY_I.md) refines its organic
-membrane with tiered radial rings and stored boundary gradients, body-consistent
-normals and shared composed pigment. It keeps four draws and existing fallback,
-resource caps and audio authority separation. Engine-owned elapsed-time clocks separately advance orientation,
+object-space field. [Visual Identity II](VISUAL_IDENTITY_II.md) replaces the previous
+domes with six attached curled sheets, immutable carrier derivatives and actual
+geometric flex. Coordinated receptive/working/speech response uses existing state
+and measured envelopes. Nine Low/Medium draws or ten High draws include bounded
+sheet ordering and High opaque-core depth priming; fine satin normals and denser
+sampling refine High. Fallback, pixel/cadence/profile caps and audio authority
+separation remain. Engine-owned elapsed-time clocks separately advance orientation,
 relief, material shears, palette evolution, lighting and particles; pointer ownership
 temporarily reduces the material rate without resetting phase. The existing quality
 tiers retain the same broad field, with optional fine samples only on higher tiers.

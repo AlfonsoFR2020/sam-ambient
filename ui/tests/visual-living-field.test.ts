@@ -502,7 +502,7 @@ describe("living field substrate", () => {
     expect(LIVING_MATERIAL_GLSL).toContain("orbit - position");
   });
 
-  it("keeps seeded field/material identity and four draws across all quality tiers", () => {
+  it("keeps seeded identity and bounded draws with High opaque-core depth priming", () => {
     let baseFragments: string[] | undefined;
     let baseOffsets: number[][] | undefined;
     for (const budget of Object.values(RENDER_BUDGETS)) {
@@ -510,6 +510,8 @@ describe("living field substrate", () => {
       const states: { program: object; values: number[] }[] = [];
       const offsets: { program: object; name: string; values: number[] }[] = [];
       const draws: string[] = [];
+      const colorMasks: boolean[][] = [];
+      const depthModes: unknown[] = [];
       const materialIntensity: number[] = [];
       const paletteBalanceUniforms: { program: object; value: number }[] = [];
       const deleted = { programs: 0, vaos: 0, buffers: 0 };
@@ -522,6 +524,8 @@ describe("living field substrate", () => {
           LINK_STATUS: 4,
           COLOR_BUFFER_BIT: 1,
           DEPTH_BUFFER_BIT: 2,
+          LEQUAL: 10,
+          LESS: 11,
           createShader: (type: number) => ({ type }),
           shaderSource: (_shader: object, source: string) => shaderSources.push(source),
           getShaderParameter: () => true,
@@ -551,6 +555,8 @@ describe("living field substrate", () => {
           },
           drawElements: () => draws.push("indexed"),
           drawArrays: () => draws.push("array"),
+          colorMask: (...flags: boolean[]) => colorMasks.push(flags),
+          depthFunc: (mode: unknown) => depthModes.push(mode),
         },
         { get: (target, key) => (key in target ? target[key as keyof typeof target] : () => {}) },
       ) as unknown as WebGL2RenderingContext;
@@ -626,9 +632,19 @@ describe("living field substrate", () => {
           "indexed",
           "indexed",
           ...Array(budget.peels).fill("indexed"),
+          ...(budget.membraneDepthPass ? ["indexed"] : []),
           "array",
         ]).flat(),
       );
+      expect(colorMasks).toEqual(
+        budget.membraneDepthPass
+          ? Array.from({ length: 4 }, () => [
+              [false, false, false, false],
+              [true, true, true, true],
+            ]).flat()
+          : [],
+      );
+      expect(depthModes.at(-1)).toBe(gl.LESS);
       backend.dispose();
       expect(deleted).toEqual({ programs: 4, vaos: 4, buffers: 7 });
     }
