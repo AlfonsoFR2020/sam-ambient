@@ -1,11 +1,11 @@
 # Sam implementation state
 
-Updated: 2026-10-13. This is current development truth, not a release acceptance claim.
+Updated: 2026-10-14. This is current development truth, not a release acceptance claim.
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 ## Release and evidence boundary
 
-- Visual Identity I refines body normals, smooth lower-lift membrane and composed
-  shared pigment. [Headless evidence](VISUAL_IDENTITY_I.md) is not human acceptance; no Sam/provider/audio/visible window.
+- [Visual Identity II](VISUAL_IDENTITY_II.md) replaces domes with six attached,
+  flexing curled sheets and bounded soft-alpha ordering. Headless evidence is not human acceptance.
 
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting

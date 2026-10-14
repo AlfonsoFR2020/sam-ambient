@@ -17,22 +17,27 @@ export interface ArrayGeometry {
 
 export interface PeelDescriptor {
   readonly center: readonly [number, number, number];
-  readonly angularRadius: number;
+  readonly tangent: readonly [number, number, number];
+  readonly crossTangent: readonly [number, number, number];
+  readonly halfLength: number;
+  readonly halfWidth: number;
+  readonly bend: number;
   readonly lift: number;
+  readonly curlRadius: number;
   readonly opacity: number;
   readonly phase: number;
-  readonly asymmetry: number;
 }
 
-export const PEEL_WIDTH_RANGE = Object.freeze({ minimum: 0.4, maximum: 0.54 });
-export const PEEL_LIFT_RANGE = Object.freeze({ minimum: 0.028, maximum: 0.044 });
-export const PEEL_EDGE_LIFT = 0.006;
-export const PEEL_VERTEX_STRIDE = 13;
-
-/** Smooth dome: zero slope at the center AND at the attached boundary. */
-export const peelProfile = (radius: number): number => (1 - radius * radius) ** 2;
-export const peelProfileDerivative = (radius: number): number =>
-  -4 * radius * (1 - radius * radius);
+export const PEEL_VERTEX_STRIDE = 21;
+const normalize = (v: readonly number[]): [number, number, number] => {
+  const length = Math.hypot(...v);
+  return [v[0] / length, v[1] / length, v[2] / length];
+};
+const cross = (a: readonly number[], b: readonly number[]): [number, number, number] => [
+  a[1] * b[2] - a[2] * b[1],
+  a[2] * b[0] - a[0] * b[2],
+  a[0] * b[1] - a[1] * b[0],
+];
 
 const seeded = (seed: number): (() => number) => {
   let value = seed >>> 0;
@@ -70,135 +75,117 @@ export function createSphereGeometry(longitude: number, latitude: number): Index
 }
 
 export function createPeelDescriptors(count: number, seed = 0x5a17): readonly PeelDescriptor[] {
-  const random = seeded(seed);
-  const rotation = random() * Math.PI * 2;
+  if (!Number.isInteger(count) || count < 0 || count > 6)
+    throw new RangeError("membrane sheet count must be 0–6");
+  const random = seeded(seed),
+    rotation = random() * Math.PI * 2;
   return Array.from({ length: count }, (_, index) => {
-    // Interleave a fixed 16-site spiral so tier changes add fragments without
-    // moving the ones already present on the lower tiers.
-    const slot = ((index & 1) << 3) | ((index & 2) << 1) | ((index & 4) >> 1) | ((index & 8) >> 3);
-    const y = 1 - (2 * (slot + 0.5)) / 16;
-    const longitude = slot * Math.PI * (3 - Math.sqrt(5)) + rotation + (random() - 0.5) * 0.16;
-    const horizontal = Math.sqrt(1 - y * y);
+    // The same six broad sheets exist at every tier; fidelity changes sampling.
+    const y = 1 - (2 * (index + 0.5)) / 6,
+      longitude = index * Math.PI * (3 - Math.sqrt(5)) + rotation;
+    const r = Math.sqrt(1 - y * y),
+      center: [number, number, number] = [r * Math.cos(longitude), y, r * Math.sin(longitude)];
+    const a = normalize(cross(Math.abs(y) < 0.9 ? [0, 1, 0] : [1, 0, 0], center)),
+      b = cross(center, a);
+    const tilt = 0.45 + (random() - 0.5) * 0.3;
+    const tangent = normalize(a.map((v, i) => v * Math.cos(tilt) + b[i] * Math.sin(tilt)));
     return {
-      center: [horizontal * Math.cos(longitude), y, horizontal * Math.sin(longitude)],
-      angularRadius:
-        PEEL_WIDTH_RANGE.minimum + random() * (PEEL_WIDTH_RANGE.maximum - PEEL_WIDTH_RANGE.minimum),
-      lift:
-        PEEL_LIFT_RANGE.minimum + random() * (PEEL_LIFT_RANGE.maximum - PEEL_LIFT_RANGE.minimum),
-      opacity: 0.91 + random() * 0.07,
+      center,
+      tangent,
+      crossTangent: cross(center, tangent),
+      halfLength: 1.12 + random() * 0.14,
+      halfWidth: 0.28 + random() * 0.07,
+      bend: 0.17 + random() * 0.07,
+      lift: 0.045 + random() * 0.015,
+      curlRadius: 0.043 + random() * 0.007,
+      opacity: 0.84 + random() * 0.06,
       phase: random() * Math.PI * 2,
-      asymmetry: (random() - 0.5) * 0.34,
-    } as PeelDescriptor;
+    };
   });
 }
 
-/** Irregular spherical membrane patches, each with an attached outer edge. */
+/** Curved broad carrier on the sphere, with irregular but coherent long edges. */
+export function peelDirection(
+  peel: PeelDescriptor,
+  u: number,
+  v: number,
+): [number, number, number] {
+  const x = u * peel.halfLength;
+  const width =
+    peel.halfWidth *
+    (0.84 + 0.12 * Math.cos(2.1 * u + peel.phase) + 0.04 * Math.sin(4.3 * u - peel.phase));
+  const y = peel.bend * Math.sin(2.2 * u) + (2 * v - 1) * width;
+  const distance = Math.hypot(x, y),
+    scale = distance < 1e-8 ? 1 : Math.sin(distance) / distance;
+  return normalize(
+    peel.center.map(
+      (n, i) => n * Math.cos(distance) + (peel.tangent[i] * x + peel.crossTangent[i] * y) * scale,
+    ),
+  );
+}
+
 export function createPeelGeometry(budget: RenderBudget, seed?: number): IndexedGeometry {
   const descriptors = createPeelDescriptors(budget.peels, seed);
-  const stride = PEEL_VERTEX_STRIDE;
-  // Spend high-tier vertices on radial curvature, not more edge tessellation.
-  const rings =
-    budget.peelRings === 5
-      ? [0.22, 0.44, 0.66, 0.84, 1]
-      : budget.peelRings === 4
-        ? [0.25, 0.5, 0.75, 1]
-        : [0.32, 0.65, 1];
-  const perPatch = 1 + rings.length * budget.peelSamples;
-  const vertices = new Float32Array(budget.peels * perPatch * stride);
-  const indices = new Uint16Array(budget.peels * budget.peelSamples * (rings.length * 6 - 3));
-  let vertexOffset = 0;
-  let indexOffset = 0;
-  let base = 0;
-  for (const peel of descriptors) {
-    const [cx, cy, cz] = peel.center;
-    const helper: readonly [number, number, number] = Math.abs(cy) < 0.9 ? [0, 1, 0] : [1, 0, 0];
-    const tangent = [
-      helper[1] * cz - helper[2] * cy,
-      helper[2] * cx - helper[0] * cz,
-      helper[0] * cy - helper[1] * cx,
-    ];
-    const length = Math.hypot(...tangent);
-    const a = tangent.map((component) => component / length);
-    const b = [cy * a[2] - cz * a[1], cz * a[0] - cx * a[2], cx * a[1] - cy * a[0]];
-    const write = (direction: readonly number[], radius: number, gradient: readonly number[]) => {
-      vertices.set(
-        [
-          direction[0],
-          direction[1],
-          direction[2],
-          radius,
-          cx,
-          cy,
-          cz,
-          peel.lift,
-          peel.opacity,
-          peel.phase,
-          gradient[0],
-          gradient[1],
-          gradient[2],
-        ],
-        vertexOffset,
-      );
-      vertexOffset += stride;
-    };
-    write(peel.center, 0, [0, 0, 0]);
-    for (const radius of rings) {
-      for (let sample = 0; sample < budget.peelSamples; sample++) {
-        const angle = (sample / budget.peelSamples) * Math.PI * 2;
-        const boundary =
-          1 +
-          peel.asymmetry * Math.cos(angle - peel.phase) +
-          0.11 * Math.cos(3 * angle + peel.phase) +
-          0.055 * Math.sin(5 * angle - peel.phase);
-        const arc = radius * peel.angularRadius * boundary;
-        const cosine = Math.cos(arc);
-        const sine = Math.sin(arc);
-        const boundaryDerivative =
-          -peel.asymmetry * Math.sin(angle - peel.phase) -
-          0.33 * Math.sin(3 * angle + peel.phase) +
-          0.275 * Math.cos(5 * angle - peel.phase);
-        const polar = a.map((v, i) => v * Math.cos(angle) + b[i] * Math.sin(angle));
-        const azimuth = a.map((v, i) => -v * Math.sin(angle) + b[i] * Math.cos(angle));
-        // Spherical gradient of r = theta / (angularRadius * boundary(angle)).
-        // Includes irregular-edge slope; a hard-coded width cannot describe it.
-        const gradient = polar.map(
-          (v, i) =>
-            (-peel.center[i] * sine + v * cosine) / (peel.angularRadius * boundary) -
-            (azimuth[i] * radius * boundaryDerivative) / (boundary * sine),
-        );
-        write(
+  const cols = budget.peelSamples + 1,
+    rows = budget.peelRows + 1;
+  const vertices = new Float32Array(budget.peels * cols * rows * PEEL_VERTEX_STRIDE);
+  const indices = new Uint16Array(budget.peels * budget.peelSamples * budget.peelRows * 6);
+  const epsilon = 0.001;
+  const derivative = (peel: PeelDescriptor, u: number, v: number, axis: "u" | "v") => {
+    const a = peelDirection(
+      peel,
+      u + (axis === "u" ? epsilon : 0),
+      v + (axis === "v" ? epsilon : 0),
+    );
+    const b = peelDirection(
+      peel,
+      u - (axis === "u" ? epsilon : 0),
+      v - (axis === "v" ? epsilon : 0),
+    );
+    return a.map((n, i) => (n - b[i]) / (2 * epsilon));
+  };
+  const side = (peel: PeelDescriptor, u: number, v: number) =>
+    normalize(derivative(peel, u, v, "v"));
+  let offset = 0,
+    indexOffset = 0;
+  for (let patch = 0; patch < descriptors.length; patch++) {
+    const peel = descriptors[patch];
+    for (let x = 0; x < cols; x++)
+      for (let y = 0; y < rows; y++) {
+        const u = (2 * x) / budget.peelSamples - 1,
+          v = y / budget.peelRows;
+        const du = derivative(peel, u, v, "u"),
+          dv = derivative(peel, u, v, "v");
+        const up = side(peel, u + epsilon, v),
+          um = side(peel, u - epsilon, v);
+        const vp = side(peel, u, v + epsilon),
+          vm = side(peel, u, v - epsilon);
+        vertices.set(
           [
-            cx * cosine + (a[0] * Math.cos(angle) + b[0] * Math.sin(angle)) * sine,
-            cy * cosine + (a[1] * Math.cos(angle) + b[1] * Math.sin(angle)) * sine,
-            cz * cosine + (a[2] * Math.cos(angle) + b[2] * Math.sin(angle)) * sine,
+            ...peelDirection(peel, u, v),
+            u,
+            v,
+            peel.lift,
+            peel.phase,
+            ...du,
+            ...dv,
+            peel.curlRadius,
+            peel.opacity,
+            ...up.map((n, i) => (n - um[i]) / (2 * epsilon)),
+            ...vp.map((n, i) => (n - vm[i]) / (2 * epsilon)),
           ],
-          radius,
-          gradient,
+          offset,
         );
+        offset += PEEL_VERTEX_STRIDE;
       }
-    }
-    for (let sample = 0; sample < budget.peelSamples; sample++) {
-      const next = (sample + 1) % budget.peelSamples;
-      indices.set([base, base + 1 + sample, base + 1 + next], indexOffset);
-      indexOffset += 3;
-      for (let ring = 0; ring < rings.length - 1; ring++) {
-        const inner = base + 1 + ring * budget.peelSamples;
-        const outer = inner + budget.peelSamples;
-        indices.set(
-          [
-            inner + sample,
-            outer + sample,
-            inner + next,
-            inner + next,
-            outer + sample,
-            outer + next,
-          ],
-          indexOffset,
-        );
+    const base = patch * cols * rows;
+    for (let x = 0; x < cols - 1; x++)
+      for (let y = 0; y < rows - 1; y++) {
+        const a = base + x * rows + y,
+          b = a + rows;
+        indices.set([a, b, a + 1, a + 1, b, b + 1], indexOffset);
         indexOffset += 6;
       }
-    }
-    base += perPatch;
   }
   return { vertices, indices };
 }

@@ -1,14 +1,15 @@
 import type { RendererBackend } from "./backend";
 import {
   createParticleGeometry,
+  createPeelDescriptors,
   createPeelGeometry,
   createSphereGeometry,
   type IndexedGeometry,
-  PEEL_EDGE_LIFT,
   PEEL_VERTEX_STRIDE,
 } from "./geometry";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
 import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
+import { MEMBRANE_SHAPE_GLSL } from "./membrane";
 import type { MotionEvaluator, MotionFrame } from "./motion";
 import {
   PARTICLE_COPPER,
@@ -82,10 +83,13 @@ void main(){
 
 export const PEEL_VERTEX = `#version 300 es
 precision highp float;
-layout(location=0) in vec4 a_base;
-layout(location=1) in vec4 a_surface;
-layout(location=2) in vec2 a_motion;
-layout(location=3) in vec3 a_radial_gradient;
+layout(location=0) in vec3 a_direction;
+layout(location=1) in vec4 a_sheet;
+layout(location=2) in vec3 a_du;
+layout(location=3) in vec3 a_dv;
+layout(location=4) in vec2 a_skin;
+layout(location=5) in vec3 a_side_du;
+layout(location=6) in vec3 a_side_dv;
 uniform float u_radius;
 uniform vec2 u_scale;
 uniform float u_spin;
@@ -114,30 +118,35 @@ mat3 rotateY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,
 mat3 rotateZ(float a){float c=cos(a),s=sin(a);return mat3(c,s,0.,-s,c,0.,0.,0.,1.);}
 ${LIVING_FIELD_GLSL}
 ${LIVING_SURFACE_VERTEX_GLSL}
+${MEMBRANE_SHAPE_GLSL}
 void main(){
-  float radial=a_base.w;
-  vec3 center=normalize(a_surface.xyz);
-  vec3 direction=normalize(mix(center,normalize(a_base.xyz),clamp(u_peel_width,.85,1.15)));
-  v_object_direction=direction;
+  vec3 direction=normalize(a_direction);
+  vec2 uv=a_sheet.xy;
+  vec4 shape=vec4(a_sheet.z,a_skin.x,a_sheet.w,a_skin.y);
+  vec2 offset=membraneOffsets(uv,shape);
+  vec2 deltaU=(membraneOffsets(uv+vec2(.001,0.),shape)-membraneOffsets(uv-vec2(.001,0.),shape))/.002;
+  vec2 deltaV=(membraneOffsets(uv+vec2(0.,.001),shape)-membraneOffsets(uv-vec2(0.,.001),shape))/.002;
+  vec3 scale=vec3(1.,1.06,1.);
+  vec3 side=normalize(a_dv);
+  vec3 base=livingBodyPoint(direction,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
+  vec3 bodyNormal=livingBodyNormal(direction,base,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
+  float localRadius=length(base/scale);
+  vec3 radial=direction*scale;
+  vec3 du=a_du*scale*localRadius, dv=a_dv*scale*localRadius;
+  du-=radial*dot(bodyNormal,du)/max(.2,dot(bodyNormal,radial));
+  dv-=radial*dot(bodyNormal,dv)/max(.2,dot(bodyNormal,radial));
+  du+=scale*(a_du*offset.x+direction*deltaU.x+a_side_du*offset.y+side*deltaU.y);
+  dv+=scale*(a_dv*offset.x+direction*deltaV.x+a_side_dv*offset.y+side*deltaV.y);
+  vec3 position=base+scale*(direction*offset.x+side*offset.y);
   mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase))*rotateZ(.08*sin(u_breath_phase+1.4))*rotateY(u_spin)*u_object_orientation;
-  float attached=(1.-radial*radial)*(1.-radial*radial);
-  float height=(a_surface.w+u_peel_lift*(.4+.6*u_opening))
-    *(1.+.07*u_coherence*sin(u_peel_travel+a_motion.y)+u_rephase*.4);
-  float lift=${PEEL_EDGE_LIFT.toFixed(3)}+attached*height;
-  vec3 position=livingBodyPoint(direction,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
-  vec3 bodyNormal=livingBodyNormal(direction,position,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
-  position+=direction*lift*vec3(1.0,1.06,1.0);
-  vec3 world=rotation*position;
-  float slope=4.*radial*(1.-radial*radial)*height/(u_radius+lift);
-  vec3 curvedNormal=bodyNormal+a_radial_gradient*vec3(1.,1./1.06,1.)*slope
-    /clamp(u_peel_width,.85,1.15);
-  v_normal=normalize(rotation*curvedNormal);
-  v_position=world;
-  v_alpha=a_motion.x;
-  v_radial=radial;
-  v_lift=attached;
-  v_highlight=u_highlight*(.25+.75*attached);
-  gl_Position=vec4(world.xy*u_scale,-world.z*.25,1.);
+  v_position=rotation*position;
+  v_normal=normalize(rotation*cross(du,dv));
+  v_object_direction=direction;
+  v_alpha=a_skin.y*(1.-smoothstep(.70,1.,abs(uv.x)))*smoothstep(0.,.04,uv.y);
+  v_radial=uv.y;
+  v_lift=clamp(offset.x/.17,0.,1.);
+  v_highlight=u_highlight*(.3+.7*v_lift);
+  gl_Position=vec4(v_position.xy*u_scale,-v_position.z*.25,1.);
 }`;
 
 export const PEEL_FRAGMENT = `#version 300 es
@@ -155,11 +164,11 @@ out vec4 color;
 ${LIVING_FIELD_GLSL}
 ${LIVING_MATERIAL_GLSL}
 void main(){
-  float alpha=clamp(v_alpha*(1.-smoothstep(.80,1.,v_radial))*(.88+.12*u_emission),0.,1.);
+  float alpha=clamp(v_alpha*(1.-smoothstep(.98,1.,v_radial))*(.88+.12*u_emission),0.,1.);
   if(alpha<.04) discard;
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
-  LivingLight light=livingLight(v_normal,v_position);
+  LivingLight light=livingLight(gl_FrontFacing ? v_normal : -v_normal,v_position);
   float fine=livingSurfaceDetail(field);
   vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
@@ -171,7 +180,7 @@ void main(){
     +glintColor*(light.glint*(.90+.40*v_lift+max(fine,0.0)*.20)+v_highlight*.15)
     +glintColor*.045*shoulder*min(light.diffuse,1.)
     +rimColor*light.rim*(.18+.12*v_lift);
-  linear*=mix(0.22,1.15,u_intensity);
+  linear*=mix(0.22,1.15,u_intensity)*(gl_FrontFacing ? 1.0 : .52);
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
 }`;
@@ -431,6 +440,13 @@ export class WebGLBackend implements RendererBackend {
     readonly scale: WebGLUniformLocation;
     readonly density: WebGLUniformLocation;
   };
+  private readonly peelOrder: {
+    center: readonly [number, number, number];
+    offset: number;
+    count: number;
+    z: number;
+  }[];
+  private readonly objectOrientation = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
   private readonly motion: MotionEvaluator;
   private input?: VisualInputV1;
   private scaleX = 0.56;
@@ -525,11 +541,21 @@ export class WebGLBackend implements RendererBackend {
       ],
     );
     this.peels = indexedResource(gl, createPeelGeometry(budget, seed), PEEL_VERTEX_STRIDE * 4, [
-      { location: 0, size: 4, offset: 0 },
-      { location: 1, size: 4, offset: 16 },
-      { location: 2, size: 2, offset: 32 },
+      { location: 0, size: 3, offset: 0 },
+      { location: 1, size: 4, offset: 12 },
+      { location: 2, size: 3, offset: 28 },
       { location: 3, size: 3, offset: 40 },
+      { location: 4, size: 2, offset: 52 },
+      { location: 5, size: 3, offset: 60 },
+      { location: 6, size: 3, offset: 72 },
     ]);
+    const perSheet = budget.peelSamples * budget.peelRows * 6;
+    this.peelOrder = createPeelDescriptors(budget.peels, seed).map((peel, index) => ({
+      center: peel.center,
+      offset: index * perSheet * 2,
+      count: perSheet,
+      z: 0,
+    }));
     this.halo = indexedResource(
       gl,
       {
@@ -559,6 +585,7 @@ export class WebGLBackend implements RendererBackend {
   }
 
   setObjectOrientation(matrix: Float32Array): void {
+    this.objectOrientation.set(matrix);
     const gl = this.gl;
     gl.useProgram(this.orbProgram);
     gl.uniformMatrix3fv(this.orbUniforms.orientation, false, matrix);
@@ -612,8 +639,9 @@ export class WebGLBackend implements RendererBackend {
     gl.bindVertexArray(this.orb.vao);
     gl.drawElements(gl.TRIANGLES, this.orb.count, gl.UNSIGNED_SHORT, 0);
 
-    // Near-opaque fragments write depth to stabilize crossing order.
-    gl.depthMask(true);
+    // Six reusable sheet ranges are ordered back-to-front. Soft alpha must not
+    // write depth and punch holes through later overlapping layers.
+    gl.depthMask(false);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     bindProgram(gl, this.peelProgram);
@@ -621,7 +649,26 @@ export class WebGLBackend implements RendererBackend {
     gl.uniform1i(this.peelUniforms.lightCount, this.budget.lights);
     this.setPeelUniforms(frame);
     gl.bindVertexArray(this.peels.vao);
-    gl.drawElements(gl.TRIANGLES, this.peels.count, gl.UNSIGNED_SHORT, 0);
+    for (const sheet of this.peelOrder) {
+      const m = this.objectOrientation,
+        c = sheet.center;
+      let x = m[0] * c[0] + m[3] * c[1] + m[6] * c[2],
+        y = m[1] * c[0] + m[4] * c[1] + m[7] * c[2],
+        z = m[2] * c[0] + m[5] * c[1] + m[8] * c[2];
+      const spinX = Math.cos(frame.spin) * x + Math.sin(frame.spin) * z;
+      z = -Math.sin(frame.spin) * x + Math.cos(frame.spin) * z;
+      x = spinX;
+      const roll = 0.08 * Math.sin(frame.breathPhase + 1.4),
+        rollX = Math.cos(roll) * x - Math.sin(roll) * y;
+      y = Math.sin(roll) * x + Math.cos(roll) * y;
+      x = rollX;
+      const tilt = 0.22 + 0.018 * Math.sin(frame.breathPhase),
+        tiltZ = Math.sin(tilt) * y + Math.cos(tilt) * z;
+      sheet.z = -Math.sin(frame.precession) * x + Math.cos(frame.precession) * tiltZ;
+    }
+    this.peelOrder.sort((a, b) => a.z - b.z);
+    for (const sheet of this.peelOrder)
+      gl.drawElements(gl.TRIANGLES, sheet.count, gl.UNSIGNED_SHORT, sheet.offset);
 
     gl.depthMask(false);
     bindProgram(gl, this.particleProgram);

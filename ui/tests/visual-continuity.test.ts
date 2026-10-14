@@ -11,7 +11,7 @@ describe("wrapped visual phase continuity", () => {
         /u_(?:peel_travel|breath_phase|ripple_phase|light_phase|phase)\s*\*\s*0?\.\d/,
       );
     }
-    expect(PEEL_VERTEX).toContain("sin(u_peel_travel+a_motion.y)");
+    expect(PEEL_VERTEX).toContain("sin(u_peel_travel+shape.z+.9*u)");
     expect(PEEL_VERTEX).toContain("v_object_direction=direction");
     expect(PARTICLE_VERTEX).toContain("u_phase*a_style.y");
     expect(PARTICLE_VERTEX).not.toContain("u_object_orientation");

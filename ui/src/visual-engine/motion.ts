@@ -1,4 +1,5 @@
 import { AmbientReactivity, type AmbientReactivityFrame } from "./ambient-reactivity";
+import { MEMBRANE_FLEX_RATE } from "./membrane";
 import type { RenderBudget } from "./quality";
 import type { AudioFeatures, VisualEngineSettings, VisualForeground, VisualInputV1 } from "./types";
 
@@ -472,7 +473,7 @@ export class MotionEvaluator {
       );
       const holding = input.interaction.floor === "holding" ? 0.86 : 1;
       this.peelTravel = wrap(
-        this.peelTravel + 0.25 * this.drift * holding * speedInfluence * motion * dt,
+        this.peelTravel + MEMBRANE_FLEX_RATE * this.drift * holding * speedInfluence * motion * dt,
       );
     }
 

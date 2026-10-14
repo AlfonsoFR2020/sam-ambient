@@ -596,8 +596,8 @@ describe("living field substrate", () => {
         expect(fragment).toContain("sampleLivingField(normalize(v_object_direction))");
         expect(fragment).toContain("LivingPigment pigment=livingPigment(field)");
       }
-      expect(PEEL_VERTEX).toContain("curvedNormal");
-      expect(PEEL_FRAGMENT).toContain("smoothstep(.80,1.,v_radial)");
+      expect(PEEL_VERTEX).toContain("cross(du,dv)");
+      expect(PEEL_FRAGMENT).toContain("smoothstep(.98,1.,v_radial)");
       expect(PEEL_FRAGMENT).not.toContain("dFdx(v_position)");
       const normalized = fragments.map((source) =>
         source.replace(
@@ -619,24 +619,14 @@ describe("living field substrate", () => {
       const seeded = offsets.map((entry) => entry.values);
       if (baseOffsets) expect(seeded).toEqual(baseOffsets);
       else baseOffsets = seeded;
-      expect(draws).toEqual([
-        "indexed",
-        "indexed",
-        "indexed",
-        "array",
-        "indexed",
-        "indexed",
-        "indexed",
-        "array",
-        "indexed",
-        "indexed",
-        "indexed",
-        "array",
-        "indexed",
-        "indexed",
-        "indexed",
-        "array",
-      ]);
+      expect(draws).toEqual(
+        Array.from({ length: 4 }, () => [
+          "indexed",
+          "indexed",
+          ...Array(budget.peels).fill("indexed"),
+          "array",
+        ]).flat(),
+      );
       backend.dispose();
       expect(deleted).toEqual({ programs: 4, vaos: 4, buffers: 7 });
     }

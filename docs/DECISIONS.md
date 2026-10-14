@@ -754,3 +754,13 @@ selection; use rose/violet/blue alongside warm dominance, not a global hue cycle
 Adjust moving key depth and tonal separation without more lights/noise/draws.
 These are bounded technical fixes and artistic hypotheses, validated offscreen;
 the absent concept board and future human judgment remain acceptance limits.
+
+## 2026-10-14 — visible attached membrane and bounded compositing
+
+HQ explicitly authorizes revising the four-draw constraint when it prevents legible
+layers. Identity II uses six broad swept sheets, an attached hinge, curling free lip
+and phase-continuous geometric flex. The same sheets exist across tiers. Sort six
+reused ranges by transformed center; soft-alpha color writes no depth. This bounded
+approximation uses nine draws and keeps opaque body occlusion; exact intersecting
+transparency remains a separate fidelity question. Radius bound 1.56 accommodates
+the curled lip and existing response bounds. No voice/control authority changes.
