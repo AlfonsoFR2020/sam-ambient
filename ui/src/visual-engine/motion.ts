@@ -130,6 +130,8 @@ export interface MotionFrame {
   fieldTwist1: number;
   fieldTwist2: number;
   surfaceFlowRate: number;
+  palettePhase: number;
+  paletteContrastPhase: number;
   paletteBalance: number;
   paletteContrast: number;
   peelTravel: number;
@@ -275,6 +277,8 @@ export class MotionEvaluator {
       fieldTwist1: SURFACE_FLOW.shearAmplitudeA * Math.sin(this.fieldTwistPhase1),
       fieldTwist2: SURFACE_FLOW.shearAmplitudeB * Math.sin(this.fieldTwistPhase2),
       surfaceFlowRate: 0,
+      palettePhase: this.palettePhase,
+      paletteContrastPhase: this.paletteContrastPhase,
       paletteBalance: 0.68 + 0.07 * Math.sin(this.palettePhase),
       paletteContrast: 1 + 0.14 * Math.sin(this.paletteContrastPhase),
       peelTravel: this.peelTravel,
@@ -568,6 +572,8 @@ export class MotionEvaluator {
     this.frame.fieldTwist1 = SURFACE_FLOW.shearAmplitudeA * Math.sin(this.fieldTwistPhase1);
     this.frame.fieldTwist2 = SURFACE_FLOW.shearAmplitudeB * Math.sin(this.fieldTwistPhase2);
     this.frame.surfaceFlowRate = surfaceFlowRate;
+    this.frame.palettePhase = this.palettePhase;
+    this.frame.paletteContrastPhase = this.paletteContrastPhase;
     this.frame.paletteBalance = 0.68 + 0.07 * Math.sin(this.palettePhase);
     this.frame.paletteContrast = 1 + 0.14 * Math.sin(this.paletteContrastPhase);
     this.frame.peelTravel = this.peelTravel;

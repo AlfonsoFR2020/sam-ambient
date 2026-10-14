@@ -1,0 +1,120 @@
+{
+  "metrics": [
+    {
+      "name": "before-0",
+      "mean": 0
+    },
+    {
+      "name": "before-15",
+      "mean": 0.2473263888888889
+    },
+    {
+      "name": "before-45",
+      "mean": 0.5739930555555556
+    },
+    {
+      "name": "before-120",
+      "mean": 0.25460648148148146
+    },
+    {
+      "name": "before-300",
+      "mean": 2.9581655092592594
+    },
+    {
+      "name": "palette-0",
+      "mean": 0
+    },
+    {
+      "name": "palette-15",
+      "mean": 5.68421875
+    },
+    {
+      "name": "palette-45",
+      "mean": 20.793211805555554
+    },
+    {
+      "name": "palette-120",
+      "mean": 36.64335648148148
+    },
+    {
+      "name": "palette-300",
+      "mean": 15.937934027777779
+    },
+    {
+      "name": "transport-0",
+      "mean": 0
+    },
+    {
+      "name": "transport-15",
+      "mean": 15.682152777777778
+    },
+    {
+      "name": "transport-45",
+      "mean": 16.83792824074074
+    },
+    {
+      "name": "transport-120",
+      "mean": 18.784050925925925
+    },
+    {
+      "name": "transport-300",
+      "mean": 16.102100694444445
+    },
+    {
+      "name": "body-0",
+      "mean": 0
+    },
+    {
+      "name": "body-15",
+      "mean": 5.71355324074074
+    },
+    {
+      "name": "body-45",
+      "mean": 21.002627314814816
+    },
+    {
+      "name": "body-120",
+      "mean": 37.11412037037037
+    },
+    {
+      "name": "body-300",
+      "mean": 16.05585648148148
+    }
+  ],
+  "adjacent20ms": 0.0024030671296296296,
+  "times": [
+    0,
+    15,
+    45,
+    120,
+    300
+  ],
+  "size": 480,
+  "seed": "0x5a17",
+  "fixed": "geometry, light, pose, curl; palette-only vs transport-only rows",
+  "gpuTiming": "not measured in this bounded desktop-safe check",
+  "baseline": "bc91a03 body/membrane pigment grammar; particle mapping uses current code in every row",
+  "sourceSha256Lf": {
+    "ui/src/visual-engine/ambient-reactivity.ts": "5126c9f663456ac60df77ba1e29f97e380c7c0b4b0836ae5037b99ee4c91f4df",
+    "ui/src/visual-engine/backend.ts": "436d970a764d9a4deb0ab2a462a75bc8c0fe037c5537eca64825471b650a933c",
+    "ui/src/visual-engine/canvas.ts": "0ee8900f1309d0eafdd5df15350bcffad725cbd90373e0518733d05ff8712809",
+    "ui/src/visual-engine/discourse-crest.ts": "9d91f6ad576a926ef70bbec54af8347dd87a40a8db618c618ae461fd04eb1c6a",
+    "ui/src/visual-engine/engine.ts": "58e4b4c254a78d9c593c539f00766e372368f447db2a3989cb61d8efef7d180b",
+    "ui/src/visual-engine/geometry.ts": "3c7bf9af70021517d2eee7027daae82bfaffe0643963ffab41aba2a7269c0ba0",
+    "ui/src/visual-engine/governor.ts": "65c0125d3682c4d672df2547b8ba5a28e9101ee1f7f85df495eec60527a3f32b",
+    "ui/src/visual-engine/input.ts": "99c73aa936b49c8afb6ccc747f38e17a8b4611b661ebe5bc3cd19a2795d0c695",
+    "ui/src/visual-engine/interaction.ts": "433bb8f1aaa8b99ea18cceaf6a163bad757f9f4454b90ad7aba50566e0b91e53",
+    "ui/src/visual-engine/living-field.ts": "402f0f3c546392c0569ddadcef82f2adf17eb5507945a7304c8b7ee226d25bf1",
+    "ui/src/visual-engine/living-material.ts": "869263440fb12395018a0dcac082f1601b897b6ec6734902bb9b3ea1f28c121b",
+    "ui/src/visual-engine/membrane-optics.ts": "ffa4f07f81b17592f2be7e60b437c4bbd63f0f7a1873e431fdf1e1b4f7a09395",
+    "ui/src/visual-engine/membrane.ts": "966e843352c244ff38affc4b28aad866641ef2f871be8076eae379250cbc922b",
+    "ui/src/visual-engine/motion.ts": "afd56c3a302490d328928562770ef507a0e3a8541a72ae6983d1d93ccd3c15a2",
+    "ui/src/visual-engine/palette.ts": "3a9ff2873a34d096e8b6273317bae892502756e8da52fa77771f2d30a7c6c9fb",
+    "ui/src/visual-engine/particles.ts": "2c9a59a255ca097f09946e423da3a041f49194eb7bd92286eff3ac1232352d92",
+    "ui/src/visual-engine/quality.ts": "888d9395e518be71caad4c8fd66e5da7c4e5f5f1710244e538e99747436ff73b",
+    "ui/src/visual-engine/settings.ts": "6fa95395e8a81dbf252129dcc06e3429ec23f8420bedad4e45c840fdbb407bd4",
+    "ui/src/visual-engine/tuning.ts": "d9aab6ea483169e2e650035870c6abbdec6b06424c768b2339fd28124eaefb75",
+    "ui/src/visual-engine/types.ts": "45a357b7d6a1459af773686c1b2474c5e8a6207d226cb5011be7e3772b092d3e",
+    "ui/src/visual-engine/webgl.ts": "589d70932568b7d2235063bf76bc54d36c554e376498224c553544c54da72598"
+  }
+}

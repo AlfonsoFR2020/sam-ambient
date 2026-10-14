@@ -6,6 +6,7 @@ import {
   type VisualInputV1,
 } from "../../src/visual-engine/types";
 import { WebGLBackend } from "../../src/visual-engine/webgl";
+import { PALETTE_BEFORE } from "./palette-before";
 
 export function visualInput(
   time: number,
@@ -68,6 +69,7 @@ export function fixture(
     depthPass?: boolean;
     neutralMaterial?: boolean;
     contact?: boolean;
+    paletteBefore?: boolean;
   } = {},
 ) {
   const size = options.size ?? 720,
@@ -89,6 +91,22 @@ export function fixture(
     preserveDrawingBuffer: true,
   });
   if (!gl) throw new Error("Headless WebGL2 unavailable");
+  if (options.paletteBefore) {
+    const source = gl.shaderSource.bind(gl);
+    gl.shaderSource = (shader, text) =>
+      source(
+        shader,
+        text
+          .replace(
+            /LivingPigment livingPigment\(LivingField field\) \{[\s\S]*?\n\}/,
+            PALETTE_BEFORE,
+          )
+          .replace(
+            "linear*=mix(0.22,1.15,u_intensity)",
+            "linear+=vec3(1.e-8*sin(u_palette_phase.x+u_palette_phase.y));linear*=mix(0.22,1.15,u_intensity)",
+          ),
+      );
+  }
   if (options.contact === false) {
     const names = new Map<WebGLUniformLocation, string>(),
       locate = gl.getUniformLocation.bind(gl),

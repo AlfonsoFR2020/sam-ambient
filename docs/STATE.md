@@ -4,10 +4,10 @@ Updated: 2026-10-14. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 ## Release and evidence boundary
 
-- [Visual Identity III](VISUAL_IDENTITY_III.md) refines Identity II's six attached,
-  flexing sheets with lifted-film optics/High contact and a shared body/skin/particle
-  light crest. Bounds remain; 112 checks / 5 headless cases pass. One real startup,
-  auth/Gemma/Quit passed; probe failure prevented inference metrics. Cleanup verified; no human acceptance.
+- [Living palette](LIVING_PALETTE_AND_READINESS.md) adds three composed cyclic color
+  banks using existing independent clocks; fixed 0–300 s palette/transport evidence
+  is headless only. Identity III film/contact and body/skin/particle crest remain.
+  Geometry, draw/radius bounds and authority remain; human acceptance is open.
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
   inventory/server state; CLI dispatch success alone is insufficient.

@@ -7,6 +7,7 @@ export default defineConfig({
     "visual-identity.spec.ts",
     "visual-identity-II.spec.ts",
     "visual-identity-III.spec.ts",
+    "palette-lifecycle.spec.ts",
   ],
   timeout: 120_000,
   workers: 1,

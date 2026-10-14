@@ -13,9 +13,8 @@ import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-mater
 import { MEMBRANE_SHAPE_GLSL } from "./membrane";
 import { MEMBRANE_CONTACT_GLSL } from "./membrane-optics";
 import type { MotionEvaluator, MotionFrame } from "./motion";
+import { LIVING_PALETTE_GLSL } from "./palette";
 import {
-  PARTICLE_COPPER,
-  PARTICLE_GOLD,
   PARTICLE_RADIAL_WANDER,
   PARTICLE_VERTICAL_WANDER,
   PARTICLE_VISIBILITY_HASH,
@@ -270,17 +269,14 @@ precision highp float;
 in float v_alpha;
 in float v_tint;
 in float v_shape;
+${LIVING_PALETTE_GLSL}
 out vec4 color;
 void main(){
   vec2 uv=(gl_PointCoord-vec2(.5))*2.;
   float aspect=mix(.82,1.18,v_shape);
   float distanceFromCenter=length(vec2(uv.x*aspect,uv.y/aspect));
   float alpha=v_alpha*(1.-smoothstep(.46,1.,distanceFromCenter));
-  vec3 pigment=mix(
-    vec3(${PARTICLE_COPPER.red.toFixed(3)},${PARTICLE_COPPER.green.toFixed(3)},${PARTICLE_COPPER.blue.toFixed(3)}),
-    vec3(${PARTICLE_GOLD.red.toFixed(3)},${PARTICLE_GOLD.green.toFixed(3)},${PARTICLE_GOLD.blue.toFixed(3)}),
-    v_tint
-  );
+  vec3 pigment=paletteColor(v_tint,.5,.2+.6*v_tint,.25+.5*v_tint);
   color=vec4(pigment*alpha,alpha);
 }`;
 
@@ -367,6 +363,7 @@ interface CommonUniforms {
 }
 
 interface FieldUniforms {
+  readonly palettePhase: WebGLUniformLocation;
   readonly state: WebGLUniformLocation;
   readonly paletteBalance: WebGLUniformLocation;
   readonly paletteContrast: WebGLUniformLocation;
@@ -492,6 +489,7 @@ export class WebGLBackend implements RendererBackend {
     readonly pointScale: WebGLUniformLocation;
     readonly scale: WebGLUniformLocation;
     readonly density: WebGLUniformLocation;
+    readonly palettePhase: WebGLUniformLocation;
     readonly ripplePhase: WebGLUniformLocation;
   };
   private readonly peelOrder: {
@@ -609,6 +607,7 @@ export class WebGLBackend implements RendererBackend {
       pointScale: location(gl, this.particleProgram, "u_point_scale"),
       scale: location(gl, this.particleProgram, "u_scale"),
       density: location(gl, this.particleProgram, "u_density"),
+      palettePhase: location(gl, this.particleProgram, "u_palette_phase"),
       ripplePhase: location(gl, this.particleProgram, "u_ripple_phase"),
     };
     this.motion = motion;
@@ -786,6 +785,11 @@ export class WebGLBackend implements RendererBackend {
 
     gl.depthMask(false);
     bindProgram(gl, this.particleProgram);
+    gl.uniform2f(
+      this.particleUniforms.palettePhase,
+      frame.palettePhase,
+      frame.paletteContrastPhase,
+    );
     gl.uniform1f(this.particleUniforms.phase, frame.particlePhase);
     gl.uniform1f(this.particleUniforms.ripplePhase, frame.ripplePhase);
     gl.uniform1f(this.particleUniforms.driftPhase, frame.particleDriftPhase);
@@ -816,6 +820,7 @@ export class WebGLBackend implements RendererBackend {
     const gl = this.gl;
     return {
       state: location(gl, shader, "u_field_state"),
+      palettePhase: location(gl, shader, "u_palette_phase"),
       paletteBalance: location(gl, shader, "u_palette_balance"),
       paletteContrast: location(gl, shader, "u_palette_contrast"),
       offsetA: location(gl, shader, "u_field_offset_a"),
@@ -831,6 +836,7 @@ export class WebGLBackend implements RendererBackend {
       frame.fieldTwist1,
       frame.fieldTwist2,
     );
+    this.gl.uniform2f(uniforms.palettePhase, frame.palettePhase, frame.paletteContrastPhase);
     this.gl.uniform1f(uniforms.paletteBalance, frame.paletteBalance);
     this.gl.uniform1f(uniforms.paletteContrast, frame.paletteContrast);
   }

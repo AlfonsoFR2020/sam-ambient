@@ -808,3 +808,12 @@ headless rather than changing working controls or repeatedly launching Sam. Reco
 the test-created provider's explicit cleanup and automatic ownership-classification
 uncertainty. Isolated GPU cost is not full-app responsiveness or human acceptance.
 [Evidence and limits](VISUAL_IDENTITY_III.md).
+
+## 2026-10-14 — composed local palette banks, independent transport
+
+HQ requests a substantially broader living palette, superseding fixed warm-dominant
+anchor allocation. Three coherent cyclic banks share CPU/GPU constants and C1
+transitions. Existing palette clocks and local fields evolve regions differently;
+transport, geometry, quiet film and authority remain independent. This is not a
+whole-Orb hue offset. No extra samples/draws/counts or dependencies. Canvas remains
+an economical warm fallback. [Evidence](LIVING_PALETTE_AND_READINESS.md).

@@ -1,74 +1,10 @@
 import { DISCOURSE_CREST_GLSL } from "./discourse-crest";
 
-type Color = readonly [number, number, number];
+import { LIVING_PALETTE_GLSL, samplePalette } from "./palette";
 
-// Linear-light pigment anchors. Warm colors remain the majority; cool colors
-// occupy coherent low-density folds instead of independently animated bands.
-export const PIGMENTS = Object.freeze({
-  red: [0.44, 0.026, 0.045] as Color,
-  copper: [0.68, 0.13, 0.038] as Color,
-  orange: [1.0, 0.33, 0.065] as Color,
-  gold: [1.0, 0.58, 0.13] as Color,
-  pink: [0.88, 0.055, 0.28] as Color,
-  violet: [0.3, 0.018, 0.58] as Color,
-  blue: [0.022, 0.12, 0.62] as Color,
-  teal: [0.018, 0.43, 0.34] as Color,
-});
-
-/** Optional luminance/roughness only; these never enter the palette coordinate. */
+export { PIGMENTS } from "./palette";
 export const FINE_DETAIL_AMPLITUDES = [0.06, 0.025] as const;
-
-const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
-const smooth = (lo: number, hi: number, value: number): number => {
-  const t = clamp01((value - lo) / (hi - lo));
-  return t * t * (3 - 2 * t);
-};
-const mix = (a: Color, b: Color, t: number): Color => [
-  a[0] + (b[0] - a[0]) * t,
-  a[1] + (b[1] - a[1]) * t,
-  a[2] + (b[2] - a[2]) * t,
-];
-
-/** Test/reference counterpart of the GLSL pigment grammar; not used per frame. */
-export function sampleLivingPigment(
-  field: {
-    readonly broad: number;
-    readonly medium: number;
-    readonly palette: number;
-  },
-  balance = 0.68,
-  contrast = 1,
-): { readonly albedo: Color; readonly cool: number } {
-  const { broad, medium, palette } = field;
-  const baseWarm = mix(
-    mix(PIGMENTS.red, PIGMENTS.copper, smooth(0.19, 0.46, palette)),
-    mix(PIGMENTS.orange, PIGMENTS.gold, smooth(0.57, 0.78, palette)),
-    smooth(0.42, 0.64, palette),
-  );
-  // Rose lives within warm currents, rather than being unreachable behind a
-  // high-medium cool gate. Broad density places territories; medium varies hue.
-  const rose = 0.68 * (1 - smooth(0.25, 0.58, medium)) * (1 - smooth(0.58, 0.82, broad));
-  const warm = mix(baseWarm, PIGMENTS.pink, rose);
-  const coolCoordinate = 0.15 + 0.7 * medium + 0.15 * (1 - broad);
-  const cool = mix(
-    mix(PIGMENTS.pink, PIGMENTS.violet, smooth(0.37, 0.54, coolCoordinate)),
-    mix(PIGMENTS.blue, PIGMENTS.teal, smooth(0.65, 0.82, coolCoordinate)),
-    smooth(0.53, 0.72, coolCoordinate),
-  );
-  const coolBoundary = 0.12 * (contrast - 1) + 0.1 * (balance - 0.68);
-  const coolWeight =
-    0.94 *
-    (1 - smooth(0.25 + coolBoundary, 0.54 + coolBoundary, broad)) *
-    (0.35 + 0.65 * smooth(0.22 - coolBoundary, 0.66 - coolBoundary, medium));
-  const fold = 0.83 + 0.29 * broad + 0.13 * (smooth(0.34, 0.68, medium) - 0.5);
-  const pigment = mix(warm, cool, coolWeight);
-  return {
-    albedo: [clamp01(pigment[0] * fold), clamp01(pigment[1] * fold), clamp01(pigment[2] * fold)],
-    cool: coolWeight,
-  };
-}
-
-const glslColor = (color: Color): string => `vec3(${color.map((n) => n.toFixed(4)).join(", ")})`;
+export const sampleLivingPigment = samplePalette;
 
 /** Shared by the sphere and existing peels after the field is sampled. */
 export const LIVING_MATERIAL_GLSL = `
@@ -81,27 +17,12 @@ uniform vec4 u_behavior; // measured input/output, lifecycle work, receptive pos
 uniform float u_ripple_phase;
 
 struct LivingPigment { vec3 albedo; float cool; };
+${LIVING_PALETTE_GLSL}
 LivingPigment livingPigment(LivingField field) {
-  float p = field.palette;
-  vec3 baseWarm = mix(
-    mix(${glslColor(PIGMENTS.red)}, ${glslColor(PIGMENTS.copper)}, smoothstep(0.19, 0.46, p)),
-    mix(${glslColor(PIGMENTS.orange)}, ${glslColor(PIGMENTS.gold)}, smoothstep(0.57, 0.78, p)),
-    smoothstep(0.42, 0.64, p)
-  );
-  float rose = .68 * (1.0 - smoothstep(.25, .58, field.medium))
-    * (1.0 - smoothstep(.58, .82, field.broad));
-  vec3 warm = mix(baseWarm, ${glslColor(PIGMENTS.pink)}, rose);
-  float coolCoordinate = .15 + .70 * field.medium + .15 * (1.0 - field.broad);
-  vec3 cool = mix(
-    mix(${glslColor(PIGMENTS.pink)}, ${glslColor(PIGMENTS.violet)}, smoothstep(0.37, 0.54, coolCoordinate)),
-    mix(${glslColor(PIGMENTS.blue)}, ${glslColor(PIGMENTS.teal)}, smoothstep(0.65, 0.82, coolCoordinate)),
-    smoothstep(0.53, 0.72, coolCoordinate)
-  );
-  float coolBoundary = .12 * (u_palette_contrast - 1.0) + .10 * (u_palette_balance - .68);
-  float coolWeight = 0.94 * (1.0 - smoothstep(.25 + coolBoundary, .54 + coolBoundary, field.broad))
-    * (.35 + .65 * smoothstep(.22 - coolBoundary, .66 - coolBoundary, field.medium));
-  float fold = 0.83 + 0.29 * field.broad + 0.13 * (smoothstep(0.34, 0.68, field.medium) - 0.5);
-  return LivingPigment(clamp(mix(warm, cool, coolWeight) * fold, 0.0, 1.0), coolWeight);
+ float boundary=.12*(u_palette_contrast-1.)+.10*(u_palette_balance-.68);
+ float cool=.94*(1.-smoothstep(.25+boundary,.54+boundary,field.broad))
+   *(.35+.65*smoothstep(.22-boundary,.66-boundary,field.medium));
+ return LivingPigment(paletteColor(field.broad,field.medium,field.palette,cool),cool);
 }
 
 ${DISCOURSE_CREST_GLSL}
