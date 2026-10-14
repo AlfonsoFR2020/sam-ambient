@@ -46,7 +46,7 @@ def test_default_and_diagnostic_commands_share_startup(tmp_path):
     )
     root = Path(__file__).resolve().parents[2]
     shared = (root / "Start Sam.cmd").read_text()
-    assert 'sam-ambient.exe" %*' in shared and '"%~1"=="--diagnostic"' in shared
+    assert 'sam-ambient.exe" %*' in shared and "%~1" not in shared
     assert 'Start Sam.cmd" --diagnostic %*' in (root / "Diagnose Sam.cmd").read_text()
 
 

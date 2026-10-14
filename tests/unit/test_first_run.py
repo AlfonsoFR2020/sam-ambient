@@ -375,4 +375,5 @@ def test_verbose_keeps_http_credential_logging_disabled():
         text=True,
         timeout=5,
     )
-    assert "diagnostic" in result.stderr and "api-key-must-not-log" not in result.stderr
+    assert "log.debug" in result.stderr and "api-key-must-not-log" not in result.stderr
+    assert '"component":"sam_ambient"' in result.stderr

@@ -101,6 +101,10 @@ _STATES = frozenset(
 )
 
 
+class DiagnosticLogError(ValueError):
+    """An actionable, content-free log ownership failure."""
+
+
 def identity(value: str) -> str:
     return hashlib.sha256(value.encode()).hexdigest()[:16]
 
@@ -130,9 +134,13 @@ def diagnostic(stage: str, **fields: object) -> None:
 class DiagnosticHandler(logging.Handler):
     """Supervisor is the only rotating-file writer; children emit bounded pipe records."""
 
-    def __init__(self, path: Path | None = None, *, child: bool = False) -> None:
-        super().__init__(logging.INFO)
+    def __init__(
+        self, path: Path | None = None, *, child: bool = False, verbose: bool = False
+    ) -> None:
+        super().__init__(logging.DEBUG if verbose else logging.INFO)
         self.child = child
+        self.verbose = verbose
+        self.writer_lock = None
         self.path = path
         self.started = time.monotonic()
         self.failures = self.warnings = self.dropped = 0
@@ -150,9 +158,11 @@ class DiagnosticHandler(logging.Handler):
         data = getattr(record, "sam_diagnostic", None)
         if data is None:
             # Raw exception messages may contain prompts, URLs or credentials.
-            if record.levelno < logging.WARNING or not record.name.startswith("sam_ambient"):
+            if record.levelno < (
+                logging.DEBUG if self.verbose else logging.WARNING
+            ) or not record.name.startswith("sam_ambient"):
                 return
-            data = {"stage": "log.warning", "component": record.name[:64]}
+            data = {"stage": "log." + record.levelname.lower(), "component": record.name[:64]}
             if record.levelno >= logging.ERROR:
                 data.update(stage="log.error", state="failed")
         try:
@@ -186,6 +196,8 @@ class DiagnosticHandler(logging.Handler):
     def close(self) -> None:
         if self.file is not None:
             self.file.close()
+        if self.writer_lock is not None:
+            self.writer_lock.release()
         super().close()
 
 
@@ -209,10 +221,37 @@ def forward_diagnostic(line: bytes) -> None:
         return
 
 
-def open_session_log(root: Path) -> DiagnosticHandler:
-    handler = DiagnosticHandler(root / ".sam/diagnostics/session.jsonl")
+def open_session_log(
+    root: Path, *, path: Path | None = None, console_only: bool = False, verbose: bool = False
+) -> DiagnosticHandler:
+    from sam_ambient.supervisor.single_instance import InstanceLock
+
+    target = None if console_only else (path or root / ".sam/diagnostics/session.jsonl")
+    lock = None
+    if target is not None:
+        target = target.expanduser().resolve(strict=False)
+        print(f"Sam diagnostic log: {target}", file=sys.stderr, flush=True)
+        if target.is_dir():
+            raise DiagnosticLogError("--log-file must name a file, not a directory")
+        lock = InstanceLock(target.with_name(target.name + ".lock"))
+        if not lock.acquire():
+            raise DiagnosticLogError(
+                "Diagnostic log is already owned by another Sam session; choose another --log-file"
+            )
+    else:
+        print(
+            "Sam operational diagnostics: console only (no persistent log).",
+            file=sys.stderr,
+            flush=True,
+        )
+    try:
+        handler = DiagnosticHandler(target, verbose=verbose)
+    except BaseException:
+        if lock is not None:
+            lock.release()
+        raise
+    handler.writer_lock = lock
     logging.getLogger().handlers = [handler]
-    print(f"Sam diagnostic log: {handler.path}", file=sys.stderr, flush=True)
     diagnostic("session.start")
     return handler
 
@@ -226,5 +265,6 @@ def finish_session(handler: DiagnosticHandler, exit_code: int) -> None:
         warnings=handler.warnings,
         dropped=handler.dropped,
     )
-    print(f"Sam diagnostic log: {handler.path}", file=sys.stderr, flush=True)
+    if handler.path is not None:
+        print(f"Sam diagnostic log: {handler.path}", file=sys.stderr, flush=True)
     handler.close()

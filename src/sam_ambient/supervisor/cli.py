@@ -17,8 +17,13 @@ from pathlib import Path
 from sam_ambient import __version__
 from sam_ambient.configuration import ConfigurationError, configure_namespace
 from sam_ambient.core.owner import OwnerSession
-from sam_ambient.diagnostic_log import diagnostic, finish_session, open_session_log
-from sam_ambient.logging_config import add_logging_arguments, configure_logging
+from sam_ambient.diagnostic_log import (
+    DiagnosticLogError,
+    diagnostic,
+    finish_session,
+    open_session_log,
+)
+from sam_ambient.logging_config import add_logging_arguments, configure_logging, operational_enabled
 from sam_ambient.supervisor import (
     ComponentSpec,
     RestartPolicy,
@@ -45,8 +50,44 @@ def _packaged_sibling(name: str) -> str | None:
     return str(executable)
 
 
+def _log_path(value: str) -> Path:
+    if not value.strip() or "\x00" in value:
+        raise argparse.ArgumentTypeError("--log-file needs a non-empty file path")
+    return Path(value).expanduser()
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="sam-supervisor", description="Sam process supervisor")
+    parser = argparse.ArgumentParser(
+        prog="sam-supervisor",
+        description="Sam shared launcher and process supervisor",
+        allow_abbrev=False,
+        add_help=False,
+        epilog=(
+            "Examples: Start Sam.cmd --verbose --keep-console | "
+            "Start Sam.cmd --keep-provider --log-file PATH"
+        ),
+    )
+    parser.add_argument(
+        "-h", "--help", action="store_true", help="Show options without starting Sam"
+    )
+    console = parser.add_mutually_exclusive_group()
+    console.add_argument(
+        "--keep-console",
+        action="store_true",
+        default=None,
+        help="Keep the interactive console after exit, independently of logging",
+    )
+    console.add_argument(
+        "--no-keep-console",
+        dest="keep_console",
+        action="store_false",
+        help="Override diagnostic preset's successful-exit console hold",
+    )
+    parser.add_argument(
+        "--log-file",
+        type=_log_path,
+        help="Bounded JSONL path (relative to effective root); enables file diagnostics",
+    )
     parser.add_argument("--config", help="Explicit Sam TOML configuration file")
     parser.add_argument("--root", default=".", help="Trusted Sam workspace root")
     parser.add_argument("--state-db", help="Operational SQLite path")
@@ -140,11 +181,11 @@ def _trusted_core_command(args: argparse.Namespace, root: Path) -> tuple[str, ..
         command.append("--no-voice")
     if args.no_tts:
         command.append("--no-tts")
-    for flag in ("diagnostic", "keep_model", "keep_provider"):
+    for flag in ("verbose", "keep_model", "keep_provider"):
         if getattr(args, flag, False):
             command.append("--" + flag.replace("_", "-"))
-    if getattr(args, "diagnostic", False):
-        command.append("--diagnostic-child")
+    if operational_enabled(args):
+        command.extend(("--diagnostic", "--diagnostic-child"))
     if args.tts_voice != "default":
         command.extend(("--tts-voice", args.tts_voice))
     if args.preferred_languages != ("en", "es"):
@@ -165,7 +206,9 @@ def _trusted_ui_command(args: argparse.Namespace) -> tuple[str, ...]:
         "--log-level",
         "DEBUG" if args.verbose else args.log_level,
     ]
-    if getattr(args, "diagnostic", False):
+    if args.verbose:
+        command.append("--verbose")
+    if operational_enabled(args):
         command.extend(("--diagnostic", "--diagnostic-child"))
     return tuple(command)
 
@@ -190,8 +233,15 @@ async def run(args: argparse.Namespace) -> int:
     handler = None
     exit_code = 2
     try:
-        if getattr(args, "diagnostic", False):
-            handler = open_session_log(root)
+        if operational_enabled(args):
+            raw_path = getattr(args, "log_file", None)
+            path = (root / raw_path).resolve(strict=False) if raw_path is not None else None
+            handler = open_session_log(
+                root,
+                path=path,
+                console_only=not (args.diagnostic or raw_path is not None),
+                verbose=args.verbose,
+            )
         exit_code = await _run_locked(args, root, state_db)
         return exit_code
     except BaseException as error:
@@ -316,29 +366,67 @@ async def _run_locked(args: argparse.Namespace, root: Path, state_db: Path) -> i
     return 0
 
 
+def _hold_console(args: argparse.Namespace, exit_code: int) -> None:
+    keep = args.keep_console if args.keep_console is not None else args.diagnostic
+    # The CMD wrapper owns failure retention, including executable/bootstrap errors.
+    if not keep or (exit_code != 0 and os.environ.get("SAM_CMD_WRAPPER") == "1"):
+        return
+    if sys.stdin is not None and sys.stdin.isatty():
+        try:
+            input(f"Sam finished with exit code {exit_code}. Press Enter to close this console...")
+        except (EOFError, KeyboardInterrupt):
+            pass
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     arguments = list(sys.argv[1:] if argv is None else argv)
-    args = parser.parse_args(arguments)
+    args = None
+    exit_code = 2
     try:
-        configure_namespace(args, arguments, supervisor=True)
-    except ConfigurationError as error:
-        parser.error(str(error))
-    configure_logging(args)
-    try:
-        return asyncio.run(run(args))
-    except (OSError, ValueError) as error:
-        detail = type(error).__name__ if args.diagnostic else str(error)
-        print(f"Supervisor error: {detail}", file=sys.stderr)
-        if args.diagnostic:
+        args = parser.parse_args(arguments)
+        if args.help:
+            parser.print_help()
+            exit_code = 0
+            return exit_code
+        try:
+            configure_namespace(args, arguments, supervisor=True)
+        except ConfigurationError as error:
+            parser.error(str(error))
+        configure_logging(args)
+        if args.keep_model or args.keep_provider:
             print(
-                "Check the checkout, configuration and .sam/diagnostics permissions; "
-                "the diagnostic launcher keeps this console open.",
+                "Session-only retention: "
+                + (
+                    "model and serving endpoint."
+                    if args.keep_model
+                    else "serving endpoint; model follows saved cleanup preferences."
+                ),
                 file=sys.stderr,
             )
-        return 2
+        exit_code = asyncio.run(run(args))
+    except SystemExit as error:
+        exit_code = int(error.code or 0)
+    except (OSError, ValueError) as error:
+        detail = (
+            type(error).__name__
+            if args is not None
+            and operational_enabled(args)
+            and not isinstance(error, DiagnosticLogError)
+            else str(error)
+        )
+        print(f"Supervisor error: {detail}", file=sys.stderr)
+        print(
+            "Check the checkout, configuration and --log-file path/permissions. "
+            "Windows launchers retain failures for inspection.",
+            file=sys.stderr,
+        )
     except KeyboardInterrupt:
-        return 130
+        exit_code = 130
+    finally:
+        if args is not None:
+            _hold_console(args, exit_code)
+    return exit_code
 
 
 if __name__ == "__main__":

@@ -2,39 +2,76 @@
 
 Implementation checkpoints 1–3 — 2026-10-13. No version bump or release publication.
 
-## Owner launch
+## Unified owner launch (2026-10-14 development)
 
-`Start Sam.cmd` remains the ordinary one-action prepared-checkout launch. It uses
-its existing environment, supervisor and sandboxed authenticated owner window;
-no dependency installation, provider download or persisted default change.
+`Start Sam.cmd` is the single prepared-checkout launch path: ordinary double-click
+uses existing preferences, supervisor and sandboxed authenticated window, without
+installing dependencies. Successful normal exit closes its console as before.
+`Diagnose Sam.cmd` is only a tail-delegating `--diagnostic` preset. Both invoke the
+same Python parser and supervisor; no first-argument inspection or duplicated
+startup/option logic. Tail delegation avoids CALL's extra argument expansion.
 
-Double-click `Diagnose Sam.cmd` for diagnostic mode. It delegates to the same
-launcher, opens the normal Sam window and leaves the console available after exit
-or failure. From PowerShell: `& ".\Diagnose Sam.cmd" --keep-model`, or
-`uv run --no-sync sam-ambient --diagnostic --keep-provider`.
+| Flag | Exact session semantics |
+| --- | --- |
+| `--help` / `-h` | Print shared options; no configuration load, service or UI startup. |
+| `--verbose` | Extra allowlisted operational console records and Sam logger severity/category metadata; no raw DEBUG message dumps and no file implied. |
+| `--keep-console` | Wait for Enter after an interactive launch finishes, independent of verbosity/file logging. Piped/noninteractive input never blocks. |
+| `--no-keep-console` | Override diagnostic preset's successful-exit hold. Windows wrapper failures still pause so errors remain readable. |
+| `--log-file PATH` | Enable rotating JSONL at that file without implying verbosity or a successful-exit hold. Relative paths resolve against effective Sam root, not the log's parent. |
+| `--diagnostic` | Preset: bounded operational evidence, default `<root>/.sam/diagnostics/session.jsonl`, and an interactive console hold unless explicitly overridden. |
+| `--keep-model` | Keep Sam-loaded models for this session; imply endpoint retention so model retention is not defeated by shutdown. |
+| `--keep-provider` | Keep Sam-started serving endpoints; model cleanup independently follows saved/live preferences. |
 
-- `--diagnostic`: content-free operational console/log records and final summary.
-- `--keep-model`: retain Sam-loaded models for this session; also retain their
-  serving endpoint so stopping the service cannot defeat model retention.
-- `--keep-provider`: retain Sam-started serving endpoints; model cleanup still
-  follows ordinary preferences unless `--keep-model` is present.
-- No flags: existing persisted cleanup preferences remain authoritative.
+Examples from PowerShell (quotes also work in Command Prompt):
 
-Controls continues to show saved cleanup preferences; diagnostic startup and cleanup
-records show the session override and effective policy. Flags never write configuration
-or lifecycle preferences. They apply at final
-cleanup after live preference changes. Existing external services/models remain
-externally owned. Retaining LM Studio serving is distinct from its desktop app;
-Sam does not terminate a pre-existing desktop application.
+```powershell
+& ".\Start Sam.cmd" --verbose --keep-console
+& ".\Start Sam.cmd" --keep-model --verbose --log-file ".sam\diagnostics\session.jsonl"
+& ".\Start Sam.cmd" --keep-provider --keep-console
+& ".\Start Sam.cmd" --log-file "logs with spaces\session.jsonl"
+& ".\Diagnose Sam.cmd" --verbose --keep-provider
+& ".\Start Sam.cmd" --diagnostic --no-keep-console
+& ".\Start Sam.cmd" --help
+```
+
+`sam-ambient` and `sam-supervisor` use the same options. Flags can occur in any order.
+The mutually exclusive console switches reject contradictory input; unknown and
+abbreviated flags, missing/empty paths and directory targets fail with guidance.
+Repeated value options use argparse's last value. Required operational INFO records
+remain available in bounded diagnostic mode; `--verbose` adds category metadata
+and takes precedence over `--log-level`. Normal mode retains its existing log level.
+
+### Precedence, ownership and console failure behavior
+
+For supported application/provider settings: explicit CLI > environment > explicit
+TOML > project TOML > user TOML > defaults, as before. Launcher-only switches have
+no saved-setting/environment counterpart. Explicit `--log-file` overrides the
+preset's path; explicit console choice overrides the diagnostic preset. No logging
+flag implies retention. At final cleanup, retention flags override the current
+saved/live cleanup policy without rewriting it. `--keep-model` implies provider
+retention; the converse is false. Controls still describes persisted preferences.
+
+An endpoint is distinct from the LM Studio desktop application. Existing external
+model/service ownership is unchanged. These flags do not authorize killing an
+external process or keeping a service's desktop application alive by force.
+
+The Python path owns success/explicit-console holding. `Start Sam.cmd` owns error
+pausing, including missing environments/executable failures. A scoped internal
+`SAM_CMD_WRAPPER=1` marker prevents a double pause; it is not a saved preference.
+Direct Python/console entry points honor `--keep-console` on runtime failure when
+interactive. Windows wrapper parse/startup failures remain readable regardless of
+flag order. Ctrl+C/EOF at the final prompt exits without restarting anything.
 
 ## Log contract
 
-The console prints the resolved `<checkout>/.sam/diagnostics/session.jsonl` path
+The console prints the resolved default or explicit JSONL path
 at startup and completion. UTF-8 JSON Lines contain UTC wall time and monotonic
 milliseconds, stage, bounded numeric metrics, controlled status/category fields
 and hashed correlation identities. One supervisor writer rotates at 1 MiB with
 three backups (about 4 MiB total); append across sessions. At most 100 records per
-second per process; dropped records are counted. The session summary reports
+second per process; dropped records are counted. An OS-released sidecar lock guards
+each file against a second writer; a stale lock file cannot block a later session.
+The session summary reports
 exit code, elapsed time, failures/warnings and dropped records.
 
 The core/UI use bounded diagnostic records on the existing supervised stdout
@@ -141,8 +178,16 @@ session passed once (about five seconds), and was not relaunched by the final
 suite. Ruff lint/format, release-version consistency and local documentation links
 pass. No frontend source changes, dependency updates, release build or GitHub work.
 
-Normal mode creates no persistent diagnostic file. Diagnostic mode is available
+Normal and verbose-only modes create no persistent diagnostic file. Diagnostic mode is available
 in this updated source checkout; older installed/staged cores may not understand
 new flags. Do not bypass trusted version activation/rollback to force compatibility.
 Actual-room latency/noise, real provider long-stream behavior and owner speech/art
 acceptance remain future evidence, not claims made from these fixtures.
+
+## 2026-10-14 composable implementation checkpoint
+
+55 focused argument/console/precedence/retention, diagnostic privacy/rotation and
+first-run checks pass, plus changed-source Ruff lint/format and Git whitespace.
+Windows wrapper execution and the broader focused authority/process/cleanup gate
+follow as the independent verification checkpoint. No real provider/audio/UI run
+is needed for argument composition. Existing earlier real evidence above is historical.

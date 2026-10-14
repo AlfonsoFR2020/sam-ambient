@@ -193,8 +193,8 @@ The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gate
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider
 Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Published alpha scope](RELEASE_READINESS_0.2.4.md) retains separate native/install/signing gates.
-Diagnostic launch/trace passes 187 focused checks and one isolated owner-window/supervisor session;
-privacy, auth and cleanup remain; no beta incident is claimed solved.
+[Composable launch](DIAGNOSTIC_LAUNCH.md) adds independent flags; 55 focused checks pass.
+Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
 Windows installer remains unavailable; Cargo/helper and installed smoke are separate.
 Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.

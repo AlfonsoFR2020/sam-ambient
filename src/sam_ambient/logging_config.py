@@ -9,9 +9,21 @@ def add_logging_arguments(parser: argparse.ArgumentParser) -> None:
         "--diagnostic", action="store_true", help="Content-free session diagnostics"
     )
     parser.add_argument("--diagnostic-child", action="store_true", help=argparse.SUPPRESS)
-    parser.add_argument("--verbose", action="store_true", help="Enable Sam DEBUG diagnostics")
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Additional allowlisted operational metadata (no raw message dumps)",
+    )
     parser.add_argument(
         "--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO"
+    )
+
+
+def operational_enabled(args: argparse.Namespace) -> bool:
+    return bool(
+        getattr(args, "diagnostic", False)
+        or getattr(args, "verbose", False)
+        or getattr(args, "log_file", None)
     )
 
 
@@ -22,14 +34,14 @@ def configure_logging(args: argparse.Namespace) -> None:
         datefmt="%H:%M:%S",
         force=True,
     )
-    if getattr(args, "diagnostic", False):
+    if operational_enabled(args):
         from sam_ambient.diagnostic_log import DiagnosticHandler
 
         logging.getLogger().handlers = [
-            DiagnosticHandler(child=getattr(args, "diagnostic_child", False))
+            DiagnosticHandler(child=getattr(args, "diagnostic_child", False), verbose=args.verbose)
         ]
-        logging.getLogger().setLevel(logging.INFO)
-    logging.getLogger("sam_ambient.operational").disabled = not getattr(args, "diagnostic", False)
+        logging.getLogger().setLevel(logging.DEBUG if args.verbose else logging.INFO)
+    logging.getLogger("sam_ambient.operational").disabled = not operational_enabled(args)
     # HTTP debug logs can include credentials/query strings. Verbose is Sam-only.
     for name in ("httpx", "httpcore", "websockets", "asyncio"):
         logging.getLogger(name).setLevel(logging.WARNING)

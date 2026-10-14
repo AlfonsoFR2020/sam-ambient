@@ -829,3 +829,13 @@ speech. Reduced Motion freezes clocks and omits the short ready confirmation.
 A red/green regression keeps a stale route last-known across transport reconnect
 until the fresh snapshot. No new polling, permissions, profile or routing layer.
 [Evidence and acceptance limits](LIVING_PALETTE_AND_READINESS.md).
+
+## 2026-10-14 — one composable launch policy, bounded verbose evidence
+
+Python owns argument/console preset processing; Windows wrappers retain bootstrap
+failures and the diagnostic alias tail-delegates without CALL re-expansion. Explicit
+console and log path choices are independent of verbosity. Verbose uses the same
+allowlisted operational channel, not unrestricted message dumps. Only the parent
+writes/rotates JSONL; a per-log OS lock prevents conflicting custom-path writers.
+Retention still applies only to final owned-resource cleanup, without saving
+preferences or changing external process ownership. [Contract](DIAGNOSTIC_LAUNCH.md).
