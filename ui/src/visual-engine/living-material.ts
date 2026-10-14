@@ -121,7 +121,7 @@ float livingSurfaceDetail(LivingField field) {
   return detail * (0.65 + 0.35 * field.activity);
 }
 
-struct LivingLight { float diffuse; float glint; float rim; };
+struct LivingLight { float diffuse; float glint; float rim; float back; };
 // Screen derivatives recover a world-space fine-relief gradient. Only High
 // shades this satin relief; it never changes geometry, palette or animation.
 vec3 livingMaterialNormal(vec3 normal, vec3 position, float detail) {
@@ -137,9 +137,9 @@ vec3 livingMaterialNormal(vec3 normal, vec3 position, float detail) {
 #endif
   return n;
 }
-LivingLight livingLight(vec3 normal, vec3 position) {
+LivingLight livingLight(vec3 normal, vec3 position, float smoothness) {
   vec3 n = normalize(normal), view = vec3(0.0, 0.0, 1.0);
-  float diffuse = 0.0, glint = 0.0;
+  float diffuse = 0.0, glint = 0.0, back = 0.;
   for (int i = 0; i < 3; i++) {
     if (i >= u_light_count) break;
     float fi = float(i);
@@ -153,14 +153,16 @@ LivingLight livingLight(vec3 normal, vec3 position) {
     vec3 light = normalize(orbit - position);
     float weight = i == 0 ? .92 : (i == 1 ? .20 : .12);
     diffuse += max(dot(n, light), 0.0) * weight;
+    back += max(-dot(n,light),0.)*weight;
     float specular = max(dot(n, normalize(light + view)), 0.0);
-    glint += (pow(specular, 38.0) * .48 + pow(specular, 16.0) * .16) * weight;
+    glint += (pow(specular, 12.+26.*smoothness) * .48 + pow(specular, 8.+8.*smoothness) * .16) * weight;
 #if SAM_FINE_OCTAVES >= 2
-    glint += pow(max(dot(n, normalize(light + view)), 0.0), 72.0) * weight * .11;
+    glint += pow(specular, 24.+48.*smoothness) * weight * .11;
 #endif
   }
-  return LivingLight(diffuse, glint, pow(1.0 - max(dot(n, view), 0.0), 3.0));
+  return LivingLight(diffuse, glint, pow(1.0 - max(dot(n, view), 0.0), 3.0),back);
 }
+LivingLight livingLight(vec3 normal,vec3 position){return livingLight(normal,position,1.);}
 `;
 
 /** Body and peels share field-driven radius; only the body tangent-samples normals. */

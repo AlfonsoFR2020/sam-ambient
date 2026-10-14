@@ -4,10 +4,10 @@ Updated: 2026-10-14. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 ## Release and evidence boundary
 
-- [Visual Identity II](VISUAL_IDENTITY_II.md) replaces domes with six attached,
-  flexing curled sheets and bounded soft-alpha ordering, plus coordinated receptive,
-  working and measured-speech behavior. High adds opaque-core depth and satin relief;
-  108 visual checks / 3 headless WebGL cases pass. This is not human acceptance.
+- [Visual Identity III](VISUAL_IDENTITY_III.md) refines Identity II's six attached,
+  flexing sheets with lifted-film pigment/roughness/backlight and High local contact
+  occlusion. Geometry/draw/radius bounds remain. 110 checks / 4 headless cases pass;
+  integrated evidence is pending. This is not human acceptance.
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
   inventory/server state; CLI dispatch success alone is insufficient.

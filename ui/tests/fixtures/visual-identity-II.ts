@@ -66,6 +66,8 @@ export function fixture(
     gray?: boolean;
     particlesOnly?: boolean;
     depthPass?: boolean;
+    neutralMaterial?: boolean;
+    contact?: boolean;
   } = {},
 ) {
   const size = options.size ?? 720,
@@ -87,7 +89,35 @@ export function fixture(
     preserveDrawingBuffer: true,
   });
   if (!gl) throw new Error("Headless WebGL2 unavailable");
+  if (options.contact === false) {
+    const names = new Map<WebGLUniformLocation, string>(),
+      locate = gl.getUniformLocation.bind(gl),
+      set = gl.uniform1i.bind(gl);
+    gl.getUniformLocation = (program, name) => {
+      const value = locate(program, name);
+      if (value) names.set(value, name);
+      return value;
+    };
+    gl.uniform1i = (location, value) =>
+      set(location, location && names.get(location) === "u_contact_count" ? 0 : value);
+  }
   if (options.particlesOnly) gl.drawElements = () => {};
+  if (options.neutralMaterial) {
+    const original = gl.shaderSource.bind(gl);
+    gl.shaderSource = (shader, source) =>
+      original(
+        shader,
+        source
+          .replace(
+            "LivingPigment pigment=livingPigment(field);",
+            "LivingPigment pigment=livingPigment(field);pigment.albedo=vec3(.32)+pigment.albedo*.000001;pigment.cool=.25+pigment.cool*.000001;",
+          )
+          .replace(
+            "LivingPigment filmPigment=livingPigment(veil);",
+            "LivingPigment filmPigment=livingPigment(veil);filmPigment.albedo=vec3(.32)+filmPigment.albedo*.000001;",
+          ),
+      );
+  }
   if (options.gray) {
     const original = gl.shaderSource.bind(gl);
     gl.shaderSource = (shader, source) =>

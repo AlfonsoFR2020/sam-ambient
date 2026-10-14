@@ -781,3 +781,13 @@ nine draws and no depth prepass. Revise the historical 512 KiB geometry cap to
 1.5 MiB (actual High arrays 1,229,648 bytes, Low 86,496), while profile/pixel/FPS
 protection and fallback remain. Isolated RTX 3070 GPU samples justify this bounded
 choice; no full-app/inference, low-power hardware or human acceptance is inferred.
+
+## 2026-10-14 — membrane optical hierarchy without more geometry
+
+Identity III keeps the six attached curled sheets. Raised-film contrast compression,
+different front/underside satin and bounded backlight/grazing cues improve full-color
+readability while preserving hinge pigment and existing opacity. High contact uses
+the actual seeded carrier inverse/current curl, capped local ambient occlusion and
+max across six sheets; it is an approximation, not cast-shadow/refraction simulation.
+384 bytes of immutable uniform descriptors, no extra noise/draw/texture/framebuffer.
+Low/Medium retain cheaper coating. Artist/owner acceptance is still separate.

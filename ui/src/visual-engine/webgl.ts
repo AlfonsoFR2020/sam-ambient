@@ -10,6 +10,7 @@ import {
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
 import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
 import { MEMBRANE_SHAPE_GLSL } from "./membrane";
+import { MEMBRANE_CONTACT_GLSL } from "./membrane-optics";
 import type { MotionEvaluator, MotionFrame } from "./motion";
 import {
   PARTICLE_COPPER,
@@ -61,15 +62,18 @@ in vec3 v_object_direction;
 uniform float u_intensity;
 uniform float u_rim;
 uniform float u_highlight;
+uniform float u_radius;
 out vec4 color;
 ${LIVING_FIELD_GLSL}
 ${LIVING_MATERIAL_GLSL}
+${MEMBRANE_CONTACT_GLSL}
 void main(){
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
   float fine=livingSurfaceDetail(field);
   LivingLight light=livingLight(livingMaterialNormal(v_normal,v_position,fine),v_position);
-  float illumination=0.20+light.diffuse*0.90+u_intensity*0.10;
+  float contact=livingContactOcclusion(normalize(v_object_direction));
+  float illumination=(0.20+light.diffuse*0.90+u_intensity*0.10)*(1.-contact);
   vec3 innerWarmth=vec3(0.085,0.026,0.012)*(1.0-field.broad)*0.35;
   vec3 glintColor=mix(vec3(1.0,0.68,0.38),vec3(0.55,0.77,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.88,0.31,0.13),vec3(0.29,0.48,0.83),pigment.cool);
@@ -177,25 +181,41 @@ void main(){
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
   float fine=livingSurfaceDetail(field);
-  LivingLight light=livingLight(livingMaterialNormal(gl_FrontFacing ? v_normal : -v_normal,v_position,fine),v_position);
+  vec3 normal=livingMaterialNormal(gl_FrontFacing ? v_normal : -v_normal,v_position,fine*(gl_FrontFacing ? .35 : .15));
+  LivingLight light=livingLight(normal,v_position,gl_FrontFacing ? .75+.2*v_lift : .25);
   vec3 glintColor=mix(vec3(1.0,0.72,0.43),vec3(0.64,0.84,1.0),pigment.cool);
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
   // Lifted skin catches a broad satin response; the attached edge inherits the
   // body's tone. No independent color field or extra transparent layer.
-  float skinLight=.16*v_lift*(.35+.65*min(light.diffuse,1.));
+  float pocket=exp(-22.*pow(v_radial-.22,2.))*(1.-v_lift)*.24;
+  float skinLight=.12*v_lift*(.35+.65*min(light.diffuse,1.));
   float shoulder=4.*v_radial*v_radial*(1.-v_radial*v_radial);
-  vec3 linear=pigment.albedo*(.20+light.diffuse*.90+u_intensity*.10+skinLight)*(1.0+fine)
-    +glintColor*(light.glint*(.90+.40*v_lift+max(fine,0.0)*.20)+v_highlight*.15)
+  float film=smoothstep(.05,.75,v_lift);
+  // Raised film optically softens the shared medium pigment contrast. The hinge
+  // retains the body's exact field; no new sample, palette or moving pattern.
+  LivingField veil=field;
+  veil.medium=mix(field.medium,.5,.68*film);
+  veil.palette=.5+(field.palette-.5)*(1.-.42*film);
+  LivingPigment filmPigment=livingPigment(veil);
+  vec3 coat=mix(pigment.albedo,filmPigment.albedo,.85*film);
+  float luminance=dot(coat,vec3(.2126,.7152,.0722));
+  coat=mix(coat,vec3(luminance),.28*film);
+  vec3 linear=coat*(.20+light.diffuse*.90+u_intensity*.10+skinLight)*(1.-pocket)*(1.-.22*film)*(1.0+fine*.4)
+    +glintColor*(light.glint*(gl_FrontFacing ? .85+.65*v_lift : .22)+v_highlight*.15)
     +glintColor*.045*shoulder*min(light.diffuse,1.)
     +rimColor*light.rim*(.18+.12*v_lift);
   linear+=livingBehaviorLight(field,pigment.albedo);
+  float grazing=pow(1.-abs(normal.z),2.);
+  linear+=glintColor*.28*film*grazing*(.12+.88*min(light.diffuse,1.));
   // High resolves a broad satin shoulder on the actual lifted fold, not a
   // separate glow strip. It shares pigment and follows the existing light.
 #if SAM_FINE_OCTAVES >= 2
   float foldSheen=exp(-32.*pow(v_radial-.78,2.))*v_lift;
-  linear+=glintColor*.14*foldSheen*(.3+.7*min(light.diffuse,1.));
+  linear+=glintColor*.23*foldSheen*(.15+.85*min(light.diffuse,1.));
 #endif
-  linear*=mix(0.22,1.15,u_intensity)*(gl_FrontFacing ? 1.0 : .52);
+  // Thin raised skin admits warm/cool local backlight without a bright outline.
+  linear+=mix(coat,glintColor,.2)*light.back*v_lift*.18;
+  linear*=mix(0.22,1.15,u_intensity)*(gl_FrontFacing ? 1.0 : .64);
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
 }`;
@@ -402,6 +422,15 @@ export class WebGLBackend implements RendererBackend {
   private readonly peelProgram: WebGLProgram;
   private readonly haloProgram: WebGLProgram;
   private readonly particleProgram: WebGLProgram;
+  private readonly contactUniforms?: {
+    readonly count: WebGLUniformLocation;
+    readonly centers: WebGLUniformLocation;
+    readonly tangents: WebGLUniformLocation;
+    readonly sides: WebGLUniformLocation;
+    readonly shapes: WebGLUniformLocation;
+    readonly pose: WebGLUniformLocation;
+    readonly phase: WebGLUniformLocation;
+  };
   private readonly orb: DrawResource;
   private readonly peels: DrawResource;
   private readonly halo: DrawResource;
@@ -503,6 +532,38 @@ export class WebGLBackend implements RendererBackend {
       highlight: location(gl, this.orbProgram, "u_highlight"),
       orientation: location(gl, this.orbProgram, "u_object_orientation"),
     };
+    if (budget.fineOctaves >= 2) {
+      this.contactUniforms = {
+        count: location(gl, this.orbProgram, "u_contact_count"),
+        centers: location(gl, this.orbProgram, "u_contact_centers[0]"),
+        tangents: location(gl, this.orbProgram, "u_contact_tangents[0]"),
+        sides: location(gl, this.orbProgram, "u_contact_sides[0]"),
+        shapes: location(gl, this.orbProgram, "u_contact_shapes[0]"),
+        pose: location(gl, this.orbProgram, "u_contact_pose"),
+        phase: location(gl, this.orbProgram, "u_contact_phase"),
+      };
+      const descriptors = createPeelDescriptors(budget.peels, seed);
+      bindProgram(gl, this.orbProgram);
+      gl.uniform1i(this.contactUniforms.count, descriptors.length);
+      if (descriptors.length) {
+        gl.uniform4fv(
+          this.contactUniforms.centers,
+          new Float32Array(descriptors.flatMap((p) => [...p.center, p.halfLength])),
+        );
+        gl.uniform4fv(
+          this.contactUniforms.tangents,
+          new Float32Array(descriptors.flatMap((p) => [...p.tangent, p.bend])),
+        );
+        gl.uniform4fv(
+          this.contactUniforms.sides,
+          new Float32Array(descriptors.flatMap((p) => [...p.crossTangent, p.halfWidth])),
+        );
+        gl.uniform4fv(
+          this.contactUniforms.shapes,
+          new Float32Array(descriptors.flatMap((p) => [p.lift, p.curlRadius, p.phase, p.opacity])),
+        );
+      }
+    }
     this.peelUniforms = {
       ...this.commonUniformLocations(this.peelProgram),
       ...this.fieldUniformLocations(this.peelProgram),
@@ -654,6 +715,16 @@ export class WebGLBackend implements RendererBackend {
     this.setCommonUniforms(this.orbUniforms, frame);
     gl.uniform1i(this.orbUniforms.lightCount, this.budget.lights);
     this.setOrbUniforms(frame);
+    if (this.contactUniforms) {
+      gl.uniform4f(
+        this.contactUniforms.pose,
+        frame.opening,
+        frame.peelLift,
+        frame.peelWidth,
+        frame.peelCoherence,
+      );
+      gl.uniform2f(this.contactUniforms.phase, frame.peelTravel, frame.peelRephase);
+    }
     gl.bindVertexArray(this.orb.vao);
     gl.drawElements(gl.TRIANGLES, this.orb.count, gl.UNSIGNED_SHORT, 0);
 
