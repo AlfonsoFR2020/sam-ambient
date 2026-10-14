@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-/** Desktop-safe renderer evidence: no Sam UI, owner connection or audio stack. */
+/** Headless renderer/frontend-demo evidence: no core, owner connection or audio stack. */
 export default defineConfig({
   testDir: "./tests/browser",
   testMatch: [

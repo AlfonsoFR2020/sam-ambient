@@ -98,10 +98,12 @@ are not automatically blockers for a future release.
   natural speech embodiment still need the actual reference and later human judgment.
 - **Visual Identity II / outer membrane:** six broad attached sheets, actual curl
   flex, receptive/working/speech response and High opaque-core depth are implemented;
-  [comparisons/cost](VISUAL_IDENTITY_II.md) are headless only. Full-color layer
-  readability and contact-shadow/translucency character still need reference-led
-  judgment; soft intersections remain approximate. Do not repeat the old dome tuning
-  or claim that dense pigment masks cannot still camouflage the layer.
+  [Identity III comparisons/cost](VISUAL_IDENTITY_III.md) add calmer raised pigment,
+  front/underside optics, High local contact and shared spatial light/near-particle
+  response. Colored folds are clearer; connected skin/thickness/translucency still
+  need reference-led judgment. Soft intersections remain approximate. The one real
+  startup passed, but live inference/High/fullscreen sampling was not obtained.
+  Do not repeat dome tuning or infer human acceptance from numeric pixel changes.
 - **Lighting:** the primary light now crosses the limb and additional tier lights
   are weak fill. Fixed-body WebGL pixels show spatial variation with light phase,
   but human visibility, ambient depth and restrained glints remain unverified.

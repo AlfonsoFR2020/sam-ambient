@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Visual Identity III: calmer raised-film pigment, front/underside satin/backlight
+  and bounded High contact shading make colored folds clearer; one shared speech
+  crest coordinates body, skin and nearby particles. Geometry/radius/draw bounds
+  remain. Headless evidence passes; the one real startup probe stopped before live
+  inference/performance sampling. Human aesthetic acceptance remains open.
+
 - Visual Identity II: six broad attached, curling membrane sheets with independent
   geometric motion; coordinated listening, processing and speech response across
   body/light/membrane/particles; finer High geometry, satin relief and opaque-core

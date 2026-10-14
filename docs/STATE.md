@@ -5,9 +5,9 @@ Updated: 2026-10-14. This is current development truth, not a release acceptance
 ## Release and evidence boundary
 
 - [Visual Identity III](VISUAL_IDENTITY_III.md) refines Identity II's six attached,
-  flexing sheets with lifted-film pigment/roughness/backlight and High local contact
-  occlusion. Geometry/draw/radius bounds remain. 110 checks / 4 headless cases pass;
-  integrated evidence is pending. This is not human acceptance.
+  flexing sheets with lifted-film optics/High contact and a shared body/skin/particle
+  light crest. Bounds remain; 112 checks / 5 headless cases pass. One real startup,
+  auth/Gemma/Quit passed; probe failure prevented inference metrics. Cleanup verified; no human acceptance.
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
   inventory/server state; CLI dispatch success alone is insufficient.

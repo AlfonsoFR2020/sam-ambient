@@ -1,3 +1,5 @@
+import { DISCOURSE_CREST_GLSL } from "./discourse-crest";
+
 type Color = readonly [number, number, number];
 
 // Linear-light pigment anchors. Warm colors remain the majority; cool colors
@@ -102,9 +104,10 @@ LivingPigment livingPigment(LivingField field) {
   return LivingPigment(clamp(mix(warm, cool, coolWeight) * fold, 0.0, 1.0), coolWeight);
 }
 
-vec3 livingBehaviorLight(LivingField field, vec3 pigment) {
-  float receptive=u_behavior.x*(.07+.16*smoothstep(.35,.7,field.broad));
-  float speech=u_behavior.y*(.08+.14*field.activity);
+${DISCOURSE_CREST_GLSL}
+vec3 livingBehaviorLight(LivingField field, vec3 pigment,vec3 position,float radius) {
+  float receptive=u_behavior.x*(.06+.18*pow(max(0.,position.z/max(.8,radius)),2.));
+  float speech=u_behavior.y>.0001 ? u_behavior.y*(.045+.28*discourseCrest(position,radius,u_ripple_phase)) : 0.;
   float current=exp(-16.*abs(sin(u_ripple_phase+2.4*field.broad-1.5*field.medium)));
   float internal=u_behavior.z*(.04+.28*field.broad*field.medium+.18*current);
   return pigment*(receptive+speech+internal);

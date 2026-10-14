@@ -192,7 +192,11 @@ geometric flex. Coordinated receptive/working/speech response uses existing stat
 and measured envelopes. Nine Low/Medium draws or ten High draws include bounded
 sheet ordering and High opaque-core depth priming; fine satin normals and denser
 sampling refine High. Fallback, pixel/cadence/profile caps and audio authority
-separation remain. Engine-owned elapsed-time clocks separately advance orientation,
+separation remain. [Identity III](VISUAL_IDENTITY_III.md) adds shared-film optics,
+bounded High ambient-contact shading from the same seeded sheet/curl descriptors,
+and one world-space crest over body/skin/near particles using the existing ripple
+clock. No new renderer pass, signal authority or resource owner is introduced.
+Engine-owned elapsed-time clocks separately advance orientation,
 relief, material shears, palette evolution, lighting and particles; pointer ownership
 temporarily reduces the material rate without resetting phase. The existing quality
 tiers retain the same broad field, with optional fine samples only on higher tiers.

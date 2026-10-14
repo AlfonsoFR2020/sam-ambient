@@ -1,4 +1,4 @@
-# Core Experience evidence — I through V and Visual Identity II
+# Core Experience evidence — I through V and Visual Identity III
 
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
 Expansion**. Published v0.2.4 is unchanged. Automated evidence does not establish
@@ -542,3 +542,16 @@ speaker session was launched. This does not close the October 9 failed visual ju
 WebGL cases pass; the subsequent depth-precision correction passes its 25 targeted
 checks and refreshed browser gate. [Evidence, resources and restrictions](VISUAL_IDENTITY_II.md).
 Historical beta rejection remains intact; automated visual change is not acceptance.
+
+## 2026-10-14 — Visual Identity III, optical/field evidence and partial live attempt
+
+| Area | Automated / isolated evidence | Real runtime | Human acceptance / remaining |
+| --- | --- | --- | --- |
+| Colored membrane | Same six attached animated sheets; shared lifted-film contrast/roughness/backlight, bounded High contact; three orientations and three curl phases | One masked normal window observation; no High/fullscreen measurement | Colored folds clearer to Codex, some still band-like; thickness/translucency/reference and owner judgment open |
+| Expressive composition | Shared existing-clock crest across body/skin/near particles; listening focus and existing internal processing; zero/reduced/stale/cancel regressions; radius gain unchanged | Synthetic runtime modes were not reached; no audio capture/output | Naturalness, real speech-to-display timing and particle coherence unaccepted |
+| Cost / High value | 112 focused visual checks, 4 renderer cases + 1 UI-selector case; GPU timing across sizes/DPR/poses; unchanged draw/mesh/count budgets | No inference/cadence/heap/GPU/fullscreen data from live attempt | Full-app coexistence, low-power behavior and perceived superiority still open |
+| Integration / cleanup | Headless blank sampler and corrected current-UI selectors; isolated temporary settings/stores | Authentication 7.30 s; active Gemma 88.66 s; Quit exit 0 / model absent / owner revoked / window closed | Probe exact-label failure prevented intended visual assessment; endpoint remained under reused classification, then only verified new test resources explicitly cleaned up |
+
+[Comparisons, timing, resource limits and sanitized runtime record](VISUAL_IDENTITY_III.md)
+keep startup success separate from uncompleted live performance assessment. No second
+Sam launch, personal microphone/speaker test, version bump or human acceptance.

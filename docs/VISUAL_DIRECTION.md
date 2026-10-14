@@ -7,13 +7,16 @@ defines today's renderer, data, interaction, accessibility and performance contr
 shared visual aim while leaving mathematical and performance choices open.
 
 **Current dev revision (2026-10-14):** [Visual Identity II](VISUAL_IDENTITY_II.md)
-replaces the dome representation with six attached curling sheets and independent
-geometric flex. Existing state/envelopes coordinate receptive posture, internal
-working light and expressive speech across the composition. High resolves finer
-curves, satin relief and opaque-core overlaps; Low/Medium retain the same identity.
+replaces domes with six attached curling sheets and independent geometric flex.
+[Identity III](VISUAL_IDENTITY_III.md) adds quieter lifted-film pigment, satin/backlight
+and High local contact shading, plus one crest shared by skin/body/near particles.
+Existing state/envelopes own receptive/working/speech behavior. High retains finer
+curves/opaque-core overlaps; Low/Medium retain economical versions of the same identity.
 Its current nine/ten-draw and 12/24/64-particle contracts supersede earlier historical
 four-draw/dome descriptions below. Full-color readability, character and perceived
 naturalness remain human judgments, not consequences of GPU timings or pixel counts.
+Contact shading is an ambient approximation, not refraction or a directional shadow.
+No actual concept board was found; these bounded optical changes do not replace it.
 
 ## A living object
 

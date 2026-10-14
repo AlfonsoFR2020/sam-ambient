@@ -2,9 +2,11 @@
 
 **HQ priority change (2026-10-14): Visual Identity within Basics Before Expansion.**
 Attractiveness is a principal product feature. Diagnostic observability is completed;
-[Visual Identity II](VISUAL_IDENTITY_II.md) now lands six attached moving curled sheets,
-coordinated receptive/working/speech behavior and meaningfully finer High rendering,
-building on Identity I pigment/form. Comparable headless evidence is available.
+[Visual Identity III](VISUAL_IDENTITY_III.md) adds full-color film/contact hierarchy
+and a spatial body/skin/particle light crest to Identity II's attached flexing sheets,
+behavior and finer High rendering. Comparable headless evidence is available;
+one real startup/authentication/Gemma/Quit passed, but a probe selector failure
+prevented representative live inference/graphics sampling.
 October 9 failed visual judgment remains historical truth; neither this
 pass nor its pixel metrics establishes aesthetic acceptance. AEC and capability
 expansion remain parked. No next workstream begins automatically.
@@ -131,19 +133,19 @@ is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposi
 ### Next-cycle handoff — visual priority, local evidence (2026-10-14)
 
 1. **Visual identity: technical increment implemented, aesthetic acceptance open.**
-   [Fixed comparisons and geometry clip](VISUAL_IDENTITY_II.md) cover attached flexing
-   membrane, coordinated synthetic behavior and tier fidelity/cost. The highest-value
-   graphical gap is full-color layer readability: calibrate translucency/contact
-   shadow against the actual reference when available, rather than adding busy detail.
-   High opaque cores have coherent depth; soft intersections remain approximate.
-   The original concept board is still missing. Do not infer acceptance
-   or resume blind shader tuning from numeric differences alone.
+   [Latest fixed comparisons](VISUAL_IDENTITY_III.md) cover shared-film optical depth,
+   curl phases, coordinated synthetic light/near particles and tier cost. Colored
+   folds separate better, but some angles still read as wrapping bands. Connected
+   skin/thickness/translucency remains the graphical question for reference-led
+   judgment; High contact and soft intersections are approximations. Live startup
+   passed, but selector instrumentation prevented inference/fullscreen measurement.
+   The original concept board remains missing; do not infer aesthetic acceptance.
 2. **Diagnostic launch and conversation observability: implemented.** Shared
    `Diagnose Sam.cmd` / `--diagnostic`, session-only retention, rotating private
    metadata and correlated latency/terminal summaries pass focused and isolated
    owner-window/supervisor checks. [Contract and evidence](DIAGNOSTIC_LAUNCH.md).
-   v0.2.4 remains published. Diagnostic/Identity I were preserved upstream at
-   49e03d5; Identity II stays local, with no version bump.
+   v0.2.4 remains published. Diagnostic/Identity I/II are preserved upstream at
+   a3e77b5; Identity III remains local, with no version bump.
    The next small alpha can include this coherent slice after HQ review, rather
    than waiting for STT or artistic work to finish. Do not call incident causes fixed.
 3. **Intermittent latency and false speech turns** — Medium initially, High only for
@@ -160,9 +162,15 @@ is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposi
 
 Refined system/persona settings and Console/Memory presentation remain later;
 Agency/Memory capability expansion, profiles, arbitrary shell and diarization stay
-parked. Diagnostic and Visual Identity II are coherent increments, with no
+parked. Diagnostic and Visual Identity III are coherent increments, with no
 version bump/publication. Later workstreams remain separate. Prefer frequent bounded
 green alpha increments and preserve the distinction between behavior and acceptance.
+
+**Forthcoming, separate authorization:** composable diagnostic launcher flags;
+read-only comparison/targeted GitHub advisory maintenance; proportionate v0.2.5
+source-alpha preparation; dedicated multilingual STT improvement. Later replaceable
+visual themes and capability expansion remain parked. None is implemented by this
+visual pass; the default-branch warning is not a current-dev security conclusion.
 
 ### Parked acoustic re-entry contract
 

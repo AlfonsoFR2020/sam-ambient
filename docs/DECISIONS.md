@@ -791,3 +791,20 @@ the actual seeded carrier inverse/current curl, capped local ambient occlusion a
 max across six sheets; it is an approximation, not cast-shadow/refraction simulation.
 384 bytes of immutable uniform descriptors, no extra noise/draw/texture/framebuffer.
 Low/Medium retain cheaper coating. Artist/owner acceptance is still separate.
+
+## 2026-10-14 — one spatial light grammar, explicit integration limits
+
+Identity III shares an existing wrapped ripple phase and one bounded world-space
+crest between body, raised film and nearby particles. Radial phase offset gives
+near particles a later local response; it does not create physical sound-wave or
+semantic claims. No new oscillator, radius gain, particle count or draw is added.
+Measured envelopes and lifecycle still flow through the authoritative typed visual
+adapter; synthetic graphics fixtures never acquire conversation/audio authority.
+
+The one authorized integrated attempt confirms owner startup/Gemma/owned-model
+unload and window retirement, but its strict implicit-label selector failed before
+inference/fidelity sampling. Repair instrumentation and reproduce its locator
+headless rather than changing working controls or repeatedly launching Sam. Record
+the test-created provider's explicit cleanup and automatic ownership-classification
+uncertainty. Isolated GPU cost is not full-app responsiveness or human acceptance.
+[Evidence and limits](VISUAL_IDENTITY_III.md).

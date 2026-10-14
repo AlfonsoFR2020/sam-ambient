@@ -1,5 +1,27 @@
 import { expect, test } from "@playwright/test";
 
+test("integrated probe visual selectors match the current implicit UI labels", async ({ page }) => {
+  await page.goto("/?transport=demo");
+  await page.getByRole("button", { name: "Controls", exact: true }).click();
+  const controls = page.getByRole("region", { name: "Sam controls" });
+  const select = (label: string) =>
+    page
+      .locator("label.visual-setting")
+      .filter({ has: page.getByText(label, { exact: true }) })
+      .locator("select");
+  await controls.getByRole("button", { name: "Device", exact: true }).click();
+  expect(await page.getByLabel("Performance profile", { exact: true }).count()).toBe(0);
+  await select("Performance profile").selectOption("high_end");
+  await expect(select("Performance profile")).toHaveValue("high_end");
+  for (const quality of ["low", "medium", "high"]) {
+    await select("Quality").selectOption(quality);
+    await expect(select("Quality")).toHaveValue(quality);
+  }
+  await controls.getByRole("button", { name: "Appearance", exact: true }).click();
+  await select("Reduced motion").selectOption("on");
+  await expect(select("Reduced motion")).toHaveValue("on");
+});
+
 test("colored membrane hierarchy across orientation and curl phases", async ({ page }, info) => {
   await page.goto("/tests/fixtures/visual-identity.html");
   const result = await page.evaluate(async () => {

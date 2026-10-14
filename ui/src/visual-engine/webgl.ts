@@ -1,4 +1,5 @@
 import type { RendererBackend } from "./backend";
+import { DISCOURSE_CREST_GLSL } from "./discourse-crest";
 import {
   createParticleGeometry,
   createPeelDescriptors,
@@ -80,7 +81,7 @@ void main(){
   vec3 linear=pigment.albedo*illumination*(1.0+fine)+innerWarmth
     +glintColor*(light.glint*(0.78+max(fine,0.0)*0.24)+u_highlight*0.20)
     +rimColor*light.rim*(0.18+u_rim*0.55);
-  linear+=livingBehaviorLight(field,pigment.albedo);
+  linear+=livingBehaviorLight(field,pigment.albedo,v_position,u_radius);
   linear*=mix(0.22,1.15,u_intensity);
   linear=linear/(1.+linear);
   color=vec4(pow(linear,vec3(1./2.2)),1.);
@@ -165,6 +166,7 @@ in vec3 v_normal;
 in vec3 v_position;
 uniform float u_intensity;
 uniform float u_emission;
+uniform float u_radius;
 uniform bool u_depth_only;
 in float v_highlight;
 out vec4 color;
@@ -204,7 +206,9 @@ void main(){
     +glintColor*(light.glint*(gl_FrontFacing ? .85+.65*v_lift : .22)+v_highlight*.15)
     +glintColor*.045*shoulder*min(light.diffuse,1.)
     +rimColor*light.rim*(.18+.12*v_lift);
-  linear+=livingBehaviorLight(field,pigment.albedo);
+  linear+=livingBehaviorLight(field,pigment.albedo,v_position,u_radius);
+  float crest=u_behavior.y>.0001 ? discourseCrest(v_position,u_radius,u_ripple_phase)*u_behavior.y : 0.;
+  linear+=glintColor*.24*film*crest*(.2+.8*min(light.diffuse,1.));
   float grazing=pow(1.-abs(normal.z),2.);
   linear+=glintColor*.28*film*grazing*(.12+.88*min(light.diffuse,1.));
   // High resolves a broad satin shoulder on the actual lifted fold, not a
@@ -232,30 +236,33 @@ uniform float u_opacity_boost;
 uniform float u_radius;
 uniform float u_point_scale;
 uniform float u_density;
+uniform float u_ripple_phase;
 uniform vec2 u_scale;
 out float v_alpha;
 out float v_tint;
 out float v_shape;
+${DISCOURSE_CREST_GLSL}
 void main(){
   float rank=fract(a_orbit.x*${PARTICLE_VISIBILITY_HASH.toFixed(3)});
   // a_style.y is an integer harmonic, so a wrapped phase has no seam.
   float angle=a_orbit.x+u_phase*a_style.y;
-  float radius=a_orbit.y+${PARTICLE_RADIAL_WANDER.toFixed(3)}*sin(u_drift_phase*abs(a_style.y)+a_orbit.x)
-    +u_spread*(.35+.65*rank);
+  float radius=a_orbit.y+${PARTICLE_RADIAL_WANDER.toFixed(3)}*sin(u_drift_phase*abs(a_style.y)+a_orbit.x);
   vec3 point=vec3(cos(angle)*radius,sin(angle)*radius,
     ${PARTICLE_VERTICAL_WANDER.toFixed(3)}*sin(2.*angle+a_orbit.x));
   float incline=a_orbit.z;
   point.yz=mat2(cos(incline),sin(incline),-sin(incline),cos(incline))*point.yz;
   point.xz=mat2(cos(a_orbit.w),sin(a_orbit.w),-sin(a_orbit.w),cos(a_orbit.w))*point.xz;
   point*=u_radius;
+  float local=discourseCrest(point,u_radius,u_ripple_phase)*discourseNearField(point,u_radius);
+  point+=normalize(point)*u_spread*(.35+.65*rank)*local*u_radius;
   float visible=step(rank,u_density)*step(.0001,u_density);
   // Depth testing against body/membrane handles occlusion; off-silhouette rear
   // particles remain visible as a subdued part of the surrounding volume.
-  v_alpha=min(.85,a_style.z*(1.+u_opacity_boost)*(.74+.26*smoothstep(-2.2,2.2,point.z)))*visible;
+  v_alpha=min(.85,a_style.z*(1.+u_opacity_boost*(.15+.85*local))*(.74+.26*smoothstep(-2.2,2.2,point.z)))*visible;
   v_tint=a_style.w;
   v_shape=fract(a_orbit.x*.73+a_orbit.w*.31);
   gl_Position=vec4(point.xy*u_scale,-point.z*.25,1.);
-  gl_PointSize=a_style.x*u_point_scale*(1.08-.25*smoothstep(1.2,2.45,a_orbit.y))*(1.+u_excitation*.2);
+  gl_PointSize=a_style.x*u_point_scale*(1.08-.25*smoothstep(1.2,2.45,a_orbit.y))*(1.+u_excitation*.2*local);
 }`;
 
 const PARTICLE_FRAGMENT = `#version 300 es
@@ -485,6 +492,7 @@ export class WebGLBackend implements RendererBackend {
     readonly pointScale: WebGLUniformLocation;
     readonly scale: WebGLUniformLocation;
     readonly density: WebGLUniformLocation;
+    readonly ripplePhase: WebGLUniformLocation;
   };
   private readonly peelOrder: {
     center: readonly [number, number, number];
@@ -601,6 +609,7 @@ export class WebGLBackend implements RendererBackend {
       pointScale: location(gl, this.particleProgram, "u_point_scale"),
       scale: location(gl, this.particleProgram, "u_scale"),
       density: location(gl, this.particleProgram, "u_density"),
+      ripplePhase: location(gl, this.particleProgram, "u_ripple_phase"),
     };
     this.motion = motion;
     const [offsetA, offsetB] = createFieldOffsets(seed);
@@ -778,6 +787,7 @@ export class WebGLBackend implements RendererBackend {
     gl.depthMask(false);
     bindProgram(gl, this.particleProgram);
     gl.uniform1f(this.particleUniforms.phase, frame.particlePhase);
+    gl.uniform1f(this.particleUniforms.ripplePhase, frame.ripplePhase);
     gl.uniform1f(this.particleUniforms.driftPhase, frame.particleDriftPhase);
     gl.uniform1f(this.particleUniforms.excitation, frame.particleExcitation);
     gl.uniform1f(this.particleUniforms.spread, frame.reactivity.particleSpread);

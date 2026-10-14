@@ -1,0 +1,110 @@
+{
+  "before": {
+    "reachable": false,
+    "loaded_models": []
+  },
+  "initial_server_running": false,
+  "audio_disabled": true,
+  "synthetic_mode_boundary": "render uniforms only",
+  "error_class": "TimeoutError",
+  "exit_code": 0,
+  "authority_revoked": true,
+  "window_closed": true,
+  "measurements": [],
+  "events": [
+    {
+      "type": "sam.owner.challenge",
+      "direction": "received",
+      "elapsed_ms": 7281,
+      "payload": {}
+    },
+    {
+      "type": "sam.owner.authenticate",
+      "direction": "sent",
+      "elapsed_ms": 7297,
+      "payload": {}
+    },
+    {
+      "type": "sam.owner.accepted",
+      "direction": "received",
+      "elapsed_ms": 7297,
+      "payload": {}
+    },
+    {
+      "type": "system.ready",
+      "direction": "received",
+      "elapsed_ms": 7297,
+      "session_id": "c167c510-d288-4688-837f-c548c9821db3",
+      "monotonic_ms": 4614125,
+      "payload": {
+        "state": "IDLE"
+      }
+    },
+    {
+      "type": "provider.discovery",
+      "direction": "received",
+      "elapsed_ms": 9750,
+      "session_id": "c167c510-d288-4688-837f-c548c9821db3",
+      "monotonic_ms": 4616468,
+      "payload": {
+        "state": "loading_model",
+        "provider": "lm-studio",
+        "model": "google/gemma-4-e2b"
+      }
+    },
+    {
+      "type": "provider.discovery",
+      "direction": "received",
+      "elapsed_ms": 88656,
+      "session_id": "c167c510-d288-4688-837f-c548c9821db3",
+      "monotonic_ms": 4695468,
+      "payload": {
+        "state": "ready",
+        "provider": "lm-studio",
+        "model": "google/gemma-4-e2b"
+      }
+    },
+    {
+      "type": "control.application.quit",
+      "direction": "sent",
+      "elapsed_ms": 119156,
+      "command_id": "5a5d795a-d8b8-4cb7-af8a-e3b7995935f2",
+      "session_id": "c167c510-d288-4688-837f-c548c9821db3",
+      "monotonic_ms": 117629,
+      "payload": {}
+    },
+    {
+      "type": "control.acknowledged",
+      "direction": "received",
+      "elapsed_ms": 119156,
+      "session_id": "c167c510-d288-4688-837f-c548c9821db3",
+      "monotonic_ms": 4725985,
+      "payload": {
+        "command_id": "5a5d795a-d8b8-4cb7-af8a-e3b7995935f2",
+        "command_type": "control.application.quit"
+      }
+    },
+    {
+      "type": "system.stopping",
+      "direction": "received",
+      "elapsed_ms": 119156,
+      "session_id": "c167c510-d288-4688-837f-c548c9821db3",
+      "monotonic_ms": 4725985,
+      "payload": {}
+    }
+  ],
+  "after": {
+    "reachable": true,
+    "loaded_models": []
+  },
+  "model_ownership_preserved": true,
+  "endpoint_ownership_preserved": false,
+  "explicit_test_cleanup": {
+    "endpoint_stopped": true,
+    "new_process_tree_closed": true,
+    "verified_process_id": 16080,
+    "verified_creation_madrid": "2026-10-14 15:07:53",
+    "reason": "Cold test-created desktop/endpoint; Sam classified serving as reused. No provider ownership code changed."
+  },
+  "limits": "One real attempt. Startup/owner authentication/Gemma activation/model unload/window shutdown observed. Exact-label probe failure before tier/inference/performance collection. No second launch; selector repair tested headless. No live speech input, PCM, inference cadence or fullscreen metrics."
+}
