@@ -536,11 +536,13 @@ describe("living field substrate", () => {
           useProgram: (program: object) => {
             currentProgram = program;
           },
-          uniform4f: (_location: object, ...values: number[]) => {
-            states.push({ program: currentProgram, values });
+          uniform4f: (_location: { name: string }, ...values: number[]) => {
+            if (_location.name === "u_field_state")
+              states.push({ program: currentProgram, values });
           },
           uniform3f: (location: { name: string }, ...values: number[]) => {
-            offsets.push({ program: currentProgram, name: location.name, values });
+            if (location.name.startsWith("u_field_offset"))
+              offsets.push({ program: currentProgram, name: location.name, values });
           },
           uniform1f: (location: { name: string }, value: number) => {
             if (location.name === "u_intensity") materialIntensity.push(value);

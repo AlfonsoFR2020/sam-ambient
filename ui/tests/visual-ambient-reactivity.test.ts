@@ -46,9 +46,9 @@ describe("ambient visual reactivity", () => {
     for (let step = 0; step < 100; step++) stalled.update(10, 10, 10, 10, 0.05, false, false);
     expect(stalled.current.sustained).toBeLessThanOrEqual(1);
     expect(stalled.current.onset).toBeLessThanOrEqual(1);
-    expect(stalled.current.particleSpread).toBeLessThanOrEqual(0.14);
-    expect(stalled.current.particleDrift).toBeLessThanOrEqual(0.3);
-    expect(stalled.current.particleOpacity).toBeLessThanOrEqual(0.26);
+    expect(stalled.current.particleSpread).toBeLessThanOrEqual(0.2);
+    expect(stalled.current.particleDrift).toBeLessThanOrEqual(0.42);
+    expect(stalled.current.particleOpacity).toBeLessThanOrEqual(0.4);
     stalled.update(0, 0, 0, 1, 0.05, false, true);
     expect(stalled.current.sustained).toBe(0);
     expect(stalled.current.particleOpacity).toBe(0);

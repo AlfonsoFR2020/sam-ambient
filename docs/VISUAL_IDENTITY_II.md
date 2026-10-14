@@ -51,5 +51,34 @@ only the membrane clock advances. A silhouette-mask check proves actual rasteriz
 geometry moves, not just texture/illumination. These views make raised/curling
 structure assessable, but do not establish human aesthetic acceptance.
 
-Stage 2: coordinated visual behavior from existing state and envelopes.
+## Stage 2 — one behavior grammar
+
+Existing authenticated UI state and freshness/owner-checked input/output envelopes
+feed the existing adapter and motion evaluator. No new microphone, model or core
+events are invented. Idle keeps the autonomous baseline. Listening adds smooth
+inward front tension, a more open curl and localized measured-input light.
+Processing tightens the curl, modestly accelerates the existing material clock and
+lights internal currents from its existing lifecycle cue. Speaking couples the
+same bounded prosody pulse to body expansion, satin highlights, curl lift and
+particle spread/brightness. These are illustrations of state, not inferred meaning
+or a claim to know a speaker's physical direction.
+
+The default synthetic two-peak sequence reaches radii 1.086 / 1.115 versus quiet
+1.001; at 1,200 ms its pulse is 6.2% of the emphasized peak. Listening reaches
+0.994 versus idle 1.005 at 760 ms; processing reaches 0.982 with work cue 0.945.
+Isolated body, skin and particle renders each change under the speech envelope.
+The scalar radius is one part of this coupled response, not its acceptance metric.
+
+Output uses a compressive envelope and a soft pulse target integrated in bounded
+substeps, preserving stronger emphasis without saturating ordinary speech. Existing
+35 ms attack / 110 ms release (70 ms on interruption) remain. Audio Reactivity zero
+removes measured modulation exactly while lifecycle posture remains. Reduced
+Motion freezes spatial/audio modulation; stale generations and owner-stream
+changes retire envelope state. The behavior is independent of quality tier.
+
+Four new adapter-to-motion regressions and the headless temporal/isolated-parts
+check cover the coordinated signal, zero, cancellation, stale ownership and
+Reduced Motion. This establishes connectivity and visible differences in controlled
+renders, not human perceptual or acoustic acceptance.
+
 Stage 3: meaningful High fidelity, multi-resolution GPU cost and final evidence.

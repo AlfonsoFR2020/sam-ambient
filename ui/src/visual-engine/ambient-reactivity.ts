@@ -75,22 +75,29 @@ export class AmbientReactivity {
     // RMS from ordinary speech is much smaller than full scale. Compress its
     // dynamic range before visual mapping; keep input and output independent.
     const amount = unit(strength);
-    const outputDrive = Math.sqrt(unit(outputEnvelope)) * amount;
-    const inputDrive = Math.sqrt(unit(inputEnvelope)) * amount;
+    const outputDrive = unit(outputEnvelope) ** 0.4 * amount;
+    const inputDrive = unit(Math.sqrt(unit(inputEnvelope)) * 1.25) * amount;
     const combined = Math.max(outputDrive, inputDrive * 0.55);
     const sustainedTarget = combined;
     const onsetTarget = ease(unit(inputPeak) * unit(strength));
     const dt = Number.isFinite(elapsedSeconds) ? Math.min(0.05, Math.max(0, elapsedSeconds)) : 0;
-    this.outputBaseline = blend(this.outputBaseline, outputDrive, dt, 0.55);
-    const outputTarget = unit(
-      outputDrive * 0.45 + Math.max(0, outputDrive - this.outputBaseline * 0.8) * 1.35,
-    );
-    this.frame.outputPulse = blend(
-      this.frame.outputPulse,
-      outputTarget,
-      dt,
-      outputTarget > this.frame.outputPulse ? 0.035 : interrupted ? 0.07 : 0.11,
-    );
+    // Integrate the coupled baseline/pulse filter on a small bounded substep.
+    // Held envelopes produce the same result at 20/60 Hz; soft limiting preserves
+    // emphasis instead of flattening two distinct strong peaks at one clamp.
+    const steps = Math.max(1, Math.ceil(dt * 240)),
+      stepDt = dt / steps;
+    for (let step = 0; step < steps; step++) {
+      this.outputBaseline = blend(this.outputBaseline, outputDrive, stepDt, 0.55);
+      const rawTarget =
+        outputDrive * 0.45 + Math.max(0, outputDrive - this.outputBaseline * 0.8) * 1.35;
+      const outputTarget = 1 - Math.exp(-rawTarget * 1.5);
+      this.frame.outputPulse = blend(
+        this.frame.outputPulse,
+        outputTarget,
+        stepDt,
+        outputTarget > this.frame.outputPulse ? 0.035 : interrupted ? 0.07 : 0.11,
+      );
+    }
     this.frame.inputPresence = blend(
       this.frame.inputPresence,
       inputDrive,
@@ -110,9 +117,15 @@ export class AmbientReactivity {
   }
 
   private mapTargets(): void {
-    const { sustained, onset } = this.frame;
-    this.frame.particleSpread = Math.min(0.14, 0.1 * sustained + 0.04 * onset);
-    this.frame.particleDrift = Math.min(0.3, 0.3 * sustained);
-    this.frame.particleOpacity = Math.min(0.26, 0.16 * sustained + 0.1 * onset);
+    const { outputPulse, inputPresence, onset } = this.frame;
+    this.frame.particleSpread = Math.min(
+      0.2,
+      0.14 * outputPulse + 0.06 * inputPresence + 0.03 * onset,
+    );
+    this.frame.particleDrift = Math.min(0.42, 0.35 * outputPulse + 0.14 * inputPresence);
+    this.frame.particleOpacity = Math.min(
+      0.4,
+      0.3 * outputPulse + 0.16 * inputPresence + 0.08 * onset,
+    );
   }
 }

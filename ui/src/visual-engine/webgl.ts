@@ -76,6 +76,7 @@ void main(){
   vec3 linear=pigment.albedo*illumination*(1.0+fine)+innerWarmth
     +glintColor*(light.glint*(0.78+max(fine,0.0)*0.24)+u_highlight*0.20)
     +rimColor*light.rim*(0.18+u_rim*0.55);
+  linear+=livingBehaviorLight(field,pigment.albedo);
   linear*=mix(0.22,1.15,u_intensity);
   linear=linear/(1.+linear);
   color=vec4(pow(linear,vec3(1./2.2)),1.);
@@ -180,6 +181,7 @@ void main(){
     +glintColor*(light.glint*(.90+.40*v_lift+max(fine,0.0)*.20)+v_highlight*.15)
     +glintColor*.045*shoulder*min(light.diffuse,1.)
     +rimColor*light.rim*(.18+.12*v_lift);
+  linear+=livingBehaviorLight(field,pigment.albedo);
   linear*=mix(0.22,1.15,u_intensity)*(gl_FrontFacing ? 1.0 : .52);
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
@@ -318,6 +320,7 @@ interface DrawResource {
 }
 
 interface CommonUniforms {
+  readonly behavior: WebGLUniformLocation;
   readonly radius: WebGLUniformLocation;
   readonly intensity: WebGLUniformLocation;
   readonly scale: WebGLUniformLocation;
@@ -690,6 +693,7 @@ export class WebGLBackend implements RendererBackend {
   private commonUniformLocations(shader: WebGLProgram): CommonUniforms {
     const gl = this.gl;
     return {
+      behavior: location(gl, shader, "u_behavior"),
       radius: location(gl, shader, "u_radius"),
       intensity: location(gl, shader, "u_intensity"),
       scale: location(gl, shader, "u_scale"),
@@ -721,12 +725,25 @@ export class WebGLBackend implements RendererBackend {
 
   private setCommonUniforms(uniforms: CommonUniforms, frame: MotionFrame): void {
     const gl = this.gl;
+    gl.uniform4f(
+      uniforms.behavior,
+      frame.reactivity.inputPresence,
+      frame.reactivity.outputPulse,
+      frame.reasoningCue,
+      frame.receptiveCue,
+    );
     gl.uniform1f(uniforms.radius, frame.radius);
     // Keep the user setting as baseline while actual output energy illuminates
     // both body and membrane. The halo already consumes frame.glow separately.
     gl.uniform1f(
       uniforms.intensity,
-      Math.min(1, this.settings.intensity + frame.reactivity.outputPulse * 0.22),
+      Math.min(
+        1,
+        this.settings.intensity +
+          frame.reactivity.outputPulse * 0.32 +
+          frame.reactivity.inputPresence * 0.08 +
+          frame.reasoningCue * 0.04,
+      ),
     );
     gl.uniform2f(uniforms.scale, this.scaleX, this.scaleY);
   }

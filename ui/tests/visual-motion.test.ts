@@ -418,12 +418,12 @@ describe("continuous Visual Engine motion", () => {
       audio: { output: { receivedMs: 0, envelope: 1 } },
     });
     expect(frame.radius).toBeGreaterThan(STATE_TARGETS.speaking.radius);
-    expect(frame.radius).toBeLessThanOrEqual(1.14);
+    expect(frame.radius).toBeLessThanOrEqual(1.18);
     expect(frame.glow).toBeLessThanOrEqual(0.9);
     expect(frame.surfaceDeformation).toBeLessThanOrEqual(0.026);
     expect(frame.surfaceRipple).toBeLessThanOrEqual(0.022);
-    expect(frame.highlight).toBeLessThanOrEqual(0.12);
-    expect(frame.peelLift).toBeLessThanOrEqual(0.018);
+    expect(frame.highlight).toBeLessThanOrEqual(0.3);
+    expect(frame.peelLift).toBeLessThanOrEqual(0.075);
     expect(frame.peelWidth).toBeLessThanOrEqual(1.35);
   });
 

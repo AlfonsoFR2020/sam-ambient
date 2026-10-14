@@ -45,7 +45,7 @@ export const STATE_TARGETS: Readonly<Record<VisualForeground, StateTarget>> = Ob
     drift: 1,
   },
   listening: {
-    radius: 1.05,
+    radius: 1.0,
     glow: 0.34,
     opening: 0.78,
     spin: 0.055,
@@ -67,15 +67,15 @@ export const STATE_TARGETS: Readonly<Record<VisualForeground, StateTarget>> = Ob
     drift: 0.55,
   },
   thinking: {
-    radius: 0.945,
-    glow: 0.31,
-    opening: 0.04,
+    radius: 0.975,
+    glow: 0.36,
+    opening: 0.055,
     spin: 0.025,
     lift: 0,
-    width: 0.94,
+    width: 1.06,
     coherence: 0.96,
-    rim: 0.13,
-    drift: -0.42,
+    rim: 0.3,
+    drift: -0.55,
   },
   speaking: {
     radius: 1.025,
@@ -148,6 +148,7 @@ export interface MotionFrame {
   envelope: number;
   interruption: number;
   reasoningCue: number;
+  receptiveCue: number;
   delegatedCue: number;
   warmth: number;
   reducedMotion: boolean;
@@ -219,6 +220,8 @@ export class MotionEvaluator {
   private startRim = 0.2;
   private startDrift = 1;
   private interruption = 0;
+  private working = 0;
+  private receptive = 0;
   private spinPhase: number;
   private precessionPhase: number;
   private breathPhase: number;
@@ -290,6 +293,7 @@ export class MotionEvaluator {
       envelope: 0,
       interruption: 0,
       reasoningCue: 0,
+      receptiveCue: 0,
       delegatedCue: 0,
       warmth: 0,
       reducedMotion: false,
@@ -301,6 +305,8 @@ export class MotionEvaluator {
     this.lastMs = undefined;
     // Resume from current evidence, never from energy held while hidden.
     this.ambientReactivity.reset();
+    this.working = 0;
+    this.receptive = 0;
   }
 
   /** Read-only diagnostic view; the renderer still owns the single reused frame. */
@@ -398,6 +404,8 @@ export class MotionEvaluator {
 
     if (input.streamKey !== this.streamKey) {
       this.streamKey = input.streamKey;
+      this.working = input.interaction.foreground === "thinking" ? 1 : 0;
+      this.receptive = 0;
       this.lastInterruptSerial = input.interaction.interruptSerial;
       this.interruption =
         input.interaction.foreground === "interrupted" && input.interaction.interruptSerial > 0
@@ -438,8 +446,24 @@ export class MotionEvaluator {
     const { outputPulse, inputPresence } = this.ambientReactivity.current;
     const inputResponse = inputPresence;
 
+    const workTarget = stationary
+      ? 0
+      : input.interaction.foreground === "thinking"
+        ? 1
+        : input.interaction.foreground === "transcribing"
+          ? 0.6
+          : input.interaction.reasoning
+            ? 0.025
+            : 0;
+    this.working = stationary ? 0 : blend(this.working, workTarget, dt, 0.2);
+    const receptiveTarget = !stationary && input.interaction.listening ? 1 : 0;
+    this.receptive = spatiallyFrozen
+      ? receptiveTarget
+      : blend(this.receptive, receptiveTarget, dt, 0.18);
     const motion = spatiallyFrozen ? 0 : motionRateScale(settings.motionIntensity);
-    const flow = spatiallyFrozen ? 0 : motionRateScale(settings.surfaceFlow);
+    const flow = spatiallyFrozen
+      ? 0
+      : motionRateScale(settings.surfaceFlow) * (1 + 0.3 * this.working);
     const flowTarget = this.pointerHolding ? SURFACE_FLOW.pointerRate : 1;
     const flowTau = this.pointerHolding
       ? SURFACE_FLOW.pointerEaseSeconds
@@ -478,13 +502,13 @@ export class MotionEvaluator {
     }
 
     const listeningOpening = input.interaction.listening
-      ? inputResponse * 0.1 * (0.45 + activity * 0.55)
+      ? inputResponse * 0.26 * (0.45 + activity * 0.55)
       : 0;
-    const speakingLift = input.interaction.speaking ? this.envelope * 0.01 : 0;
-    const inputLift = input.interaction.listening ? inputResponse * 0.005 : 0;
+    const speakingLift = input.interaction.speaking ? outputPulse * 0.055 : 0;
+    const inputLift = input.interaction.listening ? inputResponse * 0.045 : 0;
     const acknowledgement = !stationary && input.interaction.acknowledgement ? 0.025 : 0;
     const yielding = !stationary && input.interaction.floor === "yielding" ? 0.08 : 0;
-    const reasoningCue = !stationary && input.interaction.reasoning ? 0.025 : 0;
+    const reasoningCue = this.working;
     const delegatedCue = !stationary && input.interaction.delegatedWork ? 0.04 : 0;
     const expressionAge = input.expression ? safeNow - input.expression.receivedMs : Infinity;
     const expressionWeight =
@@ -503,9 +527,9 @@ export class MotionEvaluator {
 
     this.frame.foreground = input.interaction.foreground;
     this.frame.radius = clamp(
-      this.radius + breath + outputPulse * 0.075 - inputPresence * 0.014 - contraction,
+      this.radius + breath + outputPulse * 0.14 - inputPresence * 0.035 - contraction,
       0.92,
-      1.14,
+      1.18,
     );
     const availabilityScale =
       input.interaction.availability === "stopped" ? 0.45 : stationary ? 0.65 : 1;
@@ -514,7 +538,7 @@ export class MotionEvaluator {
         outputPulse * 0.36 +
         inputPresence * 0.055 +
         this.peak * 0.1 +
-        reasoningCue +
+        reasoningCue * 0.08 +
         delegatedCue +
         expressionEnergy * 0.025) *
         settings.intensity *
@@ -550,7 +574,7 @@ export class MotionEvaluator {
     this.frame.peelLift = clamp(
       this.lift + speakingLift + inputLift - this.interruption * 0.006,
       0,
-      0.018,
+      0.075,
     );
     this.frame.peelWidth = clamp(this.width + this.envelope * 0.2, 0.86, 1.35);
     this.frame.peelEmission = clamp(
@@ -573,8 +597,8 @@ export class MotionEvaluator {
       : clamp(this.envelope * 0.018 + this.peak * 0.004, 0, 0.022);
     this.frame.highlight = spatiallyFrozen
       ? 0
-      : clamp(this.peak * 0.06 + outputPulse * 0.13, 0, 0.15);
-    this.frame.rim = clamp(this.rim + inputResponse * 0.12, 0.12, 0.48);
+      : clamp(this.peak * 0.08 + outputPulse * 0.28, 0, 0.3);
+    this.frame.rim = clamp(this.rim + inputResponse * 0.2, 0.12, 0.58);
     this.frame.particleExcitation = spatiallyFrozen
       ? 0
       : unit(0.15 + this.envelope * 0.6 + inputResponse * 0.12);
@@ -583,6 +607,7 @@ export class MotionEvaluator {
     this.frame.envelope = this.envelope;
     this.frame.interruption = this.interruption;
     this.frame.reasoningCue = reasoningCue;
+    this.frame.receptiveCue = this.receptive;
     this.frame.delegatedCue = delegatedCue;
     this.frame.warmth = expressionWarmth;
     this.frame.reducedMotion = reduced;

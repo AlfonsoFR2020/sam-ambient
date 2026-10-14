@@ -75,6 +75,8 @@ export const LIVING_MATERIAL_GLSL = `
 #endif
 uniform int u_light_count;
 uniform float u_light_phase;
+uniform vec4 u_behavior; // measured input, measured output, lifecycle work
+uniform float u_ripple_phase;
 
 struct LivingPigment { vec3 albedo; float cool; };
 LivingPigment livingPigment(LivingField field) {
@@ -98,6 +100,14 @@ LivingPigment livingPigment(LivingField field) {
     * (.35 + .65 * smoothstep(.22 - coolBoundary, .66 - coolBoundary, field.medium));
   float fold = 0.83 + 0.29 * field.broad + 0.13 * (smoothstep(0.34, 0.68, field.medium) - 0.5);
   return LivingPigment(clamp(mix(warm, cool, coolWeight) * fold, 0.0, 1.0), coolWeight);
+}
+
+vec3 livingBehaviorLight(LivingField field, vec3 pigment) {
+  float receptive=u_behavior.x*(.07+.16*smoothstep(.35,.7,field.broad));
+  float speech=u_behavior.y*(.08+.14*field.activity);
+  float current=exp(-16.*abs(sin(u_ripple_phase+2.4*field.broad-1.5*field.medium)));
+  float internal=u_behavior.z*(.04+.28*field.broad*field.medium+.18*current);
+  return pigment*(receptive+speech+internal);
 }
 
 float livingSurfaceDetail(LivingField field) {
@@ -140,6 +150,7 @@ LivingLight livingLight(vec3 normal, vec3 position) {
 
 /** Body and peels share field-driven radius; only the body tangent-samples normals. */
 export const LIVING_SURFACE_VERTEX_GLSL = `
+uniform vec4 u_behavior;
 float livingDisplacement(vec3 objectDirection, float breathPhase, float ripplePhase, float deformation, float ripple) {
   vec3 n = normalize(objectDirection);
   const vec3 AXIS_B = vec3(-0.25, 0.91, 0.32);
@@ -148,7 +159,9 @@ float livingDisplacement(vec3 objectDirection, float breathPhase, float ripplePh
   float breathing = 0.006 * sin(breathPhase) * (1.0 + 0.2 * (broad - 0.5));
   float oldResponse = deformation * 0.55 * sin(3.0 * dot(normalize(AXIS_B), n) + ripplePhase)
     + ripple * 0.35 * sin(7.0 * dot(normalize(AXIS_C), n) - ripplePhase);
-  return clamp(0.008 * (broad - 0.5) + breathing + oldResponse, -0.04, 0.04);
+  float receptive=-(.022*u_behavior.w+.028*u_behavior.x)*pow(max(n.z,0.),2.);
+  float discourse=.009*u_behavior.y*(broad-.2);
+  return clamp(0.008 * (broad - 0.5) + breathing + oldResponse + receptive + discourse, -0.04, 0.04);
 }
 
 vec3 livingBodyPoint(vec3 direction, float radius, float breathPhase, float ripplePhase, float deformation, float ripple) {

@@ -64,14 +64,17 @@ export function fixture(
     bodyOnly?: boolean;
     membraneOnly?: boolean;
     gray?: boolean;
+    particlesOnly?: boolean;
   } = {},
 ) {
   const size = options.size ?? 720,
     dpr = options.dpr ?? 1;
   const budget = {
     ...RENDER_BUDGETS[quality],
-    peels: options.bodyOnly ? 0 : RENDER_BUDGETS[quality].peels,
-    ...(options.membraneOnly ? { sphereLongitude: 1, sphereLatitude: 1 } : {}),
+    peels: options.bodyOnly || options.particlesOnly ? 0 : RENDER_BUDGETS[quality].peels,
+    ...(options.membraneOnly || options.particlesOnly
+      ? { sphereLongitude: 1, sphereLatitude: 1 }
+      : {}),
   };
   const canvas = document.createElement("canvas");
   canvas.style.width = `${size}px`;
@@ -82,6 +85,7 @@ export function fixture(
     preserveDrawingBuffer: true,
   });
   if (!gl) throw new Error("Headless WebGL2 unavailable");
+  if (options.particlesOnly) gl.drawElements = () => {};
   if (options.gray) {
     const original = gl.shaderSource.bind(gl);
     gl.shaderSource = (shader, source) =>
@@ -141,4 +145,38 @@ export function fixture(
       canvas.remove();
     },
   };
+}
+
+/** A renderer-only synthetic lifecycle; it never connects to Sam or emits core events. */
+export function behaviorFrameAt(
+  time: number,
+  state: VisualForeground,
+  strength = 0.7,
+): MotionFrame {
+  const evaluator = new MotionEvaluator(0x5a17);
+  const settings = {
+    ...DEFAULT_VISUAL_ENGINE_SETTINGS,
+    reducedMotion: "off" as const,
+    audioReactivity: strength,
+  };
+  for (let t = 0; t <= time; t += 20) {
+    const active = t >= 200;
+    const rms =
+      !active || t >= 1000
+        ? 0
+        : state === "speaking"
+          ? 0.025 +
+            0.1 * Math.exp(-(((t - 420) / 90) ** 2)) +
+            0.42 * Math.exp(-(((t - 760) / 90) ** 2))
+          : state === "listening"
+            ? 0.025 + 0.12 * Math.exp(-(((t - 650) / 170) ** 2))
+            : 0;
+    evaluator.evaluate(
+      visualInput(t, active ? state : "idle", rms),
+      t,
+      settings,
+      RENDER_BUDGETS.high,
+    );
+  }
+  return { ...evaluator.currentFrame, reactivity: { ...evaluator.currentFrame.reactivity } };
 }

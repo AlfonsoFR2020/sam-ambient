@@ -5,7 +5,8 @@ Updated: 2026-10-14. This is current development truth, not a release acceptance
 ## Release and evidence boundary
 
 - [Visual Identity II](VISUAL_IDENTITY_II.md) replaces domes with six attached,
-  flexing curled sheets and bounded soft-alpha ordering. Headless evidence is not human acceptance.
+  flexing curled sheets and bounded soft-alpha ordering, plus coordinated receptive,
+  working and measured-speech behavior. Headless evidence is not human acceptance.
 
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
