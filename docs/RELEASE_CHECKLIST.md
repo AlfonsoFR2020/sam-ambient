@@ -1,6 +1,6 @@
 # Release checklist
 
-`0.2.0` through `0.2.4` are published; [v0.2.5 source/Python profile](RELEASE_READINESS_0.2.5.md) governs this increment. Release approval and publication remain
+`0.2.0` through `0.2.5` are published; [v0.2.5 source/Python profile](RELEASE_READINESS_0.2.5.md) records the latest artifact scope. Release approval and publication remain
 human-controlled and do not follow automatically
 from a green branch.
 
@@ -24,13 +24,11 @@ shipped in 0.2.2. The subsequent UI, visual, provider, conversation and audio
 checkpoints shipped in 0.2.3. Post-release development is on `dev`; preparation
 for a later version is not publication approval.
 
-The patch alpha remains Windows-first. The exact versioned release-preparation
-commit must pass its hosted Windows Quality, package-smoke and Native Package
-gates after push.
-Hosted Ubuntu reaches Python tests but retains a known unresolved failure. That Linux
-issue is explicitly deferred to the dedicated 0.3.0 compatibility review and
-does not by itself block this Windows-first patch alpha; do not mark the Ubuntu
-job successful artificially or weaken its tests.
+Development remains Windows-first. Earlier Windows-only/Ubuntu-failure exceptions
+were historical; v0.2.5 passed both hosted Quality jobs and Package smoke, plus the
+independent Native package job. Use the approved artifact-specific profile for the
+next release. Passing Linux source tests does not accept Linux desktop/audio/GTK
+security or imply that every native installer is distributable.
 
 ## v0.2.4 / v0.2.5 source/Python artifact profile
 
@@ -45,8 +43,8 @@ explicit profile supersedes the earlier all-artifact patch-alpha requirement abo
 
 ## Future release checklist
 
-- [ ] `dev` is clean and synchronized; required Windows jobs are green and the
-  explicitly deferred Ubuntu failure is recorded accurately.
+- [ ] `dev` is clean and synchronized; required Windows/Ubuntu source/package jobs
+  are green on the exact candidate and native job outcomes are reported separately.
 - [ ] Intended feature branches have passed acceptance and are merged.
 - [ ] Full release regression passes: Python/frontend tests, lint, formatting,
   TypeScript, Vite, Cargo, version consistency, package metadata, and artifact-content gates.

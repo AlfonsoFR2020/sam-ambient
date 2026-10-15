@@ -24,6 +24,16 @@ while preserving broad field structure, quiet lifted film and independent transp
 Core-confirmed provider preparation has its own restrained light/posture vocabulary,
 separate from inference Thinking. These changes have headless evidence, not human acceptance.
 
+**HQ4 continuity (2026-10-15, released v0.2.5):** the detailed
+[current source map and connected-film assignment](HANDOFF_CODEX_VISUAL_CORE.md)
+separate implemented sheets/material/palette from the owner's still-open artistic
+intent. A connected peeling film, rather than wrapping bands, is the next proposed
+reference-led objective. The original concept board remains unrecovered. Historical
+design stages and dome/four-draw/fixed-palette examples below are not the current
+implementation where superseded by the amendments above. Future replaceable smoke/
+cloud, fractal, paint, synthwave, HAL-like, dark-sphere and gold identities are owner
+intent retained for later design, not a theme engine to implement in this pass.
+
 ## A living object
 
 Sam should feel like one living, organic orb rather than a sphere accompanied by

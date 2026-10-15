@@ -2,15 +2,15 @@
 
 **Current policy: Basics Before Expansion (2026-10-01).** See the authoritative
 [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and [Roadmap](ROADMAP.md).
-v0.2.4 is published as a source/Python experimental pre-release. Its native
-Windows build/signing problem is separate. Unreproduced intermittent false speech
+v0.2.5 is published as a source/Python experimental pre-release. Public native
+signing/clean-host acceptance remains separate despite a passing hosted build. Unreproduced intermittent false speech
 turns and long stalls remain disclosed, not declared fixed by the beta repairs.
 
-Diagnostic launch/conversation observability is implemented locally on October 13:
+Diagnostic launch/conversation observability was implemented October 13 and shipped in v0.2.5:
 shared launch, session retention, bounded operational logging and timing/owner
 summaries. See [diagnostic evidence](DIAGNOSTIC_LAUNCH.md). Use that evidence to
 reproduce reliability failures; do not open another speculative audio rewrite.
-No personal recording or new beta was needed for this increment. October 14's
+No personal recording or new beta was needed for that increment. October 14's
 [composable launcher](DIAGNOSTIC_LAUNCH.md) is complete: independent console,
 verbosity/log-path flags, diagnostic preset and session retention. 152 focused
 checks preserve redaction, quoting, settings and ownership; this adds no capability.
@@ -58,7 +58,7 @@ are not automatically blockers for a future release.
 
 ## Release-known issues
 
-- Recommend text interaction for the most reliable 0.2.4 alpha experience; voice
+- Recommend text interaction for the most reliable current alpha experience; voice
   input remains experimental.
 - Complete the dedicated Linux compatibility review around 0.3.0. Hosted Ubuntu CI
   source/package gates passed for v0.2.4, while Linux desktop sandbox, voice and
@@ -72,6 +72,11 @@ are not automatically blockers for a future release.
 
 ## UI and Visual Engine
 
+- **HQ4 first assignment (owner priority, 2026-10-15):** reference-led connected
+  peeling film, resolving the current band impression before another optical/gain
+  sweep. [Continuity, ranked dependencies and bounded assignment](HANDOFF_CODEX_VISUAL_CORE.md#first-visual-core-assignment)
+  preserve current implementation/evidence and missing concept-board status.
+  No theme engine or implementation is authorized by this planning entry.
 - **Living Orb direction:** retain the shared, seam-safe body/peel field and the
   `mobile_2020` and bounded nine/ten-draw budgets. Six attached moving curled sheets now
   replace WebGL domes; compare their continuity and depth against the
@@ -113,7 +118,7 @@ are not automatically blockers for a future release.
   but human visibility, ambient depth and restrained glints remain unverified.
   Measure each tier on representative hardware before further art-direction tuning.
 - **Particles:** WebGL now has a seeded, biased 1.2–2.45 radius field with varied
-  paths, size, opacity and warm pigment; rear particles outside the silhouette
+  paths, size, opacity and shared regional palette tint; rear particles outside the silhouette
   survive depth testing. Counts are now 12/24/64 and the density slider reveals
   a share of that cap. Check whether the sparse tail actually gives useful
   atmosphere on desktop and mobile; viewport clipping still limits the farthest
@@ -145,8 +150,10 @@ are not automatically blockers for a future release.
   envelopes, but has no measured server health, loaded-model memory/latency,
   frequency features or physical audio-device diagnostics. Do not fabricate values,
   create a second telemetry pipeline or turn this into a terminal emulator.
-- Revisit any remaining soft-edge alpha-order artifacts in overlapping membrane
-  fragments if representative views reveal them; no CPU per-frame sorting was added.
+- Revisit remaining soft-edge alpha-order artifacts in overlapping sheets if
+  representative views reveal them. Six reused ranges now use bounded CPU center
+  ordering; exact per-triangle transparency is still absent, with High opaque-core
+  depth priming only for sufficiently opaque interiors.
 - Consider bounded centre XYZ wandering and later waveform-driven peel/particle
   perturbations only after the relevant input evidence is available. The current
   centre remains fixed and diagnostics label it as such.

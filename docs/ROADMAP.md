@@ -1,4 +1,13 @@
-# Sam development plan: post-v0.2.4
+# Sam development plan: post-v0.2.5
+
+**Current HQ4 priority (2026-10-15): reference-led visual overhaul.**
+v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
+source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
+preserves the release, governance and remaining experience gaps;
+[Visual Core continuity](HANDOFF_CODEX_VISUAL_CORE.md) specifies the current renderer
+and first proposed connected-film assignment. The [HQ4 programme below](#hq4-programme--v026-and-beyond)
+is the current order; dated earlier plans remain context, not parallel task queues.
+No version bump, new runtime permission, remote action or automatic implementation.
 
 **HQ priority change (2026-10-14): Visual Identity within Basics Before Expansion.**
 Attractiveness is a principal product feature. Diagnostic observability is completed;
@@ -16,7 +25,7 @@ pass nor its pixel metrics establishes aesthetic acceptance. AEC and capability
 expansion remain parked. No next workstream begins automatically.
 
 **HQ priority change (2026-10-01): Basics Before Expansion.**
-The current [release-readiness decision](RELEASE_READINESS_0.2.4.md) and
+The current [release record](RELEASE_READINESS_0.2.5.md) and
 [core-experience acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md)
 retain the basic acceptance scope: ordinary voice, truthful model lifecycle, stable installed
 persona, connected embodiment, complete Controls and clean startup/shutdown.
@@ -35,18 +44,18 @@ a proven processor; it does not block improvements to the ordinary voice loop.
 The ordered basic-experience cards below supersede the former expansion queue.
 See [owner authority](OWNER_AUTHORITY.md) for the first agency checkpoint.
 
-This is the **authoritative execution order**, not a promise that every later capability belongs in v0.2.4. [STATE](STATE.md) records implemented truth; [BACKLOG](BACKLOG.md) retains unresolved items; [ARCHITECTURE](ARCHITECTURE.md) and [DECISIONS](DECISIONS.md) contain current contracts. The [physical beta record](POST_0.2.3_BETA_PLAN.md) remains primary product evidence. Specialist sources: [AEC decision](AEC_DOUBLE_TALK_CONTRACT.md), [trust review](TRUST_BOUNDARIES.md), [dependency triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md), [visual direction](VISUAL_DIRECTION.md) and [isolated performance sample](VISUAL_PERFORMANCE_0.2.3_DEV.md). The [published v0.2.3 release scope](RELEASE_READINESS_0.2.3.md) is historical; this plan changes neither it nor its tag.
+This is the **authoritative execution order**, not a promise that every later capability belongs in v0.2.6. [STATE](STATE.md) records implemented truth; [BACKLOG](BACKLOG.md) retains unresolved items; [ARCHITECTURE](ARCHITECTURE.md) and [DECISIONS](DECISIONS.md) contain current contracts. The [physical beta record](POST_0.2.3_BETA_PLAN.md) remains primary product evidence. Specialist sources: [AEC decision](AEC_DOUBLE_TALK_CONTRACT.md), [trust review](TRUST_BOUNDARIES.md), [dependency triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md), [visual direction](VISUAL_DIRECTION.md) and [isolated performance sample](VISUAL_PERFORMANCE_0.2.3_DEV.md). The [published v0.2.3 release scope](RELEASE_READINESS_0.2.3.md) is historical; this plan changes neither it nor its tag.
 
 The owner completed a new physical beta October 9. [Full triage](BETA_TRIAGE_2026-10-09.md)
 records spurious turns, intermittent stalls, literal spoken Markdown, source-window
 security/presentation defects and failed visual/embodiment judgments. Bounded repairs
 do not close all integrity reports. **Deterministic visual behavior is not human
 acceptance.** No additional human beta is available now. HQ authorizes proportionate
-alpha acceptance; current native build-host failure blocks installer completion.
+alpha acceptance; public native signing and clean-host acceptance remain separate.
 
 ## Reconciled baseline
 
-Post-release dev has repaired unsafe promotion of playback-time interruption candidates, pinned the echo-screening generation, retired superseded generations before new typed turns, and protected frontend command correlation. History now presents committed messages with separate delivery metadata and independent scrolling. Provider exit cleanup follows explicit ownership, Controls inventory is intact, and wide-screen diagnostics does not cover conversation. Measured input/output audio maps to distinct bounded Orb responses; high-tier form/membrane and broad pigment evolution were revised. Isolated WebGL cost was measured, not full-app cost. A prepared Windows source checkout has a one-action launcher. The trust review fixed authenticated-provider error-body disclosure and insecure cloud endpoint configuration. The AEC contract/prototype remains negative evidence, not runtime acoustic processing; Vite 7.3.5 / Vitest 4.1.11 advisory maintenance is complete. See [STATE](STATE.md) for exact behavior.
+Post-release dev has repaired unsafe promotion of playback-time interruption candidates, pinned the echo-screening generation, retired superseded generations before new typed turns, and protected frontend command correlation. History now presents committed messages with separate delivery metadata and independent scrolling. Provider exit cleanup follows explicit ownership, Controls inventory is intact, and wide-screen diagnostics does not cover conversation. Measured input/output audio maps to distinct bounded Orb responses; high-tier form/membrane and broad pigment evolution were revised. Isolated WebGL cost was measured, not full-app cost. A prepared Windows source checkout has a one-action launcher. The trust review fixed authenticated-provider error-body disclosure and insecure cloud endpoint configuration. The AEC contract/prototype remains negative evidence, not runtime acoustic processing; Vite 7.3.6 / Vitest 4.1.11 and subsequent targeted tooling advisory maintenance are complete. See [STATE](STATE.md) for exact behavior.
 
 ## Dependency-aware workstreams
 
@@ -71,7 +80,12 @@ five-minute no-response episode remains unproven; physical timing is not inferre
 
 **Current:** private-pipe owner bootstrap and fresh mutual connection proofs protect all private core events/commands; typed registry/policy/approval/epoch mediates manual and model actions. Replay, revocation, path, memory and injection fixtures pass. Origin is supplemental, not authority. Existing LM Studio/Gemma structured read and cancellation passed through the owner window. **Remaining:** host-account memory/code compromise is outside this boundary; powerful mutations need deliberate exact approval and policy. Native launch/bundled Playwright-driver packaging and external-site/TLS compatibility remain unverified. Pages never receive the owner signer. See [trust review](TRUST_BOUNDARIES.md) and [agency evidence](AGENCY_FOUNDATION_I.md).
 
-The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md) found duplicate GitHub records. Vite 7.1.5 has high-severity dev-server file-read findings; Vitest 3.2.4 has a critical finding conditioned on a listening Vitest UI server. These are **development-toolchain exposures**, not demonstrated public Windows runtime vulnerabilities. Resolved on dev with Vite 7.3.5 and Vitest/mocker 4.1.11 before this agency pass; retain separate deferred advisory work. Pytest 8.4.2, setuptools 82.0.1 and Rust GLib 0.18.5 belong to test/build/Linux-native follow-up. Future API credentials need trusted storage and redaction, never route identity, transcripts or diagnostics.
+The [advisory triage](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15)
+retains historical duplicate records and exposure-specific findings. Released v0.2.5
+corrects Vite/Vitest/mocker, source-map-js/esbuild and pytest/setuptools through compatible
+owners. GLib 0.18.5 remains a Linux/BSD GTK-native exception, absent from the Windows
+native/Python runtime graph. Do not reopen fixed tooling alerts or force an incompatible
+GTK override. Future API credentials require trusted storage/redaction, never route IDs.
 
 ### Provider and local-control architecture
 
@@ -120,12 +134,19 @@ audio response have deterministic evidence. October 9 owner assessment still fou
 polygonal/dull body, absent peels and detached response despite noticing dynamism.
 These are failed judgments, not missing beta scheduling. A short real-inference
 submission-cadence sample exists; sustained/low-power/native/GPU/visible audio latency
-remains limited. Later evidence-led visual work may address those observations;
-no shader tuning or new visual identity belongs in this closure. Themes remain later.
+remains limited. Identity I–III and living palette are now released technical
+advances, not human acceptance. The HQ4 connected-film assignment addresses the
+remaining representation gap; replaceable themes remain later.
 
 ### Distribution and productization
 
-**Current:** normal and diagnostic checkout launch share one supervisor; v0.2.4 experimental wheel/sdist are public; unsigned Windows development installer is withheld. Supervisor/update authority remains distinct from conversation with staged activation/rollback contracts. **Unmet:** signed, reputation-tested, clean-host public Windows installation and owner-controlled update/release. Signing identity and security-software response need owner/security decisions; do not invent a workaround. This blocks a non-developer distribution claim, not the AEC prototype. Split signing prerequisites, clean-host package test and publication. Linux/mobile distribution remain later tracks.
+**Current:** normal/diagnostic checkout launch share one supervisor; v0.2.5 verified
+wheel/sdist/checksums are public. Both hosted Quality jobs, Package smoke and Native
+package pass, without a public native artifact. Supervisor/update authority remains
+separate with staged activation/rollback. **Unmet:** signed/reputation-tested clean-host
+Windows installation and installed/upgrade data recovery. The older local Cargo-helper
+failure remains host evidence, not a current hosted-build failure. Signing/security
+decisions cannot be bypassed; Linux/mobile distribution remain later tracks.
 
 ## Next basic-experience tasks — after Core Experience V
 
@@ -134,60 +155,48 @@ pre-release after exact-commit hosted source/package gates. Native build failure
 separate; unsigned Windows artifacts remain withheld. No additional feature work
 is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposition.
 
-### Next-cycle handoff — visual priority, local evidence (2026-10-14)
+The October 14 diagnostic/visual/palette/launcher/security increments are now shipped
+in v0.2.5. Their implementation records and quantitative acceptance limits remain
+linked above. Publication is completed, not the next planning task.
 
-1. **Visual identity: technical increment implemented, aesthetic acceptance open.**
-   [Latest palette/lifecycle comparisons](LIVING_PALETTE_AND_READINESS.md) isolate
-   color evolution over 0–300 seconds from transport and show confirmed model
-   preparation separately from inference/speech. Persistent status and scoped
-   waiting time keep long loads understandable; no percentage or new provider work.
-   [Identity III comparisons](VISUAL_IDENTITY_III.md) cover shared-film optical depth,
-   curl phases, coordinated synthetic light/near particles and tier cost. Colored
-   folds separate better, but some angles still read as wrapping bands. Connected
-   skin/thickness/translucency remains the graphical question for reference-led
-   judgment; High contact and soft intersections are approximations. Live startup
-   passed, but selector instrumentation prevented inference/fullscreen measurement.
-   The original concept board remains missing; do not infer aesthetic acceptance.
-2. **Unified composable launch and conversation observability: implemented.**
-   One shared parser/path handles independent verbosity, console retention and
-   explicit rotating logs; retention overrides preserve ownership and preferences.
-   152 focused checks include actual invisible CMD quoting/failure tests with a
-   status-only stub supervisor. No full app, provider, browser or audio run needed.
-   Earlier `Diagnose Sam.cmd` / `--diagnostic`, retention, rotating private
-   metadata and correlated latency/terminal summaries pass focused and isolated
-   owner-window/supervisor checks. [Contract and evidence](DIAGNOSTIC_LAUNCH.md).
-   v0.2.4 remains published. Diagnostic/Identity I/II/III are preserved upstream at
-   587775c including palette/readiness and composable launch; security work stays local.
-   The next small alpha can include this coherent slice after HQ review, rather
-   than waiting for STT or artistic work to finish. Do not call incident causes fixed.
-3. **Intermittent latency and false speech turns** — Medium initially, High only for
-   demonstrated cross-lifetime ownership. Use those diagnostics and paced mixed
-   typed/voice/playback sequences; reproduce before changing product behavior.
-   Preserve legitimate short speech and typed recovery, avoid arbitrary timeout
-   resets. These remain the highest reliability concerns, not claimed solved.
-4. **Major multilingual STT replacement** — dedicated scoped evaluation/implementation,
-   not an incidental release dependency. Owner speech quality is still inadequate;
-   separate language/endpoint/model capacity and future physical acceptance.
-5. **Windows native packaging/Cargo** — separate bounded host/toolchain diagnosis,
-   then authenticated installed/upgrade data checks and signing/reputation policy.
-   Never bypass security software or publish unsigned development binaries.
+## HQ4 programme — v0.2.6 and beyond
 
-Refined system/persona settings and Console/Memory presentation remain later;
-Agency/Memory capability expansion, profiles, arbitrary shell and diarization stay
-parked. Diagnostic and Visual Identity III are coherent increments, with no
-version bump/publication. Later workstreams remain separate. Prefer frequent bounded
-green alpha increments and preserve the distinction between behavior and acceptance.
+**Owner priority: substantial visual improvement, with frequent meaningful alphas.**
+A possible v0.2.6 visual milestone is a target, not a version/publication commitment.
+Use the [first Visual Core assignment](HANDOFF_CODEX_VISUAL_CORE.md#first-visual-core-assignment)
+for the bounded technical contract; do not maintain a second detailed checklist here.
 
-**Launcher and focused dependency maintenance are complete.**
-[October 15 security disposition](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15)
-corrects four of five current default-branch findings locally; GLib remains a
-Linux/BSD native GTK limitation. 105 Python / 258 frontend checks, frozen resolution,
-build and package-content selection pass. No runtime feature or release is added.
-[v0.2.5 source-alpha closure](RELEASE_READINESS_0.2.5.md) includes the completed
-increments; exact-tag Windows/Ubuntu quality, package gates and verified hashes
-control publication. No installer or human acceptance is implied. Multilingual STT, conversation reliability,
-reference-led visuals and Windows native packaging remain independent priorities.
-Later replaceable themes and capability expansion remain parked.
+| Rank | Objective / expected visible gain | Evidence, dependency and risk |
+| --- | --- | --- |
+| 1 | Connected peeling film instead of wrapping bands | Current six-sheet animation/optics work, but carrier coverage can read as straps. Reference-led representation comparison first; original board missing. High visible gain, medium/high geometry/depth risk; later owner judgment essential. |
+| 2 | Local traveling form/light/specular expression coordinated with skin and nearby particles | Existing real lifecycle/envelopes/crest provide the seam; choose skin first, then a small coherent extension. No new semantic/audio signal or another global radius multiplier. |
+| 3 | Useful High spatial fidelity with sustained responsiveness | Current isolated timings do not prove inference coexistence or lower-power cost. Improve only observed weak curvature/depth/space; authorize representative runtime measurement separately. |
+| 4 | Palette/particle composition coherent with the chosen film | Regional 0–300 s palette evolution already implemented. Preserve it; refine balance/film legibility rather than rebuild another color system. Human harmony/character judgment remains open. |
+| Later | Replaceable identities/themes | Owner directions include smoke/clouds, fractals, paint, synthwave, HAL-like, dark sphere and gold. Establish one compelling baseline before designing a theme-engine abstraction. |
+
+These are flexible dependencies, not one task/release per row. Preserve written art
+direction and make a bounded comparison when references are missing; stop instead
+of accumulating arbitrary shader knobs. Automated/headless measures cannot accept
+beauty, connected-film character or natural embodiment. Occupied-machine testing
+permission is explicit and task-specific, including headless GPU work.
+
+Parallel/deferred priorities remain important and separate:
+
+- **Conversation reliability:** diagnose correlated long waits/false finals with the
+  shipped launcher; reproduce before changing ownership, escalate reasoning for an
+  actual cross-lifetime defect. No blanket claim that minutes-long stalls are solved.
+- **Multilingual STT modernization:** a dedicated evaluation/implementation effort,
+  separating language/segmentation/capacity and actual owner-room acceptance.
+- **Windows distribution:** resolve remaining local/toolchain and installed/upgrade
+  evidence, signing/reputation and clean-host gates; hosted build success is narrower.
+- **Controls and Sam identity/persona:** future owner-controlled instructions and
+  practical Console/Memory presentation; do not reopen implemented CRUD as missing.
+- **Expansion parked:** workspace mutation, arbitrary shell, richer browser, advanced
+  memory/vectors, provider profiles and multi-person/diarization implementation.
+
+Release in coherent verified increments when authorized; do not wait for every
+subjective improvement or call experimental limits solved. No new test, application
+session, version bump or release action is authorized by this roadmap update.
 
 ### Parked acoustic re-entry contract
 

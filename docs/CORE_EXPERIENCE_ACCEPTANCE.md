@@ -1,7 +1,7 @@
 # Core Experience evidence — I through V and Visual Identity III
 
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
-Expansion**. Published v0.2.4 is unchanged. Automated evidence does not establish
+Expansion**. Published v0.2.4 and v0.2.5 tags are immutable. Automated evidence does not establish
 human acoustic, voice-persona or visual acceptance. The October 9 beta completed;
 no additional human session is available now.
 The **current** source/Python scope is [v0.2.5 readiness](RELEASE_READINESS_0.2.5.md);
@@ -9,6 +9,14 @@ The **current** source/Python scope is [v0.2.5 readiness](RELEASE_READINESS_0.2.
 the [October 9 beta delta below](#october-9-beta-delta)
 which updates [Core Experience V](#core-experience-v-current-matrix) without rewriting it.
 Earlier sections preserve historical evidence, not a second current task queue.
+
+**October 15 publication/continuity:** v0.2.5 is a verified source/Python pre-release
+at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709`. Windows/Ubuntu Quality, Package smoke
+and independent hosted Native package passed; only wheel/sdist/checksums are public.
+[HQ4 publication record](HANDOFF_SAM_HQ4.md#released-baseline-and-security-disposition)
+preserves exact evidence and limits. No new human visual/voice or clean-host installer
+acceptance follows. [Visual Core continuity](HANDOFF_CODEX_VISUAL_CORE.md) makes the
+current connected-skin gap and proposed next assignment explicit; ROADMAP owns order.
 
 ## Baseline before consolidation (2026-10-01)
 

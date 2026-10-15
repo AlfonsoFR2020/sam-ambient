@@ -1,7 +1,7 @@
 # Sam implementation state
 
 Updated: 2026-10-15. This is current development truth, not a release acceptance claim.
-[ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
+[ROADMAP](ROADMAP.md) owns priority. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve the v0.2.6+ handoff; no implementation/testing permission is implied.
 ## Release and evidence boundary
 
 - [Palette/readiness](LIVING_PALETTE_AND_READINESS.md) adds regional cyclic harmonies,
@@ -31,9 +31,9 @@ Updated: 2026-10-15. This is current development truth, not a release acceptance
   preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
   and Sam-loaded unload passed. Reused serving remained; broader hosts are unverified.
   Actual en/es synthesis/meters reach fixed WebGL without physical playback.
-- [v0.2.5 source/Python scope](RELEASE_READINESS_0.2.5.md) uses exact-tag quality/package gates; v0.2.4 stays unchanged.
-- Windows-first development; Linux compatibility/native CI has a documented deferred
-  failure. Native packaging, signing/reputation and clean-host installation remain open.
+- **v0.2.5 published:** `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709`; wheel/sdist/checksums only. [Publication evidence](HANDOFF_SAM_HQ4.md#released-baseline-and-security-disposition).
+- Exact-release Windows/Ubuntu Quality, Package smoke and hosted Native package passed;
+  public native signing/reputation, clean-host/upgrade and human acceptance remain open.
 - The five-minute physical beta initially completed voice/model/TTS turns, then exposed
   self-output contamination, ineffective interruption, eventual no-response, messy
   history and inadequate visual embodiment. [Beta record](POST_0.2.3_BETA_PLAN.md)
@@ -187,12 +187,12 @@ and the beta record; numerical visual change does not establish perceptual succe
 ## Focused validation and next direction
 
 Memory's store/authority/provenance/recovery gate remains in its specialist document;
-[Security maintenance](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15): 105 Python / 258 UI checks; no version bump.
+[Security maintenance](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15) shipped in v0.2.5; only Linux/BSD GTK GLib remains in the release-time alert review.
 
 The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gates;
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider
 Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
-[Published alpha scope](RELEASE_READINESS_0.2.4.md) retains separate native/install/signing gates.
+[Published v0.2.5 scope](RELEASE_READINESS_0.2.5.md) retains separate native/install/signing gates.
 [Composable launch](DIAGNOSTIC_LAUNCH.md) adds independent flags; 152 focused checks pass.
 Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.

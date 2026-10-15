@@ -6,6 +6,14 @@ hosted source/package checks pass. The authoritative publication record is the
 its annotated tag identifies the immutable release commit and the three public assets.
 This document does not move the tag or confer native/physical acceptance.
 
+**Published and verified:** annotated `v0.2.5` targets
+`dc64c5d180fb44cf7a29bf4d0d1ae2f853347709`. Exact-commit Windows/Ubuntu Quality,
+Package smoke and independent hosted Native package passed. Only verified wheel,
+sdist and SHA-256 manifest are public. The
+[HQ4 continuity publication record](HANDOFF_SAM_HQ4.md#released-baseline-and-security-disposition)
+preserves CI, asset sizes/hashes and remaining native/human boundaries. Conditional
+instructions below record the release procedure, not an outstanding publication task.
+
 ## Scope and decision
 
 Include the completed diagnostic/composable launcher, Visual Identity Iâ€“III,
