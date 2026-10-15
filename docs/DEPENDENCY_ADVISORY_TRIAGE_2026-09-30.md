@@ -1,5 +1,7 @@
 # Sam dependency advisory triage — 2026-09-30
 
+Historical findings are preserved below. [October 15 maintenance](#focused-maintenance--2026-10-15) is the current dev disposition.
+
 The original read-only inspection of open GitHub Dependabot alerts for `AlfonsoFR2020/sam-ambient` was checked against the then-current manifests and lockfiles. GitHub's push notice said 20 alerts on the default branch; the API returned **20 records, but several duplicate the same package/advisory across `package.json` and its lockfile**. This is not a count of 20 independent product exposures. The table below records the **before** state and original classification; the local `dev` resolution is recorded afterward. No remote advisory state or repository setting was changed.
 
 | Package / locked version | GitHub finding and first fixed version | Sam exposure and action |
@@ -41,3 +43,106 @@ version ranges. Current manifest/lock still pins Vite 7.3.5 and Vitest/mocker
 4.1.11 outside those ranges; pytest 8.4.2, setuptools 82.0.1 and GLib 0.18.5
 retain the exposure-specific deferred actions above. No dependencies or remote
 alert state changed; this is not a claim of zero vulnerabilities.
+
+## Focused maintenance — 2026-10-15
+
+### Repository and alert inventory
+
+Authenticated read-only API inspection returned **five open default-branch alerts**:
+one High, three Medium, one Low; **no Critical and no additional High** beyond the
+digest. Default branch `main` is published commit `ae9cdb99ce0b317d1dbec5049eb53e378b41ca22`.
+Before maintenance, dev `587775c8` had the same affected lock versions for these
+five packages. Main already has the earlier Vite/Vitest repairs: the historical
+20-alert inventory is not today's inventory. Launcher commits `6507e07f` and
+`587775c8` were preserved to origin/dev before new work. No later push, alert
+mutation, PR, workflow or repository-setting change was performed.
+
+| Alert / advisory | Affected range / first fix | Main and initial dev | Current local dev / disposition |
+| --- | --- | --- | --- |
+| [22: source-map-js](https://github.com/AlfonsoFR2020/sam-ambient/security/dependabot/22), [CVE-2026-93749 / GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q), High | >=1.0.0,<1.2.2 / 1.2.2 | 1.2.1 | **1.2.2, corrected.** Vite → PostCSS 8.5.26 → source-map-js. Indexed source-map offsets can block the Node event loop; Sam uses it in dev/build source-map handling, not the shipped static UI or Python runtime. Untrusted build inputs remain relevant. |
+| [21: esbuild](https://github.com/AlfonsoFR2020/sam-ambient/security/dependabot/21), [GHSA-g7r4-m6w7-qqqr](https://github.com/advisories/GHSA-g7r4-m6w7-qqqr), Low | >=0.27.3,<0.28.1 / 0.28.1 | 0.27.7 | **0.28.2, corrected.** Vite → esbuild/platform binary. The advisory requires esbuild's own Windows `serve`/`servedir` path; Sam uses Vite's loopback server and build/transform APIs, with no configured esbuild serving path. It is not bundled in the Python/static runtime. |
+| [19: pytest](https://github.com/AlfonsoFR2020/sam-ambient/security/dependabot/19), [CVE-2025-71176 / GHSA-6w46-j5rx-g56g](https://github.com/advisories/GHSA-6w46-j5rx-g56g), Medium | <9.0.3 / 9.0.3 | 8.4.2 | **9.0.3, corrected.** Direct dev group only; vulnerable shared temporary-directory handling is a UNIX local-user test-runner exposure, not a Windows Sam conversation/runtime path. |
+| [20: setuptools](https://github.com/AlfonsoFR2020/sam-ambient/security/dependabot/20), [CVE-2026-59890 / GHSA-h35f-9h28-mq5c](https://github.com/advisories/GHSA-h35f-9h28-mq5c), Medium | <83.0.0 / 83.0.0 | 82.0.1 | **83.0.0, corrected.** Package group → cx_Freeze → setuptools. Unicode-normalization exclusion bypass requires macOS APFS/HFS+ sdist creation. Sam's wheel/sdist backend is Hatchling; this was packaging tooling, despite GitHub's runtime label. |
+| [18: GLib](https://github.com/AlfonsoFR2020/sam-ambient/security/dependabot/18), [GHSA-wrw7-89jp-8q8g](https://github.com/advisories/GHSA-wrw7-89jp-8q8g), Medium | >=0.15.0,<0.20.0 / 0.20.0 | 0.18.5 | **0.18.5, deferred, not fixed.** Tauri/native GTK path on Linux/BSD; absent from the Windows target graph and not a Python wheel runtime dependency. Unsafe `VariantStrIter` can crash/produce undefined behavior if used; direct Sam calls were not found, but dependency-internal reachability is not proven absent. |
+
+### Minimal compatible resolution
+
+- Direct Vite **7.3.5 → 7.3.6**, the first checked patch whose esbuild range changes
+  from `^0.27.0` to `^0.27.0 || ^0.28.0`; Node requirements stay
+  `^20.19.0 || >=22.12.0`. React plugin **5.0.2**, Vitest/mocker **4.1.11**,
+  pnpm **11.19.0** and all other direct frontend dependencies remain unchanged.
+- Normal targeted transitive resolution selects esbuild **0.28.2** and its 26
+  platform packages, plus source-map-js **1.2.2**. No override/direct transitive pin
+  is added. The compatible 0.28 patch selection exceeds the 0.28.1 minimum.
+  PostCSS **8.5.26**, Rollup **4.63.1**, nanoid **3.3.18** and every unrelated
+  package stay unchanged. An initial recursive Vite update refreshed these three;
+  that uninstalled lock proposal was discarded and re-resolved with depth 0,
+  followed by the two explicitly named transitive updates. The final diff is
+  126 added/126 removed lock lines (platform hashes and Vite peer keys included).
+- Pytest's dev constraint becomes **>=9.0.3,<10**. The first focused run passes
+  without test/helper/runtime changes. Python remains **>=3.12**.
+- cx_Freeze **8.6.4 → 8.7.0** is necessary: 8.6.4 requires setuptools `<83.0`,
+  while 8.7.0 accepts `>=78.1.1,<85.0`. No 8.6.5/8.6.6 release was available.
+  Its other requirements accept the existing lock. Setuptools locks **83.0.0**;
+  only these three Python package versions move. freeze-core stays **0.7.5**.
+  This is build-only owner-dependency maintenance, not a new native packaging claim.
+- MIT licenses for Vite/esbuild, pytest and setuptools, BSD-3-Clause for source-map-js,
+  and cx_Freeze's PSF license are recorded in THIRD_PARTY. No source copying or new license class.
+
+### GLib limitation and OS boundary
+
+The locked path includes Tauri **2.11.5** / tauri-runtime / wry / WebKitGTK and GTK
+**0.18.2** → GLib **^0.18**. Tauri's published/local target manifests gate GTK to
+Linux/DragonFly/FreeBSD/OpenBSD/NetBSD. GTK 0.18.2's registry requirements confirm
+that 0.20.0 cannot satisfy `^0.18`; adding a second GLib or overriding it would not
+repair that graph coherently. No Cargo manifest/lock/source is changed. This needs
+an upstream-compatible GTK/Tauri migration or reviewed upstream backport, separately.
+Do not advertise the affected Linux native shell as security-cleared.
+
+`cargo tree --locked --offline --target x86_64-pc-windows-msvc --invert glib`
+reported nothing to print. The corresponding Linux tree could not complete because
+`async-broadcast 0.7.2` is not cached; no download/build was attempted to fill that
+unrelated target. The path/constraint conclusion uses the lockfile, cached Tauri
+manifests and crates.io GTK 0.18.2 metadata, not a claimed Linux compile or full
+iterator reachability analysis. Python source/wheel use on Linux is distinct from
+building the GTK native shell.
+
+### Validation and environment
+
+- Frozen frontend install and `uv lock --check` / `uv sync --locked` succeed.
+  `uv pip check` reports all installed packages compatible. Previously installed
+  optional prototype packages were restored from the unchanged lock; no probe ran.
+- **105 focused Python tests pass** under pytest 9.0.3: package/resource contracts,
+  configuration, launcher/diagnostics, owner authority/WebSocket, supervisor failure
+  recovery and isolated SQLite store. cx_Freeze build entry imports succeed.
+- **258 frontend tests / 32 files pass**, TypeScript and production build pass.
+  Emitted JS/CSS names/hashes are unchanged; index-only Windows line-ending churn
+  was restored, so no static/runtime source change is included.
+- Ruff lint passes; format check passes for **267 files**. Changed-manifest Biome,
+  source version consistency, documentation links and Git whitespace pass.
+- Actual Hatchling file-selection inspection (no wheel/sdist emitted) examines
+  **333 source entries / 100 wheel entries**. Required source manifest/lock/notices
+  and wheel THIRD_PARTY remain; private state, temporary directories, models,
+  PCM/WAV, executable/DLL assets and dependency trees are excluded. Companion
+  pytest/setuptools/cx_Freeze exclusions and driver/license inventory remain intact.
+- Resolved **npm audit returns no advisories** across its reported 170-package
+  graph. This is a timestamped registry result, not a repository-wide zero-risk claim.
+  Four of the five GitHub advisories are outside their recorded ranges in local dev;
+  alerts remain on unchanged main until a separately authorized branch/release update.
+- The installed pnpm shim failed before dependency work. A repository-local copy
+  of the required pnpm 11.19.0 was verified against npm's SHA-512 integrity; existing
+  Node 22.23.3 runs it. TLS verification initially failed; Node's supported
+  `--use-system-ca` fixed trust with certificate validation retained. uv uses native
+  TLS. No global tooling, certificate store or security bypass was changed.
+- No full Sam/provider/browser/audio launch, native compile, installer or release
+  artifacts. This does not validate cx_Freeze 8.7.0 frozen execution/installation;
+  perform the normal native gates when that separate artifact class is prepared.
+
+### Next alpha handoff
+
+**v0.2.5 source/Python candidate preparation may begin**: these inspected advisories
+add no current Windows/source-wheel runtime blocker. Run the normal exact-candidate
+quality/package/authentication/data gates before publication; version stays 0.2.4
+here. GLib remains a Linux/BSD native limitation; native Windows packaging/Cargo,
+signing and installed smoke remain separate. Visual identity, multilingual STT,
+conversation reliability and parked Agency/Memory priorities do not change.

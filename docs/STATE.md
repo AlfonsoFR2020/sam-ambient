@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-10-14. This is current development truth, not a release acceptance claim.
+Updated: 2026-10-15. This is current development truth, not a release acceptance claim.
 [ROADMAP](ROADMAP.md) owns future priority; this file does not maintain another queue.
 ## Release and evidence boundary
 
@@ -70,8 +70,8 @@ Updated: 2026-10-14. This is current development truth, not a release acceptance
 
 See [owner contract](OWNER_AUTHORITY.md), [capabilities](AGENCY_CAPABILITIES.md),
 [owned browser](OWNED_BROWSER.md), [agency evidence](AGENCY_FOUNDATION_I.md) and
-[trust boundaries](TRUST_BOUNDARIES.md). Vite 7.3.5 / Vitest and mocker 4.1.11 advisory
-maintenance is complete; separately triaged build/test/Linux findings remain deferred.
+[trust boundaries](TRUST_BOUNDARIES.md). Vite 7.3.6 / Vitest and mocker 4.1.11 advisory
+maintenance now includes source-map-js/esbuild and pytest/setuptools; GLib stays deferred.
 ## Durable personal memory — Foundation I implemented
 
 - Separate standard-library SQLite schema 1 lives in Windows user app data
@@ -187,7 +187,7 @@ and the beta record; numerical visual change does not establish perceptual succe
 ## Focused validation and next direction
 
 Memory's store/authority/provenance/recovery gate remains in its specialist document;
-no new dependencies, models or published-release metadata changed in this pass.
+[Security maintenance](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15): 105 Python / 258 UI checks; no version bump.
 
 The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gates;
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider

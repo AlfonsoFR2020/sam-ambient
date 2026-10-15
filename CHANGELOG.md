@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Focused security maintenance: source-map-js 1.2.2, esbuild 0.28.2 via Vite 7.3.6,
+  pytest 9.0.3 and setuptools 83.0.0 via cx_Freeze 8.7.0. Unrelated dependency
+  versions and runtime source stay unchanged. GLib's Linux/BSD native GTK advisory
+  remains documented; this is not a repository-wide vulnerability-free claim.
+
 - Unified Windows launch options: independent verbose metadata, console retention,
   explicit bounded JSONL path and session-only resource retention. Diagnostic launch
   is a preset; flag order and quoted paths are tested. Preserve normal defaults,

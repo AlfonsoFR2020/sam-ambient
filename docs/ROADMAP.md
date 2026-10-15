@@ -157,7 +157,7 @@ is part of release closure. [Readiness](RELEASE_READINESS_0.2.4.md) owns disposi
    metadata and correlated latency/terminal summaries pass focused and isolated
    owner-window/supervisor checks. [Contract and evidence](DIAGNOSTIC_LAUNCH.md).
    v0.2.4 remains published. Diagnostic/Identity I/II/III are preserved upstream at
-   9c5bce8 including palette/readiness; composable launch stays local, no version bump.
+   587775c including palette/readiness and composable launch; security work stays local.
    The next small alpha can include this coherent slice after HQ review, rather
    than waiting for STT or artistic work to finish. Do not call incident causes fixed.
 3. **Intermittent latency and false speech turns** — Medium initially, High only for
@@ -178,11 +178,15 @@ parked. Diagnostic and Visual Identity III are coherent increments, with no
 version bump/publication. Later workstreams remain separate. Prefer frequent bounded
 green alpha increments and preserve the distinction between behavior and acceptance.
 
-**Composable launcher flags are complete. Forthcoming, separate authorization:**
-read-only comparison/targeted GitHub advisory maintenance; proportionate v0.2.5
-source-alpha preparation; dedicated multilingual STT improvement. Later replaceable
-visual themes and capability expansion remain parked. None is implemented by this
-visual pass; the default-branch warning is not a current-dev security conclusion.
+**Launcher and focused dependency maintenance are complete.**
+[October 15 security disposition](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15)
+corrects four of five current default-branch findings locally; GLib remains a
+Linux/BSD native GTK limitation. 105 Python / 258 frontend checks, frozen resolution,
+build and package-content selection pass. No runtime feature or release is added.
+Proportionate v0.2.5 source-alpha preparation can begin under separate authorization;
+exact-candidate gates still apply. Multilingual STT, conversation reliability,
+reference-led visuals and Windows native packaging remain independent priorities.
+Later replaceable themes and capability expansion remain parked.
 
 ### Parked acoustic re-entry contract
 

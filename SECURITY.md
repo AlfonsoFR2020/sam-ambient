@@ -9,6 +9,16 @@ for a private channel; do not include an exploit, credentials, private files, or
 sensitive logs in a public issue. The repository is initially private, but do
 not assume it will remain private forever.
 
+## Dependency maintenance
+
+[Current triage](docs/DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15)
+compares default-branch alerts with dev lockfiles and execution paths. October 15
+maintenance fixes the inspected frontend source-map/esbuild and Python test/build
+findings. GLib 0.18.5 remains on the Linux/BSD GTK native-shell graph; that target
+is not security-cleared. It is absent from the Windows native target and Python
+runtime graph. Toolchain fixes do not retroactively change published packages or
+certify every dependency. Keep exact-candidate checks and unsigned-installer limits.
+
 ## Trust boundaries
 
 The current boundary map, findings and requirements for future browser/console

@@ -58,7 +58,25 @@ is claimed. [Release notes](RELEASE_NOTES_0.2.4.md) describe the actual delta an
 experimental Agency/Memory foundations. [Acceptance](CORE_EXPERIENCE_ACCEPTANCE.md)
 and [candidate evidence](ALPHA_CANDIDATE_0.2.4.md) preserve evidence boundaries.
 
-## Dependency review
+## Current dev security handoff — 2026-10-15
+
+The v0.2.4 tag/artifacts and their historical evidence remain unchanged. For the
+next v0.2.5 source/Python candidate, [focused maintenance](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15)
+resolves source-map-js 1.2.2, esbuild 0.28.2 (through Vite 7.3.6), pytest 9.0.3 and
+setuptools 83.0.0 (through cx_Freeze 8.7.0). Five current main alerts include no
+additional Critical/High beyond source-map-js; unchanged main still carries them.
+GLib 0.18.5 remains a Linux/BSD GTK-native limitation, absent from the Windows
+native target and Python runtime dependencies. Do not force an incompatible override.
+
+105 focused Python / 258 frontend tests, TypeScript/build, frozen dependency checks,
+static checks and source/wheel file-selection inspection pass. No artifacts or
+version bump were prepared. Candidate preparation can begin; exact-commit package,
+authentication, persistence, hosted checks and publication approval remain required.
+Updated cx_Freeze still needs native artifact validation when that class is built;
+Cargo/installer/signing restrictions stay separate. This is not zero-vulnerability
+certification or a claim that voice/visual beta limitations are resolved.
+
+## Dependency review — historical v0.2.4 evidence
 
 Read-only GitHub review on October 9 returned 20 default-branch alerts. Current dev
 Vite 7.3.5 and Vitest/mocker 4.1.11 are outside the returned vulnerable ranges;
