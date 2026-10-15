@@ -1,13 +1,13 @@
 # Release checklist
 
-`0.2.0` through `0.2.3` are published. Release approval and publication remain
+`0.2.0` through `0.2.4` are published; [v0.2.5 source/Python profile](RELEASE_READINESS_0.2.5.md) governs this increment. Release approval and publication remain
 human-controlled and do not follow automatically
 from a green branch.
 
 The [0.2.3 readiness and scope freeze](RELEASE_READINESS_0.2.3.md) is the
 historical record of that release's accepted validation limits and gates.
 Keep the checklist below for a future release; an unrun physical path is not a pass.
-The [current v0.2.4 proposal](RELEASE_READINESS_0.2.4.md) identifies source-runtime,
+The [historical v0.2.4 decision](RELEASE_READINESS_0.2.4.md) identifies source-runtime,
 owner-proof native smoke, package-job gating and signing/acceptance prerequisites.
 
 ## Patch-alpha cadence
@@ -32,9 +32,10 @@ issue is explicitly deferred to the dedicated 0.3.0 compatibility review and
 does not by itself block this Windows-first patch alpha; do not mark the Ubuntu
 job successful artificially or weaken its tests.
 
-## v0.2.4 source/Python artifact profile
+## v0.2.4 / v0.2.5 source/Python artifact profile
 
 HQ explicitly authorizes this pre-release with only wheel, sdist and checksums.
+For v0.2.5 both Windows and Ubuntu quality plus Package smoke must pass.
 Exact-commit source quality/package checks, owner authority, persistence and package
 content smoke are required. Report native job outcomes separately; an isolated native
 installer/build failure is non-blocking for this profile, never a package pass.

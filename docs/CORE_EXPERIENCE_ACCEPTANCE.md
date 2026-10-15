@@ -4,7 +4,8 @@ This is the post-Memory Foundation baseline and evidence index for **Basics Befo
 Expansion**. Published v0.2.4 is unchanged. Automated evidence does not establish
 human acoustic, voice-persona or visual acceptance. The October 9 beta completed;
 no additional human session is available now.
-The **current** disposition is [alpha candidate evidence](ALPHA_CANDIDATE_0.2.4.md);
+The **current** source/Python scope is [v0.2.5 readiness](RELEASE_READINESS_0.2.5.md);
+[v0.2.4 candidate evidence](ALPHA_CANDIDATE_0.2.4.md) is historical;
 the [October 9 beta delta below](#october-9-beta-delta)
 which updates [Core Experience V](#core-experience-v-current-matrix) without rewriting it.
 Earlier sections preserve historical evidence, not a second current task queue.

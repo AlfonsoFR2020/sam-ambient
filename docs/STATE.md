@@ -31,7 +31,7 @@ Updated: 2026-10-15. This is current development truth, not a release acceptance
   preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
   and Sam-loaded unload passed. Reused serving remained; broader hosts are unverified.
   Actual en/es synthesis/meters reach fixed WebGL without physical playback.
-- v0.2.4 source/Python pre-release is published at ae9cdb99; its tag stays unchanged.
+- [v0.2.5 source/Python scope](RELEASE_READINESS_0.2.5.md) uses exact-tag quality/package gates; v0.2.4 stays unchanged.
 - Windows-first development; Linux compatibility/native CI has a documented deferred
   failure. Native packaging, signing/reputation and clean-host installation remain open.
 - The five-minute physical beta initially completed voice/model/TTS turns, then exposed
@@ -196,5 +196,5 @@ Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Composable launch](DIAGNOSTIC_LAUNCH.md) adds independent flags; 152 focused checks pass.
 Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
-Windows installer remains unavailable; Cargo/helper and installed smoke are separate.
+UI shutdown now retires idle/partial HTTP clients; 30 focused checks pass. Native acceptance stays separate.
 Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.

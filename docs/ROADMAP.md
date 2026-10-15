@@ -183,8 +183,9 @@ green alpha increments and preserve the distinction between behavior and accepta
 corrects four of five current default-branch findings locally; GLib remains a
 Linux/BSD native GTK limitation. 105 Python / 258 frontend checks, frozen resolution,
 build and package-content selection pass. No runtime feature or release is added.
-Proportionate v0.2.5 source-alpha preparation can begin under separate authorization;
-exact-candidate gates still apply. Multilingual STT, conversation reliability,
+[v0.2.5 source-alpha closure](RELEASE_READINESS_0.2.5.md) includes the completed
+increments; exact-tag Windows/Ubuntu quality, package gates and verified hashes
+control publication. No installer or human acceptance is implied. Multilingual STT, conversation reliability,
 reference-led visuals and Windows native packaging remain independent priorities.
 Later replaceable themes and capability expansion remain parked.
 

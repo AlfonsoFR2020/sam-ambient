@@ -2,9 +2,9 @@
   <img src="sam-logo.png" alt="Sam" width="520">
 </p>
 
-Sam **0.2.4 experimental source/Python alpha** uses the
-[GitHub pre-release](https://github.com/AlfonsoFR2020/sam-ambient/releases/tag/v0.2.4)
-wheel, source archive and checksums. See [scope and limitations](docs/RELEASE_NOTES_0.2.4.md). No Windows
+Sam **0.2.5 experimental source/Python alpha** uses the
+[GitHub pre-release](https://github.com/AlfonsoFR2020/sam-ambient/releases/tag/v0.2.5)
+wheel, source archive and checksums. See [scope and limitations](docs/RELEASE_NOTES_0.2.5.md). No Windows
 installer is available; unsigned native development artifacts are not distributed.
 
 # Sam

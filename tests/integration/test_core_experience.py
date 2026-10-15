@@ -309,7 +309,9 @@ async def core_experience_scenario(root: Path, language="es"):
             await send(ControlCommandType.PROVIDERS_RESCAN, "rescan-core")
             await until(
                 lambda: any(
-                    event.type == "provider.discovery" and event.payload.get("state") == "ready"
+                    event.type == "provider.discovery"
+                    and event.payload.get("request_id") == "rescan-core"
+                    and event.payload.get("state") == "ready"
                     for event in records
                 )
             )

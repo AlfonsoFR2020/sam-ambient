@@ -27,6 +27,8 @@ class StaticUiServer:
         self._server: asyncio.Server | None = None
         self._resource_context = None
         self._root: Path | None = None
+        self._clients: dict[asyncio.Task, asyncio.StreamWriter] = {}
+        self._closed = asyncio.Event()
 
     @property
     def port(self) -> int:
@@ -45,26 +47,44 @@ class StaticUiServer:
             self._resource_context = None
             self._root = None
             raise StaticUiUnavailable("packaged frontend assets are missing; run the UI build")
+        self._closed.clear()
         self._server = await asyncio.start_server(self._handle, self.host, self.requested_port)
 
     async def serve_forever(self) -> None:
         await self.start()
-        assert self._server is not None
-        async with self._server:
-            await self._server.serve_forever()
+        # start_server already accepts connections. Own cancellation here:
+        # asyncio.Server.serve_forever waits for clients during cancellation,
+        # before run_ui's outer finally could otherwise retire those clients.
+        try:
+            await self._closed.wait()
+        finally:
+            await self.close()
 
     async def close(self) -> None:
         server, self._server = self._server, None
         if server is not None:
             server.close()
+            # Server.wait_closed waits for clients on Python 3.12+. An idle
+            # preconnection/partial request must not own the UI child's exit.
+            clients = tuple(self._clients.items())
+            for task, writer in clients:
+                writer.close()
+                task.cancel()
+            await asyncio.gather(*(task for task, _ in clients), return_exceptions=True)
             await server.wait_closed()
         if self._resource_context is not None:
             self._resource_context.__exit__(None, None, None)
             self._resource_context = None
             self._root = None
+        self._closed.set()
 
     async def _handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        task = asyncio.current_task()
+        assert task is not None
+        self._clients[task] = writer
         try:
+            if self._server is None:
+                return
             request_line = await reader.readline()
             if not request_line or len(request_line) > _MAX_REQUEST_LINE:
                 await self._respond(writer, 400, b"Bad Request", "text/plain")
@@ -97,7 +117,10 @@ class StaticUiServer:
             pass
         finally:
             writer.close()
-            await writer.wait_closed()
+            try:
+                await writer.wait_closed()
+            finally:
+                self._clients.pop(task, None)
 
     def _target(self, raw_target: str) -> Path | None:
         assert self._root is not None
