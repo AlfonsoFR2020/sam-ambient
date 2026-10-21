@@ -688,6 +688,7 @@ describe("living field substrate", () => {
         getShaderParameter: () => false,
         getShaderInfoLog: () => "undeclared uniform",
         deleteShader() {},
+        deleteProgram() {},
         getExtension: () => null,
       } as unknown as WebGL2RenderingContext;
       const shaderCanvas = {

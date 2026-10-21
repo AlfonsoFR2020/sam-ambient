@@ -7,6 +7,8 @@ import { createSkinGeometry } from "../src/visual-engine/skin-geometry";
 import { MotionEvaluator } from "../src/visual-engine/motion";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
 import { DEFAULT_VISUAL_ENGINE_SETTINGS } from "../src/visual-engine/types";
+import { frameAt } from "./fixtures/visual-identity-II";
+import { skinPoseFromFrame } from "../src/visual-engine/membrane-optics";
 
 export const REST_SKIN_POSE: SkinPose = { travel: 0, opening: 0.1, lift: 0.002, width: 1,
   coherence: 0.82, rephase: 0, work: 0, receptive: 0, speech: 0 };
@@ -72,5 +74,31 @@ describe("body-attached connected skin", () => {
     for (let t = 4020; t <= 8000; t += 20)
       motion.evaluate(input, t, { ...settings, reducedMotion: "on" }, RENDER_BUDGETS.high);
     expect(motion.currentFrame.peelTravel).toBe(moving.peelTravel);
+  });
+  it("keeps zero Audio Reactivity neutral at the actual skin map, retaining autonomous life", () => {
+    const loud = frameAt(800, "speaking", 0.5, 0), silent = frameAt(800, "speaking", 0, 0);
+    const openings = createSkinOpenings(), n = skinNormalize([0.8, 0.2, 0.7]);
+    const body = (d: SkinVector): SkinVector => [d[0], d[1] * 1.06, d[2]];
+    expect(skinPoint(n, openings, skinPoseFromFrame(loud), body, 0.004))
+      .toEqual(skinPoint(n, openings, skinPoseFromFrame(silent), body, 0.004));
+    expect(frameAt(0).peelTravel).not.toBe(loud.peelTravel);
+  });
+  it("keeps deformed triangles nondegenerate at rim, hinge and permitted extremes", () => {
+    const openings = createSkinOpenings(), body = (n: SkinVector): SkinVector => [n[0], n[1] * 1.06, n[2]];
+    for (const budget of Object.values(RENDER_BUDGETS)) {
+      const mesh = createSkinGeometry(budget);
+      for (const pose of [REST_SKIN_POSE, { ...REST_SKIN_POSE, work: 1, speech: 1, lift: 0.075, width: 1.15, rephase: 0.12 },
+        { ...REST_SKIN_POSE, receptive: 1, travel: Math.PI }]) {
+        const points: SkinVector[] = [];
+        for (let i = 0; i < mesh.vertices.length; i += 3)
+          points.push(skinPoint(skinNormalize([mesh.vertices[i], mesh.vertices[i + 1], mesh.vertices[i + 2]]), openings, pose, body, budget.skinClearance));
+        for (let i = 0; i < mesh.indices.length; i += 3) {
+          const [a, b, c] = Array.from(mesh.indices.slice(i, i + 3), (v) => points[v]);
+          const ab = b.map((v, j) => v - a[j]), ac = c.map((v, j) => v - a[j]);
+          const area = Math.hypot(ab[1] * ac[2] - ab[2] * ac[1], ab[2] * ac[0] - ab[0] * ac[2], ab[0] * ac[1] - ab[1] * ac[0]);
+          expect(area).toBeGreaterThan(1e-8);
+        }
+      }
+    }
   });
 });

@@ -70,6 +70,7 @@ export function fixture(
     neutralMaterial?: boolean;
     contact?: boolean;
     paletteBefore?: boolean;
+    diagnostic?: "normals" | "depth" | "attachment";
   } = {},
 ) {
   const size = options.size ?? 720,
@@ -91,6 +92,20 @@ export function fixture(
     preserveDrawingBuffer: true,
   });
   if (!gl) throw new Error("Headless WebGL2 unavailable");
+  if (options.diagnostic) {
+    const original = gl.shaderSource.bind(gl);
+    gl.shaderSource = (shader, source) => {
+      const body = options.diagnostic === "normals" ? "normalize(v_normal)*.5+.5"
+        : options.diagnostic === "depth" ? "vec3(gl_FragCoord.z)" : "vec3(.18)";
+      const skin = options.diagnostic === "normals" ? "normalize(gl_FrontFacing ? v_normal : -v_normal)*.5+.5"
+        : options.diagnostic === "depth" ? "vec3(gl_FragCoord.z)" : "vec3(v_radial,1.-v_radial,.2)";
+      original(shader, source
+        .replace("color=vec4(pow(linear,vec3(1./2.2)),1.);",
+          `color=vec4(pow(linear,vec3(1./2.2)),1.);color=mix(vec4(${body},1.),color,1.e-7);`)
+        .replace("color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);",
+          `color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);color=mix(vec4((${skin})*alpha,alpha),color,1.e-7);`));
+    };
+  }
   if (options.paletteBefore) {
     const source = gl.shaderSource.bind(gl);
     gl.shaderSource = (shader, text) =>

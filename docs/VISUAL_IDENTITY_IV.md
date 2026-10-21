@@ -12,6 +12,14 @@ clearance is a physical coat offset (0.016/0.008/0.004), not a global depth bias
 Production palette/clocks/control authority remain unchanged. Focused regressions
 are authored, not executed. Source hardening and comparison tooling continue.
 
+The verification slice adds a dedicated IV headless configuration and 92 matched
+views per variant, with diagnostic normals/depth/attachment, palette-only versus
+transport-only rows, synthetic states, zero/reduced controls and hidden resume.
+An ignored baseline snapshot is prepared from pinned local Git only on explicit
+later invocation. Transform feedback compares production coat/normal GLSL with
+CPU reference values using a controlled body callback. Matching isolated GPU and
+CPU-submission measurements are authored; no tool has executed these checks.
+
 ## Initial source assessment — preserved history
 
 Assignment IV, **Checkpoint A: source assessment only**, before IV-B authorization.

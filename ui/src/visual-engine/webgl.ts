@@ -17,7 +17,7 @@ import {
   PARTICLE_VISIBILITY_HASH,
 } from "./particles";
 import type { RenderBudget } from "./quality";
-import { createSkinOpenings, SKIN_VERTEX_STRIDE, type SkinOpening } from "./skin-domain";
+import { createSkinOpenings, packSkinOpenings, SKIN_VERTEX_STRIDE, type SkinOpening } from "./skin-domain";
 import { createSkinGeometry } from "./skin-geometry";
 import { HALO_OPACITY_SCALE } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -168,7 +168,7 @@ void main(){
   vec3 rimColor=mix(vec3(0.9,0.39,0.21),vec3(0.38,0.61,0.95),pigment.cool);
   // Lifted skin catches a broad satin response; the attached edge inherits the
   // body's tone. No independent color field or extra transparent layer.
-  float pocket=exp(-22.*pow(v_radial-.22,2.))*(1.-v_lift)*.24;
+  float pocket=exp(-22.*pow(v_radial-.22,2.))*(1.-v_lift)*.24*smoothstep(0.,.12,v_radial);
   float skinLight=.12*v_lift*(.35+.65*min(light.diffuse,1.));
   float shoulder=4.*v_radial*v_radial*(1.-v_radial*v_radial);
   float film=smoothstep(.05,.75,v_lift);
@@ -301,19 +301,23 @@ const withFineDetail = (source: string, fineOctaves: 0 | 1 | 2): string =>
 const program = (gl: WebGL2RenderingContext, vertex: string, fragment: string): WebGLProgram => {
   const result = gl.createProgram();
   if (!result) throw new Error("WebGL program allocation failed");
-  const vertexShader = compile(gl, gl.VERTEX_SHADER, vertex);
-  const fragmentShader = compile(gl, gl.FRAGMENT_SHADER, fragment);
-  gl.attachShader(result, vertexShader);
-  gl.attachShader(result, fragmentShader);
-  gl.linkProgram(result);
-  gl.deleteShader(vertexShader);
-  gl.deleteShader(fragmentShader);
-  if (!gl.getProgramParameter(result, gl.LINK_STATUS)) {
-    const message = gl.getProgramInfoLog(result) ?? "unknown link error";
+  let vertexShader: WebGLShader | undefined, fragmentShader: WebGLShader | undefined;
+  try {
+    vertexShader = compile(gl, gl.VERTEX_SHADER, vertex);
+    fragmentShader = compile(gl, gl.FRAGMENT_SHADER, fragment);
+    gl.attachShader(result, vertexShader);
+    gl.attachShader(result, fragmentShader);
+    gl.linkProgram(result);
+    if (!gl.getProgramParameter(result, gl.LINK_STATUS))
+      throw new ShaderBuildError(gl.getProgramInfoLog(result) ?? "unknown link error");
+    return result;
+  } catch (error) {
     gl.deleteProgram(result);
-    throw new ShaderBuildError(message);
+    throw error;
+  } finally {
+    if (vertexShader) gl.deleteShader(vertexShader);
+    if (fragmentShader) gl.deleteShader(fragmentShader);
   }
-  return result;
 };
 
 const location = (gl: WebGL2RenderingContext, shader: WebGLProgram, name: string) => {
@@ -598,14 +602,9 @@ export class WebGLBackend implements RendererBackend {
     gl.uniform1i(uniforms.count, openings.length);
     gl.uniform1f(location(gl, shader, "u_skin_clearance"), this.budget.skinClearance);
     if (openings.length) {
-      gl.uniform4fv(location(gl, shader, "u_contact_centers[0]"),
-        new Float32Array(openings.flatMap((p) => [...p.center, p.radius])));
-      gl.uniform4fv(location(gl, shader, "u_contact_tangents[0]"),
-        new Float32Array(openings.flatMap((p) => [...p.tangent, p.x])));
-      gl.uniform4fv(location(gl, shader, "u_contact_sides[0]"),
-        new Float32Array(openings.flatMap((p) => [...p.side, p.y])));
-      gl.uniform4fv(location(gl, shader, "u_contact_shapes[0]"),
-        new Float32Array(openings.flatMap((p) => [p.collar, p.height, p.curl, p.phase])));
+      const packed = packSkinOpenings(openings);
+      for (const name of ["centers", "tangents", "sides", "shapes"] as const)
+        gl.uniform4fv(location(gl, shader, `u_contact_${name}[0]`), packed[name]);
     }
     return uniforms;
   }
@@ -695,7 +694,7 @@ export class WebGLBackend implements RendererBackend {
     this.setPeelUniforms(frame);
     gl.bindVertexArray(this.peels.vao);
     if (this.budget.membraneDepthPass) {
-      // Only opaque sheet interiors compete for nearest depth, including curled
+      // Only opaque coat interiors compete for nearest depth, including curled
       // self-overlaps. Their soft fringes retain sorted premultiplied blending.
       gl.colorMask(false, false, false, false);
       gl.depthMask(true);

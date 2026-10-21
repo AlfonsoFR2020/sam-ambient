@@ -32,6 +32,7 @@ ui/node_modules/
 ui/dist/
 ui/test-results/
 ui/playwright-report/
+ui/tests/fixtures/.baseline-0.2.5/
 ui/src-tauri/target/
 .pnpm-store/
 ui/*.tsbuildinfo

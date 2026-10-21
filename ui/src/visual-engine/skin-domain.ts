@@ -61,6 +61,16 @@ export function createSkinOpenings(seed = 0x5a17): readonly SkinOpening[] {
   }));
 }
 
+/** Setup-only packing shared with shader proof fixtures: 192 bytes per program. */
+export function packSkinOpenings(openings: readonly SkinOpening[]) {
+  return {
+    centers: new Float32Array(openings.flatMap((p) => [...p.center, p.radius])),
+    tangents: new Float32Array(openings.flatMap((p) => [...p.tangent, p.x])),
+    sides: new Float32Array(openings.flatMap((p) => [...p.side, p.y])),
+    shapes: new Float32Array(openings.flatMap((p) => [p.collar, p.height, p.curl, p.phase])),
+  };
+}
+
 /** Periodic C-infinity rim. Maximum radius + collar + center offset stays < 1. */
 export const skinRimRadius = (p: SkinOpening, theta: number): number =>
   p.radius * (1 + 0.12 * Math.cos(3 * theta + p.phase) + 0.07 * Math.sin(2 * theta - p.phase));
@@ -75,7 +85,7 @@ export function skinRegion(n: SkinVector, p: SkinOpening): SkinRegion {
   if (cosine < 0.55) return { q: 0, theta: 0, inward: p.tangent };
   const x = skinDot(n, p.tangent) / cosine - p.x;
   const y = skinDot(n, p.side) / cosine - p.y;
-  const theta = Math.atan2(y, x);
+  const theta = Math.hypot(x, y) < 1e-8 ? 0 : Math.atan2(y, x);
   const radial: SkinVector = p.tangent.map((v, i) =>
     v * Math.cos(theta) + p.side[i] * Math.sin(theta)) as unknown as SkinVector;
   const projection = skinDot(radial, n);

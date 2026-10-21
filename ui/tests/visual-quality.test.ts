@@ -99,6 +99,19 @@ describe("visual quality and geometry", () => {
     expect(haloOpacity(1, 1)).toBeCloseTo(HALO_OPACITY_SCALE);
   });
 
+  it("accounts actual connected-skin arrays and preserves draw/particle envelopes", () => {
+    const expected = { low: [1136, 2040, 32988], medium: [5004, 9504, 150252], high: [17600, 34272, 519500] };
+    for (const budget of Object.values(RENDER_BUDGETS)) {
+      const body = createSphereGeometry(budget.sphereLongitude, budget.sphereLatitude), skin = createSkinGeometry(budget);
+      const particles = createParticleGeometry(budget.particles);
+      const bytes = body.vertices.byteLength + body.indices.byteLength + skin.vertices.byteLength + skin.indices.byteLength + particles.vertices.byteLength;
+      expect([body.vertices.length / 6 + skin.vertices.length / 3, (body.indices.length + skin.indices.length) / 3, bytes]).toEqual(expected[budget.quality]);
+      expect(bytes + 44 + (budget.quality === "high" ? 448 : 224)).toBeLessThan(1.5 * 1024 * 1024);
+      expect(skin.ranges).toHaveLength(6);
+      expect(3 + skin.ranges.length + Number(budget.membraneDepthPass)).toBe(budget.quality === "high" ? 10 : 9);
+    }
+  });
+
   it("creates bounded deterministic sparse particle parameters", () => {
     const lowParticles = createParticleGeometry(RENDER_BUDGETS.low.particles).vertices;
     const highParticles = createParticleGeometry(RENDER_BUDGETS.high.particles).vertices;

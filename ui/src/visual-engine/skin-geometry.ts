@@ -19,6 +19,7 @@ export interface SkinGeometry extends IndexedGeometry {
  */
 export function createSkinGeometry(budget: RenderBudget, seed = 0x5a17): SkinGeometry {
   if (!budget.peels) return { vertices: new Float32Array(), indices: new Uint16Array(), ranges: [], boundaries: [] };
+  if (budget.peels !== 6) throw new RangeError("connected skin has six chart ranges");
   const n = budget.skinSegments, rows = budget.skinRows, perimeter = 4 * n;
   if (!Number.isInteger(n) || n < 4 || n > 32 || !Number.isInteger(rows) || rows < 3 || rows > 24)
     throw new RangeError("connected skin sampling exceeds setup bounds");
