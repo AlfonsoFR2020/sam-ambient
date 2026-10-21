@@ -1,3 +1,4 @@
+import { presencePresentation } from "./presence";
 import type { UiState } from "./protocol/types";
 
 export interface StatusPresentation {
@@ -37,7 +38,8 @@ export const friendlyStartupReason = (reason: string | undefined): string | unde
 };
 
 export function statusPresentation(state: UiState): StatusPresentation {
-  if (state.applicationStopped) return { label: "Stopped", limitations: [] };
+  if (state.applicationStopped) return { label: "Shutdown requested", limitations: [] };
+  if (state.pendingShutdownId) return { label: "Requesting shutdown", limitations: [] };
   if (state.connection !== "connected" || state.providerDiscovery.status === "stale") {
     return {
       label: state.sessionId ? "Reconnecting" : "Starting Sam",
@@ -96,7 +98,18 @@ export function statusPresentation(state: UiState): StatusPresentation {
     limitations.push("Voice input is unavailable; text input remains available.");
   if (state.ttsBackend && unavailable(state.ttsBackend))
     limitations.push("Spoken output is unavailable; responses remain readable.");
+  const presence = presencePresentation(state);
   return {
+    label: [
+      "submitting",
+      "submitted",
+      "thinking",
+      "responding",
+      "preparing_speech",
+      "speaking",
+    ].includes(presence.phase)
+      ? presence.label
+      : undefined,
     notice: limitations[0],
     limitations,
   };

@@ -51,7 +51,14 @@ const withCommittedTranscript = (
     const committed = transcript[duplicateIndex];
     transcript[duplicateIndex] = interrupted ? { ...committed, interrupted: true } : committed;
   } else transcript.push(entry);
-  return { ...state, provisionalTranscript: null, transcript };
+  return {
+    ...state,
+    provisionalTranscript: null,
+    transcript,
+    ...(role === "user" && event.payload.command_id === state.pendingUserMessageId
+      ? { pendingUserMessageId: undefined }
+      : {}),
+  };
 };
 
 const RETIRED_ID_LIMIT = 32;
@@ -344,6 +351,8 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
       turnId: undefined,
       generationId: undefined,
       playbackGenerationId: undefined,
+      pendingUserMessageId: undefined,
+      pendingShutdownId: undefined,
       metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
       pendingCommandIds: [],
       pendingToolApproval: null,
@@ -585,6 +594,8 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
             sessionId: event.session_id,
             lastMonotonicByType: { [event.type]: event.monotonic_ms },
             metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
+            pendingUserMessageId: undefined,
+            pendingShutdownId: undefined,
             latestToolActivity: null,
             pendingToolApproval: null,
             capabilityAuthorityReason: undefined,
@@ -959,6 +970,9 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       priorConversationalState: next.conversationalState,
       conversationalState: interrupted ? "INTERRUPTED" : "IDLE",
       playbackGenerationId: undefined,
+      ...(next.pendingUserMessageId === event.payload.command_id
+        ? { pendingUserMessageId: undefined }
+        : {}),
       provisionalTranscript: null,
       retiredGenerationIds: retireId(next.retiredGenerationIds, event.generation_id),
       retiredTurnIds: interrupted
@@ -1012,6 +1026,13 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         typeof commandId === "string"
           ? next.pendingCommandIds.filter((pending) => pending !== commandId)
           : next.pendingCommandIds,
+      ...(event.type === "control.rejected" &&
+      event.payload.command_id === next.pendingUserMessageId
+        ? { pendingUserMessageId: undefined }
+        : {}),
+      ...(event.type === "control.rejected" && event.payload.command_id === next.pendingShutdownId
+        ? { pendingShutdownId: undefined }
+        : {}),
       microphoneEnabled:
         typeof event.payload.microphone_enabled === "boolean"
           ? event.payload.microphone_enabled
@@ -1072,6 +1093,9 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       return { ...next, diagnosticReason: `${stageLabel}: ${reason}` };
     next = {
       ...next,
+      ...(next.pendingUserMessageId === event.payload.command_id
+        ? { pendingUserMessageId: undefined }
+        : {}),
       priorConversationalState: next.conversationalState,
       conversationalState: "ERROR",
       provisionalTranscript: null,

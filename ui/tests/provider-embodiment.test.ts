@@ -163,7 +163,7 @@ describe("confirmed provider lifecycle presentation and embodiment", () => {
     const unloading = event(loading, "unloading_model", 2);
     let final = tick(unloading, 1020);
     for (let t = 1040; t <= 2020; t += 20) final = tick(unloading, t);
-    expect(final.radius).toBeCloseTo(0.985, 4);
+    expect(final.radius).toBeCloseTo(0.985 * 0.92, 4);
     expect(final.ripplePhase).toBe(phase);
     expect(tick(event(unloading, "ready", 3), 2040).providerReady).toBe(0);
   });

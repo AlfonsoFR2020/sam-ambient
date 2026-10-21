@@ -159,6 +159,8 @@ export interface UiState {
   samName?: string;
   samAuthor?: string;
   applicationStopped?: boolean;
+  pendingUserMessageId?: string;
+  pendingShutdownId?: string;
   provider?: string;
   model?: string;
   modelUnloadSupported?: boolean;

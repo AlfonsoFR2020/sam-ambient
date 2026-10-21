@@ -1,11 +1,62 @@
 """Optional Chromium app window. Never terminate the user's browser."""
 
 import asyncio
+import json
+import logging
 import os
 import shutil
 import subprocess
+import tempfile
 import threading
 from pathlib import Path
+
+log = logging.getLogger(__name__)
+
+
+def prepare_translation_preferences(profile: Path) -> None:
+    """Disable translation only in Sam's isolated profile, preserving other prefs.
+
+    Chromium/Edge may offer translation despite HTML translate=no. Do not touch
+    the owner's normal browser profile or replace malformed/oversized settings.
+    """
+    preferences = profile / "Default" / "Preferences"
+    staged: Path | None = None
+    try:
+        if preferences.exists() and preferences.stat().st_size > 2 * 1024 * 1024:
+            return
+        if preferences.exists():
+            with preferences.open("rb") as source:
+                raw = source.read(2 * 1024 * 1024 + 1)
+            if len(raw) > 2 * 1024 * 1024:
+                return
+            existing = json.loads(raw)
+        else:
+            existing = {}
+        if not isinstance(existing, dict) or not isinstance(existing.get("translate", {}), dict):
+            return
+        translation = existing.get("translate", {})
+        if translation.get("enabled") is False:
+            return
+        existing["translate"] = {**translation, "enabled": False}
+        preferences.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=preferences.parent,
+            prefix="Preferences.sam-",
+            delete=False,
+        ) as target:
+            staged = Path(target.name)
+            json.dump(existing, target, ensure_ascii=False)
+        staged.replace(preferences)
+    except (OSError, ValueError):
+        log.warning("Sam profile translation preference could not be prepared")
+    finally:
+        if staged is not None:
+            try:
+                staged.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 def find_app_browser() -> str | None:
@@ -41,6 +92,7 @@ class AppWindow:
         if executable is None:
             return False
         self.profile.mkdir(parents=True, exist_ok=True)
+        prepare_translation_preferences(self.profile)
         self.process = subprocess.Popen(
             [
                 executable,

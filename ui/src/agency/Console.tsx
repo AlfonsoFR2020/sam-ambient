@@ -1,16 +1,41 @@
-import { useState, useSyncExternalStore } from "react";
+import { useId, useRef, useState, useSyncExternalStore } from "react";
 import type { ProtocolClient } from "../state/client";
 import { TERMINAL_ACTION_STATES } from "./state";
+
+export const consoleArguments = (capability: string, path: string): Record<string, unknown> =>
+  ["system.info", "browser.read", "browser.close"].includes(capability)
+    ? {}
+    : capability === "browser.navigate"
+      ? { url: path }
+      : {
+          root: "workspace",
+          path,
+          ...(capability === "files.read"
+            ? { max_bytes: 8_192, max_lines: 200 }
+            : { max_entries: 100, depth: 0 }),
+        };
 
 export function AgencyConsole({
   client,
   connected,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   client: ProtocolClient;
   connected: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const actions = useSyncExternalStore(client.subscribe, client.getAgencySnapshot);
-  const [open, setOpen] = useState(false);
+  const actions = useSyncExternalStore(
+    client.subscribe,
+    client.getAgencySnapshot,
+    client.getAgencySnapshot,
+  );
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = controlledOpen ?? localOpen;
+  const setOpen = onOpenChange ?? setLocalOpen;
+  const panelId = useId();
+  const reveal = useRef<HTMLButtonElement>(null);
   const [capability, setCapability] = useState("files.list");
   const [path, setPath] = useState(".");
   const activeCount = actions.filter((action) => !TERMINAL_ACTION_STATES.has(action.state)).length;
@@ -19,22 +44,29 @@ export function AgencyConsole({
       <button
         type="button"
         className="agency-reveal"
+        ref={reveal}
+        title="Console · run bounded owner actions and inspect their results"
         aria-expanded={open}
+        aria-controls={panelId}
         onClick={() => setOpen(!open)}
       >
         Console
       </button>
       {open && (
-        <section className="agency-console" aria-label="Sam Console">
+        <section id={panelId} className="agency-console" aria-label="Sam Console">
           <header>
             <strong>Sam Console</strong>
-            <button type="button" onClick={() => setOpen(false)}>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                reveal.current?.focus();
+              }}
+            >
               Close
             </button>
           </header>
-          <p>
-            Owner actions · workspace reads and public-page inspection · returned data is untrusted
-          </p>
+          <p>Inspect workspace files, system information and public pages. Results appear below.</p>
           {!connected && <output>Connect through Sam's owner window to run actions.</output>}
           {activeCount >= 4 && (
             <output>Four actions are active. Finish or cancel one to continue.</output>
@@ -42,20 +74,8 @@ export function AgencyConsole({
           <form
             onSubmit={(event) => {
               event.preventDefault();
-              void client.executeCapability(
-                capability,
-                ["system.info", "browser.read", "browser.close"].includes(capability)
-                  ? {}
-                  : capability === "browser.navigate"
-                    ? { url: path }
-                    : {
-                        root: "workspace",
-                        path,
-                        ...(capability === "files.read"
-                          ? { max_bytes: 8_192, max_lines: 200 }
-                          : { max_entries: 100, depth: 0 }),
-                      },
-              );
+              if (!connected || activeCount >= 4) return;
+              void client.executeCapability(capability, consoleArguments(capability, path));
             }}
           >
             <label>

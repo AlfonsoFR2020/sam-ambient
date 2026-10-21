@@ -54,11 +54,11 @@ export function QuitDialog({
 export function ShutdownStatus({ stopped }: { stopped: boolean }) {
   return (
     <section className="shutdown-status" aria-label="Application shutdown" aria-live="polite">
-      <h1>{stopped ? "Sam has stopped" : "Stopping Sam…"}</h1>
+      <h1>{stopped ? "Shutdown requested" : "Requesting shutdown…"}</h1>
       <p>
         {stopped
-          ? "Reconnection is off. You can safely close this window. Launch Sam again to return."
-          : "Waiting for shutdown acknowledgement. Running work is being cancelled."}
+          ? "Sam accepted Quit. Reconnection is off; you can close this window. Local cleanup may continue briefly."
+          : "Waiting for shutdown acknowledgement. If it fails, retry Quit; closing Controls does not stop Sam."}
       </p>
     </section>
   );

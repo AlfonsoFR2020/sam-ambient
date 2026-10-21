@@ -27,6 +27,7 @@ import { MemoryManager } from "./memory/Manager";
 import { isNativeShell, nativeShellRuntime } from "./native/runtime";
 import { ProviderStatus } from "./ProviderStatus";
 import type { UiState } from "./protocol/types";
+import { providerPresentation } from "./provider-lifecycle";
 import { QuitDialog, ShutdownStatus } from "./QuitDialog";
 import { RuntimeStatus, SpeechStatusFields } from "./RuntimeStatus";
 import { ProtocolClient } from "./state/client";
@@ -259,9 +260,15 @@ export function StartupCard({
       ? desiredChoice
       : "";
   const [remember, setRemember] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const lifecycle = providerPresentation(state);
   const showModelPicker =
-    (!state.model && allChoices.length > 0) ||
+    (!state.model &&
+      allChoices.length > 0 &&
+      state.startupLifecycle !== "loading_model" &&
+      state.providerDiscovery.status !== "scanning") ||
     state.startupLifecycle === "waiting_for_model_choice";
+  const detailsOpen = expanded || showModelPicker || lifecycle.phase === "failed";
   const visible = !dismissed && state.startupLifecycle !== "dismissed";
   if (!visible || state.applicationStopped) return null;
   const technicalReason =
@@ -321,7 +328,7 @@ export function StartupCard({
     },
   ];
   return (
-    <aside className="startup-card" aria-label="Sam startup" aria-live="polite">
+    <aside className="startup-card" data-expanded={detailsOpen} aria-label="Sam startup">
       <button
         className="startup-card__close"
         type="button"
@@ -336,134 +343,145 @@ export function StartupCard({
       </div>
       <div>
         <h1>{state.samName ?? "Sam"}</h1>
+        <p className="startup-card__summary">{lifecycle.label}</p>
+      </div>
+      <button
+        className="startup-card__toggle"
+        type="button"
+        aria-expanded={detailsOpen}
+        onClick={() => setExpanded(!expanded)}
+      >
+        {detailsOpen ? "Startup details" : "Details and model controls"}
+      </button>
+      <div className="startup-card__body" hidden={!detailsOpen}>
         {state.samVersion && (
           <small className="startup-card__version">Version {state.samVersion}</small>
         )}
         {state.samAuthor && <small className="startup-card__author">{state.samAuthor}</small>}
-      </div>
-      <dl className="startup-card__facts">
-        {facts.map((fact) => (
-          <div key={fact.label}>
-            <dt>{fact.label}</dt>
-            <dd>{fact.value}</dd>
+        <dl className="startup-card__facts">
+          {facts.map((fact) => (
+            <div key={fact.label}>
+              <dt>{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+        {displayedReason && <p>{displayedReason}</p>}
+        {technicalReason && (
+          <details className="startup-card__details">
+            <summary>Technical details</summary>
+            <small>{technicalReason}</small>
+          </details>
+        )}
+        {showModelPicker && (
+          <div className="startup-card__choice">
+            <label htmlFor={providerSelectId}>Provider</label>
+            <select
+              id={providerSelectId}
+              value={activeProviderChoice}
+              onChange={(event) => {
+                setProviderChoice(event.target.value);
+                setChoice("");
+              }}
+            >
+              <option value="auto">Automatic / recommended</option>
+              {providers.map((provider) => (
+                <option
+                  key={provider.id}
+                  value={provider.id}
+                  disabled={!provider.models.length && !provider.installedModels.length}
+                >
+                  {provider.id} ·{" "}
+                  {provider.running
+                    ? "Available"
+                    : provider.installedModels.length
+                      ? "Installed"
+                      : "Unavailable"}
+                </option>
+              ))}
+            </select>
+            <small>
+              Automatic uses an explicit or last-used valid model, or the sole local model.
+            </small>
+            <label htmlFor={modelSelectId}>Conversational model</label>
+            <select
+              id={modelSelectId}
+              value={validChoice}
+              onChange={(event) => setChoice(event.target.value)}
+            >
+              <option value="">Choose a conversational model…</option>
+              {choices.map((item) => (
+                <option
+                  key={`${item.provider}:${item.model}`}
+                  value={`${item.provider}\t${item.model}`}
+                >
+                  {item.provider} · {item.model} ·{" "}
+                  {item.current
+                    ? "Current"
+                    : item.recommended
+                      ? "Last used / recommended"
+                      : item.loaded
+                        ? "Loaded"
+                        : "Installed"}
+                </option>
+              ))}
+            </select>
+            <label>
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(event) => setRemember(event.target.checked)}
+              />
+              Remember this choice
+            </label>
           </div>
-        ))}
-      </dl>
-      {displayedReason && <p>{displayedReason}</p>}
-      {technicalReason && (
-        <details className="startup-card__details">
-          <summary>Technical details</summary>
-          <small>{technicalReason}</small>
-        </details>
-      )}
-      {showModelPicker && (
-        <div className="startup-card__choice">
-          <label htmlFor={providerSelectId}>Provider</label>
-          <select
-            id={providerSelectId}
-            value={activeProviderChoice}
-            onChange={(event) => {
-              setProviderChoice(event.target.value);
-              setChoice("");
-            }}
-          >
-            <option value="auto">Automatic / recommended</option>
-            {providers.map((provider) => (
-              <option
-                key={provider.id}
-                value={provider.id}
-                disabled={!provider.models.length && !provider.installedModels.length}
-              >
-                {provider.id} ·{" "}
-                {provider.running
-                  ? "Available"
-                  : provider.installedModels.length
-                    ? "Installed"
-                    : "Unavailable"}
-              </option>
-            ))}
-          </select>
-          <small>
-            Automatic uses an explicit or last-used valid model, or the sole local model.
-          </small>
-          <label htmlFor={modelSelectId}>Conversational model</label>
-          <select
-            id={modelSelectId}
-            value={validChoice}
-            onChange={(event) => setChoice(event.target.value)}
-          >
-            <option value="">Choose a conversational model…</option>
-            {choices.map((item) => (
-              <option
-                key={`${item.provider}:${item.model}`}
-                value={`${item.provider}\t${item.model}`}
-              >
-                {item.provider} · {item.model} ·{" "}
-                {item.current
-                  ? "Current"
-                  : item.recommended
-                    ? "Last used / recommended"
-                    : item.loaded
-                      ? "Loaded"
-                      : "Installed"}
-              </option>
-            ))}
-          </select>
-          <label>
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(event) => setRemember(event.target.checked)}
-            />
-            Remember this choice
-          </label>
-        </div>
-      )}
-      <div className="startup-card__actions">
-        <button
-          type="button"
-          disabled={
-            state.connection !== "connected" ||
-            (state.providerDiscovery.status === "scanning" && !state.providerDiscovery.retrying)
-          }
-          title={
-            state.providerDiscovery.status === "scanning" && !state.providerDiscovery.retrying
-              ? "Wait for the current model operation to finish before rescanning."
-              : "Check local services and models again when Sam is connected."
-          }
-          onClick={() => applyAction({ type: "providers.rescan" })}
-        >
-          {state.startupLifecycle === "blocked" ? "Retry / Rescan" : "Rescan"}
-        </button>
-        {showModelPicker && validChoice && (
+        )}
+        <div className="startup-card__actions">
           <button
             type="button"
             disabled={
-              state.connection !== "connected" || state.providerDiscovery.status === "scanning"
+              state.connection !== "connected" ||
+              (state.providerDiscovery.status === "scanning" && !state.providerDiscovery.retrying)
             }
-            onClick={() => {
-              const [provider, model] = validChoice.split("\t");
-              if (provider && model)
-                applyAction({ type: "model.select", provider, model, remember });
-            }}
+            title={
+              state.providerDiscovery.status === "scanning" && !state.providerDiscovery.retrying
+                ? "Wait for the current model operation to finish before rescanning."
+                : "Check local services and models again when Sam is connected."
+            }
+            onClick={() => applyAction({ type: "providers.rescan" })}
           >
-            Load selected model
+            {state.startupLifecycle === "blocked" ? "Retry / Rescan" : "Rescan"}
           </button>
-        )}
-        <button type="button" onClick={onDismiss}>
-          {state.model ? "Continue" : "Continue in available mode"}
-        </button>
-        {state.startupLifecycle === "blocked" && (
-          <button type="button" onClick={onRestart}>
-            Restart Sam
+          {showModelPicker && validChoice && (
+            <button
+              type="button"
+              disabled={
+                state.connection !== "connected" || state.providerDiscovery.status === "scanning"
+              }
+              onClick={() => {
+                const [provider, model] = validChoice.split("\t");
+                if (provider && model)
+                  applyAction({ type: "model.select", provider, model, remember });
+              }}
+            >
+              Load selected model
+            </button>
+          )}
+          <button type="button" onClick={onDismiss}>
+            {state.model ? "Continue" : "Continue in available mode"}
           </button>
+          {state.startupLifecycle === "blocked" && (
+            <button type="button" onClick={onRestart}>
+              Restart Sam
+            </button>
+          )}
+        </div>
+        {!state.model && (
+          <small className="startup-card__dismiss-note">
+            Hiding this panel does not make a conversational model ready.
+          </small>
         )}
       </div>
-      {!state.model && (
-        <small className="startup-card__dismiss-note">
-          Hiding this panel does not make a conversational model ready.
-        </small>
-      )}
     </aside>
   );
 }
@@ -551,6 +569,7 @@ export default function App() {
     providerOnExit: "keep" as const,
   };
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [workspaceSurface, setWorkspaceSurface] = useState<"memory" | "console" | null>(null);
   const [controlsTab, setControlsTab] = useState<
     "conversation" | "appearance" | "device" | "system" | "diagnostics"
   >("conversation");
@@ -595,6 +614,16 @@ export default function App() {
     const timeout = window.setTimeout(() => setStartupDismissed(true), 900);
     return () => window.clearTimeout(timeout);
   }, [state.startupLifecycle]);
+
+  useEffect(() => {
+    if (
+      quitRequested &&
+      !state.applicationStopped &&
+      !state.pendingShutdownId &&
+      state.protocolError
+    )
+      setQuitRequested(false);
+  }, [quitRequested, state.applicationStopped, state.pendingShutdownId, state.protocolError]);
 
   useEffect(() => {
     if (!isNativeShell()) return;
@@ -686,7 +715,12 @@ export default function App() {
         if (quitConfirmation) setQuitConfirmation(false);
         else if (restartConfirmation) setRestartConfirmation(false);
         else if (visualDiagnosticsOpen) setVisualDiagnosticsOpen(false);
-        else if (controlsOpen) {
+        else if (workspaceSurface) {
+          document
+            .querySelector<HTMLButtonElement>('.workspace-tools button[aria-expanded="true"]')
+            ?.focus();
+          setWorkspaceSurface(null);
+        } else if (controlsOpen) {
           setControlsOpen(false);
           controlsButton.current?.focus();
         } else if (!startupDismissed) setStartupDismissed(true);
@@ -712,6 +746,7 @@ export default function App() {
     restartConfirmation,
     startupDismissed,
     visualDiagnosticsOpen,
+    workspaceSurface,
   ]);
 
   const pending = state.pendingCommandIds.length > 0;
@@ -797,14 +832,36 @@ export default function App() {
       )}
       {preferences.transcriptVisible && <Transcript state={state} />}
       <ToolActivity state={state} applyAction={applyAction} />
-      <AgencyConsole
-        client={client}
-        connected={state.connection === "connected" && state.capabilityAuthorityActive}
-      />
-      <MemoryManager
-        client={client}
-        connected={state.connection === "connected" && state.capabilityAuthorityActive}
-      />
+      <section className="workspace-tools" aria-label="Workspace tools">
+        <AgencyConsole
+          client={client}
+          connected={state.connection === "connected" && state.capabilityAuthorityActive}
+          open={workspaceSurface === "console"}
+          onOpenChange={(open) => {
+            setWorkspaceSurface(open ? "console" : null);
+            if (open) setControlsOpen(false);
+          }}
+        />
+        <MemoryManager
+          client={client}
+          connected={state.connection === "connected" && state.capabilityAuthorityActive}
+          open={workspaceSurface === "memory"}
+          onOpenChange={(open) => {
+            setWorkspaceSurface(open ? "memory" : null);
+            if (open) setControlsOpen(false);
+          }}
+        />
+      </section>
+      <button
+        className="quit-reveal"
+        type="button"
+        onClick={quitSam}
+        disabled={quitRequested || state.applicationStopped}
+        aria-keyshortcuts="Control+Q"
+        title="Quit Sam and cancel work. Closing Controls does not quit."
+      >
+        Quit <kbd>Ctrl Q</kbd>
+      </button>
       <button
         className="controls-reveal"
         ref={controlsButton}
@@ -813,6 +870,7 @@ export default function App() {
         aria-controls={controlsId}
         onClick={() => {
           setVisualDiagnosticsOpen(false);
+          setWorkspaceSurface(null);
           setControlsOpen((open) => !open);
         }}
       >
@@ -921,7 +979,7 @@ export default function App() {
                 </div>
               </form>
               <ControlButton
-                help="Enable or pause microphone capture. Ctrl+M."
+                help="Enable or pause microphone capture and speech recognition. Separate from spoken replies. Ctrl+M."
                 disabled={pending || state.connection !== "connected"}
                 onClick={() =>
                   applyAction({ type: "microphone.set", enabled: !state.microphoneEnabled })
@@ -940,14 +998,17 @@ export default function App() {
                 </ControlButton>
               )}
               <ControlButton
-                help="Mute stops current speech and future spoken replies. Text responses remain visible."
+                help="Output only: mute stops current and future spoken replies. The microphone and speech recognition have separate controls. Text answers remain visible."
                 disabled={pending || state.connection !== "connected"}
                 onClick={() =>
                   applyAction({ type: "tts_output.set", enabled: !state.ttsOutputEnabled })
                 }
               >
-                Voice {state.ttsOutputEnabled ? "on" : "muted"}
+                Spoken replies {state.ttsOutputEnabled ? "on" : "muted"}
               </ControlButton>
+              <small className="controls__voice-meaning">
+                Spoken replies control Sam’s output. Microphone controls listening.
+              </small>
               <ControlButton
                 help="Stop the current spoken response without shutting down Sam."
                 disabled={

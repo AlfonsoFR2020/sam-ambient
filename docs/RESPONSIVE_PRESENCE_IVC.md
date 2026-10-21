@@ -11,7 +11,7 @@
   `_editable_impl_sam_ambient.pth` points to this checkout's `src` directory.
   `OwnerWindow` privately fulfills `src/sam_ambient/static` assets. Neither the
   launcher nor that window builds frontend source.
-- The checked-in static tree is identical to v0.2.5. Its last change is
+- At assignment start the checked-in static tree was identical to v0.2.5. Its last change was
   `9c5bce8c63cb90bd008571e4c4b3a03f9663b1af`; `index.html` selects
   `index-DPoRgsL3.js` and `index-D5fV1sLu.css`. A normal source launcher run
   therefore displays the released renderer, not IV-B.
@@ -85,4 +85,42 @@ new PCM queue, raw-audio UI transport or provider timeout change was introduced.
 
 ## Lifecycle, controls and deferred evidence
 
-To be completed with the remaining implementation and verification sequence.
+`presence.ts` projects service/provider/turn/delivery facts into stable operation
+identities, labels and a small renderer-only phase. Typed send is distinct from
+core commitment, waiting for inference, actual token production and preparation
+of speech. Pending request/shutdown IDs carry no new authority. Elapsed labels
+measure observed waiting, without percentages or readiness estimates.
+
+The Orb forms from a compact pose at initialization, concentrates during loading,
+settles for unload/unloaded, and contracts during accepted departure. Existing
+pigment, provider illumination and continuously moving folds remain; no palette,
+speech gain, particle distribution, geometry, draw count or framebuffer changes.
+Startup/retirement draw only at the existing static 15-Hz cap for bounded windows
+(1.6/0.9 seconds), stop while hidden, and do not delay any command/window close.
+Reduced Motion uses settled poses and the existing short state transition.
+
+Startup is a small summary with collapsed operational facts during ordinary
+preparation. Known model choices and failure details remain available. Memory and
+Console share a footer group and mutually exclusive panels, close/focus behavior
+and consistent controls. Their real capability requests, result projections,
+cancellation and privacy gates remain intact. Quit and Ctrl Q are always visible;
+spoken-reply muting explicitly controls output separately from the microphone.
+Shutdown text acknowledges a request and possible ongoing cleanup; it does not
+claim the process has already exited. Rejected/timed-out Quit returns to controls.
+
+Translation: HTML has explicit `notranslate` metadata/classes; only Sam's isolated
+profile gets `translate.enabled=false`, staged atomically while preserving other
+valid preferences. Malformed/oversized preferences are preserved. Normal browser
+profiles and Playwright sandbox/proof restrictions are untouched. Installed
+Playwright already disables Chromium's standard Translate feature. Edge-specific
+behavior, the actual beta window path and popup suppression require graphical
+confirmation; no definitive root cause is assigned. The shipped HTML receives the
+same opt-out, but its JS/CSS assets remain the released renderer. No rebuild ran.
+New source additionally exposes content-free DOM build/visual identity markers.
+
+Executed: **84** focused frontend tests across ten files, including mocked renderer
+retirement/hidden suspension and static markup for startup/Console/Memory;
+**19** profile, owner-authority and fake Console integration checks. Relevant
+Biome/Ruff checks pass. No browser, shader, real provider or audio device ran.
+Graphical usability, artistic transitions, physical output timing and cleanup
+with actual model processes remain pending.

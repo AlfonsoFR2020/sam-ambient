@@ -95,6 +95,7 @@ export class VisualEngine {
   private readonly lastQuaternion = new Float32Array(4);
   private hasLastQuaternion = false;
   private diagnosticsEnabled = false;
+  private presenceTransitionUntil = 0;
   private readonly diagnosticEvents: VisualDiagnosticEvent[] = [];
   private readonly interaction = new OrbInteraction();
   private readonly motion: MotionEvaluator;
@@ -161,8 +162,19 @@ export class VisualEngine {
     const stateChanged = Boolean(
       this.input &&
         (input.interaction.foreground !== this.input.interaction.foreground ||
-          input.interaction.availability !== this.input.interaction.availability),
+          input.interaction.availability !== this.input.interaction.availability ||
+          input.interaction.presence?.phase !== this.input.interaction.presence?.phase),
     );
+    if (input.interaction.presence?.phase !== this.input?.interaction.presence?.phase) {
+      const phase = input.interaction.presence?.phase;
+      this.presenceTransitionUntil =
+        this.clock() +
+        (phase === "starting"
+          ? 1600
+          : phase === "retiring" || phase === "departing" || phase === "reconnecting"
+            ? 900
+            : 0);
+    }
     if (stateChanged)
       this.recordEvent(
         `visual state ${this.input?.interaction.foreground ?? "initial"} → ${input.interaction.foreground}; availability ${input.interaction.availability}`,
@@ -352,6 +364,7 @@ export class VisualEngine {
     this.lastStaticDraw = -Infinity;
     this.staticRenderPending = false;
     this.staticTransitionUntil = 0;
+    this.presenceTransitionUntil = 0;
     this.contextLosses = 0;
     this.forceCanvas = false;
   }
@@ -469,8 +482,19 @@ export class VisualEngine {
 
   private shouldAnimate(): boolean {
     if (!this.canDraw()) return false;
-    if (this.reducedMotion() || !this.hasLiveAvailability(this.input))
-      return this.staticRenderPending;
+    if (this.reducedMotion()) return this.staticRenderPending;
+    if (!this.hasLiveAvailability(this.input)) {
+      const phase = this.input?.interaction.presence?.phase;
+      const availability = this.input?.interaction.availability;
+      const transitionApplies =
+        (availability === "starting" && phase === "starting") ||
+        (availability === "reconnecting" && phase === "reconnecting") ||
+        (availability === "stopped" && phase === "retiring");
+      return (
+        this.staticRenderPending ||
+        (transitionApplies && this.clock() < this.presenceTransitionUntil)
+      );
+    }
     return true;
   }
 

@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from sam_ambient.core.owner import OwnerAuthorityError, OwnerSession
-from sam_ambient.supervisor.app_window import find_app_browser
+from sam_ambient.supervisor.app_window import find_app_browser, prepare_translation_preferences
 
 
 class OwnerWindow:
@@ -36,6 +36,7 @@ class OwnerWindow:
         if executable is None or not (self.assets / "index.html").is_file():
             return False
         self.profile.mkdir(parents=True, exist_ok=True)
+        prepare_translation_preferences(self.profile)
         self._driver = await async_playwright().start()
         try:
             # No debugger TCP listener. Browser gets no provider keys or owner secret.

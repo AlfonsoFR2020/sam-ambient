@@ -6,6 +6,11 @@ import "./styles.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Sam UI root element is missing");
+// Inspectable provenance, with no application authority or private data.
+document.documentElement.dataset.samUiBuild = import.meta.env.DEV
+  ? "development-source"
+  : "built-assets";
+document.documentElement.dataset.samVisualIdentity = "connected-skin-ivc-experimental";
 
 createRoot(root).render(
   <StrictMode>

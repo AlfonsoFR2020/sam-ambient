@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { type PresencePresentation, presencePresentation } from "./presence";
 import type { UiState } from "./protocol/types";
 import { type ProviderPresentation, providerPresentation } from "./provider-lifecycle";
 
@@ -6,7 +7,7 @@ export function waitingLabel(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds));
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
 }
-function Activity({ presentation }: { presentation: ProviderPresentation }) {
+function Activity({ presentation }: { presentation: ProviderPresentation | PresencePresentation }) {
   const [started] = useState(() => performance.now());
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
@@ -34,6 +35,19 @@ function Activity({ presentation }: { presentation: ProviderPresentation }) {
   );
 }
 export function ProviderStatus({ state }: { state: UiState }) {
-  const presentation = providerPresentation(state);
+  const presence = presencePresentation(state);
+  const presentation = [
+    "submitting",
+    "submitted",
+    "thinking",
+    "responding",
+    "preparing_speech",
+    "speaking",
+    "departing",
+    "retiring",
+    "recovering",
+  ].includes(presence.phase)
+    ? presence
+    : providerPresentation(state);
   return <Activity key={presentation.key} presentation={presentation} />;
 }

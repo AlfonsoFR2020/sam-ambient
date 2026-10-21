@@ -142,7 +142,8 @@ describe("startup and shutdown presentation", () => {
     const stopped = renderToStaticMarkup(createElement(ShutdownStatus, { stopped: true }));
     expect(pending).toContain("acknowledgement");
     expect(pending).not.toContain("Sam has stopped");
-    expect(stopped).toContain("Sam has stopped");
+    expect(stopped).toContain("Shutdown requested");
+    expect(stopped).toContain("Local cleanup may continue");
     expect(stopped).toContain("Reconnection is off");
   });
 });

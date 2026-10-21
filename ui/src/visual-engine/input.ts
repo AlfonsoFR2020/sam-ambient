@@ -1,3 +1,4 @@
+import { presencePresentation } from "../presence";
 import type { ConversationalState, UiState } from "../protocol/types";
 import { providerPresentation } from "../provider-lifecycle";
 import type { AudioFeatures, VisualForeground, VisualInputV1, VisualInteraction } from "./types";
@@ -47,9 +48,14 @@ const interactionFrom = (state: UiState, interruptSerial: number): VisualInterac
           ? "degraded"
           : "ready";
   const toolType = state.latestToolActivity?.eventType;
+  const presence = presencePresentation(state);
+  const committedWork = presence.phase === "submitted" || presence.phase === "responding";
   return {
+    presence: { phase: presence.phase, key: presence.key },
     providerLifecycle: (({ phase, key }) => ({ phase, key }))(providerPresentation(state)),
-    foreground: foreground(state.conversationalState, state.priorConversationalState),
+    foreground: committedWork
+      ? "thinking"
+      : foreground(state.conversationalState, state.priorConversationalState),
     listening,
     speaking,
     floor: listening && speaking ? "shared" : speaking ? "sam" : listening ? "user" : "none",

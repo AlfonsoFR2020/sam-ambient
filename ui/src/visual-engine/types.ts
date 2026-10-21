@@ -1,3 +1,4 @@
+import type { PresencePhase } from "../presence";
 import type { ProviderVisualPhase } from "../provider-lifecycle";
 export type VisualForeground =
   | "idle"
@@ -20,6 +21,7 @@ export interface AudioFeatures {
 }
 
 export interface VisualInteraction {
+  readonly presence?: { readonly phase: PresencePhase; readonly key: string };
   readonly providerLifecycle?: { readonly phase: ProviderVisualPhase; readonly key: string };
   readonly foreground: VisualForeground;
   readonly listening: boolean;

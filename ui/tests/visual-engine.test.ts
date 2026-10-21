@@ -635,6 +635,61 @@ describe("visual engine lifecycle", () => {
     engine.dispose();
   });
 
+  it("bounds acknowledged retirement animation and never draws while hidden", () => {
+    let now = 0,
+      nextFrame = 0;
+    const radii: number[] = [],
+      callbacks = new Map<number, FrameRequestCallback>();
+    const engine = new VisualEngine({
+      createCanvas: fakeCanvas,
+      backendFactory: (_canvas, kind, budget, settings, _seed, motion) => {
+        let latest: ReturnType<typeof readyInput> | undefined;
+        return {
+          kind,
+          update(input) {
+            latest = input;
+          },
+          configure() {},
+          resize() {},
+          setObjectOrientation() {},
+          render(timestamp) {
+            if (latest) radii.push(motion.evaluate(latest, timestamp, settings, budget).radius);
+          },
+          dispose() {},
+        };
+      },
+      requestFrame: (callback) => {
+        callbacks.set(++nextFrame, callback);
+        return nextFrame;
+      },
+      cancelFrame: (handle) => callbacks.delete(handle),
+      clock: () => now,
+    });
+    engine.mount(fakeHost());
+    engine.setVisible(false);
+    const input = readyInput();
+    engine.update({
+      ...input,
+      sequence: input.sequence + 1,
+      interaction: {
+        ...input.interaction,
+        availability: "stopped",
+        presence: { phase: "retiring", key: "quit-ack" },
+      },
+    });
+    expect(radii).toHaveLength(0);
+    engine.setVisible(true);
+    for (now = 100; now <= 1200; now += 100) {
+      const pending = [...callbacks.entries()];
+      callbacks.clear();
+      for (const [, callback] of pending) callback(now);
+    }
+    expect(radii.length).toBeGreaterThan(1);
+    expect(radii.at(-1)).toBeLessThan(radii[0]);
+    expect(callbacks.size).toBe(0);
+    engine.dispose();
+  });
+
   it("falls back on context loss, retries twice, then remains on Canvas", () => {
     const host = fakeHost();
     const canvases: ReturnType<typeof fakeCanvas>[] = [];

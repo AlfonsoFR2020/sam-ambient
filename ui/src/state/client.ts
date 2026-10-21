@@ -147,6 +147,12 @@ export class ProtocolClient {
         command.command_id,
       ],
       protocolError: undefined,
+      ...(command.type === "control.user_message.submit"
+        ? { pendingUserMessageId: command.command_id }
+        : {}),
+      ...(command.type === "control.application.quit"
+        ? { pendingShutdownId: command.command_id }
+        : {}),
       ...(discoveryCommand
         ? {
             providerDiscovery: { status: "scanning" as const, requestId: command.command_id },
@@ -180,6 +186,12 @@ export class ProtocolClient {
           ...this.state,
           pendingCommandIds: this.state.pendingCommandIds.filter((id) => id !== command.command_id),
           protocolError: "Sam did not confirm the control command in time.",
+          ...(this.state.pendingUserMessageId === command.command_id
+            ? { pendingUserMessageId: undefined }
+            : {}),
+          ...(this.state.pendingShutdownId === command.command_id
+            ? { pendingShutdownId: undefined }
+            : {}),
           ...(discoveryCommand
             ? {
                 providerDiscovery: {
@@ -212,6 +224,12 @@ export class ProtocolClient {
           (commandId) => commandId !== command.command_id,
         ),
         protocolError: message,
+        ...(this.state.pendingUserMessageId === command.command_id
+          ? { pendingUserMessageId: undefined }
+          : {}),
+        ...(this.state.pendingShutdownId === command.command_id
+          ? { pendingShutdownId: undefined }
+          : {}),
         ...(discoveryCommand
           ? {
               providerDiscovery: {

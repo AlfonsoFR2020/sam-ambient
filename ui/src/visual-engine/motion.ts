@@ -229,6 +229,9 @@ export class MotionEvaluator {
   private providerExplore = 0;
   private providerLoading = 0;
   private providerSettling = 0;
+  private presenceInitialized = false;
+  private formation = 1;
+  private presenceScale = 1;
   private providerReady = 0;
   private providerPhase?: string;
   private working = 0;
@@ -360,6 +363,26 @@ export class MotionEvaluator {
     const dt = Math.min(MAX_FRAME_DELTA_SECONDS, rawDt);
     this.lastMs = safeNow;
     const reduced = reducedMotion;
+    const presencePhase = input.interaction.presence?.phase;
+    if (!this.presenceInitialized && presencePhase) {
+      this.presenceInitialized = true;
+      this.formation = !reduced && presencePhase === "starting" ? 0.48 : 1;
+    }
+    this.formation = reduced ? 1 : Math.min(1, this.formation + dt / 0.9);
+    const presenceTarget =
+      presencePhase === "departing" || presencePhase === "retiring"
+        ? 0.5
+        : presencePhase === "unloaded"
+          ? 0.83
+          : presencePhase === "loading" || presencePhase === "unloading"
+            ? 0.92
+            : presencePhase === "failed" || presencePhase === "reconnecting"
+              ? 0.9
+              : 1;
+    // A posture transition, independent of audio gain and all material clocks.
+    this.presenceScale = reduced
+      ? presenceTarget
+      : blend(this.presenceScale, presenceTarget, dt, 0.22);
     const stationary =
       input.interaction.availability === "starting" ||
       input.interaction.availability === "reconnecting" ||
@@ -386,7 +409,11 @@ export class MotionEvaluator {
       ? 0
       : blend(
           this.providerLoading,
-          providerPhase === "loading" || providerPhase === "switching" ? 1 : 0,
+          providerPhase === "loading" || providerPhase === "switching"
+            ? 1
+            : presencePhase === "preparing_speech"
+              ? 0.45
+              : 0,
           dt,
           0.35,
         );
@@ -522,11 +549,13 @@ export class MotionEvaluator {
       ? 0
       : input.interaction.foreground === "thinking"
         ? 1
-        : input.interaction.foreground === "transcribing"
-          ? 0.6
-          : input.interaction.reasoning
-            ? 0.025
-            : 0;
+        : presencePhase === "preparing_speech"
+          ? 0.4
+          : input.interaction.foreground === "transcribing"
+            ? 0.6
+            : input.interaction.reasoning
+              ? 0.025
+              : 0;
     this.working = stationary ? 0 : blend(this.working, workTarget, dt, 0.2);
     const receptiveTarget = !stationary && input.interaction.listening ? 1 : 0;
     this.receptive = spatiallyFrozen
@@ -599,11 +628,14 @@ export class MotionEvaluator {
     const contraction = this.interruption * 0.018;
 
     this.frame.foreground = input.interaction.foreground;
-    this.frame.radius = clamp(
-      this.radius + breath + outputPulse * 0.14 - inputPresence * 0.035 - contraction,
-      0.92,
-      1.18,
-    );
+    this.frame.radius =
+      clamp(
+        this.radius + breath + outputPulse * 0.14 - inputPresence * 0.035 - contraction,
+        0.92,
+        1.18,
+      ) *
+      this.formation *
+      this.presenceScale;
     const availabilityScale =
       input.interaction.availability === "stopped" ? 0.45 : stationary ? 0.65 : 1;
     const desiredGlow = clamp(

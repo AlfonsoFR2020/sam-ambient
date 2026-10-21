@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { TERMINAL_ACTION_STATES } from "../agency/state";
 import type { ProtocolClient } from "../state/client";
 import { type MemoryRecord, memoryRecord, memoryRows } from "./model";
@@ -6,12 +6,24 @@ import { type MemoryRecord, memoryRecord, memoryRows } from "./model";
 export function MemoryManager({
   client,
   connected,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   client: ProtocolClient;
   connected: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const actions = useSyncExternalStore(client.subscribe, client.getAgencySnapshot);
-  const [open, setOpen] = useState(false);
+  const actions = useSyncExternalStore(
+    client.subscribe,
+    client.getAgencySnapshot,
+    client.getAgencySnapshot,
+  );
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = controlledOpen ?? localOpen;
+  const setOpen = onOpenChange ?? setLocalOpen;
+  const panelId = useId();
+  const reveal = useRef<HTMLButtonElement>(null);
   const [records, setRecords] = useState<MemoryRecord[]>([]);
   const [request, setRequest] = useState<string>();
   const [query, setQuery] = useState("");
@@ -26,6 +38,13 @@ export function MemoryManager({
   const [previousPages, setPreviousPages] = useState<number[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [message, setMessage] = useState("");
+  useEffect(() => {
+    if (open) return;
+    setRecords([]);
+    setContent("");
+    setEditing(undefined);
+    setDeleting(undefined);
+  }, [open]);
 
   const run = async (operation: string, args: Record<string, unknown>) => {
     setMessage("");
@@ -90,7 +109,10 @@ export function MemoryManager({
       <button
         type="button"
         className="memory-reveal"
+        ref={reveal}
+        title="Memory · review and manage Sam’s saved local records"
         aria-expanded={open}
+        aria-controls={panelId}
         onClick={() => {
           const next = !open;
           setOpen(next);
@@ -105,13 +127,14 @@ export function MemoryManager({
         Memory
       </button>
       {open && (
-        <section className="memory-manager" aria-label="Sam Memory">
+        <section id={panelId} className="memory-manager" aria-label="Sam Memory">
           <header>
             <strong>Sam Memory</strong>
             <button
               type="button"
               onClick={() => {
                 setOpen(false);
+                reveal.current?.focus();
                 setRecords([]);
                 setEditing(undefined);
                 setContent("");
