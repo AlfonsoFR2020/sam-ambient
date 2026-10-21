@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { INITIAL_UI_STATE, type UiState } from "../src/protocol/types";
+import { reduceProtocolEvent } from "../src/state/reducer";
 import { VisualInputAdapter } from "../src/visual-engine/input";
 
 const speaking = (overrides: Partial<UiState> = {}): UiState => ({
@@ -17,6 +18,40 @@ const speaking = (overrides: Partial<UiState> = {}): UiState => ({
 });
 
 describe("VisualInputV1 adapter", () => {
+  it("retains active delivery through tentative input recovery and quiet syllables", () => {
+    const adapter = new VisualInputAdapter();
+    let state = speaking({ playbackGenerationId: "generation-1" });
+    for (let sample = 0; sample < 150; sample++) {
+      const now = sample * 40;
+      const envelope = sample >= 50 && sample < 75 ? 0 : sample > 75 ? 0.015 : 0.2;
+      state = reduceProtocolEvent(state, {
+        protocol: 1,
+        type: "tts.level",
+        monotonic_ms: 100 + now,
+        session_id: "session",
+        generation_id: "generation-1",
+        payload: { envelope },
+      });
+      state = {
+        ...state,
+        conversationalState: "RECOVERING",
+        priorConversationalState: "INTERRUPTION_CANDIDATE",
+      };
+      const input = adapter.ingest(state, now);
+      expect(input.interaction.speaking).toBe(true);
+      expect(input.audio.output?.envelope).toBe(envelope);
+    }
+    expect(adapter.snapshot(7100).audio.output).toBeUndefined();
+    state = reduceProtocolEvent(state, {
+      protocol: 1,
+      type: "tts.completed",
+      monotonic_ms: 7200,
+      session_id: "session",
+      generation_id: "generation-1",
+      payload: {},
+    });
+    expect(adapter.ingest(state, 7200).audio.output).toBeUndefined();
+  });
   it("maps only existing envelope features and keeps interaction separate", () => {
     const input = new VisualInputAdapter().ingest(speaking(), 100, { sourceSequence: 1 });
     expect(input.audio.input).toMatchObject({ envelope: 0.4, peak: 1, activity: 0.7 });

@@ -205,11 +205,13 @@ class _FakeOutput:
         self.frames = 0
         self.token = None
 
-    async def play(self, frames, cancellation) -> None:
+    async def play(self, frames, cancellation, *, on_frame=None) -> None:
         self.token = cancellation
         async for _frame in frames:
             cancellation.raise_if_cancelled()
             self.frames += 1
+            if on_frame is not None:
+                await on_frame(_frame)
 
 
 def test_runtime_streams_model_through_real_tts_boundary_and_persists_turn(

@@ -358,7 +358,7 @@ def test_tts_stage_failure_keeps_committed_text_and_reports_stage(tmp_path, fail
             yield None  # pragma: no cover - keep the fake adapter an async generator
 
     class FailingOutput(_FakeOutput):
-        async def play(self, frames, cancellation):
+        async def play(self, frames, cancellation, *, on_frame=None):
             del frames, cancellation
             raise RuntimeError("synthetic playback failure")
 
@@ -453,7 +453,7 @@ def test_playback_failure_closes_synthesis_iterator_and_retires_pcm(tmp_path) ->
                 self.closed = True
 
     class FailingAfterFirstFrame(_FakeOutput):
-        async def play(self, frames, cancellation):
+        async def play(self, frames, cancellation, *, on_frame=None):
             async for _frame in frames:
                 cancellation.raise_if_cancelled()
                 raise RuntimeError("synthetic output stopped")
@@ -509,11 +509,11 @@ def test_speech_failure_does_not_poison_later_text_delivery(tmp_path, failure_st
             super().__init__()
             self.fail = failure_stage == "playback"
 
-        async def play(self, frames, cancellation):
+        async def play(self, frames, cancellation, *, on_frame=None):
             if self.fail:
                 self.fail = False
                 raise RuntimeError("synthetic playback unavailable")
-            await super().play(frames, cancellation)
+            await super().play(frames, cancellation, on_frame=on_frame)
 
     async def scenario() -> None:
         runtime = SamRuntime(

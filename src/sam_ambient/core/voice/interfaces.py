@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterable, AsyncIterator
+from collections.abc import AsyncIterable, AsyncIterator, Awaitable, Callable
 from typing import Protocol, runtime_checkable
 
 from sam_ambient.core.turns import CancellationToken
@@ -12,6 +12,10 @@ from sam_ambient.core.voice.models import (
     VadResult,
     VoiceStreamContext,
 )
+
+# Trusted local observation after a bounded PCM write is accepted. Never raw
+# content on the UI protocol, and never permission to influence a turn.
+PlaybackObserver = Callable[[AudioFrame], Awaitable[None]]
 
 
 @runtime_checkable
@@ -25,6 +29,8 @@ class AudioOutput(Protocol):
         self,
         frames: AsyncIterable[AudioFrame],
         cancellation: CancellationToken,
+        *,
+        on_frame: PlaybackObserver | None = None,
     ) -> None: ...
 
 

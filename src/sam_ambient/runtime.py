@@ -2119,12 +2119,43 @@ class SamRuntime:
                     queued = await self.speech_queue.next_chunk(cancellation)
                     if queued != chunk:
                         raise RuntimeError("speech queue returned an unexpected chunk")
-                    self.speech_queue.mark_playing(chunk, self._next_event_ms())
-                    log.info(
-                        "conversation_timing stage=playback_start elapsed_ms=%d generation=%s",
-                        round((time.monotonic() - tts_started) * 1000),
-                        generation_id,
-                    )
+                    first_write = True
+
+                    async def observe_playback(frame: AudioFrame) -> None:
+                        nonlocal first_write
+                        # An output observer can finish after interruption or a
+                        # successor turn. Neither may relight the retired stream.
+                        if (
+                            cancellation.is_cancelled
+                            or self._active_playback_generation_id != generation_id
+                            or self._active_generation_id != generation_id
+                        ):
+                            return
+                        if first_write:
+                            first_write = False
+                            self.speech_queue.mark_playing(chunk, self._next_event_ms())
+                            self.trace.record(
+                                "playback.first_write",
+                                generation_id=generation_id,
+                                elapsed_ms=round((time.monotonic() - tts_started) * 1000),
+                            )
+                        rms, peak = normalized_audio_metrics(frame)
+                        await self._publish_generation(
+                            EventType.TTS_LEVEL,
+                            generation_id,
+                            session_id=session_id,
+                            turn_id=turn_id,
+                            cancellation_id=cancellation.cancellation_id,
+                            payload={
+                                "envelope": rms,
+                                "rms": rms,
+                                "peak": peak,
+                                "sequence": frame.sequence,
+                                "duration_ms": frame.duration_ms,
+                                "source": "playback_write",
+                            },
+                        )
+
                     frames = self._metered_tts_frames(
                         speech_text(text),
                         generation_id=generation_id,
@@ -2135,7 +2166,9 @@ class SamRuntime:
                     diagnostic("playback.pull_begin", generation_id=generation_id)
                     try:
                         try:
-                            await self.audio_output.play(frames, cancellation)
+                            await self.audio_output.play(
+                                frames, cancellation, on_frame=observe_playback
+                            )
                         except _SynthesisFailure:
                             await self._audio_health("synthesis", "Speech synthesis failed")
                             raise
@@ -2223,6 +2256,7 @@ class SamRuntime:
                     selection = None
                     if first_pcm:
                         first_pcm = False
+                        self.trace.record("synthesis.first_pcm", generation_id=generation_id)
                         selected_voice = getattr(self.tts, "last_selection", None)
                         if selected_voice is not None:
                             selection = asdict(selected_voice)
@@ -2244,19 +2278,6 @@ class SamRuntime:
                             generation_id,
                         )
                     frame = scale_audio_frame(frame, self._audio_settings["output_gain"])
-                    rms, peak = normalized_audio_metrics(frame)
-                    await self._publish_generation(
-                        EventType.TTS_LEVEL,
-                        generation_id,
-                        session_id=session_id,
-                        turn_id=turn_id,
-                        cancellation_id=cancellation.cancellation_id,
-                        payload={
-                            "envelope": rms,
-                            "peak": peak,
-                            "sequence": frame.sequence,
-                        },
-                    )
                     yield frame
             except (OperationCancelled, asyncio.CancelledError):
                 raise
@@ -3171,6 +3192,7 @@ class SamRuntime:
             else None,
             payload={
                 "state": ready_state.value,
+                "playback_generation_id": self._active_playback_generation_id,
                 "sam_version": __version__,
                 "microphone_enabled": self.controls.microphone_enabled,
                 "tts_output_enabled": self.controls.tts_output_enabled,

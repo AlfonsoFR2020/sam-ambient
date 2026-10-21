@@ -17,6 +17,15 @@ backpressure. Conversation, model, tool, health, and update events are durable
 within the local bounded transport and apply backpressure instead of silently
 dropping.
 
+`tts.level` reports post-gain PCM **after** the output accepts a bounded write:
+`envelope`/`rms`, `peak`, per-delivery `sequence`, `duration_ms`, and
+`source: "playback_write"`. It contains no PCM or text. Device/driver buffering
+means this is submission evidence, not a physical acoustic measurement.
+`model.completed` commits text independently of delivery. `tts.completed` follows
+output drain; cancellation/failure retire delivery. `system.ready` additionally
+projects `playback_generation_id` for reconnects. Older optional fields remain
+compatible with protocol 1; missing levels must expire, never be synthesized.
+
 UI control commands use the same protocol version and correlation IDs, with
 required `command_id`, `monotonic_ms`, `type`, and `payload` fields. Version 1
 defines microphone and TTS-output toggles, stop-speaking, emergency-stop, text

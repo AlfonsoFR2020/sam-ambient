@@ -316,3 +316,82 @@ def test_output_rejects_format_changes_and_wraps_open_failures() -> None:
             await broken.play(source(expected), CancellationToken("open"))
 
     asyncio.run(scenario())
+
+
+def test_output_observes_only_accepted_pcm_in_bounded_blocks():
+    async def scenario():
+        audio_format = AudioFormat(sample_rate_hz=1_000)
+        stream = FakeOutputStream()
+        observed = []
+        pcm = array("h", [1_000] * 40 + [0] * 40 + [5_000] * 25).tobytes()
+
+        async def source():
+            # A whole utterance may be synthesized before the output pulls it.
+            assert observed == []
+            yield AudioFrame(audio_format, pcm, 0, 99)
+
+        async def accepted(frame):
+            assert stream.writes[-1] == frame.data
+            assert stream.started and not stream.stopped
+            observed.append(frame)
+
+        await SoundDeviceOutput(audio_format, stream_factory=lambda **_: stream).play(
+            source(), CancellationToken("observed"), on_frame=accepted
+        )
+        assert b"".join(frame.data for frame in observed) == pcm
+        assert [frame.duration_ms for frame in observed] == [20] * 5 + [5]
+        assert [frame.sequence for frame in observed] == list(range(6))
+        assert stream.stopped and stream.closed
+
+    asyncio.run(scenario())
+
+
+def test_delayed_or_cancelled_write_never_reports_unaccepted_audio():
+    async def scenario():
+        stream = BlockingOutputStream()
+        token = CancellationToken("delayed-write")
+        observed = []
+
+        async def source():
+            yield AudioFrame(AudioFormat(), b"\1\0" * 320, 0, 0)
+
+        async def accepted(frame):
+            observed.append(frame)
+
+        task = asyncio.create_task(
+            SoundDeviceOutput(AudioFormat(), stream_factory=lambda **_: stream).play(
+                source(), token, on_frame=accepted
+            )
+        )
+        try:
+            assert await asyncio.to_thread(stream.writing.wait, 1)
+            assert observed == []
+            token.cancel("owner stop")
+            with pytest.raises(OperationCancelled):
+                await task
+            assert observed == []
+        finally:
+            stream.abort()
+            await asyncio.gather(task, return_exceptions=True)
+
+    asyncio.run(scenario())
+
+
+def test_optional_meter_failure_cannot_abort_delivery():
+    async def scenario():
+        stream = FakeOutputStream()
+
+        async def source():
+            for sequence in range(3):
+                yield AudioFrame(AudioFormat(), b"\1\0" * 320, sequence * 20, sequence)
+
+        async def unavailable(_frame):
+            raise RuntimeError("optional visual observer unavailable")
+
+        await SoundDeviceOutput(AudioFormat(), stream_factory=lambda **_: stream).play(
+            source(), CancellationToken("optional-meter"), on_frame=unavailable
+        )
+        assert len(stream.writes) == 3
+        assert stream.stopped and not stream.aborted
+
+    asyncio.run(scenario())

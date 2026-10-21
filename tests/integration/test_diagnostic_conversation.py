@@ -95,12 +95,14 @@ class PacedOutput(_FakeOutput):
         self.started = asyncio.Event()
         self.delay = 0.02
 
-    async def play(self, frames, cancellation):
+    async def play(self, frames, cancellation, *, on_frame=None):
         async for _frame in frames:
             cancellation.raise_if_cancelled()
             self.frames += 1
             self.started.set()
             await asyncio.sleep(self.delay)
+            if on_frame is not None:
+                await on_frame(_frame)
 
 
 async def until(predicate):

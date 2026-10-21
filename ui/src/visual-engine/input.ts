@@ -32,7 +32,8 @@ const interactionFrom = (state: UiState, interruptSerial: number): VisualInterac
       state.conversationalState === "INTERRUPTION_CANDIDATE");
   const speaking =
     state.ttsOutputEnabled &&
-    (state.conversationalState === "SPEAKING" ||
+    ((!!state.playbackGenerationId && state.playbackGenerationId === state.generationId) ||
+      state.conversationalState === "SPEAKING" ||
       tentativeDuplex ||
       (state.conversationalState === "RECOVERING" &&
         state.priorConversationalState === "SPEAKING"));

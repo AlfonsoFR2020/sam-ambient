@@ -385,7 +385,7 @@ stream; gain creates a new frame except at unity.
 
 System TTS currently synthesizes one bounded WAV (32 MiB maximum) before
 yielding immutable PCM frames; it is not a live streaming synthesizer. The
-runtime meters and scales one yielded frame at a time, and playback awaits each
+runtime scales one yielded frame at a time, and playback awaits each
 PortAudio write before requesting the next. There is no PCM-frame queue between
 synthesis and playback. Playback failure or cancellation now explicitly closes
 the metering iterator and nested TTS iterator, releasing any retained WAV/PCM
@@ -399,11 +399,16 @@ coalesces/drops lossy audio level events, and backpressures durable events.
 
 For visual reactivity, the capture pipeline and barge-in monitor measure input
 RMS/peak (and VAD probability) from gained PCM as `voice.level`. The runtime
-measures output RMS/peak from volume-scaled PCM immediately before handing it
-to playback as `tts.level`; it is scheduled output, not proof of sound emitted
-by a physical speaker. These are source-specific protocol events, not a new
+measures output RMS/peak from volume-scaled PCM after the blocking output write
+accepts each at-most-20-ms block (`tts.level`, source `playback_write`). No
+synthesis-only sample can light the Orb. This observes device submission, not
+sound emitted by a physical speaker; PortAudio/device buffering remains a timing
+uncertainty. Delivery completion waits for `stream.stop()` to drain. A trusted
+optional observer failure cannot abort speech; cancellation/retired identities
+reject late observations. These are source-specific protocol events, not a new
 semantic or shader channel. The frontend reducer rejects stale turn/generation
-events; `VisualInputAdapter` carries separate input/output samples, retires
+events and retains a separate playback generation through tentative input and
+model completion; `VisualInputAdapter` carries separate input/output samples, retires
 them on cancellation/failure, and expires them after missing updates or a long
 suspension. It owns freshness, while `AmbientReactivity` owns the visual
 attack/release and bounded modulation. No audio-side visual smoothing was added.

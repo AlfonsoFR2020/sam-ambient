@@ -162,7 +162,7 @@ class ConversationTrace:
             fingerprint = identity(event.generation_id or "")
             if event.payload.get("rms", 0) > 0 and fingerprint not in self._first_audio:
                 self._first_audio.append(fingerprint)
-                self.record("synthesis.first_activity", **ids)
+                self.record("playback.first_activity", **ids)
         elif kind in _DELIVERY_END:
             state = (
                 "failed"

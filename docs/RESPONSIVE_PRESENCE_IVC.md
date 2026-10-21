@@ -51,7 +51,38 @@ parallelism, BelowNormal process priority. No graphical/audio fixtures:
 These checks do not compile GLSL or establish rendered quality, hardware cost or
 owner acceptance. IV-B's historical source manifest remains unchanged.
 
-## Implementation and deferred evidence
+## Playback boundary implementation
 
-To be completed with source changes, focused regression results, limitations and
-the next authorized graphical/diagnostic verification sequence.
+Output accepts at-most-20-ms PCM writes before an optional trusted observer
+publishes correlated RMS/peak. The runtime no longer meters synthesis ahead of
+that boundary; it marks delivery playing on the first accepted write. Output
+drain remains distinct from model completion and final delivery completion.
+Cancellation, active-generation and active-playback gates reject retained late
+callbacks. Observer failures disable optional metering without failing speech.
+
+The UI now tracks playback identity separately from conversational state. Source
+inspection identified a concrete presentation gap: `RECOVERING` after
+`INTERRUPTION_CANDIDATE` failed the old `prior === SPEAKING` predicate even with
+ongoing delivery. Fresh real levels remain eligible through tentative input
+recovery; cancellation, completion, failure, offline and successor turns retire
+them. This establishes a software defect, not attribution of the owner's run.
+
+Executed sequentially, BelowNormal, with no real services/devices:
+
+- Three new adapter regressions failed before implementation; all **14** adapter
+  tests pass afterward (mock streams only).
+- **2** new fake-runtime tests pass: delayed acceptance, 180 pre-buffered PCM
+  blocks including silence/quieter syllables, drain, late callback and Stop.
+- **40** existing generation/voice-stream lifecycle regressions pass.
+- **54** frontend reducer/input/reactivity tests pass, including zero reactivity
+  and the new six-second delivery/recovery/quiet-syllable case.
+- Targeted Ruff and Biome checks/formatting pass for these changed source/tests.
+
+No physical speaker alignment is claimed: blocking PortAudio acceptance can lead
+actual playback by device latency. Hardware timing, acoustic behavior and the
+specific owner incident remain deferred. No arbitrary sustained visual envelope,
+new PCM queue, raw-audio UI transport or provider timeout change was introduced.
+
+## Lifecycle, controls and deferred evidence
+
+To be completed with the remaining implementation and verification sequence.

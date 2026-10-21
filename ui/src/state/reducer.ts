@@ -343,6 +343,7 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
       retiredGenerationIds: retireId(state.retiredGenerationIds, state.generationId),
       turnId: undefined,
       generationId: undefined,
+      playbackGenerationId: undefined,
       metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
       pendingCommandIds: [],
       pendingToolApproval: null,
@@ -426,6 +427,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       : state.retiredGenerationIds,
     ...(startsNewGeneration
       ? {
+          playbackGenerationId: undefined,
           latestToolActivity: null,
           pendingToolApproval: null,
           provisionalTranscript:
@@ -545,6 +547,9 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       conversationalState: readyState,
       turnId: readyTurnId,
       generationId: readyGenerationId,
+      playbackGenerationId: readyActive
+        ? boundedText(event.payload.playback_generation_id, 120)
+        : undefined,
       candidateTurnId: undefined,
       retiredTurnIds: (startsNewSession
         ? []
@@ -804,6 +809,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       diagnosticReason: event.payload.to === "LISTENING" ? undefined : next.diagnosticReason,
       turnId: terminal ? undefined : next.turnId,
       generationId: terminal ? undefined : next.generationId,
+      playbackGenerationId: terminal ? undefined : next.playbackGenerationId,
       candidateTurnId: terminal ? undefined : next.candidateTurnId,
       retiredTurnIds: terminal ? retireId(next.retiredTurnIds, next.turnId) : next.retiredTurnIds,
       retiredGenerationIds: terminal
@@ -826,9 +832,18 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         speechProbability: clamp(event.payload.speech_probability),
       },
     };
+  } else if (event.type === "tts.started") {
+    next = { ...next, playbackGenerationId: event.generation_id };
+  } else if (event.type === "tts.completed") {
+    next = {
+      ...next,
+      playbackGenerationId: undefined,
+      metrics: { ...next.metrics, playbackEnvelope: 0 },
+    };
   } else if (event.type === "tts.level") {
     next = {
       ...next,
+      playbackGenerationId: event.generation_id,
       metrics: { ...next.metrics, playbackEnvelope: clamp(event.payload.envelope) },
     };
   } else if (event.type === "transcript.partial") {
@@ -872,6 +887,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ...next,
       priorConversationalState: next.conversationalState,
       conversationalState: "ERROR",
+      playbackGenerationId: undefined,
       provisionalTranscript: null,
       metrics: { ...next.metrics, playbackEnvelope: 0 },
       retiredTurnIds: retireId(next.retiredTurnIds, next.turnId),
@@ -900,7 +916,13 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     if (index >= 0) {
       transcript[index] = { ...transcript[index], interrupted: true };
     }
-    next = { ...next, transcript };
+    next = {
+      ...next,
+      transcript,
+      ...(event.generation_id === next.playbackGenerationId
+        ? { playbackGenerationId: undefined, metrics: { ...next.metrics, playbackEnvelope: 0 } }
+        : {}),
+    };
   } else if (event.type === "stt.cancelled") {
     const reason = boundedText(event.payload.reason, 120);
     next = {
@@ -936,6 +958,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ...next,
       priorConversationalState: next.conversationalState,
       conversationalState: interrupted ? "INTERRUPTED" : "IDLE",
+      playbackGenerationId: undefined,
       provisionalTranscript: null,
       retiredGenerationIds: retireId(next.retiredGenerationIds, event.generation_id),
       retiredTurnIds: interrupted
@@ -1052,6 +1075,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       priorConversationalState: next.conversationalState,
       conversationalState: "ERROR",
       provisionalTranscript: null,
+      playbackGenerationId: undefined,
       retiredTurnIds: retireId(next.retiredTurnIds, next.turnId),
       retiredGenerationIds: retireId(next.retiredGenerationIds, next.generationId),
       turnId: undefined,

@@ -12,6 +12,7 @@ from typing import Any, Protocol
 
 from sam_ambient.core.turns import CancellationToken, OperationCancelled
 from sam_ambient.core.voice import AudioFormat, AudioFrame, SampleFormat
+from sam_ambient.core.voice.interfaces import PlaybackObserver
 
 log = logging.getLogger(__name__)
 
@@ -195,6 +196,8 @@ class SoundDeviceOutput:
         self,
         frames: AsyncIterable[AudioFrame],
         cancellation: CancellationToken,
+        *,
+        on_frame: PlaybackObserver | None = None,
     ) -> None:
         cancellation.raise_if_cancelled()
         try:
@@ -214,6 +217,12 @@ class SoundDeviceOutput:
         completed = False
         started = False
         underruns = 0
+        sequence = 0
+        observer = on_frame
+        # Bound both write latency and metering granularity, even for an adapter
+        # yielding pre-buffered utterances. No timer invents acoustic dynamics.
+        block_samples = max(1, self.audio_format.sample_rate_hz // 50)
+        block_bytes = block_samples * self.audio_format.bytes_per_frame
         try:
             async for frame in frames:
                 cancellation.raise_if_cancelled()
@@ -222,11 +231,30 @@ class SoundDeviceOutput:
                 if not started:
                     await asyncio.to_thread(stream.start)
                     started = True
-                underflowed = await asyncio.to_thread(stream.write, frame.data)
-                if underflowed:
-                    # PortAudio already inserted a gap, not an unrecoverable device
-                    # failure. Aborting here discards the rest of a valid utterance.
-                    underruns += 1
+                for offset in range(0, len(frame.data), block_bytes):
+                    cancellation.raise_if_cancelled()
+                    data = frame.data[offset : offset + block_bytes]
+                    underflowed = await asyncio.to_thread(stream.write, data)
+                    cancellation.raise_if_cancelled()
+                    if underflowed:
+                        # A recoverable gap must not discard the valid utterance.
+                        underruns += 1
+                    if observer is not None:
+                        accepted = AudioFrame(
+                            self.audio_format,
+                            data,
+                            time.monotonic_ns() // 1_000_000,
+                            sequence,
+                        )
+                        try:
+                            await observer(accepted)
+                        except (OperationCancelled, asyncio.CancelledError):
+                            raise
+                        except Exception:
+                            # Read-only optional telemetry cannot fail speech.
+                            log.warning("Playback observer unavailable; continuing without meters")
+                            observer = None
+                    sequence += 1
             cancellation.raise_if_cancelled()
             if started:
                 await asyncio.to_thread(stream.stop)

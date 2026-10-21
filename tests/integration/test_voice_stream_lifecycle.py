@@ -146,7 +146,7 @@ class BlockingFirstOutput(_FakeOutput):
         self.play_calls = 0
         self.frames_by_call = []
 
-    async def play(self, frames, cancellation):
+    async def play(self, frames, cancellation, *, on_frame=None):
         self.token = cancellation
         self.play_calls += 1
         call_frames = 0
@@ -158,6 +158,8 @@ class BlockingFirstOutput(_FakeOutput):
                 while not self.release_first.is_set():
                     cancellation.raise_if_cancelled()
                     await asyncio.sleep(0)
+            if on_frame is not None:
+                await on_frame(_frame)
         self.frames += call_frames
         self.frames_by_call.append(call_frames)
 
