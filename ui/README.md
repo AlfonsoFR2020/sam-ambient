@@ -26,3 +26,16 @@ revocation. `?transport=core` selects the bridge manually.
 
 The integrated Tauri host is development source. Native packaging, signing,
 security-software review and combined acceptance remain release gates.
+
+The canonical production frontend command is `pnpm build` from `ui`. It runs
+TypeScript and Vite, replacing `src/sam_ambient/static`; `Start Sam.cmd` privately
+serves those compiled assets and never rebuilds them. The IV-D build adds Vite's
+`.vite/manifest.json`, `assets/sam-build.json`, an HTML source fingerprint and DOM
+source/commit markers. The SHA-256 inventory covers frontend source and build
+inputs, normalizing text line endings. Git commit/dirty metadata is supplementary;
+Git-less archives retain the content fingerprint. These markers grant no authority.
+
+After building, `python scripts/check_frontend_assets.py` from the repository root
+checks source/HTML/manifest/bundle coherence without starting the application.
+`--output <repository-path.json>` optionally records artifact hashes. Build and
+file checks do not compile WebGL shaders or establish graphical acceptance.

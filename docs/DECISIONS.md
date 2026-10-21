@@ -1,5 +1,26 @@
 # Decision log
 
+## 2026-10-21 — Integrated frontend provenance and bounded renderer recovery (IV-D)
+
+HQ4 confirms the October 21 beta used `Start Sam.cmd` with unchanged v0.2.5
+frontend assets. Its positive swirl and negative peel observations apply to the
+release; IV-B/IV-C remain unaccepted. The earlier IV-C attribution uncertainty below
+is historical. Preserve the released field/palette and provisional parent skin.
+
+The canonical Vite build now embeds a deterministic frontend content inventory,
+source digest and supplementary Git identity in its own generated artifacts.
+The ordinary private asset resolver remains unchanged. Build identity is evidence,
+not an owner credential or readiness assertion. File-only verification checks
+current source against the HTML, Vite entry manifest and integrated bundle.
+
+Mock failure injection demonstrates leaked prior resources after later shader,
+uniform or buffer initialization failures when context-loss cleanup is unavailable.
+Track successful and partial setup allocations explicitly, retire them on failure,
+and make disposal idempotent. This bounded ownership list adds no per-frame work,
+geometry, shader effect, draw pass or new rendering subsystem. Matched comparison
+fixtures now supply the same current motion frames to both renderer versions.
+Browser/GPU execution is still unauthorized under IV-D's occupied-PC permission.
+
 ## 2026-10-21 — Playback observation and responsive presence (IV-C)
 
 Move visual output metering from synthesis to an optional trusted observer after

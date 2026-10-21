@@ -1,0 +1,14 @@
+{
+  "description": "Synthetic PCM contract only; no recorded speech or physical timing claim",
+  "sampleRateHz": 1000,
+  "blockSamples": 20,
+  "acceptanceDelayMs": 1000,
+  "pauseBeforeFrame": 260,
+  "pauseMs": 1500,
+  "segments": [
+    { "frames": 150, "sample": 4000 },
+    { "frames": 100, "sample": 0 },
+    { "frames": 250, "sample": 700 },
+    { "frames": 100, "sample": 2500 }
+  ]
+}

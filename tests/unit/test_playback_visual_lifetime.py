@@ -1,12 +1,34 @@
 """PCM-only fake output; no PortAudio, synthesis subprocess, network or audio device."""
 
 import asyncio
+import json
 from array import array
+from pathlib import Path
 
 from sam_ambient.core.protocol import EventType
 from sam_ambient.core.voice import AudioFrame
 from sam_ambient.runtime import RuntimeConfig, SamRuntime
 from tests.unit.test_phase9_packaging import _AnswerProvider, _FakeTts
+
+CONTRACT = json.loads(
+    (Path(__file__).parents[1] / "fixtures/playback_visual_contract.json").read_text()
+)
+
+
+class ContractSpeech(_FakeTts):
+    async def synthesize(self, text, *, voice, language, cancellation):
+        assert self.audio_format.sample_rate_hz == CONTRACT["sampleRateHz"]
+        sequence = 0
+        for segment in CONTRACT["segments"]:
+            for _ in range(segment["frames"]):
+                cancellation.raise_if_cancelled()
+                yield AudioFrame(
+                    self.audio_format,
+                    array("h", [segment["sample"]] * CONTRACT["blockSamples"]).tobytes(),
+                    sequence * 20,
+                    sequence,
+                )
+                sequence += 1
 
 
 class BufferedSpeech(_FakeTts):
@@ -116,6 +138,71 @@ def test_cancelled_delivery_ignores_retained_observer_and_keeps_completed_text(t
         finally:
             output.release.set()
             output.finish.set()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_shared_long_pcm_contract_pauses_resumes_then_retires_after_drain(tmp_path):
+    """Same vectors drive the TS reducer/adapter/motion gate, without wall-clock speech."""
+
+    async def scenario():
+        paused, resume = asyncio.Event(), asyncio.Event()
+
+        class PausingOutput(ObservedOutput):
+            async def play(self, frames, cancellation, *, on_frame=None):
+                async def gated_frames():
+                    async for frame in frames:
+                        if frame.sequence == CONTRACT["pauseBeforeFrame"]:
+                            paused.set()
+                            await resume.wait()
+                        yield frame
+
+                await super().play(gated_frames(), cancellation, on_frame=on_frame)
+
+        output = PausingOutput()
+        runtime = SamRuntime(
+            _AnswerProvider(),
+            RuntimeConfig(tmp_path, port=0, model="fake"),
+            tts=ContractSpeech(),
+            audio_output=output,
+        )
+        seen = []
+        runtime.events.add_observer(seen.append)
+        try:
+            runtime.submit_user_message("Synthetic contract request")
+            await asyncio.wait_for(output.queued.wait(), 2)
+            assert not any(e.type == EventType.TTS_LEVEL for e in seen)
+            output.release.set()
+            await asyncio.wait_for(paused.wait(), 2)
+            levels = [e for e in seen if e.type == EventType.TTS_LEVEL]
+            assert len(levels) == CONTRACT["pauseBeforeFrame"]
+            generation = runtime._active_playback_generation_id
+            assert generation and runtime._active_generation_id == generation
+            assert not any(e.type == EventType.TTS_COMPLETED for e in seen)
+            resume.set()
+            await asyncio.wait_for(output.draining.wait(), 2)
+            levels = [e for e in seen if e.type == EventType.TTS_LEVEL]
+            expected = [
+                segment["sample"] / 32768
+                for segment in CONTRACT["segments"]
+                for _ in range(segment["frames"])
+            ]
+            assert [e.payload["envelope"] for e in levels] == expected
+            assert all(e.generation_id == generation for e in levels)
+            assert [e.payload["sequence"] for e in levels] == list(range(len(expected)))
+            assert all(e.payload["duration_ms"] == 20 for e in levels)
+            assert runtime._active_playback_generation_id == generation
+            output.finish.set()
+            await asyncio.wait_for(asyncio.gather(*tuple(runtime._tasks)), 2)
+            await output.observer(output.last_frame)
+            assert sum(e.type == EventType.TTS_LEVEL for e in seen) == len(expected)
+            assert runtime._active_playback_generation_id is None
+            assert not runtime.trace.pending
+        finally:
+            output.release.set()
+            output.finish.set()
+            resume.set()
             await runtime.close()
 
     asyncio.run(scenario())

@@ -1,10 +1,6 @@
 import type { RendererBackend } from "./backend";
 import { DISCOURSE_CREST_GLSL } from "./discourse-crest";
-import {
-  createParticleGeometry,
-  createSphereGeometry,
-  type IndexedGeometry,
-} from "./geometry";
+import { createParticleGeometry, createSphereGeometry, type IndexedGeometry } from "./geometry";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
 import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
 import { MEMBRANE_SHAPE_GLSL, SKIN_SURFACE_GLSL } from "./membrane";
@@ -17,7 +13,12 @@ import {
   PARTICLE_VISIBILITY_HASH,
 } from "./particles";
 import type { RenderBudget } from "./quality";
-import { createSkinOpenings, packSkinOpenings, SKIN_VERTEX_STRIDE, type SkinOpening } from "./skin-domain";
+import {
+  createSkinOpenings,
+  packSkinOpenings,
+  SKIN_VERTEX_STRIDE,
+  type SkinOpening,
+} from "./skin-domain";
 import { createSkinGeometry } from "./skin-geometry";
 import { HALO_OPACITY_SCALE } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -298,7 +299,18 @@ const compile = (gl: WebGL2RenderingContext, type: number, source: string): WebG
 const withFineDetail = (source: string, fineOctaves: 0 | 1 | 2): string =>
   source.replace("#version 300 es\n", `#version 300 es\n#define SAM_FINE_OCTAVES ${fineOctaves}\n`);
 
-const program = (gl: WebGL2RenderingContext, vertex: string, fragment: string): WebGLProgram => {
+interface ResourceLedger {
+  readonly programs: WebGLProgram[];
+  readonly vaos: WebGLVertexArrayObject[];
+  readonly buffers: WebGLBuffer[];
+}
+
+const program = (
+  gl: WebGL2RenderingContext,
+  vertex: string,
+  fragment: string,
+  owned: ResourceLedger,
+): WebGLProgram => {
   const result = gl.createProgram();
   if (!result) throw new Error("WebGL program allocation failed");
   let vertexShader: WebGLShader | undefined, fragmentShader: WebGLShader | undefined;
@@ -310,6 +322,7 @@ const program = (gl: WebGL2RenderingContext, vertex: string, fragment: string): 
     gl.linkProgram(result);
     if (!gl.getProgramParameter(result, gl.LINK_STATUS))
       throw new ShaderBuildError(gl.getProgramInfoLog(result) ?? "unknown link error");
+    owned.programs.push(result);
     return result;
   } catch (error) {
     gl.deleteProgram(result);
@@ -366,9 +379,12 @@ const arrayResource = (
   gl: WebGL2RenderingContext,
   vertices: Float32Array,
   count: number,
+  owned: ResourceLedger,
 ): DrawResource => {
   const vao = gl.createVertexArray();
+  if (vao) owned.vaos.push(vao);
   const vertex = gl.createBuffer();
+  if (vertex) owned.buffers.push(vertex);
   if (!vao || !vertex) throw new Error("WebGL particle buffer allocation failed");
   gl.bindVertexArray(vao);
   gl.bindBuffer(gl.ARRAY_BUFFER, vertex);
@@ -386,10 +402,14 @@ const indexedResource = (
   geometry: IndexedGeometry,
   stride: number,
   attributes: readonly { location: number; size: number; offset: number }[],
+  owned: ResourceLedger,
 ): DrawResource => {
   const vao = gl.createVertexArray();
+  if (vao) owned.vaos.push(vao);
   const vertex = gl.createBuffer();
+  if (vertex) owned.buffers.push(vertex);
   const index = gl.createBuffer();
+  if (index) owned.buffers.push(index);
   if (!vao || !vertex || !index) throw new Error("WebGL buffer allocation failed");
   gl.bindVertexArray(vao);
   gl.bindBuffer(gl.ARRAY_BUFFER, vertex);
@@ -413,6 +433,8 @@ const indexedResource = (
 
 export class WebGLBackend implements RendererBackend {
   readonly kind = "webgl2" as const;
+  // Setup-only ownership also covers partially initialized backends. No per-frame allocation.
+  private readonly resources: ResourceLedger = { programs: [], vaos: [], buffers: [] };
   private readonly orbProgram: WebGLProgram;
   private readonly peelProgram: WebGLProgram;
   private readonly haloProgram: WebGLProgram;
@@ -497,99 +519,125 @@ export class WebGLBackend implements RendererBackend {
       typeof matchMedia === "undefined"
         ? undefined
         : matchMedia("(prefers-reduced-motion: reduce)");
-    this.orbProgram = program(gl, ORB_VERTEX, withFineDetail(ORB_FRAGMENT, budget.fineOctaves));
-    this.peelProgram = program(gl, PEEL_VERTEX, withFineDetail(PEEL_FRAGMENT, budget.fineOctaves));
-    this.haloProgram = program(gl, HALO_VERTEX, HALO_FRAGMENT);
-    this.particleProgram = program(gl, PARTICLE_VERTEX, PARTICLE_FRAGMENT);
-    this.orbUniforms = {
-      ...this.commonUniformLocations(this.orbProgram),
-      ...this.fieldUniformLocations(this.orbProgram),
-      lightCount: location(gl, this.orbProgram, "u_light_count"),
-      spin: location(gl, this.orbProgram, "u_spin"),
-      precession: location(gl, this.orbProgram, "u_precession"),
-      breathPhase: location(gl, this.orbProgram, "u_breath_phase"),
-      ripplePhase: location(gl, this.orbProgram, "u_ripple_phase"),
-      deformation: location(gl, this.orbProgram, "u_deformation"),
-      ripple: location(gl, this.orbProgram, "u_ripple"),
-      lightPhase: location(gl, this.orbProgram, "u_light_phase"),
-      rim: location(gl, this.orbProgram, "u_rim"),
-      highlight: location(gl, this.orbProgram, "u_highlight"),
-      orientation: location(gl, this.orbProgram, "u_object_orientation"),
-    };
-    const openings = budget.peels ? createSkinOpenings(seed) : [];
-    if (budget.fineOctaves >= 2)
-      this.contactUniforms = this.createSkinUniforms(this.orbProgram, openings);
-    this.skinUniforms = this.createSkinUniforms(this.peelProgram, openings);
-    this.peelUniforms = {
-      ...this.commonUniformLocations(this.peelProgram),
-      ...this.fieldUniformLocations(this.peelProgram),
-      lightCount: location(gl, this.peelProgram, "u_light_count"),
-      lightPhase: location(gl, this.peelProgram, "u_light_phase"),
-      spin: location(gl, this.peelProgram, "u_spin"),
-      precession: location(gl, this.peelProgram, "u_precession"),
-      breathPhase: location(gl, this.peelProgram, "u_breath_phase"),
-      ripplePhase: location(gl, this.peelProgram, "u_ripple_phase"),
-      deformation: location(gl, this.peelProgram, "u_deformation"),
-      ripple: location(gl, this.peelProgram, "u_ripple"),
-      highlight: location(gl, this.peelProgram, "u_highlight"),
-      emission: location(gl, this.peelProgram, "u_emission"),
-      depthOnly: location(gl, this.peelProgram, "u_depth_only"),
-      orientation: location(gl, this.peelProgram, "u_object_orientation"),
-    };
-    this.haloUniforms = {
-      aspect: location(gl, this.haloProgram, "u_aspect"),
-      intensity: location(gl, this.haloProgram, "u_intensity"),
-      glow: location(gl, this.haloProgram, "u_glow"),
-    };
-    this.particleUniforms = {
-      phase: location(gl, this.particleProgram, "u_phase"),
-      driftPhase: location(gl, this.particleProgram, "u_drift_phase"),
-      excitation: location(gl, this.particleProgram, "u_excitation"),
-      spread: location(gl, this.particleProgram, "u_spread"),
-      opacityBoost: location(gl, this.particleProgram, "u_opacity_boost"),
-      radius: location(gl, this.particleProgram, "u_radius"),
-      pointScale: location(gl, this.particleProgram, "u_point_scale"),
-      scale: location(gl, this.particleProgram, "u_scale"),
-      density: location(gl, this.particleProgram, "u_density"),
-      palettePhase: location(gl, this.particleProgram, "u_palette_phase"),
-      ripplePhase: location(gl, this.particleProgram, "u_ripple_phase"),
-    };
-    this.motion = motion;
-    const [offsetA, offsetB] = createFieldOffsets(seed);
-    bindProgram(gl, this.orbProgram);
-    gl.uniform3f(this.orbUniforms.offsetA, offsetA[0], offsetA[1], offsetA[2]);
-    gl.uniform3f(this.orbUniforms.offsetB, offsetB[0], offsetB[1], offsetB[2]);
-    bindProgram(gl, this.peelProgram);
-    gl.uniform3f(this.peelUniforms.offsetA, offsetA[0], offsetA[1], offsetA[2]);
-    gl.uniform3f(this.peelUniforms.offsetB, offsetB[0], offsetB[1], offsetB[2]);
-    this.orb = indexedResource(
-      gl,
-      createSphereGeometry(budget.sphereLongitude, budget.sphereLatitude),
-      24,
-      [
-        { location: 0, size: 3, offset: 0 },
-        { location: 1, size: 3, offset: 12 },
-      ],
-    );
-    const skin = createSkinGeometry(budget, seed);
-    this.peels = indexedResource(gl, skin, SKIN_VERTEX_STRIDE * 4, [
-      { location: 0, size: 3, offset: 0 },
-    ]);
-    this.peelOrder = skin.ranges.map((range) => ({ ...range, z: 0 }));
-    this.halo = indexedResource(
-      gl,
-      {
-        vertices: new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
-        indices: new Uint16Array([0, 1, 2, 2, 1, 3]),
-      },
-      8,
-      [{ location: 0, size: 2, offset: 0 }],
-    );
-    const particleGeometry = createParticleGeometry(budget.particles, seed);
-    this.particles = arrayResource(gl, particleGeometry.vertices, particleGeometry.count);
-    gl.disable(gl.CULL_FACE); // Both sides of a rolled free rim remain visible.
-    gl.clearColor(0, 0, 0, 0);
-    this.setObjectOrientation(new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]));
+    try {
+      this.orbProgram = program(
+        gl,
+        ORB_VERTEX,
+        withFineDetail(ORB_FRAGMENT, budget.fineOctaves),
+        this.resources,
+      );
+      this.peelProgram = program(
+        gl,
+        PEEL_VERTEX,
+        withFineDetail(PEEL_FRAGMENT, budget.fineOctaves),
+        this.resources,
+      );
+      this.haloProgram = program(gl, HALO_VERTEX, HALO_FRAGMENT, this.resources);
+      this.particleProgram = program(gl, PARTICLE_VERTEX, PARTICLE_FRAGMENT, this.resources);
+      this.orbUniforms = {
+        ...this.commonUniformLocations(this.orbProgram),
+        ...this.fieldUniformLocations(this.orbProgram),
+        lightCount: location(gl, this.orbProgram, "u_light_count"),
+        spin: location(gl, this.orbProgram, "u_spin"),
+        precession: location(gl, this.orbProgram, "u_precession"),
+        breathPhase: location(gl, this.orbProgram, "u_breath_phase"),
+        ripplePhase: location(gl, this.orbProgram, "u_ripple_phase"),
+        deformation: location(gl, this.orbProgram, "u_deformation"),
+        ripple: location(gl, this.orbProgram, "u_ripple"),
+        lightPhase: location(gl, this.orbProgram, "u_light_phase"),
+        rim: location(gl, this.orbProgram, "u_rim"),
+        highlight: location(gl, this.orbProgram, "u_highlight"),
+        orientation: location(gl, this.orbProgram, "u_object_orientation"),
+      };
+      const openings = budget.peels ? createSkinOpenings(seed) : [];
+      if (budget.fineOctaves >= 2)
+        this.contactUniforms = this.createSkinUniforms(this.orbProgram, openings);
+      this.skinUniforms = this.createSkinUniforms(this.peelProgram, openings);
+      this.peelUniforms = {
+        ...this.commonUniformLocations(this.peelProgram),
+        ...this.fieldUniformLocations(this.peelProgram),
+        lightCount: location(gl, this.peelProgram, "u_light_count"),
+        lightPhase: location(gl, this.peelProgram, "u_light_phase"),
+        spin: location(gl, this.peelProgram, "u_spin"),
+        precession: location(gl, this.peelProgram, "u_precession"),
+        breathPhase: location(gl, this.peelProgram, "u_breath_phase"),
+        ripplePhase: location(gl, this.peelProgram, "u_ripple_phase"),
+        deformation: location(gl, this.peelProgram, "u_deformation"),
+        ripple: location(gl, this.peelProgram, "u_ripple"),
+        highlight: location(gl, this.peelProgram, "u_highlight"),
+        emission: location(gl, this.peelProgram, "u_emission"),
+        depthOnly: location(gl, this.peelProgram, "u_depth_only"),
+        orientation: location(gl, this.peelProgram, "u_object_orientation"),
+      };
+      this.haloUniforms = {
+        aspect: location(gl, this.haloProgram, "u_aspect"),
+        intensity: location(gl, this.haloProgram, "u_intensity"),
+        glow: location(gl, this.haloProgram, "u_glow"),
+      };
+      this.particleUniforms = {
+        phase: location(gl, this.particleProgram, "u_phase"),
+        driftPhase: location(gl, this.particleProgram, "u_drift_phase"),
+        excitation: location(gl, this.particleProgram, "u_excitation"),
+        spread: location(gl, this.particleProgram, "u_spread"),
+        opacityBoost: location(gl, this.particleProgram, "u_opacity_boost"),
+        radius: location(gl, this.particleProgram, "u_radius"),
+        pointScale: location(gl, this.particleProgram, "u_point_scale"),
+        scale: location(gl, this.particleProgram, "u_scale"),
+        density: location(gl, this.particleProgram, "u_density"),
+        palettePhase: location(gl, this.particleProgram, "u_palette_phase"),
+        ripplePhase: location(gl, this.particleProgram, "u_ripple_phase"),
+      };
+      this.motion = motion;
+      const [offsetA, offsetB] = createFieldOffsets(seed);
+      bindProgram(gl, this.orbProgram);
+      gl.uniform3f(this.orbUniforms.offsetA, offsetA[0], offsetA[1], offsetA[2]);
+      gl.uniform3f(this.orbUniforms.offsetB, offsetB[0], offsetB[1], offsetB[2]);
+      bindProgram(gl, this.peelProgram);
+      gl.uniform3f(this.peelUniforms.offsetA, offsetA[0], offsetA[1], offsetA[2]);
+      gl.uniform3f(this.peelUniforms.offsetB, offsetB[0], offsetB[1], offsetB[2]);
+      this.orb = indexedResource(
+        gl,
+        createSphereGeometry(budget.sphereLongitude, budget.sphereLatitude),
+        24,
+        [
+          { location: 0, size: 3, offset: 0 },
+          { location: 1, size: 3, offset: 12 },
+        ],
+        this.resources,
+      );
+      const skin = createSkinGeometry(budget, seed);
+      this.peels = indexedResource(
+        gl,
+        skin,
+        SKIN_VERTEX_STRIDE * 4,
+        [{ location: 0, size: 3, offset: 0 }],
+        this.resources,
+      );
+      this.peelOrder = skin.ranges.map((range) => ({ ...range, z: 0 }));
+      this.halo = indexedResource(
+        gl,
+        {
+          vertices: new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+          indices: new Uint16Array([0, 1, 2, 2, 1, 3]),
+        },
+        8,
+        [{ location: 0, size: 2, offset: 0 }],
+        this.resources,
+      );
+      const particleGeometry = createParticleGeometry(budget.particles, seed);
+      this.particles = arrayResource(
+        gl,
+        particleGeometry.vertices,
+        particleGeometry.count,
+        this.resources,
+      );
+      gl.disable(gl.CULL_FACE); // Both sides of a rolled free rim remain visible.
+      gl.clearColor(0, 0, 0, 0);
+      this.setObjectOrientation(new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]));
+    } catch (error) {
+      this.dispose();
+      throw error;
+    }
   }
 
   private createSkinUniforms(shader: WebGLProgram, openings: readonly SkinOpening[]): SkinUniforms {
@@ -611,7 +659,13 @@ export class WebGLBackend implements RendererBackend {
   }
 
   private setSkinPose(uniforms: SkinUniforms, frame: MotionFrame): void {
-    this.gl.uniform4f(uniforms.pose, frame.opening, frame.peelLift, frame.peelWidth, frame.peelCoherence);
+    this.gl.uniform4f(
+      uniforms.pose,
+      frame.opening,
+      frame.peelLift,
+      frame.peelWidth,
+      frame.peelCoherence,
+    );
     this.gl.uniform2f(uniforms.phase, frame.peelTravel, frame.peelRephase);
   }
 
@@ -861,15 +915,9 @@ export class WebGLBackend implements RendererBackend {
 
   dispose(): void {
     const gl = this.gl;
-    for (const resource of [this.orb, this.peels, this.halo, this.particles]) {
-      gl.deleteVertexArray(resource.vao);
-      gl.deleteBuffer(resource.vertex);
-      if (resource.index) gl.deleteBuffer(resource.index);
-    }
-    gl.deleteProgram(this.orbProgram);
-    gl.deleteProgram(this.peelProgram);
-    gl.deleteProgram(this.haloProgram);
-    gl.deleteProgram(this.particleProgram);
+    for (const vao of this.resources.vaos.splice(0)) gl.deleteVertexArray(vao);
+    for (const buffer of this.resources.buffers.splice(0)) gl.deleteBuffer(buffer);
+    for (const shader of this.resources.programs.splice(0)) gl.deleteProgram(shader);
     this.input = undefined;
   }
 }

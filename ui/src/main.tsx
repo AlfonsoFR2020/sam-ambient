@@ -10,7 +10,9 @@ if (!root) throw new Error("Sam UI root element is missing");
 document.documentElement.dataset.samUiBuild = import.meta.env.DEV
   ? "development-source"
   : "built-assets";
-document.documentElement.dataset.samVisualIdentity = "connected-skin-ivc-experimental";
+document.documentElement.dataset.samVisualIdentity = "connected-skin-ivd-experimental";
+document.documentElement.dataset.samUiSource = import.meta.env.SAM_UI_SOURCE_ID;
+document.documentElement.dataset.samUiCommit = import.meta.env.SAM_UI_SOURCE_COMMIT;
 
 createRoot(root).render(
   <StrictMode>
