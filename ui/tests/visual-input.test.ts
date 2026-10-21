@@ -18,6 +18,37 @@ const speaking = (overrides: Partial<UiState> = {}): UiState => ({
 });
 
 describe("VisualInputV1 adapter", () => {
+  it("rejects late delivery levels after completion before the voice-state transition", () => {
+    let state = speaking({ playbackGenerationId: "generation-1" });
+    const completed = {
+      protocol: 1 as const,
+      type: "tts.completed",
+      monotonic_ms: 100,
+      session_id: "session",
+      generation_id: "generation-1",
+      payload: {},
+    };
+    state = reduceProtocolEvent(state, completed);
+    const late = reduceProtocolEvent(state, {
+      ...completed,
+      type: "tts.level",
+      monotonic_ms: 101,
+      payload: { envelope: 1 },
+    });
+    expect(late).toBe(state);
+    expect(new VisualInputAdapter().ingest(late, 101).audio.output).toBeUndefined();
+    expect(late.retiredPlaybackGenerationIds).toContain("generation-1");
+    const idle = { ...speaking(), conversationalState: "IDLE" as const, generationId: undefined };
+    expect(
+      reduceProtocolEvent(idle, {
+        ...completed,
+        type: "tts.level",
+        monotonic_ms: 100000,
+        generation_id: "long-retired-generation",
+        payload: { envelope: 1 },
+      }),
+    ).toBe(idle);
+  });
   it("retains active delivery through tentative input recovery and quiet syllables", () => {
     const adapter = new VisualInputAdapter();
     let state = speaking({ playbackGenerationId: "generation-1" });

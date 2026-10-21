@@ -196,6 +196,7 @@ export interface UiState {
   candidateTurnId?: string;
   /** Delivery lifetime is independent of model completion and tentative input. */
   playbackGenerationId?: string;
+  retiredPlaybackGenerationIds?: readonly string[];
   retiredTurnIds: readonly string[];
   retiredGenerationIds: readonly string[];
   lastMonotonicByType: Readonly<Record<string, number>>;

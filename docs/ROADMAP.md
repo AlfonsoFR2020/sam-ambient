@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 priority (2026-10-15): reference-led visual overhaul.**
+**Current HQ4 priority (2026-10-21): responsive presence, preserving the living palette.**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -9,10 +9,15 @@ and first proposed connected-film assignment. The [HQ4 programme below](#hq4-pro
 is the current order; dated earlier plans remain context, not parallel task queues.
 No version bump, new runtime permission, remote action or automatic implementation.
 
-**2026-10-21 source checkpoint:** [IV-B](VISUAL_IDENTITY_IV.md) provisionally
-implements connected Candidate B, its regression tests and matched graphical
-fixtures in quiet-PC mode. Next close the execution/visual/performance proof;
-none has run and the visual objective remains unaccepted. No new workstream starts.
+**2026-10-21 source checkpoint:** [IV-C](RESPONSIVE_PRESENCE_IVC.md) adds
+playback-write metering/delivery identity, truthful lifecycle expression, quieter
+startup/controls and correlated latency intervals. Focused source checks pass.
+[IV-B](VISUAL_IDENTITY_IV.md) remains the provisional connected skin. Graphical
+compilation, full-colour optical/pose comparison, layout/translation confirmation
+and isolated cost measurement are the next conditional evidence gates. Then a
+separately authorized correlated provider/audio session can investigate actual
+startup stalls and physical speech alignment. No new beta, topology programme,
+STT/AEC work, release or runtime permission is implied. Stop here for HQ direction.
 
 **HQ priority change (2026-10-14): Visual Identity within Basics Before Expansion.**
 Attractiveness is a principal product feature. Diagnostic observability is completed;

@@ -1,0 +1,151 @@
+{
+  "assignment": "IV-C",
+  "state": "source-complete, graphical and physical verification pending",
+  "startingCommit": "99751258bbea30c03c7bb0f82021140364906cec",
+  "publishedBaseline": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+  "sourceParent": "06a1e0b8554992735f56b07002cd7f79fce9a7ae",
+  "closureIdentity": "Git commit containing this manifest",
+  "sourceFiles": [
+    {
+      "path": "src/sam_ambient/adapters/audio/sounddevice.py",
+      "sha256Lf": "2df6a189a2ecf2dc5ebdd5a017ee469446af37a73bfcff3ca124141efc3d5bde"
+    },
+    {
+      "path": "src/sam_ambient/adapters/http.py",
+      "sha256Lf": "823fdbee222e1517c75100057c36622e14efe90c2b3a6f888a7a9ef5222e479b"
+    },
+    {
+      "path": "src/sam_ambient/adapters/ui/websocket.py",
+      "sha256Lf": "9bd3dda78d0199ea1ac5db9b711c353d4d3c0923dd5cc848dd1857f1978801f8"
+    },
+    {
+      "path": "src/sam_ambient/conversation_diagnostics.py",
+      "sha256Lf": "ffaccce75a3b18a64c8e502b372696b6600e1f5be6f06f18fa83a6260d266101"
+    },
+    {
+      "path": "src/sam_ambient/core/voice/interfaces.py",
+      "sha256Lf": "d2e07334dfc1c57741be704681cb86aaf5c4e465acbc59969331430733cc5075"
+    },
+    {
+      "path": "src/sam_ambient/diagnostic_log.py",
+      "sha256Lf": "37ebf92a583b27527743735a1c1692185ac612cab773ae58ccbad85ca282c470"
+    },
+    {
+      "path": "src/sam_ambient/runtime.py",
+      "sha256Lf": "862eb30378ff38d6510b37a648b31ef87b27d452ad70e4bb5782b89edc7b0f57"
+    },
+    {
+      "path": "src/sam_ambient/static/index.html",
+      "sha256Lf": "8966aed47d61dd5afc1715d8ef2fef725b7d3c6be4b4c1baa8581c5c02754375"
+    },
+    {
+      "path": "src/sam_ambient/supervisor/app_window.py",
+      "sha256Lf": "437e9ca8927ad39da6dd52a0e5ce819d53dfcd93d18e9c739f2e35a58df561e7"
+    },
+    {
+      "path": "src/sam_ambient/supervisor/manager.py",
+      "sha256Lf": "08c749717a5d4742cf23ce0b49a90a6bd15247c55f78f513cf2ca60345636851"
+    },
+    {
+      "path": "src/sam_ambient/supervisor/owner_window.py",
+      "sha256Lf": "53f7e084b46314864a9c17d34ebce3b1ccdcc8a4c3179eafdf7cce8bfe09b18d"
+    },
+    {
+      "path": "ui/index.html",
+      "sha256Lf": "d247c70002c2b9d8a8e1639d4bed8eefc1e744a2fd17a5452b628ca41840656f"
+    },
+    {
+      "path": "ui/src/agency/Console.tsx",
+      "sha256Lf": "aaec2d42cc4d34b52c58803a3460e8372c4671e48ccea896b7b9b1b831d911e3"
+    },
+    {
+      "path": "ui/src/App.tsx",
+      "sha256Lf": "8d039c0c063776660a0d40ece26630fc835728177b3b983f8b3b83de831ed693"
+    },
+    {
+      "path": "ui/src/main.tsx",
+      "sha256Lf": "9fa8a6c7249ae6d86252684222454066e3bb339b2a32f3ed885f4aed000f6128"
+    },
+    {
+      "path": "ui/src/memory/Manager.tsx",
+      "sha256Lf": "20d1650ede3359d40bf06d5e1111ab87fb315c4ac8bc557c44c8aea90cd17b23"
+    },
+    {
+      "path": "ui/src/presence.ts",
+      "sha256Lf": "220a420bffcdbe9f230eae423156ed8e95deb9e482115e435c466812190f71e9"
+    },
+    {
+      "path": "ui/src/protocol/types.ts",
+      "sha256Lf": "f6660c4ce50d7c508c6a1277d21c23a4376fa02dc951f088182d590fe524be7d"
+    },
+    {
+      "path": "ui/src/ProviderStatus.tsx",
+      "sha256Lf": "e587b94efa273a4a5a00cec65acc21f84264a2cb180cb947e7f5489d5218c673"
+    },
+    {
+      "path": "ui/src/QuitDialog.tsx",
+      "sha256Lf": "bc96f2d52a3fce758aa0c24ff8eb9ce1068b1072ccacfce2f79a85887daf261b"
+    },
+    {
+      "path": "ui/src/state/client.ts",
+      "sha256Lf": "3c9408ad4d10f596c030ee26ae7c027eb955be30d41837f6ab3aef0026a587bb"
+    },
+    {
+      "path": "ui/src/state/reducer.ts",
+      "sha256Lf": "29e7568c72dc0ddb2629169436dd4a9a982c0188519debf5c09ca8c790045b5f"
+    },
+    {
+      "path": "ui/src/status.ts",
+      "sha256Lf": "955f1d7ce66f01fe04c4ed92efd119209b1282b0b43b5b0c3c69cc0c5e299282"
+    },
+    {
+      "path": "ui/src/styles.css",
+      "sha256Lf": "f85f4b14beb4f5b4ac849cb137ba0e36bbec5fa193e3478744fafbde0355cb00"
+    },
+    {
+      "path": "ui/src/visual-engine/engine.ts",
+      "sha256Lf": "a024702a884872b283a60d20b640063d9b349bbee72e5c39dea1d2e32e2c73e4"
+    },
+    {
+      "path": "ui/src/visual-engine/input.ts",
+      "sha256Lf": "a6b29c1cef9e592713615d84625274a6b2395249dcbf9c76624d098df05e3115"
+    },
+    {
+      "path": "ui/src/visual-engine/motion.ts",
+      "sha256Lf": "8ccec751bd7b7e89696dbee8d7ca185546b3bcbf36f38fac1b976944ec646b9c"
+    },
+    {
+      "path": "ui/src/visual-engine/types.ts",
+      "sha256Lf": "4ab2f89d07361a95f53da279309f1f5500c343f87db146d09ea852e6147a8eb7"
+    }
+  ],
+  "protectedPathsCheckedUnchanged": [
+    "ui/src/visual-engine/living-field.ts",
+    "ui/src/visual-engine/living-material.ts",
+    "ui/src/visual-engine/palette.ts",
+    "ui/src/visual-engine/particles.ts",
+    "ui/src/visual-engine/geometry.ts",
+    "ui/src/visual-engine/skin-domain.ts",
+    "ui/src/visual-engine/skin-geometry.ts",
+    "ui/src/visual-engine/membrane.ts",
+    "ui/src/visual-engine/membrane-optics.ts",
+    "ui/src/visual-engine/quality.ts",
+    "ui/src/visual-engine/governor.ts",
+    "ui/src/visual-engine/settings.ts",
+    "ui/src/visual-engine/canvas.ts",
+    "ui/src/visual-engine/webgl.ts",
+    "src/sam_ambient/adapters/stt",
+    "src/sam_ambient/core/memory",
+    "pyproject.toml",
+    "uv.lock",
+    "ui/package.json",
+    "ui/pnpm-lock.yaml",
+    "ui/src-tauri"
+  ],
+  "releasedJsCssCheckedUnchanged": true,
+  "sourceFileCount": 28,
+  "noBuildOrGraphicalExecution": true,
+  "shippedIndexRawSha256": "a5d83c74b5f57e035ab5628410985e52ef7840fb879fcdce88aae028cfcf35bb",
+  "shippedJsEntry": "/assets/index-DPoRgsL3.js",
+  "shippedCssEntry": "/assets/index-D5fV1sLu.css"
+}

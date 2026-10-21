@@ -2,11 +2,20 @@
 
 ## Unreleased
 
+- IV-C responsive presence: playback-write meters and separate delivery identity;
+  bounded lifecycle poses/waiting labels; compact startup, functional Memory/Console
+  panels and persistent Quit; clear spoken-output/input controls; private-profile
+  translation opt-out; correlated content-free latency intervals. Focused tests,
+  lint and bounded no-emit TypeScript pass. Graphical fixtures are authored but
+  unexecuted. No build, provider/model/audio-device run, version bump or release.
+  [Scope, evidence and open questions](docs/RESPONSIVE_PRESENCE_IVC.md).
+
 - Experimental connected parent-skin source implementation with three irregular
   openings, attached curling collars, shared field/behavior and opening-based High
   contact. Geometry/optics regressions and matched release/candidate fixtures are
-  authored. Quiet-PC mode deferred all tests, type/build, rendering and performance
-  checks; shipped assets and version remain unchanged. No visual acceptance claim.
+  authored. IV-B deferred execution; IV-C subsequently passed focused source checks.
+  Rendering/performance and visual acceptance remain open; shipped JS/CSS and version
+  remain unchanged (HTML receives translation metadata only).
   See [Visual Identity IV](docs/VISUAL_IDENTITY_IV.md).
 
 ## 0.2.5 — experimental source/Python alpha (2026-10-15)

@@ -6,8 +6,20 @@ irregular openings and body-relative C1 curled collars. Same field/palette/clock
 9/9/10 draws and 12/24/64 points; High body+skin 17,600 vertices. Geometry arrays
 including particles are 32,988/150,252/519,500 bytes, plus unchanged halo and bounded
 uniforms as itemized in IV. No budget expansion or owner-setting migration.
-Current source/fixtures are unexecuted in quiet-PC mode; shipped assets are unchanged.
+IV-C focused non-graphical checks pass; shaders, images and hardware cost remain unverified.
+Shipped JS/CSS still contain the release; HTML alone has translation opt-out metadata.
 Older material/geometry descriptions remain historical where superseded.
+
+**Responsive Presence IV-C:** [contract and evidence](RESPONSIVE_PRESENCE_IVC.md).
+Renderer-only lifecycle phases distinguish formation, genuine loading, committed
+turns, response production, speech preparation/delivery and retirement. Compact
+poses do not increase speech gains or change the palette/Flow fields. Startup and
+retirement use bounded 15-Hz transitions; reduced motion and hidden suspension
+still apply. No topology, shader pass, point-cap or quality-policy expansion.
+`tts.level` is post-gain, post-write submission telemetry, not synthesis progress
+or a physical microphone measurement. Separate playback identity survives model
+completion/tentative input; 32 retired delivery IDs plus active-generation gates
+reject late levels. Missing real levels expire; no speaking-state waveform is made up.
 
 Status: implementation contract. The core renderer, state choreography, direct
 manipulation, persistent visual preferences and bounded measured adaptation have

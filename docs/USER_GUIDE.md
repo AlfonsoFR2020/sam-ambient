@@ -155,8 +155,9 @@ it does not silently keep a disappeared model selected. After disconnect, any
 previously shown provider or model is labeled last known until the local service
 reports fresh status.
 Before core readiness, the main view says **Starting Sam**; after a core restart it
-says **Reconnecting**. The startup card shows reported service, provider, model and
-speech facts instead of a fixed progress checklist. The main view presents one
+says **Reconnecting**. In IV-C development source, startup is a compact summary;
+**Details and model controls** reveals service, provider, model and speech facts.
+Required model choices and recovery remain available. The main view presents one
 plain-language explanation; raw connection and setup errors are under **Technical
 details** or **Diagnostics**. A render failure leaves a visible **Reload interface**
 button. **System** keeps provider/model, speech, selected voice and privacy details.
@@ -195,7 +196,9 @@ other platforms or browser refusal, close the stopped page yourself. Closing a
 normal `--ui-mode browser` tab does not stop Sam.
 
 - **Microphone** controls listening; text input remains available while muted.
-- **Voice** controls future spoken replies; text responses remain visible.
+- **Spoken replies** controls current/future speech output; text responses remain
+  visible. The microphone and recognition are controlled separately. Released
+  v0.2.5 assets label this output control **Voice**.
 - **Stop speaking** is available during current speech and cancels only
   queued/current speech and playback.
 - **Emergency stop** cancels current model, tools, queued speech and playback.
@@ -209,9 +212,12 @@ normal `--ui-mode browser` tab does not stop Sam.
   becomes active only after the serving endpoint confirms it is loaded.
 - **Restart Sam** asks for confirmation, revokes/cancels active work, and restarts
   managed Sam components without stopping externally owned model services.
-- **Quit Sam** in Controls (or Ctrl+Q) asks for confirmation, then shuts down
+- **Quit** in the development footer, **Quit Sam** in Controls, or Ctrl+Q asks for confirmation, then shuts down
   the application. Cancel/Escape backs out; keyboard focus starts on Cancel.
-  After acknowledgement the page says **Sam has stopped** and does not reconnect.
+  After acknowledgement development source says **Shutdown requested** and does
+  not reconnect; owned-resource cleanup may still be finishing. Presentation does
+  not delay shutdown. The persistent Memory/Console buttons open functional,
+  mutually exclusive panels; Escape closes a panel and returns keyboard focus.
   Closing a fallback browser tab alone leaves Sam running; Ctrl+C stops it.
 - **Transcript**, **Reduced motion**, **Intensity**, and fullscreen are local
   presentation preferences, not permissions for the model.

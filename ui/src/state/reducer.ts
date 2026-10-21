@@ -95,6 +95,15 @@ const startsTurn = (event: ProtocolEvent): boolean =>
 
 const isStaleConversationEvent = (state: UiState, event: ProtocolEvent): boolean => {
   if (!isConversationEvent(event.type)) return false;
+  // Delivery telemetry cannot establish a generation. An old level remains
+  // ineligible after its ID ages out of the bounded retired-ID cache.
+  if (
+    event.type.startsWith("tts.") &&
+    event.generation_id &&
+    event.generation_id !== state.generationId &&
+    !(event.type === "tts.cancelled" && event.turn_id && event.turn_id === state.turnId)
+  )
+    return true;
   if (
     state.generationId &&
     (event.type.startsWith("model.") || event.type.startsWith("tts.")) &&
@@ -102,6 +111,12 @@ const isStaleConversationEvent = (state: UiState, event: ProtocolEvent): boolean
   )
     return true;
   if (event.turn_id && state.retiredTurnIds.includes(event.turn_id)) return true;
+  if (
+    event.type.startsWith("tts.") &&
+    event.generation_id &&
+    state.retiredPlaybackGenerationIds?.includes(event.generation_id)
+  )
+    return true;
   if (
     event.generation_id &&
     state.retiredGenerationIds.includes(event.generation_id) &&
@@ -596,6 +611,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
             metrics: { rms: 0, peak: 0, speechProbability: 0, playbackEnvelope: 0 },
             pendingUserMessageId: undefined,
             pendingShutdownId: undefined,
+            retiredPlaybackGenerationIds: [],
             latestToolActivity: null,
             pendingToolApproval: null,
             capabilityAuthorityReason: undefined,
@@ -849,6 +865,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     next = {
       ...next,
       playbackGenerationId: undefined,
+      retiredPlaybackGenerationIds: retireId(
+        next.retiredPlaybackGenerationIds ?? [],
+        event.generation_id,
+      ),
       metrics: { ...next.metrics, playbackEnvelope: 0 },
     };
   } else if (event.type === "tts.level") {
@@ -899,6 +919,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       priorConversationalState: next.conversationalState,
       conversationalState: "ERROR",
       playbackGenerationId: undefined,
+      retiredPlaybackGenerationIds: retireId(
+        next.retiredPlaybackGenerationIds ?? [],
+        event.generation_id,
+      ),
       provisionalTranscript: null,
       metrics: { ...next.metrics, playbackEnvelope: 0 },
       retiredTurnIds: retireId(next.retiredTurnIds, next.turnId),
@@ -930,6 +954,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     next = {
       ...next,
       transcript,
+      retiredPlaybackGenerationIds: retireId(
+        next.retiredPlaybackGenerationIds ?? [],
+        event.generation_id,
+      ),
       ...(event.generation_id === next.playbackGenerationId
         ? { playbackGenerationId: undefined, metrics: { ...next.metrics, playbackEnvelope: 0 } }
         : {}),

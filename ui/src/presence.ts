@@ -32,6 +32,7 @@ export interface PresencePresentation {
 /** Read-only projection of admitted lifecycle facts, never readiness/progress inference. */
 export function presencePresentation(state: UiState): PresencePresentation {
   const provider = providerPresentation(state);
+  const lastCommitted = state.transcript.at(-1);
   let phase: PresencePhase,
     label: string,
     detail: string,
@@ -82,10 +83,8 @@ export function presencePresentation(state: UiState): PresencePresentation {
     busy = true;
   } else if (
     state.turnId &&
-    state.transcript.some((entry) => entry.role === "user" && entry.turnId === state.turnId) &&
-    !state.transcript.some(
-      (entry) => entry.role === "assistant" && entry.turnId === state.turnId,
-    ) &&
+    lastCommitted?.role === "user" &&
+    lastCommitted.turnId === state.turnId &&
     !["INTERRUPTED", "RECOVERING"].includes(state.conversationalState)
   ) {
     phase = "submitted";

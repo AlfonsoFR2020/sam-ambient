@@ -155,11 +155,11 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 ## Embodiment and basic UI
 
-- Experimental IV-B connected skin is source-implemented; shared pigment/light remain;
-  measured input/output envelopes have distinct bounded form/light response under
-  the existing Audio Reactivity control. Zero retains autonomous motion.
-- October 9 owner rejected polygonal/dull body and absent peels; this pass does not
-  reverse that judgment. Sustained/full-app/low-power cost and visual acceptance remain open.
+- [IV-C](RESPONSIVE_PRESENCE_IVC.md) adds accepted-write speech meters, delivery identity,
+  lifecycle poses, quieter startup/Memory/Console/Quit controls and bounded timing.
+  Focused tests/type/lint pass; IV-B topology, palette/Flow and quality budgets remain.
+- [October 21 triage](BETA_TRIAGE_2026-10-21.md) preserves attractive swirls and uncertain
+  peels/particles. Actual beta renderer is unknown; GPU/physical/human proof stays open.
 - Controls inventory is audited: Conversation, Appearance, Device, System, Diagnostics.
   particle_density persists and chooses a visible fraction of 12/24/64 tier counts;
   Canvas has no particles. Persisted Surface Flow separates transport from Motion.
@@ -197,4 +197,4 @@ Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
 UI shutdown now retires idle/partial HTTP clients; 30 focused checks pass. Native acceptance stays separate.
-Expansion/AEC parked; [Visual IV-B](VISUAL_IDENTITY_IV.md) implements experimental connected skin; all execution/render proof and human acceptance remain open.
+Expansion/AEC parked. [Visual IV-B](VISUAL_IDENTITY_IV.md) remains experimental; shaders, graphical comparison, performance and human acceptance are unverified. Released JS/CSS remain unbuilt.

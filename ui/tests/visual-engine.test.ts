@@ -643,7 +643,7 @@ describe("visual engine lifecycle", () => {
     const engine = new VisualEngine({
       createCanvas: fakeCanvas,
       backendFactory: (_canvas, kind, budget, settings, _seed, motion) => {
-        let latest: ReturnType<typeof readyInput> | undefined;
+        let latest: VisualInputV1 | undefined;
         return {
           kind,
           update(input) {

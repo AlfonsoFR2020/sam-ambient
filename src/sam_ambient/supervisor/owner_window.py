@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import os
+import time
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from sam_ambient.core.owner import OwnerAuthorityError, OwnerSession
+from sam_ambient.diagnostic_log import diagnostic
 from sam_ambient.supervisor.app_window import find_app_browser, prepare_translation_preferences
 
 
@@ -35,6 +38,12 @@ class OwnerWindow:
         executable = find_app_browser()
         if executable is None or not (self.assets / "index.html").is_file():
             return False
+        started_ms = time.monotonic_ns() // 1_000_000
+        try:
+            fingerprint = hashlib.sha256((self.assets / "index.html").read_bytes()).hexdigest()[:16]
+            diagnostic("ui.assets", resource=f"static_{fingerprint}")
+        except OSError:
+            diagnostic("ui.assets", state="unavailable")
         self.profile.mkdir(parents=True, exist_ok=True)
         prepare_translation_preferences(self.profile)
         self._driver = await async_playwright().start()
@@ -108,6 +117,11 @@ class OwnerWindow:
             await self._context.grant_permissions(["local-network-access"], origin=url)
             self._context.on("page", lambda page: asyncio.create_task(page.close()))
             await self._page.goto(url + "/?shell=app", wait_until="domcontentloaded")
+            diagnostic(
+                "ui.document_loaded",
+                component="owner-window",
+                elapsed_ms=time.monotonic_ns() // 1_000_000 - started_ms,
+            )
             return True
         except BaseException:
             await self.aclose()

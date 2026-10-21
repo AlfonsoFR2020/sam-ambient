@@ -66,6 +66,58 @@ const flushPromises = async () => {
 };
 
 describe("protocol client", () => {
+  it("projects typed admission separately from commitment and retires rejected Quit", async () => {
+    const transport = new ControlledTransport(),
+      scheduler = new ManualScheduler();
+    const client = new ProtocolClient(transport, scheduler);
+    client.start();
+    await flushPromises();
+    await client.sendControl({
+      protocol: 1,
+      type: "control.user_message.submit",
+      command_id: "typed",
+      monotonic_ms: 1,
+      payload: { text: "Hello" },
+    });
+    expect(client.getSnapshot().pendingUserMessageId).toBe("typed");
+    transport.observers[0].onEvent({
+      protocol: 1,
+      type: "control.acknowledged",
+      monotonic_ms: 2,
+      payload: { command_type: "control.user_message.submit", command_id: "typed" },
+    });
+    expect(client.getSnapshot().pendingUserMessageId).toBe("typed");
+    transport.observers[0].onEvent({
+      protocol: 1,
+      type: "turn.committed",
+      monotonic_ms: 3,
+      turn_id: "turn",
+      generation_id: "generation",
+      payload: { command_id: "typed", text: "Hello" },
+    });
+    expect(client.getSnapshot().pendingUserMessageId).toBeUndefined();
+    await client.sendControl({
+      protocol: 1,
+      type: "control.application.quit",
+      command_id: "quit",
+      monotonic_ms: 4,
+      payload: {},
+    });
+    expect(client.getSnapshot().pendingShutdownId).toBe("quit");
+    transport.observers[0].onEvent({
+      protocol: 1,
+      type: "control.rejected",
+      monotonic_ms: 5,
+      payload: {
+        command_type: "control.application.quit",
+        command_id: "quit",
+        error: "not applied",
+      },
+    });
+    expect(client.getSnapshot().pendingShutdownId).toBeUndefined();
+    expect(client.getSnapshot().applicationStopped).not.toBe(true);
+    client.stop();
+  });
   it("keeps agency terminal results separate and ignores a late rejection", async () => {
     const transport = new ControlledTransport();
     const client = new ProtocolClient(transport, new ManualScheduler());

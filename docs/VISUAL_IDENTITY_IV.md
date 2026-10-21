@@ -1,10 +1,15 @@
 # Visual Identity IV — connected living skin
 
-2026-10-21. **Assignment IV-B: source implementation complete, experimentally unverified.**
-Quiet-PC mode authorizes source edits, test/fixture authoring and local commits;
-it does not authorize tests, lint/type/build tools, browsers, GPU, Sam, providers,
-models or audio. None ran. No visual, performance, green-candidate or release
-acceptance follows from this source milestone. Shipped static assets are not rebuilt.
+2026-10-21. **IV-B is source-complete; graphical quality remains unverified.**
+During IV-B, quiet-PC permission excluded all execution. [IV-C](RESPONSIVE_PRESENCE_IVC.md)
+subsequently authorized short sequential non-graphical checks: topology, membrane,
+contact, resource, continuity and mock-resource tests pass. A bounded TypeScript
+analysis also passes after new test typing repairs. No GLSL execution, graphical
+capture, GPU measurement, full build or visual acceptance is implied. Shipped
+JS/CSS still select the released renderer; only HTML translation opt-out was added.
+
+The sections below preserve IV-B's original source-only checkpoint. Their deferred
+execution statements are historical; IV-C's linked evidence records subsequent checks.
 
 ## Provenance and provisional decision
 

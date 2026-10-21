@@ -24,7 +24,20 @@ class ConversationTrace:
         self.limit = limit
         self.pending: OrderedDict[tuple[str, str], tuple[int, dict]] = OrderedDict()
         self.history: deque[dict] = deque(maxlen=256)
-        self.maxima = {"inference": 0, "stt": 0, "command": 0, "stream": 0, "delivery": 0}
+        self.maxima = dict.fromkeys(
+            (
+                "inference",
+                "stt",
+                "command",
+                "commit",
+                "stream",
+                "delivery",
+                "synthesis",
+                "output_wait",
+                "playback",
+            ),
+            0,
+        )
         self.oscillations = self.failures = self.dropped = 0
         self._partials: deque[str] = deque(maxlen=256)
         self._first_audio: deque[str] = deque(maxlen=256)
@@ -72,6 +85,7 @@ class ConversationTrace:
         elif phase == "dispatch":
             if command.type == ControlCommandType.USER_MESSAGE_SUBMIT:
                 self.begin("request", command.command_id, **ids)
+                self.begin("commit", command.command_id, **ids)
         elif phase in {"acknowledged", "rejected", "cancelled"}:
             self.end(
                 "command",
@@ -80,6 +94,7 @@ class ConversationTrace:
             )
             if phase != "acknowledged":
                 self.end("request", command.command_id, state=phase)
+                self.end("commit", command.command_id, state=phase)
         self.record(f"command.{phase}", **ids)
 
     def event(self, event: ProtocolEvent) -> None:
@@ -119,7 +134,11 @@ class ConversationTrace:
         elif kind in {EventType.TRANSCRIPT_PARTIAL, EventType.TRANSCRIPT_FINAL}:
             if kind == EventType.TRANSCRIPT_FINAL:
                 self.end("stt", key)
-                if event.payload.get("role") == "user" and event.generation_id is not None:
+                if (
+                    event.payload.get("role") == "user"
+                    and event.payload.get("candidate") is not True
+                ):
+                    self.end("commit", event.payload.get("command_id"))
                     self.record("turn.committed", **ids)
             elif key is not None:
                 fingerprint = identity(key)
@@ -128,6 +147,7 @@ class ConversationTrace:
                 self._partials.append(fingerprint)
             self.record(str(kind), nonempty=bool(str(event.payload.get("text", "")).strip()), **ids)
         elif kind == EventType.TURN_COMMITTED:
+            self.end("commit", event.payload.get("command_id"))
             self.end("candidate", key)
             self.end("stt", key)
             self.record("turn.committed", **ids)
@@ -151,6 +171,7 @@ class ConversationTrace:
             self.end("inference", event.generation_id, state=state)
             self.end("stream", event.generation_id, state=state)
             self.end("request", command_id, state=state)
+            self.end("commit", command_id, state=state)
             self.record(str(kind), state=state, **ids)
         elif kind == EventType.STT_CANCELLED:
             self.end("candidate", key, state="cancelled")
@@ -160,7 +181,10 @@ class ConversationTrace:
             self.begin("delivery", event.generation_id, **ids)
         elif kind == EventType.TTS_LEVEL:
             fingerprint = identity(event.generation_id or "")
-            if event.payload.get("rms", 0) > 0 and fingerprint not in self._first_audio:
+            if (
+                event.payload.get("rms", event.payload.get("envelope", 0)) > 0
+                and fingerprint not in self._first_audio
+            ):
                 self._first_audio.append(fingerprint)
                 self.record("playback.first_activity", **ids)
         elif kind in _DELIVERY_END:
@@ -172,6 +196,8 @@ class ConversationTrace:
                 else "completed"
             )
             self.end("delivery", event.generation_id, state=state)
+            for interval in ("synthesis", "output_wait", "playback"):
+                self.end(interval, event.generation_id, state=state)
             self.record(str(kind), state=state, **ids)
         elif kind in {
             EventType.COMPONENT_HEALTH,
@@ -196,6 +222,10 @@ class ConversationTrace:
             "longest_command_ms": maxima["command"],
             "longest_stream_ms": maxima["stream"],
             "longest_delivery_ms": maxima["delivery"],
+            "longest_commit_ms": maxima["commit"],
+            "longest_synthesis_ms": maxima["synthesis"],
+            "longest_output_wait_ms": maxima["output_wait"],
+            "longest_playback_ms": maxima["playback"],
             "oscillations": self.oscillations,
             "nonterminal": len(self.pending),
             "failures": self.failures,

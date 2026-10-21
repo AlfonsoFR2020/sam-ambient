@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from collections.abc import AsyncIterator, Callable, Mapping
 from typing import Any, Protocol
 
@@ -118,18 +119,31 @@ class HttpxJsonTransport:
     ) -> AsyncIterator[str]:
         request_options = self._request_options(body, headers, timeout_s)
         remove_callback = self._bind_cancellation(cancellation)
+        started_ms = time.monotonic_ns() // 1_000_000
+        line_count = 0
+        diagnostic("provider.request", state="starting", source_ms=started_ms)
         try:
             async with self._client.stream(method, url, **request_options) as response:
+                diagnostic(
+                    "provider.headers",
+                    state="rejected" if response.status_code >= 400 else "accepted",
+                    elapsed_ms=time.monotonic_ns() // 1_000_000 - started_ms,
+                )
                 if response.status_code >= 400:
                     raw = await self._read_limited(response)
                     self._raise_for_status(response, raw, headers)
-                diagnostic("provider.headers", state="accepted")
                 async for line in response.aiter_lines():
                     cancellation.raise_if_cancelled()
                     if len(line.encode("utf-8")) > self._max_response_bytes:
                         raise HttpProtocolError("stream line exceeded configured size limit")
                     stripped = line.strip()
                     if stripped:
+                        if line_count == 0:
+                            diagnostic(
+                                "provider.first_line",
+                                elapsed_ms=time.monotonic_ns() // 1_000_000 - started_ms,
+                            )
+                        line_count += 1
                         yield stripped
         except asyncio.CancelledError as error:
             self._raise_if_token_cancelled(cancellation, error)
@@ -140,6 +154,11 @@ class HttpxJsonTransport:
             raise HttpTransportError(str(error)) from error
         finally:
             remove_callback()
+            diagnostic(
+                "provider.stream_closed",
+                count=line_count,
+                elapsed_ms=time.monotonic_ns() // 1_000_000 - started_ms,
+            )
 
     async def aclose(self) -> None:
         if self._owns_client:

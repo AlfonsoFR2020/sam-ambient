@@ -98,6 +98,24 @@ next checkpoint; this does not claim the beta's intermittent stall is solved.
 
 ## Conversation timing and ownership
 
+**IV-C development amendment (2026-10-21):** separate content-free intervals now
+cover dispatch-to-turn commitment, synthesis/first PCM, first accepted output
+write and playback-to-drain. Summaries add `longest_commit_ms`,
+`longest_synthesis_ms`, `longest_output_wait_ms` and `longest_playback_ms` within
+the existing 128-pending/256-history bounds. No per-frame audio logging is added.
+HTTP streaming records request, response headers, first nonempty line and close
+with elapsed durations/counts; `model.first_token` remains the useful-text signal.
+A first SSE line can be metadata and is not called a token. Internal provider
+queuing is inseparable from transport/server time unless the provider supplies
+additional trusted evidence. No timeout/restart/readiness change accompanies this.
+
+Supervisor component readiness, authenticated UI bootstrap/snapshot and owner
+document load have distinct records. `ui.assets.resource` is a short hash of
+shipped HTML, without paths/content; source DOM exposes development/build and
+experimental visual identity markers. Document load is not first paint, WebGL
+success or interactive readiness. No extra protocol command/telemetry endpoint
+was introduced. See [IV-C scope, tests and remaining evidence](RESPONSIVE_PRESENCE_IVC.md).
+
 A bounded read-only event projection at the runtime records existing voice state,
 first partial/final presence (never text), committed user turns, generation/stream
 terminal events, candidate retirement, delivery and component health. Command

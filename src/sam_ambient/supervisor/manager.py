@@ -223,6 +223,18 @@ class Supervisor:
                             status.last_healthy_ms = ready_at
                             self.store.save_status(status)
                             log.info("%s ready: %s", spec.component_id, report.state)
+                            diagnostic(
+                                "component.ready",
+                                component=spec.component_id,
+                                instance_id=context.instance_id,
+                                state=report.state,
+                                elapsed_ms=ready_at
+                                - (
+                                    status.last_start_ms
+                                    if status.last_start_ms is not None
+                                    else ready_at
+                                ),
+                            )
                             if self.on_ready is not None:
                                 self.on_ready(spec.component_id)
                             exit_code = await exit_task

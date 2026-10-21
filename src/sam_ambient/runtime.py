@@ -2133,6 +2133,8 @@ class SamRuntime:
                             return
                         if first_write:
                             first_write = False
+                            self.trace.end("output_wait", generation_id)
+                            self.trace.begin("playback", generation_id, generation_id=generation_id)
                             self.speech_queue.mark_playing(chunk, self._next_event_ms())
                             self.trace.record(
                                 "playback.first_write",
@@ -2235,6 +2237,7 @@ class SamRuntime:
         capabilities = getattr(self.tts, "capabilities", None)
         if capabilities is not None and not capabilities.local:
             raise RuntimeError("Network speech requires a future explicit trusted opt-in")
+        self.trace.begin("synthesis", generation_id, generation_id=generation_id)
         fallback = getattr(self, "_response_language", self.config.language)
         if self.voice is not None:
             fallback = getattr(self.voice.stt, "confirmed_language", None) or fallback
@@ -2256,6 +2259,8 @@ class SamRuntime:
                     selection = None
                     if first_pcm:
                         first_pcm = False
+                        self.trace.end("synthesis", generation_id)
+                        self.trace.begin("output_wait", generation_id, generation_id=generation_id)
                         self.trace.record("synthesis.first_pcm", generation_id=generation_id)
                         selected_voice = getattr(self.tts, "last_selection", None)
                         if selected_voice is not None:

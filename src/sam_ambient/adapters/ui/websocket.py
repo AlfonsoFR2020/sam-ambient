@@ -137,11 +137,14 @@ class WebSocketCoreBridge:
         authenticated_owner = self.owner
         connection = OwnerConnection(authenticated_owner, self.owner_session_id)
         self._authenticated.add(socket)
+        diagnostic("ui.authenticated", component="sam-ui", state="ready")
         subscription = await self.events.subscribe(max_queue=self.subscription_queue)
         self.connected.set()
         try:
             if self.ready_event is not None:
-                await socket.send(self.ready_event().to_json())
+                ready = self.ready_event()
+                await socket.send(ready.to_json())
+                diagnostic("ui.snapshot_sent", component="sam-ui", state=ready.payload.get("state"))
             producer = asyncio.create_task(self._produce(socket, subscription, authenticated_owner))
             consumer = asyncio.create_task(self._consume(socket, authenticated_owner, connection))
             done, pending = await asyncio.wait(

@@ -1,5 +1,25 @@
 # Decision log
 
+## 2026-10-21 — Playback observation and responsive presence (IV-C)
+
+Move visual output metering from synthesis to an optional trusted observer after
+bounded blocking PCM writes. This observes submission, not physical sound. Output
+drain closes delivery independently of model/text completion; cancellation and
+active/retired identities prevent stale metering. Optional observation cannot fail
+speech. Input/output remain separate; no PCM or content is exposed to the UI.
+
+Represent lifecycle expression as a read-only projection of existing authoritative
+events and pending owner commands. Reuse geometry/material clocks for compact
+formation/loading/departure, keeping bounded scheduling, Reduced Motion and hidden
+suspension. Quit never waits for presentation. Preserve the palette and provisional
+IV-B topology; the beta's actual renderer is unknown because normal launch still
+uses release assets. Functional startup/Console/Memory controls stay reversible.
+
+Disable translation through HTML plus a Sam-private profile preference, preserving
+other preferences and existing sandbox/proof restrictions. Add only allowlisted
+timing stages, with provider-internal queuing and physical alignment still unknown.
+[Evidence, source boundaries and open validation](RESPONSIVE_PRESENCE_IVC.md).
+
 ## 2026-10-21 — Experimental connected parent skin (Assignment IV-B)
 
 Quiet-PC authorization permits source implementation and regression authoring,

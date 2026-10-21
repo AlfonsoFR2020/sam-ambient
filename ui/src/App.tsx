@@ -708,6 +708,7 @@ export default function App() {
         event.preventDefault();
         setVisualDiagnosticsOpen((open) => !open);
         setControlsOpen(false);
+        setWorkspaceSurface(null);
         return;
       }
       const intent = shortcutIntent(event, editing);
@@ -839,7 +840,10 @@ export default function App() {
           open={workspaceSurface === "console"}
           onOpenChange={(open) => {
             setWorkspaceSurface(open ? "console" : null);
-            if (open) setControlsOpen(false);
+            if (open) {
+              setControlsOpen(false);
+              setVisualDiagnosticsOpen(false);
+            }
           }}
         />
         <MemoryManager
@@ -848,7 +852,10 @@ export default function App() {
           open={workspaceSurface === "memory"}
           onOpenChange={(open) => {
             setWorkspaceSurface(open ? "memory" : null);
-            if (open) setControlsOpen(false);
+            if (open) {
+              setControlsOpen(false);
+              setVisualDiagnosticsOpen(false);
+            }
           }}
         />
       </section>

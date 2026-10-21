@@ -9,7 +9,16 @@ normals drive C1 lifting collars. High contact follows those actual openings.
 Physical tier clearance, opaque resting skin/soft rims, nine/nine/ten draws and
 High opaque-interior priming are provisional optics; Canvas/static and all input,
 policy, lifecycle and governor owners stay unchanged. No new pipeline/dependency.
-Quiet-PC source review is not executed tests, shader/GPU evidence or acceptance.
+IV-C focused source tests pass; shader/GPU evidence and visual acceptance remain open.
+
+[Responsive Presence IV-C](RESPONSIVE_PRESENCE_IVC.md) projects admitted provider,
+turn and delivery facts into bounded presentation phases. It adds no authority.
+Typed send/commit/inference/response/speech preparation remain distinct. Compact
+startup/unload/retirement poses reuse existing geometry; reduced motion, hidden
+suspension and governor ownership persist. Playback observation follows bounded
+accepted writes and separate delivery identity; text completion is not audio drain.
+Only Sam-owned browser profiles get a local translation preference; the private
+asset/proof bootstrap and sandbox remain. Static JS/CSS have not been rebuilt.
 
 Core startup snapshots distinguish configured/pending route identity from an
 available current route: an explicit unavailable reason suppresses current model

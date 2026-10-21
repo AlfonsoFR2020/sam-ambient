@@ -184,7 +184,7 @@ export class VisualInputAdapter {
       if (envelope !== undefined) this.output = { receivedMs: now, envelope };
     }
 
-    const finalInteraction = interactionFrom(state, this.interruptSerial);
+    const finalInteraction = { ...interaction, interruptSerial: this.interruptSerial };
     this.current = {
       version: 1,
       streamKey: this.streamKey,

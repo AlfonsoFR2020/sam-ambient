@@ -1,5 +1,17 @@
 # Post-0.2 engineering backlog
 
+**2026-10-21 IV-C:** [source/evidence checkpoint](RESPONSIVE_PRESENCE_IVC.md).
+Implemented: accepted-write output meters, distinct delivery retirement, continuous
+loading/typed-turn cues, compact departure, startup details, Memory/Console/Quit
+presentation, output/input wording, isolated-profile translation opt-out and
+privacy-preserving latency intervals. Focused tests/static checks pass.
+Open: prove which beta renderer was displayed; compile/render IV-B and lifecycle
+poses; inspect rich-colour inward curls, particles/reflections and small layouts;
+confirm translation suppression and actual Console interaction; measure isolated
+GPU cost only with permission; diagnose cold-start/typed latency and physical
+speech alignment in a later specifically authorized session. No speculative
+provider/STT/AEC change or further topology rewrite is scheduled by this entry.
+
 **Current policy: Basics Before Expansion (2026-10-01).** See the authoritative
 [core acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md) and [Roadmap](ROADMAP.md).
 v0.2.5 is published as a source/Python experimental pre-release. Public native

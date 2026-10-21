@@ -140,3 +140,59 @@ def test_queued_command_wait_and_cancelled_dispatch_are_visible():
         assert any(r["stage"] == "command.cancelled" for r in trace.history)
 
     asyncio.run(scenario())
+
+
+def test_commit_synthesis_output_wait_and_drain_are_distinct_and_content_free():
+    now = [0]
+    trace = ConversationTrace(now=lambda: now[0])
+    command = ControlCommand(
+        "control.user_message.submit",
+        "private-request",
+        0,
+        payload={"text": "private owner content"},
+    )
+    trace.command(command, "queued")
+    now[0] = 10
+    trace.command(command, "dispatch")
+    now[0] = 30
+    trace.command(command, "acknowledged")
+    now[0] = 60
+    trace.event(
+        ProtocolEvent(
+            EventType.TRANSCRIPT_FINAL,
+            1,
+            generation_id="g",
+            turn_id="t",
+            payload={
+                "role": "user",
+                "text": "private owner content",
+                "command_id": command.command_id,
+            },
+        )
+    )
+    trace.begin("stream", "g", generation_id="g", command_id=command.command_id)
+    now[0] = 100
+    trace.event(ProtocolEvent(EventType.MODEL_COMPLETED, 2, generation_id="g"))
+    trace.event(ProtocolEvent(EventType.TTS_STARTED, 3, generation_id="g"))
+    trace.begin("synthesis", "g", generation_id="g")
+    now[0] = 310
+    trace.end("synthesis", "g")
+    trace.begin("output_wait", "g", generation_id="g")
+    now[0] = 350
+    trace.end("output_wait", "g")
+    trace.begin("playback", "g", generation_id="g")
+    trace.event(
+        ProtocolEvent(EventType.TTS_LEVEL, 4, generation_id="g", payload={"envelope": 0.04})
+    )
+    assert trace.snapshot()["nonterminal"] == 2
+    now[0] = 550
+    trace.event(ProtocolEvent(EventType.TTS_COMPLETED, 5, generation_id="g"))
+    snapshot = trace.snapshot()
+    assert snapshot["longest_commit_ms"] == 50
+    assert snapshot["longest_synthesis_ms"] == 210
+    assert snapshot["longest_output_wait_ms"] == 40
+    assert snapshot["longest_playback_ms"] == 200
+    assert snapshot["longest_delivery_ms"] == 450
+    assert snapshot["nonterminal"] == 0
+    assert "private" not in json.dumps(list(trace.history))
+    assert any(record["stage"] == "playback.first_activity" for record in trace.history)
