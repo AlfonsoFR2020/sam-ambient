@@ -1,0 +1,346 @@
+{
+  "schema": 1,
+  "recordedDate": "2026-10-21",
+  "assignment": "IV: Connected Living Skin - representation, geometry and optical proof",
+  "checkpoint": "A: source assessment only; representation selection deferred",
+  "startingBranch": "dev",
+  "startingHead": "486c4a800e5a337ee76a5d4deb355c5f4bc6390b",
+  "releasedBaseline": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+  "startingWorkingTree": "clean",
+  "productSourceDifferenceFromRelease": "none; the one intervening commit changes nine Markdown documents only",
+  "normalization": "Decode UTF-8, omit any BOM, replace CRLF and lone CR with LF; preserve all other whitespace and final newline. Git blobs identify tracked content; sha256LfUtf8 identifies normalized on-disk text.",
+  "execution": {
+    "machineFreeYesSupplied": false,
+    "tests": "not run",
+    "lintTypesBuild": "not run",
+    "headlessBrowser": "not run",
+    "newRendering": "not performed",
+    "gpuMeasurements": "not performed",
+    "samProvidersModelsAudio": "not launched",
+    "remoteOperations": "none"
+  },
+  "comparisonPlan": {
+    "status": "pending explicit task-specific machine permission; no fresh baseline or candidate images",
+    "seed": "0x5a17",
+    "yawRadians": [
+      0,
+      0.75,
+      1.6
+    ],
+    "curlSampleSeconds": [
+      0,
+      6,
+      12
+    ],
+    "controlledCurlPhase": "base.peelTravel + seconds * 0.3, matching existing Identity III fixture; record actual phase values; not an autonomous wall-clock-rate claim",
+    "heldForGeometry": [
+      "camera",
+      "framing",
+      "exposure",
+      "quality",
+      "body clocks",
+      "light clock",
+      "transport/shear clocks",
+      "palette clocks",
+      "state/envelopes"
+    ],
+    "paletteSeconds": [
+      0,
+      15,
+      45,
+      120,
+      300
+    ],
+    "modes": [
+      "normal full composition",
+      "body only",
+      "membrane only",
+      "neutral material",
+      "front/back normals",
+      "encoded depth",
+      "attachment close-up"
+    ],
+    "performanceCases": [
+      "720 square DPR1",
+      "720 square DPR2",
+      "960 square DPR1"
+    ],
+    "authority": "Renderer-only deterministic fixtures; no core connection, owner proof, microphone, playback or model work"
+  },
+  "sourceFiles": [
+    {
+      "path": "ui/package.json",
+      "gitBlob": "d43fd84e26a81b9d168ee9aae3122c6ee54679c0",
+      "sha256LfUtf8": "bb59af5e0cd472d4c84bc0cc9b4d9202d3c010f0a26cbc604d0843bef775b4d5",
+      "normalizedBytes": 844
+    },
+    {
+      "path": "ui/playwright.visual-identity.config.ts",
+      "gitBlob": "a97710a3573ea432ce0063b5f4eaaaf4edee55fa",
+      "sha256LfUtf8": "bd582d5a359fc1ec6006e2678196c940e1ea453e837988eca14d3ef393cec9ea",
+      "normalizedBytes": 880
+    },
+    {
+      "path": "ui/pnpm-lock.yaml",
+      "gitBlob": "f8053e7e910982d1e301243a13e497eb0d0329a5",
+      "sha256LfUtf8": "540b44fb961bcd384be05bfd36ab2307ba5844d4b475718fff6bf4fa7b4cd841",
+      "normalizedBytes": 52908
+    },
+    {
+      "path": "ui/src/ambient/AmbientScene.tsx",
+      "gitBlob": "5ee6069f05d7917c80a60e16803b2d75c3f977f4",
+      "sha256LfUtf8": "54efb78bcd068e497cd3e6a7065526b8b5601b6511bb94466812b89b2b05a4bc",
+      "normalizedBytes": 7326
+    },
+    {
+      "path": "ui/src/provider-lifecycle.ts",
+      "gitBlob": "8ce3eb146f28834d32328c147ff85fc27cb23afa",
+      "sha256LfUtf8": "7db482ac1900f8dd6d56284188658eea9e563e4db5a6ad2a9b5a901671a14841",
+      "normalizedBytes": 4027
+    },
+    {
+      "path": "ui/src/state/reducer.ts",
+      "gitBlob": "61f7c3a42eb6bf9ac11b51da9c92f230e8c832d8",
+      "sha256LfUtf8": "514f9cfc7c68320907cbc1090d3600c46c9bab9b4d8d3ca65aeb16289bae7f81",
+      "normalizedBytes": 42756
+    },
+    {
+      "path": "ui/src/visual-engine/ambient-reactivity.ts",
+      "gitBlob": "e61c5690f6a74b65fd16209b6c341d9b86e8e489",
+      "sha256LfUtf8": "5126c9f663456ac60df77ba1e29f97e380c7c0b4b0836ae5037b99ee4c91f4df",
+      "normalizedBytes": 4740
+    },
+    {
+      "path": "ui/src/visual-engine/backend.ts",
+      "gitBlob": "ef4e9e00775fa54e46b5761b77f72f7a1005dd41",
+      "sha256LfUtf8": "436d970a764d9a4deb0ab2a462a75bc8c0fe037c5537eca64825471b650a933c",
+      "normalizedBytes": 1065
+    },
+    {
+      "path": "ui/src/visual-engine/canvas.ts",
+      "gitBlob": "50f3c6ac74895c7d15aa2766a5d720fc39536ce5",
+      "sha256LfUtf8": "0ee8900f1309d0eafdd5df15350bcffad725cbd90373e0518733d05ff8712809",
+      "normalizedBytes": 5505
+    },
+    {
+      "path": "ui/src/visual-engine/discourse-crest.ts",
+      "gitBlob": "14a5934efd3c9df8be7fb6125e69fbd1a4c147bf",
+      "sha256LfUtf8": "9d91f6ad576a926ef70bbec54af8347dd87a40a8db618c618ae461fd04eb1c6a",
+      "normalizedBytes": 1013
+    },
+    {
+      "path": "ui/src/visual-engine/engine.ts",
+      "gitBlob": "d5bcc722db489a00bedeae4a750b8edb4168d57e",
+      "sha256LfUtf8": "58e4b4c254a78d9c593c539f00766e372368f447db2a3989cb61d8efef7d180b",
+      "normalizedBytes": 25902
+    },
+    {
+      "path": "ui/src/visual-engine/geometry.ts",
+      "gitBlob": "b18be00d5bb9fee1034f999e0f7b3c741d0995e6",
+      "sha256LfUtf8": "3c7bf9af70021517d2eee7027daae82bfaffe0643963ffab41aba2a7269c0ba0",
+      "normalizedBytes": 8170
+    },
+    {
+      "path": "ui/src/visual-engine/governor.ts",
+      "gitBlob": "a9b77f8d0126b74dce7bda10b523511e7c0effbe",
+      "sha256LfUtf8": "65c0125d3682c4d672df2547b8ba5a28e9101ee1f7f85df495eec60527a3f32b",
+      "normalizedBytes": 4298
+    },
+    {
+      "path": "ui/src/visual-engine/input.ts",
+      "gitBlob": "b93968c5368a941427d793f4e62611e147b4340e",
+      "sha256LfUtf8": "0acc8fe7dab9b54ed25bf452e7422005602bcbfdce3a10266588540df74c9c4f",
+      "normalizedBytes": 8368
+    },
+    {
+      "path": "ui/src/visual-engine/interaction.ts",
+      "gitBlob": "24ee8bb48cb077bfef471ed20400c9656c18fcd2",
+      "sha256LfUtf8": "433bb8f1aaa8b99ea18cceaf6a163bad757f9f4454b90ad7aba50566e0b91e53",
+      "normalizedBytes": 4997
+    },
+    {
+      "path": "ui/src/visual-engine/living-field.ts",
+      "gitBlob": "eb77a7052a62db5b4327104826d3bd8fcec367e2",
+      "sha256LfUtf8": "402f0f3c546392c0569ddadcef82f2adf17eb5507945a7304c8b7ee226d25bf1",
+      "normalizedBytes": 5046
+    },
+    {
+      "path": "ui/src/visual-engine/living-material.ts",
+      "gitBlob": "f23abd23548ec8d7a7bfac74de0ebfde1decff51",
+      "sha256LfUtf8": "974fa5e7a385da8641bc103690bcb68805d97f2308e32a1bc41f940b1bff1b77",
+      "normalizedBytes": 6608
+    },
+    {
+      "path": "ui/src/visual-engine/membrane-optics.ts",
+      "gitBlob": "59807eb6c271eb7c38f68d76afeabcc344b9bc89",
+      "sha256LfUtf8": "ffa4f07f81b17592f2be7e60b437c4bbd63f0f7a1873e431fdf1e1b4f7a09395",
+      "normalizedBytes": 3673
+    },
+    {
+      "path": "ui/src/visual-engine/membrane.ts",
+      "gitBlob": "e4dddac0f034b9b1cc8c8aadc7e47939eabb7861",
+      "sha256LfUtf8": "966e843352c244ff38affc4b28aad866641ef2f871be8076eae379250cbc922b",
+      "normalizedBytes": 1806
+    },
+    {
+      "path": "ui/src/visual-engine/motion.ts",
+      "gitBlob": "c2affcd1cdd96d10cd587e5b744a6b1d7c24b36b",
+      "sha256LfUtf8": "65a1ce8b6ee0f2a40380443e917487cecfc3aa8d809f98cbd527ad2685d6ae7f",
+      "normalizedBytes": 25069
+    },
+    {
+      "path": "ui/src/visual-engine/palette.ts",
+      "gitBlob": "1b83793713ab72a19f8b51d2072dc323588c01ed",
+      "sha256LfUtf8": "3a9ff2873a34d096e8b6273317bae892502756e8da52fa77771f2d30a7c6c9fb",
+      "normalizedBytes": 4103
+    },
+    {
+      "path": "ui/src/visual-engine/particles.ts",
+      "gitBlob": "856aa465b2b6775481bcde0263a7b777f995c8a5",
+      "sha256LfUtf8": "2c9a59a255ca097f09946e423da3a041f49194eb7bd92286eff3ac1232352d92",
+      "normalizedBytes": 2325
+    },
+    {
+      "path": "ui/src/visual-engine/quality.ts",
+      "gitBlob": "858be6dfedcf50db65416960f2ab1a310b5a247a",
+      "sha256LfUtf8": "888d9395e518be71caad4c8fd66e5da7c4e5f5f1710244e538e99747436ff73b",
+      "normalizedBytes": 3289
+    },
+    {
+      "path": "ui/src/visual-engine/settings.ts",
+      "gitBlob": "e46aa3f033106593d2997c51c1fd5b1b3fc8c045",
+      "sha256LfUtf8": "6fa95395e8a81dbf252129dcc06e3429ec23f8420bedad4e45c840fdbb407bd4",
+      "normalizedBytes": 3287
+    },
+    {
+      "path": "ui/src/visual-engine/tuning.ts",
+      "gitBlob": "e78a8a53b74a45ab16efa47d53ed31995c99323e",
+      "sha256LfUtf8": "d9aab6ea483169e2e650035870c6abbdec6b06424c768b2339fd28124eaefb75",
+      "normalizedBytes": 186
+    },
+    {
+      "path": "ui/src/visual-engine/types.ts",
+      "gitBlob": "5094c67849ee1e78fdea574aa6f57eb086ceb282",
+      "sha256LfUtf8": "40a59cf1136e9c0425d6b47043a6060bd3aa3deca33c527145dcd977cba3a138",
+      "normalizedBytes": 2821
+    },
+    {
+      "path": "ui/src/visual-engine/webgl.ts",
+      "gitBlob": "84e91af89fd833796877d768f75ead34bea5b456",
+      "sha256LfUtf8": "e9e600e96852e33fc11f46604b9cb30eb76aafbae030cba785d0b73c6c979d87",
+      "normalizedBytes": 39457
+    },
+    {
+      "path": "ui/tests/browser/palette-lifecycle.spec.ts",
+      "gitBlob": "ed030903739eb3b857956ed255ad399e8b6c5d54",
+      "sha256LfUtf8": "a8672cbdcc5e408d999d46421d03320082da2d6352189403dbc4aa50c66b7707",
+      "normalizedBytes": 11570
+    },
+    {
+      "path": "ui/tests/browser/visual-identity-II.spec.ts",
+      "gitBlob": "17268a465b5c21f3e90e063a9f6d6c7d096f2861",
+      "sha256LfUtf8": "a879bb61e4fbdb535a9d99e00f6364f03d266f2d7a5569a21b06de69601e5ba9",
+      "normalizedBytes": 12565
+    },
+    {
+      "path": "ui/tests/browser/visual-identity-III.spec.ts",
+      "gitBlob": "f496d45a25e4cbda60e7192647b438c8af269ae2",
+      "sha256LfUtf8": "b766dbd60cbbebfc6c0ed0ab55cc2e399621d0df214772f328264cda2cb0d2e5",
+      "normalizedBytes": 2995
+    },
+    {
+      "path": "ui/tests/fixtures/palette-before.ts",
+      "gitBlob": "7f5ef954e65cbf3ea394cd5663dcf3d2131cf6da",
+      "sha256LfUtf8": "51963884f8f4d0b9b8738e46ebbfcbe1f5493576337e908c0b30dcc47a24d9a0",
+      "normalizedBytes": 1396
+    },
+    {
+      "path": "ui/tests/fixtures/visual-identity-II.ts",
+      "gitBlob": "af4750c3ff0015ea972d5d5ac1dcc7652df8e6bc",
+      "sha256LfUtf8": "6a538dcbe60ab5e5e45992790eb4156eccaa1f6561727e5d6bbe12cf51045b1f",
+      "normalizedBytes": 7133
+    },
+    {
+      "path": "ui/tests/fixtures/visual-identity.html",
+      "gitBlob": "def4b60687c3913b2a222aefc85088a600b7abdb",
+      "sha256LfUtf8": "acf2f552683c44714c0c24e03f606a45b37f39b3d17160f63f170508e7159059",
+      "normalizedBytes": 312
+    },
+    {
+      "path": "ui/tests/visual-membrane-optics.test.ts",
+      "gitBlob": "69103f703b062fa0f4269617a097021027d12d31",
+      "sha256LfUtf8": "8e1295555b9298058c4675dfc31c1b67a63dffd9a7f5dfa52d858b0ef8363e57",
+      "normalizedBytes": 2020
+    },
+    {
+      "path": "ui/tests/visual-membrane.test.ts",
+      "gitBlob": "1195a85cb7ccb503e0e1247e642f29d891452922",
+      "sha256LfUtf8": "2800d5389531bb3c9ce558c0f652a530dc8cb435bd7785fc1454d9e8f71da5b1",
+      "normalizedBytes": 5140
+    }
+  ],
+  "preservedEvidence": [
+    {
+      "path": "docs/evidence/visual-identity-II/membrane-comparison.png",
+      "sha256Bytes": "30cb5f4f2755bc5ae21ee7e73c4207210d7327fe4791ee768f7243d1732004d7",
+      "bytes": 468303,
+      "lastPathChangeCommit": "a3e77b5fe3a648a1c5cb0589cb84902bcccb5394",
+      "provenance": "Historical geometry/optics evidence predating the released regional palette. Not an Assignment IV release/candidate comparison."
+    },
+    {
+      "path": "docs/evidence/visual-identity-II/depth-comparison.png",
+      "sha256Bytes": "206993cd35b3ef4ec37b65632f72ebaf6e1b6fc0890835d58b5f64a05dfac8d8",
+      "bytes": 75712,
+      "lastPathChangeCommit": "a3e77b5fe3a648a1c5cb0589cb84902bcccb5394",
+      "provenance": "Historical geometry/optics evidence predating the released regional palette. Not an Assignment IV release/candidate comparison."
+    },
+    {
+      "path": "docs/evidence/visual-identity-III/optical-comparison.png",
+      "sha256Bytes": "199d7bb5240b7a143eb14928cfd4739593a1ec510ff3216887c5988f6688c5d1",
+      "bytes": 437152,
+      "lastPathChangeCommit": "bc91a0394068b5a68a3a4a88fc5bf78fd06d7b4a",
+      "provenance": "Historical geometry/optics evidence predating the released regional palette. Not an Assignment IV release/candidate comparison."
+    },
+    {
+      "path": "docs/evidence/visual-identity-III/curl-phases.png",
+      "sha256Bytes": "be5a10b92d26fcf3aab95147870c332bc0b571f2d409c5e7b32af31bee4debf5",
+      "bytes": 309755,
+      "lastPathChangeCommit": "bc91a0394068b5a68a3a4a88fc5bf78fd06d7b4a",
+      "provenance": "Historical geometry/optics evidence predating the released regional palette. Not an Assignment IV release/candidate comparison."
+    },
+    {
+      "path": "docs/evidence/visual-identity-III/measurements.json",
+      "sha256Bytes": "2fd416b451ff9118bae218893f787eebc7a53ca0de4f75262baeb0cc206c650d",
+      "bytes": 16772,
+      "lastPathChangeCommit": "bc91a0394068b5a68a3a4a88fc5bf78fd06d7b4a",
+      "provenance": "Historical geometry/optics evidence predating the released regional palette. Not an Assignment IV release/candidate comparison."
+    },
+    {
+      "path": "docs/evidence/living-palette/film-across-colors.png",
+      "sha256Bytes": "49965c2de987a7e32b7a9181e5678cae83e306e4c16eff845d3f0ca8b14015bd",
+      "bytes": 296193,
+      "lastPathChangeCommit": "9c5bce8c63cb90bd008571e4c4b3a03f9663b1af",
+      "provenance": "Regional-palette-era evidence; measurements distinguish current banks from substituted historical palette. Not a fresh Assignment IV capture."
+    },
+    {
+      "path": "docs/evidence/living-palette/temporal-compositions.png",
+      "sha256Bytes": "fe6b5ca49b93c31fada54040172cc46552b419141ab4621dede6d99f393c6b3f",
+      "bytes": 580394,
+      "lastPathChangeCommit": "d381947ed189efcebc049aaaaaaa728678c7450d",
+      "provenance": "Regional-palette-era evidence; measurements distinguish current banks from substituted historical palette. Not a fresh Assignment IV capture."
+    },
+    {
+      "path": "docs/evidence/living-palette/measurements.json",
+      "sha256Bytes": "3d9e5d6cded677f3359a4b4258cf963452dbde277be0bee14533b2ca652de03d",
+      "bytes": 4294,
+      "lastPathChangeCommit": "9c5bce8c63cb90bd008571e4c4b3a03f9663b1af",
+      "provenance": "Regional-palette-era evidence; measurements distinguish current banks from substituted historical palette. Not a fresh Assignment IV capture."
+    }
+  ],
+  "limitations": [
+    "Hashes preserve provenance and recoverability, not correctness or visual quality.",
+    "lastPathChangeCommit records the last repository change to an artifact, not necessarily the source commit used to generate it.",
+    "Historical image sets do not supply the complete matched release/A/B matrix.",
+    "No performance measurement of the final released palette is inferred from older Identity III timings."
+  ]
+}

@@ -1,6 +1,6 @@
 # Sam implementation state
 
-Updated: 2026-10-15. This is current development truth, not a release acceptance claim.
+Updated: 2026-10-21. This is current development truth, not a release acceptance claim.
 [ROADMAP](ROADMAP.md) owns priority. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve the v0.2.6+ handoff; no implementation/testing permission is implied.
 ## Release and evidence boundary
 
@@ -197,4 +197,4 @@ Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
 UI shutdown now retires idle/partial HTTP clients; 30 focused checks pass. Native acceptance stays separate.
-Expansion/acoustic tuning stay parked; automated visuals are not human acceptance.
+Expansion/AEC parked; [Visual IV](VISUAL_IDENTITY_IV.md) is source-only, selection/render proof awaits permission; human acceptance stays open.
