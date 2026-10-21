@@ -1,5 +1,13 @@
 # Sam Orb visual direction
 
+**2026-10-21 experimental source:** [Visual Identity IV-B](VISUAL_IDENTITY_IV.md)
+implements the provisional connected-parent-skin direction: three unequal irregular
+openings, substantial resting coating and local curling collars. It supersedes
+the released WebGL six-sheet representation in current source only. Palette,
+independent life and authority remain; tests/rendering/cost and connected-skin
+character are unverified. The original board is still missing; no artistic
+acceptance is implied by choosing a source representation.
+
 Status: **artistic and systems direction for continuing visual stages**, not a
 description of all current renderer behavior. [Visual Engine v1](VISUAL_ENGINE_V1.md)
 defines today's renderer, data, interaction, accessibility and performance contract;

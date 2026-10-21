@@ -1,5 +1,14 @@
 # Sam Visual Engine v1
 
+**2026-10-21 experimental source amendment:** [IV-B](VISUAL_IDENTITY_IV.md) supersedes
+the released six-sheet geometry below with one welded parent skin, three broad
+irregular openings and body-relative C1 curled collars. Same field/palette/clocks,
+9/9/10 draws and 12/24/64 points; High body+skin 17,600 vertices. Geometry arrays
+including particles are 32,988/150,252/519,500 bytes, plus unchanged halo and bounded
+uniforms as itemized in IV. No budget expansion or owner-setting migration.
+Current source/fixtures are unexecuted in quiet-PC mode; shipped assets are unchanged.
+Older material/geometry descriptions remain historical where superseded.
+
 Status: implementation contract. The core renderer, state choreography, direct
 manipulation, persistent visual preferences and bounded measured adaptation have
 landed on `dev`; human visual/native acceptance remains pending.

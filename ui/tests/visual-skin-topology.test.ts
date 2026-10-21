@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createSkinGeometry } from "../src/visual-engine/skin-geometry";
-import { createSkinOpenings, skinCross, skinDot, SKIN_VERTEX_STRIDE, type SkinVector } from "../src/visual-engine/skin-domain";
+import { createSkinOpenings, packSkinOpenings, skinCross, skinDot, SKIN_VERTEX_STRIDE, type SkinVector } from "../src/visual-engine/skin-domain";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
 
 describe("connected parent skin topology (experimental)", () => {
@@ -59,7 +59,16 @@ describe("connected parent skin topology (experimental)", () => {
       expect(createSkinGeometry(budget)).toEqual(createSkinGeometry(budget));
     }
     expect(createSkinOpenings(42)).not.toEqual(p);
+    const packed = packSkinOpenings(p);
+    expect(Object.values(packed).reduce((sum, a) => sum + a.byteLength, 0)).toBe(192);
+    expect(packed.centers[3]).toBeCloseTo(p[0].radius);
+    expect(packed.tangents[3]).toBeCloseTo(p[0].x);
+    expect(packed.sides[3]).toBeCloseTo(p[0].y);
+    expect(Array.from(packed.shapes.slice(0, 4))).toEqual([p[0].collar, p[0].height, p[0].curl, p[0].phase].map(Math.fround));
+    for (const seed of [0, 1, 42, 0xffff_ffff])
+      expect(createSkinGeometry(RENDER_BUDGETS.low, seed).vertices.length / 3).toBe(575);
     expect(createSkinGeometry({ ...RENDER_BUDGETS.low, peels: 0 }).indices.length).toBe(0);
     expect(() => createSkinGeometry({ ...RENDER_BUDGETS.high, skinRows: 100 })).toThrow(RangeError);
+    expect(() => createSkinGeometry({ ...RENDER_BUDGETS.high, skinRows: 24, skinSegments: 32 })).toThrow(/vertex envelope/);
   });
 });

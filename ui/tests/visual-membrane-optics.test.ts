@@ -3,11 +3,23 @@ import { skinOffsets } from "../src/visual-engine/membrane";
 import { skinContact, skinPoseFromFrame } from "../src/visual-engine/membrane-optics";
 import { MotionEvaluator } from "../src/visual-engine/motion";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
-import { createSkinOpenings, skinNormalize, skinRegion, skinRimRadius, type SkinVector } from "../src/visual-engine/skin-domain";
+import { createSkinOpenings, skinDot, skinNormalize, skinRegion, skinRimRadius, type SkinVector } from "../src/visual-engine/skin-domain";
 import { DEFAULT_VISUAL_ENGINE_SETTINGS } from "../src/visual-engine/types";
 import { visualInput } from "./fixtures/visual-identity-II";
 
 describe("connected skin optical footprint", () => {
+  it("curls perpendicular to the actual irregular rim in spherical space", () => {
+    for (const p of createSkinOpenings()) for (const theta of [0, 0.6, 2.1, 4.8]) {
+      const point = (angle: number): SkinVector => {
+        const r = skinRimRadius(p, angle);
+        return skinNormalize(p.center.map((v, i) => v + p.tangent[i] * (p.x + r * Math.cos(angle)) + p.side[i] * (p.y + r * Math.sin(angle))) as unknown as SkinVector);
+      };
+      const n = point(theta), region = skinRegion(n, p), plus = point(theta + 1e-5), minus = point(theta - 1e-5);
+      const tangent = skinNormalize(plus.map((v, i) => v - minus[i]) as unknown as SkinVector);
+      expect(Math.abs(skinDot(region.inward, n))).toBeLessThan(1e-7);
+      expect(Math.abs(skinDot(region.inward, tangent))).toBeLessThan(1e-5);
+    }
+  });
   it("recovers each real opening/collar rather than six obsolete carrier shadows", () => {
     for (const p of createSkinOpenings())
       for (const theta of [0, 1.1, 3, 5.6])

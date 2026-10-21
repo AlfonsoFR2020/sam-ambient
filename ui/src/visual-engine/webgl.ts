@@ -587,6 +587,7 @@ export class WebGLBackend implements RendererBackend {
     );
     const particleGeometry = createParticleGeometry(budget.particles, seed);
     this.particles = arrayResource(gl, particleGeometry.vertices, particleGeometry.count);
+    gl.disable(gl.CULL_FACE); // Both sides of a rolled free rim remain visible.
     gl.clearColor(0, 0, 0, 0);
     this.setObjectOrientation(new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]));
   }

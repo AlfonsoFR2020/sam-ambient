@@ -91,7 +91,7 @@ export function fixture(
     antialias: budget.antialias,
     preserveDrawingBuffer: true,
   });
-  if (!gl) throw new Error("Headless WebGL2 unavailable");
+  if (!gl) { canvas.remove(); throw new Error("Headless WebGL2 unavailable"); }
   if (options.diagnostic) {
     const original = gl.shaderSource.bind(gl);
     gl.shaderSource = (shader, source) => {
@@ -174,16 +174,23 @@ export function fixture(
   let current = frameAt(0);
   const evaluator = new MotionEvaluator(0x5a17);
   evaluator.evaluate = () => current;
-  const backend = new WebGLBackend(
-    canvas,
-    gl,
-    budget,
-    { ...DEFAULT_VISUAL_ENGINE_SETTINGS, reducedMotion: "off" },
-    0x5a17,
-    evaluator,
-  );
-  backend.resize(size, size, dpr);
-  backend.update(visualInput(0));
+  let backend: WebGLBackend;
+  try {
+    backend = new WebGLBackend(
+      canvas,
+      gl,
+      budget,
+      { ...DEFAULT_VISUAL_ENGINE_SETTINGS, reducedMotion: "off" },
+      0x5a17,
+      evaluator,
+    );
+    backend.resize(size, size, dpr);
+    backend.update(visualInput(0));
+  } catch (error) {
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    canvas.remove();
+    throw error;
+  }
   const render = (frame: MotionFrame, yaw = 0) => {
     current = frame;
     backend.setObjectOrientation(

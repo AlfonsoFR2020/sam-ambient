@@ -23,6 +23,8 @@ export function createSkinGeometry(budget: RenderBudget, seed = 0x5a17): SkinGeo
   const n = budget.skinSegments, rows = budget.skinRows, perimeter = 4 * n;
   if (!Number.isInteger(n) || n < 4 || n > 32 || !Number.isInteger(rows) || rows < 3 || rows > 24)
     throw new RangeError("connected skin sampling exceeds setup bounds");
+  if (24 * n * rows - 1 + (budget.sphereLongitude + 1) * (budget.sphereLatitude + 1) > 20_000)
+    throw new RangeError("body and skin exceed the shared vertex envelope");
   const faces = createSkinFaces(seed), openings = createSkinOpenings(seed);
   const vertices: number[] = [], indices: number[] = [], ranges: SkinDrawRange[] = [];
   const boundaries: number[][] = [];

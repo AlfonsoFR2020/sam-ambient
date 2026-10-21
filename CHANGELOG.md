@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Experimental connected parent-skin source implementation with three irregular
+  openings, attached curling collars, shared field/behavior and opening-based High
+  contact. Geometry/optics regressions and matched release/candidate fixtures are
+  authored. Quiet-PC mode deferred all tests, type/build, rendering and performance
+  checks; shipped assets and version remain unchanged. No visual acceptance claim.
+  See [Visual Identity IV](docs/VISUAL_IDENTITY_IV.md).
+
 ## 0.2.5 — experimental source/Python alpha (2026-10-15)
 
 - Retire incomplete UI HTTP clients before shutdown; preserve graceful parent-stop

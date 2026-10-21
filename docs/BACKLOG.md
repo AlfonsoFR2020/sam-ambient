@@ -77,11 +77,12 @@ are not automatically blockers for a future release.
   sweep. [Continuity, ranked dependencies and bounded assignment](HANDOFF_CODEX_VISUAL_CORE.md#first-visual-core-assignment)
   preserve current implementation/evidence and missing concept-board status.
   No theme engine or implementation is authorized by this planning entry.
-  [Assignment IV source assessment](VISUAL_IDENTITY_IV.md) preserves the release
-  baseline; A/B selection and integration await explicit machine permission.
+  [Assignment IV-B implementation](VISUAL_IDENTITY_IV.md) provisionally chooses
+  connected Candidate B. Source/test authoring is complete; automated/graphical
+  proof and performance remain pending machine-free permission, not passed gates.
 - **Living Orb direction:** retain the shared, seam-safe body/peel field and the
-  `mobile_2020` and bounded nine/ten-draw budgets. Six attached moving curled sheets now
-  replace WebGL domes; compare their continuity and depth against the
+  `mobile_2020` and bounded nine/ten-draw budgets. IV-B's connected skin supersedes
+  the released six-sheet source; compare its continuity and depth against the
   older loxodromic fallback on representative hardware. Broad palette,
   translucency and depth still need human visual acceptance; see
   [Visual direction](VISUAL_DIRECTION.md).

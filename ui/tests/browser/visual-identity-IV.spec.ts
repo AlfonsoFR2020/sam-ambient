@@ -18,6 +18,16 @@ for (const variant of ["released", "candidate"] as const) {
     expect(baselineResponse.ok(), "Prepare the pinned local baseline snapshot before comparing").toBe(true);
     const baseline = await baselineResponse.json();
     expect(baseline.sourceCommit).toBe("dc64c5d180fb44cf7a29bf4d0d1ae2f853347709");
+    expect(baseline.preparing).not.toBe(true);
+    const fsPath = "node:fs", cryptoPath = "node:crypto";
+    const fs = (await import(fsPath)) as { readFileSync(path: URL, encoding: "utf8"): string };
+    const crypto = (await import(cryptoPath)) as { createHash(name: string): {
+      update(text: string): { digest(format: "hex"): string } } };
+    for (const name of ["visual-identity-II.ts", "palette-before.ts"]) {
+      const text = fs.readFileSync(new URL(`../fixtures/${name}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
+      expect(crypto.createHash("sha256").update(text).digest("hex"), "Reprepare baseline when the shared harness changes")
+        .toBe(baseline.currentHarnessSha256Lf[name]);
+    }
     const result = await page.evaluate(async (variant) => {
       const path = "/tests/fixtures/visual-identity-IV.ts";
       const api = (await import(path)) as typeof import("../fixtures/visual-identity-IV");

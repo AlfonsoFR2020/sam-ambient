@@ -52,7 +52,7 @@ export function createSkinOpenings(seed = 0x5a17): readonly SkinOpening[] {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
     return state / 0x1_0000_0000;
   };
-  return [0, 1, 2].map((face) => ({
+  return Array.from({ length: SKIN_OPENING_COUNT }, (_, face) => ({
     ...faces[face], face,
     x: [0.09, -0.12, 0.04][face], y: [-0.12, 0.08, 0.15][face],
     radius: [0.43, 0.34, 0.29][face], collar: [0.30, 0.34, 0.31][face],
@@ -74,6 +74,8 @@ export function packSkinOpenings(openings: readonly SkinOpening[]) {
 /** Periodic C-infinity rim. Maximum radius + collar + center offset stays < 1. */
 export const skinRimRadius = (p: SkinOpening, theta: number): number =>
   p.radius * (1 + 0.12 * Math.cos(3 * theta + p.phase) + 0.07 * Math.sin(2 * theta - p.phase));
+export const skinRimDerivative = (p: SkinOpening, theta: number): number =>
+  p.radius * (-0.36 * Math.sin(3 * theta + p.phase) + 0.14 * Math.cos(2 * theta - p.phase));
 
 export interface SkinRegion {
   readonly q: number;
@@ -85,15 +87,20 @@ export function skinRegion(n: SkinVector, p: SkinOpening): SkinRegion {
   if (cosine < 0.55) return { q: 0, theta: 0, inward: p.tangent };
   const x = skinDot(n, p.tangent) / cosine - p.x;
   const y = skinDot(n, p.side) / cosine - p.y;
-  const theta = Math.hypot(x, y) < 1e-8 ? 0 : Math.atan2(y, x);
-  const radial: SkinVector = p.tangent.map((v, i) =>
-    v * Math.cos(theta) + p.side[i] * Math.sin(theta)) as unknown as SkinVector;
-  const projection = skinDot(radial, n);
+  const distance = Math.hypot(x, y);
+  const theta = distance < 1e-8 ? 0 : Math.atan2(y, x);
+  const slope = skinRimDerivative(p, theta) / Math.max(1e-5, distance);
+  const gx = -Math.cos(theta) - slope * Math.sin(theta);
+  const gy = -Math.sin(theta) + slope * Math.cos(theta);
+  // Spherical gradient of R(theta)-r in the gnomonic chart. A radial ray
+  // alone is not perpendicular to an irregular rim and would shear the curl.
+  const gradient = p.center.map((c, i) =>
+    gx * (p.tangent[i] - (x + p.x) * c) + gy * (p.side[i] - (y + p.y) * c)) as unknown as SkinVector;
   return {
     // Extend through the free boundary for symmetric derivative samples.
-    q: Math.min(1.1, Math.max(0, (skinRimRadius(p, theta) + p.collar - Math.hypot(x, y)) / p.collar)),
+    q: Math.min(1.1, Math.max(0, (skinRimRadius(p, theta) + p.collar - distance) / p.collar)),
     theta,
-    inward: skinNormalize(radial.map((v, i) => -v + n[i] * projection) as unknown as SkinVector),
+    inward: skinNormalize(gradient),
   };
 }
 
@@ -120,7 +127,13 @@ vec2 skinRegion(vec3 n,int i) {
   return vec2(clamp((skinRimRadius(i,theta)+u_contact_shapes[i].x-length(xy))/u_contact_shapes[i].x,0.,1.1),theta);
 }
 vec3 skinInward(vec3 n,int i,float theta) {
-  vec3 radial=u_contact_tangents[i].xyz*cos(theta)+u_contact_sides[i].xyz*sin(theta);
-  return normalize(-radial+n*dot(radial,n));
+  float cosine=max(.55,dot(n,u_contact_centers[i].xyz));
+  vec2 plane=vec2(dot(n,u_contact_tangents[i].xyz),dot(n,u_contact_sides[i].xyz))/cosine;
+  vec2 xy=plane-vec2(u_contact_tangents[i].w,u_contact_sides[i].w);
+  float phase=u_contact_shapes[i].w;
+  float slope=u_contact_centers[i].w*(-.36*sin(3.*theta+phase)+.14*cos(2.*theta-phase))/max(1.e-5,length(xy));
+  vec2 g=vec2(-cos(theta)-slope*sin(theta),-sin(theta)+slope*cos(theta));
+  return normalize(g.x*(u_contact_tangents[i].xyz-plane.x*u_contact_centers[i].xyz)
+    +g.y*(u_contact_sides[i].xyz-plane.y*u_contact_centers[i].xyz));
 }
 `;

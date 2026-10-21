@@ -1,5 +1,16 @@
 # Architecture
 
+**2026-10-21 experimental source amendment:** [Visual Identity IV-B](VISUAL_IDENTITY_IV.md)
+replaces the six independent WebGL sheets described in the released baseline below
+with one indexed cube-sphere parent skin and three irregular openings. Six welded
+charts are draw partitions of one connected domain. Immutable setup geometry,
+shared body displacement/field, existing membrane clock and full-surface sampled
+normals drive C1 lifting collars. High contact follows those actual openings.
+Physical tier clearance, opaque resting skin/soft rims, nine/nine/ten draws and
+High opaque-interior priming are provisional optics; Canvas/static and all input,
+policy, lifecycle and governor owners stay unchanged. No new pipeline/dependency.
+Quiet-PC source review is not executed tests, shader/GPU evidence or acceptance.
+
 Core startup snapshots distinguish configured/pending route identity from an
 available current route: an explicit unavailable reason suppresses current model
 and provider until confirmed discovery succeeds. Operational runtime and supervisor

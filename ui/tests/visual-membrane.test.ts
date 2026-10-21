@@ -30,6 +30,16 @@ describe("body-attached connected skin", () => {
           radii.push(a[0]);
         }
       expect(Math.max(...radii) - Math.min(...radii)).toBeGreaterThan(0.01);
+      const derivative = (travel: number, theta: number, axis: "time" | "rim") => {
+        const h = 1e-4;
+        const a = skinOffsets(0.85, theta + (axis === "rim" ? h : 0), p, { ...REST_SKIN_POSE, travel: travel + (axis === "time" ? h : 0) });
+        const b = skinOffsets(0.85, theta - (axis === "rim" ? h : 0), p, { ...REST_SKIN_POSE, travel: travel - (axis === "time" ? h : 0) });
+        return a.map((v, i) => (v - b[i]) / (2 * h));
+      };
+      for (const axis of ["time", "rim"] as const) {
+        const first = derivative(0, 0, axis), last = derivative(2 * Math.PI, 2 * Math.PI, axis);
+        expect(first[0]).toBeCloseTo(last[0], 7); expect(first[1]).toBeCloseTo(last[1], 7);
+      }
     }
   });
   it("keeps full-surface points and normals finite through extreme existing cues", () => {

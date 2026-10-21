@@ -1,197 +1,191 @@
 # Visual Identity IV — connected living skin
 
-2026-10-21. **Assignment IV-B: experimental Candidate B source implementation.**
-Quiet-PC permission explicitly allows implementation and test authoring before
-render selection. The earlier execution-dependent stop below is historical and
-superseded for source work. No tests, type/build tools, browser or GPU have run.
+2026-10-21. **Assignment IV-B: source implementation complete, experimentally unverified.**
+Quiet-PC mode authorizes source edits, test/fixture authoring and local commits;
+it does not authorize tests, lint/type/build tools, browsers, GPU, Sam, providers,
+models or audio. None ran. No visual, performance, green-candidate or release
+acceptance follows from this source milestone. Shipped static assets are not rebuilt.
 
-The first source slice uses a welded six-chart cube-sphere with three unequal
-irregular openings, shared body displacement, C1 collar lift and analytic curl.
-The renderer uses the new domain for geometry/normals and High contact. Tiered
-clearance is a physical coat offset (0.016/0.008/0.004), not a global depth bias.
-Production palette/clocks/control authority remain unchanged. Focused regressions
-are authored, not executed. Source hardening and comparison tooling continue.
+## Provenance and provisional decision
 
-The verification slice adds a dedicated IV headless configuration and 92 matched
-views per variant, with diagnostic normals/depth/attachment, palette-only versus
-transport-only rows, synthetic states, zero/reduced controls and hidden resume.
-An ignored baseline snapshot is prepared from pinned local Git only on explicit
-later invocation. Transform feedback compares production coat/normal GLSL with
-CPU reference values using a controlled body callback. Matching isolated GPU and
-CPU-submission measurements are authored; no tool has executed these checks.
+Started on clean local `dev` at `b1f775b6c3532debdf0946f384f575b14ca12b86`.
+The published baseline is `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709`.
+The original source assessment is retained in commit `b1f775b`; its
+[baseline manifest](evidence/visual-identity-IV/baseline-manifest.json) remains
+unchanged. That snapshot's no-implementation/stop rule was superseded explicitly
+by IV-B's permission to implement before graphical comparison.
 
-## Initial source assessment — preserved history
+Provisionally choose **Candidate B**, one connected spherical parent skin with
+three unequal irregular openings. The six old independent, similarly tilted
+long carriers have been removed from WebGL. Source diagnosis and preserved
+[II isolated views](evidence/visual-identity-II/membrane-comparison.png) and
+[III optical views](evidence/visual-identity-III/optical-comparison.png) support
+addressing coverage rather than another width/opacity sweep. They do not prove
+the candidate is attractive. Those images predate the released regional palette;
+[later film/palette evidence](evidence/living-palette/film-across-colors.png) is
+also historical, not a new candidate comparison. No missing reference is invented.
 
-Assignment IV, **Checkpoint A: source assessment only**, before IV-B authorization.
-No representation is selected or integrated. Checkpoints B/C and the visual
-milestone remain incomplete. This record preserves a recoverable starting point
-and the next comparison, not a green implementation or artistic acceptance.
+The original concept board remains unrecovered. Assumptions now embodied in
+source are three broad unequal openings, substantial opaque resting coating and
+satin rolled rims. Their locations/sizes/collars live in one descriptor function
+and can be revised after comparison. No permanent second engine, theme, settings
+migration, dependency or version change is introduced.
 
-## Execution boundary and baseline
+## Representation, attachment and motion
 
-The assignment authorizes local edits and commits, but was submitted without
-`MACHINE-FREE: YES`. No tests, lint/type/build tools, application/server processes,
-headless browsers, GPU rendering, providers, models or audio were run. Inspecting
-already saved images and hashing tracked files are source/evidence work only.
-The task stops before a new render-dependent representation decision. Any later
-permission must come from the owner for this task; this document grants none.
+[skin-domain.ts](../ui/src/visual-engine/skin-domain.ts) defines six oriented
+cube-sphere charts and three smooth star-shaped disk boundaries. Centers are
+offset, radii unequal and rims use fixed seeded second/third angular harmonics.
+The cube is only a parameterization: material still samples normalized spherical
+object directions, not cube UVs. Conservative collar bounds stay inside charts.
 
-- Starting checkout: local `dev`, clean, HEAD
-  `486c4a800e5a337ee76a5d4deb355c5f4bc6390b`.
-- Published baseline: `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709`.
-  The one intervening commit changes nine documents only; product source is identical.
-- [Baseline manifest](evidence/visual-identity-IV/baseline-manifest.json) records
-  tracked source/fixture Git blobs, LF-normalized SHA-256, existing evidence hashes
-  and comparison settings. Git retains the unchanged renderer and original images;
-  no duplicate images or generated product assets are needed for this checkpoint.
-- No fresh v0.2.5 baseline images or candidate images exist for Assignment IV.
-  Existing Identity II/III comparisons predate the released regional palette.
-  [Palette evidence](evidence/living-palette/measurements.json) identifies its source
-  commit and current-bank rows separately from the shader-substituted old-palette row.
-  The old contact sheets must not be relabelled as fresh release/candidate comparisons.
+[skin-geometry.ts](../ui/src/visual-engine/skin-geometry.ts) builds structured
+annuli from an opening rim to each chart's square edge. Closed charts end in a
+center fan, not collapsed zero-area quads. Shared chart-edge vertices are welded
+before indexing; six ranges partition **one connected mesh**, not six overlays.
+The intended topology is a sphere minus three disks: Euler characteristic -1,
+three boundary loops, one connected component. All tiers use the same descriptors
+and topology. Setup guards bound sampling and Uint16 indices. The topology tests
+are authored, not executed, so these properties remain to be verified numerically.
 
-## Diagnosis from source and preserved images
+[membrane.ts](../ui/src/visual-engine/membrane.ts) reuses the current displaced
+body point and membrane clock. Collar coordinate q runs from resting hinge (0)
+to free rim (1). Lift is quadratic and roll cubic at attachment, so relative
+position and first derivatives vanish at q=0. Local seeded harmonic flex and a
+broad lobe vary around each rim; existing receptive/work/output/recovery inputs
+modulate this same law. No new oscillator, radius gain or semantic/audio signal.
 
-| Finding | Evidence and implication |
-| --- | --- |
-| Independent long footprints are the leading structural cause | [Descriptors/carriers](../ui/src/visual-engine/geometry.ts) generate six independent rectangular charts: half-length 1.12–1.26 rad, half-width 0.28–0.35 before the width modulation. Nominal aspect ratio is about 3.2–4.5, not projected screen aspect. All have similar tilt, 0.30–0.60 rad, and Fibonacci-like center distribution rather than a shared opening/attachment layout. |
-| Free edges reinforce the long-carrier shape | [Curl](../ui/src/visual-engine/membrane.ts) attaches v=0 and rolls toward v=1 along nearly the entire u span. `(1-u*u)^2` suppresses lift at the ends; alpha fades there. This smooths a strap without making separate charts one parent skin. |
-| Optics are a secondary visibility problem | In [II isolated/neutral views](evidence/visual-identity-II/membrane-comparison.png), the crossing strips persist without pigment. [III optical comparison](evidence/visual-identity-III/optical-comparison.png) shows calmer film/contact helps separation but retains long lips. The [released-bank film views](evidence/living-palette/film-across-colors.png) still show the long central boundary at several hues. These are provisional Codex observations, not owner acceptance or a new controlled experiment. |
-| Real motion and attachment already exist | CPU/GLSL share the curl law, with a zero hinge offset and zero first offset derivatives at v=0. Immutable carrier/side derivatives and displaced body normals feed the shader. [Saved curl phases](evidence/visual-identity-III/curl-phases.png) are subtle at contact-sheet size; three stills cannot establish natural continuous motion. Retain these mechanics rather than inventing speech energy or multiplying body radius. |
-| Existing depth is deliberately approximate | [Renderer](../ui/src/visual-engine/webgl.ts) sorts six sheet-center ranges, leaves soft color depth writes off and adds High opaque-interior depth priming. [II depth comparison](evidence/visual-identity-II/depth-comparison.png) shows a repaired dotted edge. Center sorting cannot prove correct curled self-overlap or a future connected shell's transparency. |
+Curl return follows the spherical gradient of the **irregular** boundary rather
+than a radial ray from the opening center. CPU and GLSL contain matching gradient,
+offset and full-surface normal equations. Symmetric tangent samples include body
+displacement, coating clearance and collar/curl variation. The map continues just
+past the free boundary for derivative samples; actual mesh vertices stop at it.
+Integer angular/time harmonics preserve both rim and wrapped-clock continuity.
 
-The evidence supports investigating coverage/topology first. It does not yet prove
-that reorganized sheets fail, nor that a connected parent mesh will look better.
-Neither extra tessellation nor optical constants alone has earned selection.
+Motion, Surface Flow, palette/light/particle clocks, input freshness, cancellation,
+zero Audio Reactivity, Reduced Motion and hidden suspension owners are unchanged.
+Skin consumes the existing MotionFrame, not a second event or control pipeline.
+Immutable geometry/ranges/descriptors are created at setup; none rebuild per frame.
 
-## Two bounded candidates; selection deferred
+## Material, contact and depth
 
-### A — reorganized swept sheets
+[webgl.ts](../ui/src/visual-engine/webgl.ts) now consumes one three-float direction
+attribute instead of the old 21-float sheet layout. Resting coating is opaque;
+rim alpha softens toward approximately 0.7, preserving the existing premultiplied
+blend and quieter raised pigment/front/underside satin/backlight hierarchy. Shared
+field, asymmetric transports, regional banks, light/crest and particles remain.
+Collar darkening is gated off at q=0 so it does not darken the entire resting skin.
 
-Keep the existing carrier, derivative and curl machinery. Replace independent
-near-uniform long carriers with a related arrangement of broader, shorter,
-asymmetric footprints and local free edges around a few exposed-body regions.
-Define placement in one deterministic layout so tiers change sampling, not identity.
-Specific widths/coverage remain prototype choices, not new production constants.
+Near-body physical clearance is Low 0.016 / Medium 0.008 / High 0.004 Orb units,
+compensating for coarser chord approximation without changing audio radius gain.
+Relative collar lift starts smoothly from this resting coat. This is a provisional
+thin-coating strategy, **not** exact zero-gap welding, proven collision avoidance
+or thickness/refraction. Tier transitions and worst-pose raster coverage need review.
 
-This is the smallest implementation risk and the control comparison against B.
-Its limitation is structural: adjacent/overlapping sheets are still separate
-charts. Wider straps or plates fail even if their shading is attractive. No
-extra variants or prolonged width/opacity sweep should follow that failure.
+Six immutable connected-chart ranges retain bounded center sorting. High retains
+the existing alpha >=0.72 opaque-interior depth pass, invariant color/depth positions
+and tiny prepass bias. Soft fringes remain approximate; chart sorting does not solve
+within-chart curled self-overlap. Both sides render explicitly with culling disabled.
+No texture, framebuffer, OIT, raymarcher, fluid/cloth solver or new draw pass.
 
-### B — one parent skin with broad openings (leading hypothesis)
+[membrane-optics.ts](../ui/src/visual-engine/membrane-optics.ts) replaces the old
+six-carrier inverse with actual opening/collar coordinates and the shared current
+curl law. High uses bounded max ambient contact with an approximate tangential
+correction; Low/Medium retain cheaper material cues. It is not a directional shadow.
+Descriptor packing is shared with proof fixtures (four vec4 arrays, three openings).
+Shader compilation/link failure now retires its program and successful shader
+objects; ordinary disposal and Canvas/static recovery remain in their existing owners.
 
-Explore one indexed spherical domain with a few separated, broad irregular
-openings and attached-to-lifted collars/lobes along their free rims. Openings are
-actual mesh boundaries, not transparent painted stripes over a complete sphere.
-Connectedness must exist in indexed adjacency, not only in shared color or in
-separate patches placed close together. Keep openings apart with substantial
-connecting skin; no sliver bridges, islands or regular circumferential cuts.
+## Source resource calculation — not measured GPU cost
 
-A bounded construction to prototype is a shared sphere mesh whose cut cells are
-clipped/retriangulated once at setup, with shared cut-edge vertices. Opening
-descriptors use smooth spherical local coordinates away from their antipodes;
-boundary interpolation must resolve the same curve and tangent on both sides of
-cell edges. Reject tiny triangles and T-junctions rather than hiding them with
-alpha. Do not select a triangulator/dependency or pretend this construction is
-already proved. A full boundary loop may need finer setup sampling than its
-attached interior; all tiers must retain the same opening topology.
+Let N be samples per chart side and R radial intervals. For this exact layout:
+`skin vertices = 24*N*R - 1`; `skin triangles = 4*N*(12*R - 3)`.
+Each skin vertex is 12 bytes and each triangle six index bytes.
 
-Let q run from the attached collar (0) to free rim (1), and s run periodically
-around that rim. Reuse body displacement and the current wrapped membrane phase.
-The candidate radial lift and tangential return must vanish with their first
-derivatives at q=0; the existing quadratic-lift/cubic-roll law is a useful starting
-point. Smoothly vary rim lift/roll along s using integer angular harmonics and
-fixed seeded coefficients, with the same existing receptive/work/speech inputs.
-Do not use a fractional multiple of a wrapped clock. Compute normals from the
-complete deformed surface, including q/s gradients and local tangent changes.
+| Tier | N / R | Skin vertices | Body + skin vertices / triangles | Geometry bytes including particles, excluding halo |
+| --- | --- | ---: | ---: | ---: |
+| Low | 6 / 4 | 575 | 1,136 / 2,040 | 32,988 |
+| Medium | 12 / 8 | 2,303 | 5,004 / 9,504 | 150,252 |
+| High | 24 / 16 | 9,215 | 17,600 / 34,272 | 519,500 |
 
-Before selecting B, resolve three concrete risks in the isolated prototype:
+Add the unchanged 44-byte halo geometry. Opening descriptors are 192 bytes per
+program; pose/phase/clearance/count another 32. Skin uses these at all tiers and
+High body contact has a second copy: 224/224/448 added uniform bytes. These are
+source layout calculations, not driver allocation/resident-memory measurements.
 
-1. **Resting surface:** avoid coincident body/skin depth fighting or doubled
-   coating. Decide whether the resting region is represented optically by the
-   body with a smooth collar transition, or uses mutually exclusive coverage.
-   A generic global depth offset is not proof of correct attachment. Invisible
-   connecting triangles alone must not count as a convincing connected skin.
-2. **Topology and orientation:** one connected component; boundary edges form only
-   the intended simple opening loops; interior edges have two incident faces;
-   consistent winding, nonzero areas, no duplicated cut seam or fold inversion
-   across the existing posture extremes. These are required future checks.
-3. **Transparency:** a connected mesh has no equivalent to six independently
-   sorted sheet centers. Start with the existing opaque-body/depth-interior and
-   soft-edge strategy, but assess actual self-overlap and the need for bounded
-   setup draw ranges. Connectivity does not solve blending. Exact OIT/refraction,
-   cloth physics, new framebuffer systems and per-frame triangle sorting are
-   outside this proposal; stop if convincing depth requires them.
+Draws remain **9/9/10**, particles **12/24/64**, programs four and geometry buffers
+seven. High stays below 20,000 vertices and the 1.5 MiB envelope. Medium has more
+vertices than released sheets (5,004 versus 4,615), but fewer bytes due to the
+compact layout. No envelope expands. Pixel/DPR/FPS/profile/governor caps stay intact.
+Full-surface normals and wider coating coverage can still increase shader/fill cost;
+smaller buffers do not prove faster rendering or inference coexistence.
 
-Choose B only if the matched views show recognizable continuous skin with broad
-openings, legible curl in released color and justified cost. Choose A if it meets
-that visual target more simply. If both fail, retain the released renderer and
-report the smallest missing reference/technical decision to HQ. There is no
-accepted architecture deviation to add to DECISIONS at this stage.
+## Authored regression and graphical proof
 
-## Integration seams and protected contracts
+- `visual-skin-topology.test.ts`: connected component, index ranges, finite points,
+  triangle areas/outward rest winding, edge incidence/orientation, three exact
+  boundary loops, Euler characteristic, immutable ranges, seed/welding and packing.
+- `visual-membrane.test.ts` / `visual-membrane-optics.test.ts`: C1 hinge, real flex,
+  wrapped rim/clock values and derivatives, extreme-cue bounds, finite full-surface
+  normals, deformed triangles, actual footprint/gradient/contact, zero audio and
+  independent/frozen membrane clock. These are pending assertions, not passed gates.
+- Quality, continuity and shared-field/mock renderer tests were adapted to the
+  new layout/ranges/resources. Existing input retirement, behavior, engine/fallback,
+  governor, palette, settings and provider-presentation tests remain required.
+- [IV fixture](../ui/tests/fixtures/visual-identity-IV.ts) authors **92 images per
+  variant**: full/body/skin/neutral/normal/depth/attachment at yaw 0/0.75/1.6 and
+  curl 0/6/12 s; matched attachment crop; palette versus transport at
+  0/15/45/120/300 s; synthetic lifecycle/ordinary/emphasized/zero audio, reduced,
+  hidden resume, adjacent frames and tiers. Geometry comparison uses the existing
+  controlled `base.peelTravel + seconds*0.3` convention, not an autonomous rate claim.
+- [GPU equation proof](../ui/tests/fixtures/skin-gpu-proof.ts) authors transform
+  feedback comparison of production skin point/normal GLSL against CPU references
+  at 192 controlled samples. Its body callback is an explicit test spheroid;
+  it isolates coat equations and does not prove the real material/body shader.
+- [IV browser cases](../ui/tests/browser/visual-identity-IV.spec.ts) also author
+  matched isolated High GPU median/p95 and CPU submission cases at 720-square
+  DPR1/2 and 960-square DPR1, 18 warmups and 24 samples, with backing size, device,
+  timer availability/disjoint reporting. No cadence/thermal/full-app inference claim.
 
-- `geometry.ts` owns setup topology/descriptors and immutable ranges; `membrane.ts`
-  owns shared CPU/GLSL deformation. Keep current body point, pigment attachment
-  coordinates and independent membrane clock. No per-frame mesh rebuild/allocation.
-- `membrane-optics.ts` currently inverts six specific carriers. B must replace
-  that lookup with its actual opening/collar domain, shared with geometry; A must
-  update the inverse if its carrier equation changes. Test both footprint and
-  tangential-return correction. Do not leave obsolete six-sheet shadow stripes.
-- `webgl.ts` currently assumes 21 floats per sheet vertex and six equal contiguous
-  draw ranges. B requires explicit immutable topology/range metadata rather than
-  reinterpreting those assumptions silently. Preserve actual front/back normals,
-  premultiplied blending and matched position evaluation in color/depth passes.
-- Retain quiet raised pigment, front/underside distinction, regional palette and
-  common lighting. Add thickness/backface support only after a visible need is
-  isolated; do not add outlines, bloom or saturation to conceal geometry.
-- Input/reducer/provider facts, cancellation and commands remain authoritative
-  outside the renderer. No changes to clocks, audio extraction, radius gain,
-  pointer overlay, governor, saved controls, Canvas/static recovery or dependencies
-  are proposed. Reduced Motion, zero Audio Reactivity and hidden suspension remain.
+No new images, timing samples or successful automated checks exist for IV-B.
+Historical evidence is unchanged. [Implementation record](evidence/visual-identity-IV/implementation-source.json)
+records source hashes, resource arithmetic and execution status separately from
+the immutable original baseline manifest.
 
-Current recorded budgets remain 9/9/10 draws, 12/24/64 particles and
-1,275/4,615/18,135 body-plus-skin vertices. Recorded geometry arrays are
-86,496/276,768/1,229,648 bytes with 384 High contact-uniform bytes; these are
-source/evidence budgets, not new resident-memory measurements. No cap is expanded.
+## Static hardening and later verification
 
-## Evidence needed to complete Checkpoint A, then B/C
+Source review covered descriptor/attribute packing, imports, CPU/GLSL constants,
+index/range arithmetic and winding construction, uniforms and per-frame ownership,
+shader/depth symmetry, cleanup/fallback, existing state/reset semantics and test
+integration. Fixed the obsolete sheet APIs/assertions, resting-region darkening,
+contact-only fixture override accidentally suppressing geometry, shader-failure
+cleanup and irregular-rim curl direction. Git whitespace, local import/link
+resolution and resource arithmetic are lightweight checks only; no type/test pass.
 
-After explicit machine permission, capture the unchanged release renderer first,
-then A/B with seed `0x5a17`, yaw 0/0.75/1.6 and curl samples 0/6/12 seconds.
-Use the existing fixture convention `peelTravel = base + seconds * 0.3` for the
-isolated geometry comparison and record the resulting phase values. These labels
-are controlled fixture time, not a promise of the autonomous default wall-clock
-rate. Match camera, framing, exposure, quality and all other frame fields.
+The source assessment/manifest is commit `b1f775b`; geometry/integration is
+`637f903`, authored proof/regressions `f79eaf1`. The closing source-review/docs
+commit follows them. All remain local on dev. No dependencies, owner settings,
+nonvisual authority, versions or shipped assets change; no remote operations.
 
-Extend only isolated evidence tooling as needed: existing fixtures expose body-only,
-membrane-only, neutral and full-color modes; explicit normal and encoded depth
-views/attachment crops need to be made comparable. They are not product controls.
-Preserve complete composition views so close-ups cannot conceal band/plate reading.
+For a later explicitly machine-free pass, from repository root prepare the ignored
+baseline with `python scripts/prepare_visual_iv_baseline.py --prepare` (local Git
+objects and current identical harness only; no application launch). Then from `ui`:
 
-| Gate | Required evidence; not executed in this checkpoint |
-| --- | --- |
-| Geometry and motion | Matched full/body/skin/neutral/normal/depth views, attachment close-ups, ordinary adjacent frames and wrap-neighbor values/derivatives. Connected-component, edge-incidence, boundary-loop, triangle-area/winding and deformed-normal checks for B. Existing derivative-magnitude tests alone do not prove those topology properties. |
-| Palette and optics | Current banks at 0/15/45/120/300 s; palette-only and transport-only rows; unchanged geometry/light clocks; legibility at all three yaws, normal color and both sides of folds. Identity III's old-palette images are historical references only. |
-| Behavior and recovery | Idle/listening/thinking/speaking/interruption/recovery; ordinary and emphasized synthetic envelopes; exact zero reactivity, Reduced Motion, hidden/resumed clock, cancellation/stream reset and stale owner/generation inputs. Preserve provider posture without routing changes. |
-| Tiers and fallbacks | Same openings/identity at Low/Medium/High; actual resource counts/bytes and bounds; pointer ownership, governor, Canvas/static and context-loss recovery. No new fallback equivalence claim from static reading. |
-| Focused checks | Geometry/material/continuity/behavior/input/motion/quality/governor and relevant provider-presentation regressions; changed-file lint, TypeScript and frontend build when permitted. No broad Python/native suite is required for a visual-only slice absent new evidence. |
-| Performance | Corresponding baseline/candidate High at 720-square DPR1/2 and 960-square DPR1, plus tier/pose/state coverage; effective backing dimensions, device, warm-up, sample count and disjoint handling. GPU median/p95 separate from CPU submission; no presented-FPS, thermal or inference-coexistence claim. |
+1. Run changed-file Biome, TypeScript and focused visual unit regressions, plus the
+   existing input/behavior/fallback/governor/palette/provider-presentation checks.
+2. Run `playwright test --config playwright.visual-identity-IV.config.ts` and the
+   existing relevant headless visual cases. Inspect failures before accepting
+   captures; hashes/commit identity accompany the baseline/current harness.
+3. Judge normal color and motion before extra tuning: broad connected-skin reading,
+   limb smoothness, exposed-body areas, rest clearance, hinge/curl normals, depth
+   holes and soft self-overlap. Report failed views as well as improvements.
+4. Review corresponding isolated timings and tier transitions; rebuild frontend
+   assets only after repairs and focused checks. Full Sam/inference/audio remains
+   separately unauthorized. Human aesthetic acceptance is separate; no beta requested.
 
-Record successes, failed views, ambiguity and cost before selecting/integrating.
-No new timings, test passes or visual improvement are claimed here. Existing
-Identity III timings predate the released palette and are not a matching baseline.
-
-## Closure and next authorized step
-
-This source-only checkpoint adds this assessment, the baseline manifest and links
-from STATE/BACKLOG. Production geometry, optics, motion, behavior, resources and
-versions are unchanged. Read-only Git review, saved-image inspection and manifest
-hashing are the only new evidence. No green visual candidate or v0.2.6 readiness.
-
-Resume **this assignment**, not a new programme: obtain task-specific
-`MACHINE-FREE: YES`, generate the matched release/A/B proof, then close Checkpoint A
-with a representation decision. Checkpoints B/C follow only a defensible choice.
-Full Sam, providers/models, capture/playback and intrusive visible sessions remain
-excluded even then. No remote operation, version bump, publication or human beta.
+Known uncertainties are Low faceting/clearance, automatic-tier appearance changes,
+soft curled self-overlap, coating visibility across hues, normal sampling cost,
+and whether three openings feel organic rather than like an opened casing.
+The missing board does not block source work; owner character judgments remain.
+This is a technically testable **source candidate**, not a validated v0.2.6 release.
+Complete the verification/repair of Assignment IV before any next Visual Core work.

@@ -155,7 +155,7 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 ## Embodiment and basic UI
 
-- Autonomous Living Surface, shared membrane pigment, lighting and particles remain;
+- Experimental IV-B connected skin is source-implemented; shared pigment/light remain;
   measured input/output envelopes have distinct bounded form/light response under
   the existing Audio Reactivity control. Zero retains autonomous motion.
 - October 9 owner rejected polygonal/dull body and absent peels; this pass does not

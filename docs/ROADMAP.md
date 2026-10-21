@@ -9,6 +9,11 @@ and first proposed connected-film assignment. The [HQ4 programme below](#hq4-pro
 is the current order; dated earlier plans remain context, not parallel task queues.
 No version bump, new runtime permission, remote action or automatic implementation.
 
+**2026-10-21 source checkpoint:** [IV-B](VISUAL_IDENTITY_IV.md) provisionally
+implements connected Candidate B, its regression tests and matched graphical
+fixtures in quiet-PC mode. Next close the execution/visual/performance proof;
+none has run and the visual objective remains unaccepted. No new workstream starts.
+
 **HQ priority change (2026-10-14): Visual Identity within Basics Before Expansion.**
 Attractiveness is a principal product feature. Diagnostic observability is completed;
 [living palette and provider presentation](LIVING_PALETTE_AND_READINESS.md) now add

@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "date": "2026-10-21",
+  "assignment": "IV-B Connected Living Skin",
+  "status": "source implemented, experimentally unverified",
+  "branch": "dev",
+  "startingHead": "b1f775b6c3532debdf0946f384f575b14ca12b86",
+  "publishedBaseline": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+  "implementationCommit": "637f903d027264a1959d35b620c39e5510c6e55a",
+  "proofAuthoringCommit": "f79eaf1e9cf955937a6eec12330419cc48fcd82c",
+  "closure": "The local commit containing this file records closing source hardening and documentation; no self-referential commit hash.",
+  "representation": "One welded cube-sphere parent domain with three unequal irregular openings; six connected chart draw partitions.",
+  "execution": {
+    "quietPC": true,
+    "tests": "not run",
+    "lintTypesBuild": "not run",
+    "baselinePreparationScript": "authored, not run",
+    "browsersGPU": "not launched",
+    "newImages": "none",
+    "performanceMeasurements": "none",
+    "fullSamProvidersModelsAudio": "not launched",
+    "remoteOperations": "none",
+    "versionChanges": "none",
+    "generatedProductAssets": "not rebuilt"
+  },
+  "completedLightweightChecks": [
+    "Git status/diff and whitespace review",
+    "91 relative imports across 20 changed TypeScript files resolved to local targets",
+    "Manual review of module ownership, layouts, shader uniforms/equations, index ranges, cleanup and existing state ownership",
+    "Source formula arithmetic; no renderer/geometry module executed",
+    "STATE remains 200 lines",
+    "145 local document link targets resolve; no external links queried"
+  ],
+  "resourceCalculations": {
+    "method": "Vskin=24*N*R-1; Tskin=4*N*(12*R-3); body unchanged; 12 bytes/skin vertex, 6 bytes/triangle, 32 bytes/particle. Source arithmetic, not measured allocation.",
+    "low": {
+      "skinSegments": 6,
+      "skinRows": 4,
+      "skinClearance": 0.016,
+      "skinVertices": 575,
+      "bodyAndSkinVertices": 1136,
+      "triangles": 2040,
+      "geometryBytesExcludingHalo": 32988,
+      "haloBytes": 44,
+      "skinUniformBytes": 224,
+      "draws": 9,
+      "particles": 12
+    },
+    "medium": {
+      "skinSegments": 12,
+      "skinRows": 8,
+      "skinClearance": 0.008,
+      "skinVertices": 2303,
+      "bodyAndSkinVertices": 5004,
+      "triangles": 9504,
+      "geometryBytesExcludingHalo": 150252,
+      "haloBytes": 44,
+      "skinUniformBytes": 224,
+      "draws": 9,
+      "particles": 24
+    },
+    "high": {
+      "skinSegments": 24,
+      "skinRows": 16,
+      "skinClearance": 0.004,
+      "skinVertices": 9215,
+      "bodyAndSkinVertices": 17600,
+      "triangles": 34272,
+      "geometryBytesExcludingHalo": 519500,
+      "haloBytes": 44,
+      "skinUniformBytes": 448,
+      "draws": 10,
+      "particles": 64
+    },
+    "programs": 4,
+    "geometryBuffers": 7,
+    "newTextures": 0,
+    "newFramebuffers": 0,
+    "budgetExpansion": "none"
+  },
+  "authoredProof": {
+    "imagesPerVariant": 92,
+    "variants": [
+      "released v0.2.5",
+      "candidate"
+    ],
+    "seed": "0x5a17",
+    "yawRadians": [
+      0,
+      0.75,
+      1.6
+    ],
+    "curlSeconds": [
+      0,
+      6,
+      12
+    ],
+    "paletteSeconds": [
+      0,
+      15,
+      45,
+      120,
+      300
+    ],
+    "controlledCurlPhase": "base + seconds*0.3",
+    "transformFeedbackSamples": 192,
+    "GPUCases": [
+      "High 720 square DPR1",
+      "High 720 square DPR2",
+      "High 960 square DPR1"
+    ],
+    "warmups": 18,
+    "timedSubmissions": 24
+  },
+  "remainingGates": [
+    "Formatting, type checking, focused unit execution and frontend build",
+    "Actual shader compilation and CPU/GPU proof, with controlled body callback scope respected",
+    "Numerical topology/deformation/rim and state regressions",
+    "Matched normal-color geometry/optical/motion comparisons, including low-tier and fallback checks",
+    "Corresponding isolated GPU/CPU timings with disjoint reporting",
+    "Owner artistic acceptance separately; no beta requested"
+  ],
+  "risks": [
+    "Coarse-tier chord clearance and faceting unrendered",
+    "Opaque-coat/soft-rim composition and three-opening character unaccepted",
+    "Center-sorted soft self-overlap remains approximate",
+    "Wider coating coverage and domain/normal ALU may cost more despite smaller buffers",
+    "Tier clearance changes may be perceptible under governor transitions",
+    "Shipped static assets remain the released bundle until an authorized rebuild"
+  ],
+  "sourceSha256LfUtf8": {
+    "ui/src/visual-engine/geometry.ts": "30a619343af923d5f1076eb11db33e98a161513a75fa76e9508fcd1bd7d8a633",
+    "ui/src/visual-engine/skin-domain.ts": "22a008768aeeb734f952159e76fb3348c4c5c0b59ecba64e6c72c18b15835f2d",
+    "ui/src/visual-engine/skin-geometry.ts": "4bc6e5858c686052194828890562a939d388ca60cc784edec2b5e94f54e5d2ec",
+    "ui/src/visual-engine/membrane.ts": "fcd1e7e37b75277f6f610141d9db68e45b0eecfbcbc3ff11d91cb18d28f1bb30",
+    "ui/src/visual-engine/membrane-optics.ts": "8e9bbb95538c57ab6dc29dcc6d2db1e2ca0d7dbb9df6316a75d07f03c343954b",
+    "ui/src/visual-engine/quality.ts": "f073f00a9bdf617f4dce281ab0a5cfd8d38effc85b8a0457e7db42f03ce8223f",
+    "ui/src/visual-engine/webgl.ts": "2d8baacde14aea96bf26cb97564194f7274dfbd99550f3843bae22f2b61b5124",
+    "ui/tests/fixtures/visual-identity-II.ts": "cf419443ccd776a36af6d1675fbeb03329535c987bae92133e054409dca57a48",
+    "ui/tests/fixtures/visual-identity-IV.ts": "a710f4539fa1e5dc68a4f83b657967bcbd91a3ba25aea798fb495552e2e83dad",
+    "ui/tests/fixtures/skin-gpu-proof.ts": "8784e8947993c6700f46118cdd1f51e73e7386f62eca72b59b60bb316e4702c3",
+    "ui/tests/browser/visual-identity-IV.spec.ts": "98579f8f5cbf8bee034c92e18da4e941f882118864c2cec7d47b4820b8d9c4f7",
+    "ui/playwright.visual-identity-IV.config.ts": "ad09dd4502e48432f8f8665ff991e9be010201534d0e2cf0a8178bcff95bea63",
+    "scripts/prepare_visual_iv_baseline.py": "6269dcf35852f05501ca1624993e646be429eb446b0c5f71ee41bb5ef6e6af06"
+  }
+}
