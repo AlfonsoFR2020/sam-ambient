@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "toolchain": {
+    "node": "24.19.0",
+    "existingBundledPnpm": "11.25.0",
+    "declaredPnpm": "11.19.0",
+    "typescript": "5.9.2",
+    "vite": "7.3.6",
+    "python": "3.12.11",
+    "automaticDependencySynchronization": false,
+    "toolchainOrDependencyInstallation": false
+  },
+  "sourceCommitAtFinalBuild": "108b088c4f2146f452e3137f1d2a394f6dd015e9",
+  "frontendSourceDigest": "0a9fa229abcf01ce1d22a211507ba19c49a0ac9a87cb6d2648b4dd396d8280ca",
+  "execution": {
+    "sequential": true,
+    "priority": "BelowNormal",
+    "vitestWorkers": 1,
+    "fileParallelism": false,
+    "headlessWebglAllowed": false,
+    "browserShaderGpuExecuted": false,
+    "samProviderModelOrHardwareLaunched": false
+  },
+  "frontendUnit": {
+    "files": 39,
+    "passed": 290,
+    "durationSeconds": 13.57
+  },
+  "pythonIntegrated": {
+    "files": 22,
+    "passed": 223,
+    "durationSeconds": 16.62,
+    "testcaseMembershipSha256": "edd5d923fb1e4b7364dcf88292d359334a739265efcdc2077c0364575ed3ef7c",
+    "modules": [
+      "tests.integration.test_diagnostic_conversation",
+      "tests.integration.test_generation_terminality",
+      "tests.integration.test_owner_console",
+      "tests.integration.test_owner_websocket",
+      "tests.integration.test_voice_input_pipeline",
+      "tests.integration.test_voice_stream_lifecycle",
+      "tests.unit.test_app_translation",
+      "tests.unit.test_app_window",
+      "tests.unit.test_cold_provider_recovery",
+      "tests.unit.test_conversation_diagnostics",
+      "tests.unit.test_diagnostic_launch",
+      "tests.unit.test_frontend_assets",
+      "tests.unit.test_http_transport",
+      "tests.unit.test_ollama_provider",
+      "tests.unit.test_openai_compatible_provider",
+      "tests.unit.test_owner_authority",
+      "tests.unit.test_owner_model_lifecycle",
+      "tests.unit.test_playback_visual_lifetime",
+      "tests.unit.test_protocol",
+      "tests.unit.test_provider_bootstrap",
+      "tests.unit.test_sounddevice_audio",
+      "tests.unit.test_voice_recovery"
+    ]
+  },
+  "subsequentAssetRepairTests": {
+    "passed": 6,
+    "overlapNote": "Five overlap integrated batch; new mixed-newline guard passed too. No summed test total."
+  },
+  "canonicalBuilds": [
+    {
+      "sourceCommit": "a7fdac469042591230d1707a240e6d93d56e7622",
+      "wrapperSeconds": 4.72,
+      "viteMilliseconds": 810,
+      "succeeded": true
+    },
+    {
+      "sourceCommit": "108b088c4f2146f452e3137f1d2a394f6dd015e9",
+      "wrapperSeconds": 4.7,
+      "viteMilliseconds": 725,
+      "succeeded": true
+    }
+  ],
+  "buildWarnings": [],
+  "changedDocumentLinks": { "targetsChecked": 224, "markdownFiles": 16, "missing": 0 },
+  "protectedMetadata": { "versionDependencyAndLauncherFilesUnchanged": true },
+  "staticBudget": {
+    "low": {
+      "draws": 9,
+      "particles": 12,
+      "bodySkinVertices": 1136,
+      "triangles": 2040,
+      "geometryBytesExcludingHalo": 32988,
+      "skinUniformBytes": 224
+    },
+    "medium": {
+      "draws": 9,
+      "particles": 24,
+      "bodySkinVertices": 5004,
+      "triangles": 9504,
+      "geometryBytesExcludingHalo": 150252,
+      "skinUniformBytes": 224
+    },
+    "high": {
+      "draws": 10,
+      "particles": 64,
+      "bodySkinVertices": 17600,
+      "triangles": 34272,
+      "geometryBytesExcludingHalo": 519500,
+      "skinUniformBytes": 448
+    },
+    "haloGeometryBytes": 44,
+    "gpuMeasurements": null,
+    "sourceOfValues": "Executed typed-array and draw-budget assertions"
+  },
+  "bundleInventoryNotRuntimePerformance": {
+    ".js": {
+      "releasedPath": "src/sam_ambient/static/assets/index-DPoRgsL3.js",
+      "candidatePath": "src/sam_ambient/static/assets/index-C_P-k9k8.js",
+      "releasedBytesLf": 379814,
+      "candidateBytesLf": 389365,
+      "releasedGzipLevel6Bytes": 113769,
+      "candidateGzipLevel6Bytes": 116503
+    },
+    ".css": {
+      "releasedPath": "src/sam_ambient/static/assets/index-D5fV1sLu.css",
+      "candidatePath": "src/sam_ambient/static/assets/index-BQcg81vV.css",
+      "releasedBytesLf": 18008,
+      "candidateBytesLf": 19928,
+      "releasedGzipLevel6Bytes": 4861,
+      "candidateGzipLevel6Bytes": 5264
+    }
+  },
+  "deferred": [
+    "GLSL compilation",
+    "CPU/GPU equation proof",
+    "matched image matrices and comparison sheet",
+    "rendered UI interaction/focus/translation",
+    "isolated GPU and CPU-submission timings",
+    "physical speech timing",
+    "real provider latency",
+    "full-app coexistence",
+    "package/native gates",
+    "owner acceptance"
+  ]
+}

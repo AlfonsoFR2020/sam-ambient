@@ -1,0 +1,24 @@
+{
+  "ordinaryLauncher": "Start Sam.cmd -> editable .venv -> src/sam_ambient -> private static assets",
+  "editableSourceMatches": true,
+  "privateAssetRoot": "src/sam_ambient/static",
+  "canonicalResolvedRoutes": [
+    "/",
+    "/assets/sam-build.json",
+    "/assets/index-C_P-k9k8.js",
+    "/assets/index-BQcg81vV.css"
+  ],
+  "untrustedPathsRejected": true,
+  "baselineSourceCommit": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+  "baselineModulesVerified": 21,
+  "baselineHarnessHashesMatch": true,
+  "releasedMaterialPathsPreservedSha256Lf": {
+    "ui/src/visual-engine/living-field.ts": "402f0f3c546392c0569ddadcef82f2adf17eb5507945a7304c8b7ee226d25bf1",
+    "ui/src/visual-engine/living-material.ts": "974fa5e7a385da8641bc103690bcb68805d97f2308e32a1bc41f940b1bff1b77",
+    "ui/src/visual-engine/palette.ts": "3a9ff2873a34d096e8b6273317bae892502756e8da52fa77771f2d30a7c6c9fb",
+    "ui/src/visual-engine/particles.ts": "2c9a59a255ca097f09946e423da3a041f49194eb7bd92286eff3ac1232352d92",
+    "ui/src/visual-engine/tuning.ts": "d9aab6ea483169e2e650035870c6abbdec6b06424c768b2339fd28124eaefb75"
+  },
+  "noWindowOrServerOpened": true,
+  "noGraphicalExecution": true
+}

@@ -156,7 +156,7 @@ See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 ## Embodiment and basic UI
 
 - [IV-D integration](INTEGRATION_VALIDATION_IVD.md) validates IV-B skin / IV-C presence:
-  290 frontend and 223 scoped Python checks pass; canonical assets are being finalized.
+  290 frontend and 223 scoped Python checks pass; canonical assets and source hashes match.
   Partial renderer cleanup is repaired; palette/Flow, quality and authority remain.
 - [October 21 triage](BETA_TRIAGE_2026-10-21.md): owner confirms Start Sam used v0.2.5;
   its swirls/old-peel observations do not accept IV-B. GPU/physical/human proof stays open.

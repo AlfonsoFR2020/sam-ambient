@@ -42,7 +42,7 @@ The first actual production build succeeded: 83 modules, Vite 7.3.6, about 4.72 
 wrapper time / 810 ms Vite time, no compiler/chunk warnings. Subsequent whitespace
 review found mixed CRLF template / LF inserted HTML. Vite now normalizes HTML
 before inserting metadata; the file checker rejects mixed endings. The authorized
-repair build and final artifact hashes are recorded in the closing evidence below.
+repair build also passes; final artifact hashes are in the closing evidence below.
 [First build](evidence/integration-IVD/first-build-integrity.json) is retained as an
 intermediate provenance record; it is not the final candidate.
 
@@ -132,7 +132,8 @@ file parallelism. Individual commands were bounded; no watcher/daemon/tool insta
 | Artifact-checker repair batch | 6 passed; overlaps the integrated set except its new mixed-newline case |
 | TypeScript project checks before build | Passed, about 2.7–3.0 s |
 | Changed-file Biome / Ruff / format | Passed |
-| Canonical production build | First succeeded; authorized HTML-repair rebuild recorded at closure |
+| Changed-document local link targets | 224 checked / 16 Markdown files; none missing |
+| Canonical production build | Both succeeded; final HTML-repair build matches source/assets |
 | Local baseline preparation | 21 pinned release modules, current identical harness, no rendering |
 
 The 223-test Python scope covers playback, long PCM, trace/HTTP/profile/assets,
@@ -182,9 +183,65 @@ Console interaction. The missing concept board remains missing, without new sear
 Only if visually credible proceed to corresponding isolated GPU/CPU-submission
 measurements; real provider/audio and owner acceptance require separate permission.
 
+The later authorized sequence is: check current assets and reprepare the pinned
+baseline if its shared harness changed; run the IV config with `--grep smoke`;
+run `--grep "production skin equations"`; run the matched IV / presence cases;
+inspect the images and controls before running `--grep "isolated GPU"`.
+All use `ui/playwright.visual-identity-IV.config.ts`, one worker and isolated
+dimensions. Its test server is frontend-only. None of these commands ran in IV-D.
+
 ## Closing integration evidence
 
-The final compiled-source identity, artifact hashes, local commits and clean-tree
-check are recorded during closure in this section and the linked evidence. This
-is a technically testable experimental visual milestone, not v0.2.6 release,
-performance acceptance, production readiness or a new beta. Stop after IV-D.
+The repair build used clean frontend source commit
+`108b088c4f2146f452e3137f1d2a394f6dd015e9`. It passed TypeScript and Vite,
+83 modules, 725 ms Vite / 4.70 s wrapper time, without warnings. Content identity:
+`0a9fa229abcf01ce1d22a211507ba19c49a0ac9a87cb6d2648b4dd396d8280ca`, 65 inputs,
+`sourceDirty: false`, visual identity `connected-skin-ivd-experimental`.
+Final JS is `src/sam_ambient/static/assets/index-C_P-k9k8.js`; CSS is
+`src/sam_ambient/static/assets/index-BQcg81vV.css`. HTML and both generated
+manifests select/identify those assets; the file checker and Git whitespace check pass.
+
+- [Final source/asset hashes](evidence/integration-IVD/asset-provenance-after.json).
+- [Private resolver, editable installation, pinned baseline and preserved-material proof](evidence/integration-IVD/boundary-and-baseline-proof.json).
+- [Validation scope, distinct-case fingerprint, budgets and bundle inventory](evidence/integration-IVD/validation-summary.json).
+
+Existing bundled Node 24.19.0 / pnpm 11.25.0 executed the canonical package script;
+the package declares pnpm 11.19.0. Automatic dependency synchronization was disabled;
+no tool or dependency was installed/upgraded to reconcile the runner difference. Installed TypeScript
+5.9.2 / Vite 7.3.6 and Python 3.12.11 were used. This is a disclosed build-runner
+difference, not a lockfile/dependency change or a production-runtime requirement.
+
+Normalized JS grows 379,814 → 389,365 bytes relative to v0.2.5; CSS
+18,008 → 19,928 bytes. Corresponding gzip level 6 bytes are 113,769 → 116,503
+and 4,861 → 5,264. Provenance adds about 6.9 kB plus the small Vite manifest.
+These are file sizes, not GPU/CPU submission measurements or a geometry-budget
+deviation. No resource envelope was expanded.
+
+Exact source inventory for IV-D:
+
+- Production: `ui/src/visual-engine/webgl.ts` (ownership/cleanup), `ui/src/main.tsx`
+  (identity markers), `ui/vite.config.ts`, new `ui/build-provenance.mjs` and
+  `ui/build-provenance.d.mts`. No Python runtime/provider/audio production module changed.
+- File-only verifier: new `scripts/check_frontend_assets.py` and
+  `tests/unit/test_frontend_assets.py`; extended `test_playback_visual_lifetime.py`
+  uses new `tests/fixtures/playback_visual_contract.json`.
+- New Node regressions: `ui/tests/build-provenance.test.ts`,
+  `visual-resource-recovery.test.ts`, `visual-skin-integration.test.ts`,
+  `playback-presence-integration.test.ts`.
+- Graphical inputs only: `ui/tests/fixtures/visual-identity-IV.ts`,
+  `ui/tests/browser/visual-identity-IV.spec.ts`, new `production-frontend.spec.ts`
+  and `ui/playwright.visual-identity-IV.config.ts`. Existing presence and GPU proof
+  inputs remain available. No graphical case was executed.
+
+Local recovery commits are `a7fdac4` (source/resource/contracts) and `108b088`
+(HTML repair and deterministic record), followed by the closing compiled-asset /
+evidence commit. All remain on `dev`; final response records the closing hash and
+post-commit clean-tree check. The compiled source commit intentionally precedes
+that artifact/documentation commit. Existing IV-B/IV-C and released evidence remain intact.
+
+The authorized non-graphical integration is complete. The candidate is closer to
+a technically testable v0.2.6 visual milestone because ordinary launch resolves
+the compiled current source, broader deterministic gates pass and failure cleanup
+is protected. Shader/graphical, matching isolated cost, package and owner acceptance
+remain blockers to a release-readiness claim. Stop after IV-D; no new programme,
+version, push, tag, merge, publication, installer or human beta is initiated.
