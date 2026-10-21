@@ -1,5 +1,26 @@
 # Decision log
 
+## 2026-10-21 — Experimental connected parent skin (Assignment IV-B)
+
+Quiet-PC authorization permits source implementation and regression authoring,
+with all execution/graphical acceptance deferred. Provisionally choose Candidate B:
+one indexed cube-sphere with three unequal irregular disk openings. Six shared-edge
+charts are draw partitions, not independent sheets. Structured annuli and center
+fans avoid a general cutting/triangulation dependency; setup welding shares actual
+indices. Pigment remains spherical object-space, never cube UV mapped.
+
+Use existing body displacement and membrane phase; C1 collars drive local radial
+lift/tangential curl and full-surface sampled normals. Near-body clearance is
+0.016/0.008/0.004 for Low/Medium/High chord approximation. Opaque resting skin,
+soft free rims, current sorted chart draws and High opaque-interior depth priming
+are a bounded experimental optical strategy, not exact transparency. High contact
+uses the actual opening/collar domain. Preserve fallback/authority and recover the
+released representation through Git, without a permanent second engine/theme.
+
+No GPU/beauty/performance acceptance or green release claim. The representation
+and clearances remain reversible pending the matched comparison and regressions.
+See [implementation and deferred verification](VISUAL_IDENTITY_IV.md).
+
 ## 2026-10-09 — Conservative evidence applies during generation as well as playback
 
 The owner beta and deterministic reproduction exposed VAD-only cancellation of

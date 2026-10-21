@@ -34,8 +34,11 @@ test("same-identity fidelity comparisons and bounded multi-resolution GPU cost",
       qualityPath
     )) as typeof import("../../src/visual-engine/quality");
     const geometryPath = "/src/visual-engine/geometry.ts";
-    const { createSphereGeometry, createPeelGeometry, createParticleGeometry, PEEL_VERTEX_STRIDE } =
+    const { createSphereGeometry, createParticleGeometry } =
       (await import(geometryPath)) as typeof import("../../src/visual-engine/geometry");
+    const skinPath = "/src/visual-engine/skin-geometry.ts", domainPath = "/src/visual-engine/skin-domain.ts";
+    const { createSkinGeometry } = (await import(skinPath)) as typeof import("../../src/visual-engine/skin-geometry");
+    const { SKIN_VERTEX_STRIDE } = (await import(domainPath)) as typeof import("../../src/visual-engine/skin-domain");
     const shots: { name: string; image: string }[] = [],
       resources = [],
       measurements = [];
@@ -53,11 +56,11 @@ test("same-identity fidelity comparisons and bounded multi-resolution GPU cost",
       f.close();
       const b = RENDER_BUDGETS[quality],
         body = createSphereGeometry(b.sphereLongitude, b.sphereLatitude),
-        skin = createPeelGeometry(b),
+        skin = createSkinGeometry(b),
         particles = createParticleGeometry(b.particles);
       resources.push({
         quality,
-        vertices: body.vertices.length / 6 + skin.vertices.length / PEEL_VERTEX_STRIDE,
+        vertices: body.vertices.length / 6 + skin.vertices.length / SKIN_VERTEX_STRIDE,
         triangles: (body.indices.length + skin.indices.length) / 3,
         particles: particles.count,
         geometryBytes:

@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   createParticleGeometry,
-  createPeelDescriptors,
-  createPeelGeometry,
   createSphereGeometry,
-  PEEL_VERTEX_STRIDE,
   particleParameters,
 } from "../src/visual-engine/geometry";
+import { createSkinOpenings, SKIN_VERTEX_STRIDE } from "../src/visual-engine/skin-domain";
+import { createSkinGeometry } from "../src/visual-engine/skin-geometry";
 import {
   PARTICLE_GOLD,
   PARTICLE_POINT_SIZE_RANGE,
@@ -54,7 +53,8 @@ describe("visual quality and geometry", () => {
     expect(budget).toMatchObject({
       fineOctaves: 0,
       peels: 6,
-      peelSamples: 16,
+      skinSegments: 6,
+      skinRows: 4,
       particles: 12,
       lights: 1,
       idleFps: 24,
@@ -70,24 +70,24 @@ describe("visual quality and geometry", () => {
     expect(RENDER_BUDGETS.high.particles).toBe(64);
   });
 
-  it("uses identical deterministic broad sheets with bounded tier sampling", () => {
-    const reference = createPeelDescriptors(RENDER_BUDGETS.high.peels);
+  it("uses one deterministic connected domain with bounded tier sampling", () => {
+    const reference = createSkinOpenings();
     for (const budget of Object.values(RENDER_BUDGETS)) {
-      expect(createPeelDescriptors(budget.peels)).toEqual(reference);
-      const geometry = createPeelGeometry(budget);
+      expect(createSkinOpenings()).toEqual(reference);
+      const geometry = createSkinGeometry(budget);
       expect(geometry.vertices.length).toBe(
-        budget.peels * (budget.peelSamples + 1) * (budget.peelRows + 1) * PEEL_VERTEX_STRIDE,
+        (24 * budget.skinSegments * budget.skinRows - 1) * SKIN_VERTEX_STRIDE,
       );
-      expect(geometry.indices.length).toBe(budget.peels * budget.peelSamples * budget.peelRows * 6);
+      expect(geometry.indices.length).toBe(12 * budget.skinSegments * (12 * budget.skinRows - 3));
       expect(Array.from(geometry.vertices).every(Number.isFinite)).toBe(true);
       expect(Math.max(...geometry.indices)).toBeLessThan(
-        geometry.vertices.length / PEEL_VERTEX_STRIDE,
+        geometry.vertices.length / SKIN_VERTEX_STRIDE,
       );
-      expect(createPeelGeometry(budget).vertices).toEqual(geometry.vertices);
+      expect(createSkinGeometry(budget).vertices).toEqual(geometry.vertices);
     }
     const count = (budget: typeof RENDER_BUDGETS.high) =>
       createSphereGeometry(budget.sphereLongitude, budget.sphereLatitude).vertices.length / 6 +
-      createPeelGeometry(budget).vertices.length / PEEL_VERTEX_STRIDE;
+      createSkinGeometry(budget).vertices.length / SKIN_VERTEX_STRIDE;
     expect(count(RENDER_BUDGETS.low)).toBeLessThan(count(RENDER_BUDGETS.medium) * 0.3);
     expect(count(RENDER_BUDGETS.medium)).toBeLessThan(count(RENDER_BUDGETS.high) * 0.65);
     expect(count(RENDER_BUDGETS.high)).toBeLessThanOrEqual(20_000);

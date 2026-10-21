@@ -8,9 +8,12 @@ export interface RenderBudget {
   readonly fineOctaves: 0 | 1 | 2;
   readonly sphereLongitude: number;
   readonly sphereLatitude: number;
+  /** Six connected chart draw ranges; zero is used by isolated body fixtures. */
   readonly peels: number;
-  readonly peelSamples: number;
-  readonly peelRows: number;
+  readonly skinSegments: number;
+  readonly skinRows: number;
+  /** Physical coating clearance compensates for coarser chord approximation. */
+  readonly skinClearance: number;
   /** Opaque membrane interiors prime depth; soft fringes remain blended. */
   readonly membraneDepthPass: boolean;
   readonly particles: number;
@@ -29,8 +32,9 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     sphereLongitude: 32,
     sphereLatitude: 16,
     peels: 6,
-    peelSamples: 16,
-    peelRows: 6,
+    skinSegments: 6,
+    skinRows: 4,
+    skinClearance: 0.016,
     membraneDepthPass: false,
     particles: 12,
     lights: 1,
@@ -46,8 +50,9 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     sphereLongitude: 72,
     sphereLatitude: 36,
     peels: 6,
-    peelSamples: 28,
-    peelRows: 10,
+    skinSegments: 12,
+    skinRows: 8,
+    skinClearance: 0.008,
     membraneDepthPass: false,
     particles: 24,
     lights: 2,
@@ -63,8 +68,9 @@ export const RENDER_BUDGETS: Readonly<Record<ResolvedQuality, RenderBudget>> = O
     sphereLongitude: 128,
     sphereLatitude: 64,
     peels: 6,
-    peelSamples: 64,
-    peelRows: 24,
+    skinSegments: 24,
+    skinRows: 16,
+    skinClearance: 0.004,
     membraneDepthPass: true,
     particles: 64,
     lights: 3,

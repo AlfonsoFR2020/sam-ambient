@@ -108,16 +108,20 @@ export function fixture(
       );
   }
   if (options.contact === false) {
-    const names = new Map<WebGLUniformLocation, string>(),
+    const names = new Map<WebGLUniformLocation, { name: string; program: WebGLProgram }>(),
       locate = gl.getUniformLocation.bind(gl),
       set = gl.uniform1i.bind(gl);
+    let bodyProgram: WebGLProgram | undefined;
     gl.getUniformLocation = (program, name) => {
+      if (name === "u_rim") bodyProgram = program;
       const value = locate(program, name);
-      if (value) names.set(value, name);
+      if (value) names.set(value, { name, program });
       return value;
     };
-    gl.uniform1i = (location, value) =>
-      set(location, location && names.get(location) === "u_contact_count" ? 0 : value);
+    gl.uniform1i = (location, value) => {
+      const entry = location ? names.get(location) : undefined;
+      set(location, entry?.name === "u_contact_count" && entry.program === bodyProgram ? 0 : value);
+    };
   }
   if (options.particlesOnly) gl.drawElements = () => {};
   if (options.neutralMaterial) {

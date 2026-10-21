@@ -1,6 +1,20 @@
 # Visual Identity IV — connected living skin
 
-2026-10-21. Assignment IV, **Checkpoint A: source assessment only**.
+2026-10-21. **Assignment IV-B: experimental Candidate B source implementation.**
+Quiet-PC permission explicitly allows implementation and test authoring before
+render selection. The earlier execution-dependent stop below is historical and
+superseded for source work. No tests, type/build tools, browser or GPU have run.
+
+The first source slice uses a welded six-chart cube-sphere with three unequal
+irregular openings, shared body displacement, C1 collar lift and analytic curl.
+The renderer uses the new domain for geometry/normals and High contact. Tiered
+clearance is a physical coat offset (0.016/0.008/0.004), not a global depth bias.
+Production palette/clocks/control authority remain unchanged. Focused regressions
+are authored, not executed. Source hardening and comparison tooling continue.
+
+## Initial source assessment — preserved history
+
+Assignment IV, **Checkpoint A: source assessment only**, before IV-B authorization.
 No representation is selected or integrated. Checkpoints B/C and the visual
 milestone remain incomplete. This record preserves a recoverable starting point
 and the next comparison, not a green implementation or artistic acceptance.

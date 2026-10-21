@@ -197,4 +197,4 @@ Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
 UI shutdown now retires idle/partial HTTP clients; 30 focused checks pass. Native acceptance stays separate.
-Expansion/AEC parked; [Visual IV](VISUAL_IDENTITY_IV.md) is source-only, selection/render proof awaits permission; human acceptance stays open.
+Expansion/AEC parked; [Visual IV-B](VISUAL_IDENTITY_IV.md) implements experimental connected skin; all execution/render proof and human acceptance remain open.

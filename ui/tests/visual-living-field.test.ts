@@ -604,8 +604,8 @@ describe("living field substrate", () => {
         expect(fragment).toContain("sampleLivingField(normalize(v_object_direction))");
         expect(fragment).toContain("LivingPigment pigment=livingPigment(field)");
       }
-      expect(PEEL_VERTEX).toContain("cross(du,dv)");
-      expect(PEEL_FRAGMENT).toContain("smoothstep(.98,1.,v_radial)");
+      expect(PEEL_VERTEX).toContain("livingSkinNormal(direction)");
+      expect(PEEL_FRAGMENT).toContain("clamp(v_alpha");
       expect(PEEL_FRAGMENT).not.toContain("dFdx(v_position)");
       const normalized = fragments.map((source) =>
         source.replace(

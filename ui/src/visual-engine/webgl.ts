@@ -2,15 +2,12 @@ import type { RendererBackend } from "./backend";
 import { DISCOURSE_CREST_GLSL } from "./discourse-crest";
 import {
   createParticleGeometry,
-  createPeelDescriptors,
-  createPeelGeometry,
   createSphereGeometry,
   type IndexedGeometry,
-  PEEL_VERTEX_STRIDE,
 } from "./geometry";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
 import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
-import { MEMBRANE_SHAPE_GLSL } from "./membrane";
+import { MEMBRANE_SHAPE_GLSL, SKIN_SURFACE_GLSL } from "./membrane";
 import { MEMBRANE_CONTACT_GLSL } from "./membrane-optics";
 import type { MotionEvaluator, MotionFrame } from "./motion";
 import { LIVING_PALETTE_GLSL } from "./palette";
@@ -20,6 +17,8 @@ import {
   PARTICLE_VISIBILITY_HASH,
 } from "./particles";
 import type { RenderBudget } from "./quality";
+import { createSkinOpenings, SKIN_VERTEX_STRIDE, type SkinOpening } from "./skin-domain";
+import { createSkinGeometry } from "./skin-geometry";
 import { HALO_OPACITY_SCALE } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
 
@@ -90,12 +89,6 @@ export const PEEL_VERTEX = `#version 300 es
 precision highp float;
 invariant gl_Position;
 layout(location=0) in vec3 a_direction;
-layout(location=1) in vec4 a_sheet;
-layout(location=2) in vec3 a_du;
-layout(location=3) in vec3 a_dv;
-layout(location=4) in vec2 a_skin;
-layout(location=5) in vec3 a_side_du;
-layout(location=6) in vec3 a_side_dv;
 uniform float u_radius;
 uniform vec2 u_scale;
 uniform float u_spin;
@@ -104,12 +97,6 @@ uniform float u_breath_phase;
 uniform float u_ripple_phase;
 uniform float u_deformation;
 uniform float u_ripple;
-uniform float u_peel_travel;
-uniform float u_opening;
-uniform float u_peel_lift;
-uniform float u_peel_width;
-uniform float u_coherence;
-uniform float u_rephase;
 uniform float u_highlight;
 uniform mat3 u_object_orientation;
 out float v_alpha;
@@ -125,32 +112,25 @@ mat3 rotateZ(float a){float c=cos(a),s=sin(a);return mat3(c,s,0.,-s,c,0.,0.,0.,1
 ${LIVING_FIELD_GLSL}
 ${LIVING_SURFACE_VERTEX_GLSL}
 ${MEMBRANE_SHAPE_GLSL}
+${SKIN_SURFACE_GLSL}
 void main(){
   vec3 direction=normalize(a_direction);
-  vec2 uv=a_sheet.xy;
-  vec4 shape=vec4(a_sheet.z,a_skin.x,a_sheet.w,a_skin.y);
-  vec2 offset=membraneOffsets(uv,shape);
-  vec2 deltaU=(membraneOffsets(uv+vec2(.001,0.),shape)-membraneOffsets(uv-vec2(.001,0.),shape))/.002;
-  vec2 deltaV=(membraneOffsets(uv+vec2(0.,.001),shape)-membraneOffsets(uv-vec2(0.,.001),shape))/.002;
-  vec3 scale=vec3(1.,1.06,1.);
-  vec3 side=normalize(a_dv);
-  vec3 base=livingBodyPoint(direction,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
-  vec3 bodyNormal=livingBodyNormal(direction,base,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple);
-  float localRadius=length(base/scale);
-  vec3 radial=direction*scale;
-  vec3 du=a_du*scale*localRadius, dv=a_dv*scale*localRadius;
-  du-=radial*dot(bodyNormal,du)/max(.2,dot(bodyNormal,radial));
-  dv-=radial*dot(bodyNormal,dv)/max(.2,dot(bodyNormal,radial));
-  du+=scale*(a_du*offset.x+direction*deltaU.x+a_side_du*offset.y+side*deltaU.y);
-  dv+=scale*(a_dv*offset.x+direction*deltaV.x+a_side_dv*offset.y+side*deltaV.y);
-  vec3 position=base+scale*(direction*offset.x+side*offset.y);
+  vec3 position=livingSkinPoint(direction);
+  vec3 localNormal=livingSkinNormal(direction);
+  float q=0.,lift=0.;
+  for(int i=0;i<3;i++) {
+    if(i>=u_contact_count)break;
+    vec2 region=skinRegion(direction,i);
+    q=max(q,region.x);
+    lift=max(lift,skinOffsets(region,i).x);
+  }
   mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase))*rotateZ(.08*sin(u_breath_phase+1.4))*rotateY(u_spin)*u_object_orientation;
   v_position=rotation*position;
-  v_normal=normalize(rotation*cross(du,dv));
+  v_normal=normalize(rotation*localNormal);
   v_object_direction=direction;
-  v_alpha=a_skin.y*(1.-smoothstep(.70,1.,abs(uv.x)))*smoothstep(0.,.04,uv.y);
-  v_radial=uv.y;
-  v_lift=clamp(offset.x/.17,0.,1.);
+  v_alpha=1.-.30*smoothstep(.70,1.,q);
+  v_radial=clamp(q,0.,1.);
+  v_lift=clamp(lift/.17,0.,1.);
   v_highlight=u_highlight*(.3+.7*v_lift);
   gl_Position=vec4(v_position.xy*u_scale,-v_position.z*.25,1.);
 }`;
@@ -172,7 +152,7 @@ out vec4 color;
 ${LIVING_FIELD_GLSL}
 ${LIVING_MATERIAL_GLSL}
 void main(){
-  float alpha=clamp(v_alpha*(1.-smoothstep(.98,1.,v_radial))*(.88+.12*u_emission),0.,1.);
+  float alpha=clamp(v_alpha*(1.-.025*v_radial*(1.-clamp(u_emission,0.,1.))),0.,1.);
   if(alpha<.04) discard;
   if(u_depth_only) {
     if(alpha<.72) discard;
@@ -372,6 +352,12 @@ interface FieldUniforms {
   readonly offsetB: WebGLUniformLocation;
 }
 
+interface SkinUniforms {
+  readonly count: WebGLUniformLocation;
+  readonly pose: WebGLUniformLocation;
+  readonly phase: WebGLUniformLocation;
+}
+
 const arrayResource = (
   gl: WebGL2RenderingContext,
   vertices: Float32Array,
@@ -427,15 +413,8 @@ export class WebGLBackend implements RendererBackend {
   private readonly peelProgram: WebGLProgram;
   private readonly haloProgram: WebGLProgram;
   private readonly particleProgram: WebGLProgram;
-  private readonly contactUniforms?: {
-    readonly count: WebGLUniformLocation;
-    readonly centers: WebGLUniformLocation;
-    readonly tangents: WebGLUniformLocation;
-    readonly sides: WebGLUniformLocation;
-    readonly shapes: WebGLUniformLocation;
-    readonly pose: WebGLUniformLocation;
-    readonly phase: WebGLUniformLocation;
-  };
+  private readonly contactUniforms?: SkinUniforms;
+  private readonly skinUniforms: SkinUniforms;
   private readonly orb: DrawResource;
   private readonly peels: DrawResource;
   private readonly halo: DrawResource;
@@ -464,12 +443,6 @@ export class WebGLBackend implements RendererBackend {
       readonly ripplePhase: WebGLUniformLocation;
       readonly deformation: WebGLUniformLocation;
       readonly ripple: WebGLUniformLocation;
-      readonly travel: WebGLUniformLocation;
-      readonly opening: WebGLUniformLocation;
-      readonly lift: WebGLUniformLocation;
-      readonly width: WebGLUniformLocation;
-      readonly coherence: WebGLUniformLocation;
-      readonly rephase: WebGLUniformLocation;
       readonly highlight: WebGLUniformLocation;
       readonly emission: WebGLUniformLocation;
       readonly depthOnly: WebGLUniformLocation;
@@ -539,38 +512,10 @@ export class WebGLBackend implements RendererBackend {
       highlight: location(gl, this.orbProgram, "u_highlight"),
       orientation: location(gl, this.orbProgram, "u_object_orientation"),
     };
-    if (budget.fineOctaves >= 2) {
-      this.contactUniforms = {
-        count: location(gl, this.orbProgram, "u_contact_count"),
-        centers: location(gl, this.orbProgram, "u_contact_centers[0]"),
-        tangents: location(gl, this.orbProgram, "u_contact_tangents[0]"),
-        sides: location(gl, this.orbProgram, "u_contact_sides[0]"),
-        shapes: location(gl, this.orbProgram, "u_contact_shapes[0]"),
-        pose: location(gl, this.orbProgram, "u_contact_pose"),
-        phase: location(gl, this.orbProgram, "u_contact_phase"),
-      };
-      const descriptors = createPeelDescriptors(budget.peels, seed);
-      bindProgram(gl, this.orbProgram);
-      gl.uniform1i(this.contactUniforms.count, descriptors.length);
-      if (descriptors.length) {
-        gl.uniform4fv(
-          this.contactUniforms.centers,
-          new Float32Array(descriptors.flatMap((p) => [...p.center, p.halfLength])),
-        );
-        gl.uniform4fv(
-          this.contactUniforms.tangents,
-          new Float32Array(descriptors.flatMap((p) => [...p.tangent, p.bend])),
-        );
-        gl.uniform4fv(
-          this.contactUniforms.sides,
-          new Float32Array(descriptors.flatMap((p) => [...p.crossTangent, p.halfWidth])),
-        );
-        gl.uniform4fv(
-          this.contactUniforms.shapes,
-          new Float32Array(descriptors.flatMap((p) => [p.lift, p.curlRadius, p.phase, p.opacity])),
-        );
-      }
-    }
+    const openings = budget.peels ? createSkinOpenings(seed) : [];
+    if (budget.fineOctaves >= 2)
+      this.contactUniforms = this.createSkinUniforms(this.orbProgram, openings);
+    this.skinUniforms = this.createSkinUniforms(this.peelProgram, openings);
     this.peelUniforms = {
       ...this.commonUniformLocations(this.peelProgram),
       ...this.fieldUniformLocations(this.peelProgram),
@@ -582,12 +527,6 @@ export class WebGLBackend implements RendererBackend {
       ripplePhase: location(gl, this.peelProgram, "u_ripple_phase"),
       deformation: location(gl, this.peelProgram, "u_deformation"),
       ripple: location(gl, this.peelProgram, "u_ripple"),
-      travel: location(gl, this.peelProgram, "u_peel_travel"),
-      opening: location(gl, this.peelProgram, "u_opening"),
-      lift: location(gl, this.peelProgram, "u_peel_lift"),
-      width: location(gl, this.peelProgram, "u_peel_width"),
-      coherence: location(gl, this.peelProgram, "u_coherence"),
-      rephase: location(gl, this.peelProgram, "u_rephase"),
       highlight: location(gl, this.peelProgram, "u_highlight"),
       emission: location(gl, this.peelProgram, "u_emission"),
       depthOnly: location(gl, this.peelProgram, "u_depth_only"),
@@ -628,22 +567,11 @@ export class WebGLBackend implements RendererBackend {
         { location: 1, size: 3, offset: 12 },
       ],
     );
-    this.peels = indexedResource(gl, createPeelGeometry(budget, seed), PEEL_VERTEX_STRIDE * 4, [
+    const skin = createSkinGeometry(budget, seed);
+    this.peels = indexedResource(gl, skin, SKIN_VERTEX_STRIDE * 4, [
       { location: 0, size: 3, offset: 0 },
-      { location: 1, size: 4, offset: 12 },
-      { location: 2, size: 3, offset: 28 },
-      { location: 3, size: 3, offset: 40 },
-      { location: 4, size: 2, offset: 52 },
-      { location: 5, size: 3, offset: 60 },
-      { location: 6, size: 3, offset: 72 },
     ]);
-    const perSheet = budget.peelSamples * budget.peelRows * 6;
-    this.peelOrder = createPeelDescriptors(budget.peels, seed).map((peel, index) => ({
-      center: peel.center,
-      offset: index * perSheet * 2,
-      count: perSheet,
-      z: 0,
-    }));
+    this.peelOrder = skin.ranges.map((range) => ({ ...range, z: 0 }));
     this.halo = indexedResource(
       gl,
       {
@@ -657,6 +585,34 @@ export class WebGLBackend implements RendererBackend {
     this.particles = arrayResource(gl, particleGeometry.vertices, particleGeometry.count);
     gl.clearColor(0, 0, 0, 0);
     this.setObjectOrientation(new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]));
+  }
+
+  private createSkinUniforms(shader: WebGLProgram, openings: readonly SkinOpening[]): SkinUniforms {
+    const gl = this.gl;
+    bindProgram(gl, shader);
+    const uniforms = {
+      count: location(gl, shader, "u_contact_count"),
+      pose: location(gl, shader, "u_contact_pose"),
+      phase: location(gl, shader, "u_contact_phase"),
+    };
+    gl.uniform1i(uniforms.count, openings.length);
+    gl.uniform1f(location(gl, shader, "u_skin_clearance"), this.budget.skinClearance);
+    if (openings.length) {
+      gl.uniform4fv(location(gl, shader, "u_contact_centers[0]"),
+        new Float32Array(openings.flatMap((p) => [...p.center, p.radius])));
+      gl.uniform4fv(location(gl, shader, "u_contact_tangents[0]"),
+        new Float32Array(openings.flatMap((p) => [...p.tangent, p.x])));
+      gl.uniform4fv(location(gl, shader, "u_contact_sides[0]"),
+        new Float32Array(openings.flatMap((p) => [...p.side, p.y])));
+      gl.uniform4fv(location(gl, shader, "u_contact_shapes[0]"),
+        new Float32Array(openings.flatMap((p) => [p.collar, p.height, p.curl, p.phase])));
+    }
+    return uniforms;
+  }
+
+  private setSkinPose(uniforms: SkinUniforms, frame: MotionFrame): void {
+    this.gl.uniform4f(uniforms.pose, frame.opening, frame.peelLift, frame.peelWidth, frame.peelCoherence);
+    this.gl.uniform2f(uniforms.phase, frame.peelTravel, frame.peelRephase);
   }
 
   update(input: VisualInputV1): void {
@@ -724,20 +680,11 @@ export class WebGLBackend implements RendererBackend {
     this.setCommonUniforms(this.orbUniforms, frame);
     gl.uniform1i(this.orbUniforms.lightCount, this.budget.lights);
     this.setOrbUniforms(frame);
-    if (this.contactUniforms) {
-      gl.uniform4f(
-        this.contactUniforms.pose,
-        frame.opening,
-        frame.peelLift,
-        frame.peelWidth,
-        frame.peelCoherence,
-      );
-      gl.uniform2f(this.contactUniforms.phase, frame.peelTravel, frame.peelRephase);
-    }
+    if (this.contactUniforms) this.setSkinPose(this.contactUniforms, frame);
     gl.bindVertexArray(this.orb.vao);
     gl.drawElements(gl.TRIANGLES, this.orb.count, gl.UNSIGNED_SHORT, 0);
 
-    // Six reusable sheet ranges are ordered back-to-front. Soft alpha must not
+    // Six connected chart ranges are ordered back-to-front. Soft alpha must not
     // write depth and punch holes through later overlapping layers.
     gl.depthMask(false);
     gl.enable(gl.BLEND);
@@ -894,6 +841,7 @@ export class WebGLBackend implements RendererBackend {
     const gl = this.gl;
     const uniforms = this.peelUniforms;
     this.setFieldState(uniforms, frame);
+    this.setSkinPose(this.skinUniforms, frame);
     gl.uniform1f(uniforms.lightPhase, frame.lightPhase);
     gl.uniform1f(uniforms.spin, frame.spin);
     gl.uniform1f(uniforms.precession, frame.precession);
@@ -901,12 +849,6 @@ export class WebGLBackend implements RendererBackend {
     gl.uniform1f(uniforms.ripplePhase, frame.ripplePhase);
     gl.uniform1f(uniforms.deformation, frame.surfaceDeformation);
     gl.uniform1f(uniforms.ripple, frame.surfaceRipple);
-    gl.uniform1f(uniforms.travel, frame.peelTravel);
-    gl.uniform1f(uniforms.opening, frame.opening);
-    gl.uniform1f(uniforms.lift, frame.peelLift);
-    gl.uniform1f(uniforms.width, frame.peelWidth);
-    gl.uniform1f(uniforms.coherence, frame.peelCoherence);
-    gl.uniform1f(uniforms.rephase, frame.peelRephase);
     gl.uniform1f(uniforms.highlight, frame.highlight);
     gl.uniform1f(uniforms.emission, frame.peelEmission);
   }
