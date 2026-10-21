@@ -1,6 +1,16 @@
 # Post-0.2 engineering backlog
 
-**2026-10-21 IV-C:** [source/evidence checkpoint](RESPONSIVE_PRESENCE_IVC.md).
+**2026-10-21 IV-D:** [integration/validation record](INTEGRATION_VALIDATION_IVD.md).
+Closed source questions: October 21 used Start Sam/v0.2.5; IV-B/IV-C now have a
+canonical compiled-asset path and content identity. Broader deterministic gates
+pass (290 frontend / 223 scoped Python); partial renderer initialization/disposal
+and Windows HTML build consistency are repaired. No rendered acceptance follows.
+Next conditional blockers: shader/CPU-GPU proof, matched richly coloured radial-shell
+and compact-pose review, UI/focus/translation/Console rendering, then corresponding
+isolated cost. Provider-internal startup/typed latency and physical speech lead
+still require a separately authorized correlated session. No new topology programme.
+
+**Historical IV-C checkpoint (superseded by IV-D above):** [source/evidence](RESPONSIVE_PRESENCE_IVC.md).
 Implemented: accepted-write output meters, distinct delivery retirement, continuous
 loading/typed-turn cues, compact departure, startup details, Memory/Console/Quit
 presentation, output/input wording, isolated-profile translation opt-out and

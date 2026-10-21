@@ -1,5 +1,14 @@
 # Responsive Presence IV-C
 
+**IV-D amendment (2026-10-21):** HQ4 confirms the beta used `Start Sam.cmd`, serving
+unchanged v0.2.5 assets at that time. The attribution uncertainty below is historical;
+the owner's swirl/old-peel observations do not accept IV-B/IV-C. [IV-D evidence](INTEGRATION_VALIDATION_IVD.md)
+records canonical compiled-asset integration, 290 frontend / 223 scoped Python
+passes and paired twelve-second PCM/reducer/motion contracts. Reduced Motion
+suppresses spatial pulses while preserving meters/labels. All browser, shader,
+GPU, real provider/audio and owner acceptance questions remain open. Original
+IV-C source manifests and source-only evidence remain unchanged below.
+
 2026-10-21. **IV-C source-complete checkpoint.** Focused non-graphical evidence
 only; graphical, live provider/audio and release acceptance remain open.
 

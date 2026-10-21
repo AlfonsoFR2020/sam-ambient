@@ -2,20 +2,28 @@
 
 ## Unreleased
 
+- IV-D integration: canonical IV-B/IV-C frontend assets with source fingerprints
+  and Vite entry manifest; tested partial renderer initialization/idempotent cleanup;
+  broader deterministic and shared long-PCM contracts. 290 frontend / 223 scoped
+  Python checks pass. Windows HTML line endings are normalized during the build.
+  Owner confirms October 21 saw v0.2.5. Graphical/shader/GPU/physical acceptance,
+  packaging and any v0.2.6 release remain open. [Evidence](docs/INTEGRATION_VALIDATION_IVD.md).
+
 - IV-C responsive presence: playback-write meters and separate delivery identity;
   bounded lifecycle poses/waiting labels; compact startup, functional Memory/Console
   panels and persistent Quit; clear spoken-output/input controls; private-profile
   translation opt-out; correlated content-free latency intervals. Focused tests,
   lint and bounded no-emit TypeScript pass. Graphical fixtures are authored but
-  unexecuted. No build, provider/model/audio-device run, version bump or release.
+  unexecuted. IV-C performed no build/provider/model/audio-device run; IV-D now
+  integrates compiled assets. No version bump or release.
   [Scope, evidence and open questions](docs/RESPONSIVE_PRESENCE_IVC.md).
 
 - Experimental connected parent-skin source implementation with three irregular
   openings, attached curling collars, shared field/behavior and opening-based High
   contact. Geometry/optics regressions and matched release/candidate fixtures are
   authored. IV-B deferred execution; IV-C subsequently passed focused source checks.
-  Rendering/performance and visual acceptance remain open; shipped JS/CSS and version
-  remain unchanged (HTML receives translation metadata only).
+  Rendering/performance and visual acceptance remain open. IV-D subsequently
+  integrates this source into compiled JS/CSS; version remains unchanged.
   See [Visual Identity IV](docs/VISUAL_IDENTITY_IV.md).
 
 ## 0.2.5 — experimental source/Python alpha (2026-10-15)

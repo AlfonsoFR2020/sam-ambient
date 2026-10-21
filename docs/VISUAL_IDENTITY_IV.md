@@ -1,5 +1,14 @@
 # Visual Identity IV — connected living skin
 
+**IV-D integration amendment (2026-10-21):** [current evidence](INTEGRATION_VALIDATION_IVD.md)
+records 290 frontend / 223 scoped Python passes, canonical compiled assets with
+source/asset fingerprints, partial renderer setup/disposal repair and additional
+compact-pose/normal/descriptor proofs. No browser, GLSL, GPU or capture ran.
+HQ4 confirms October 21's Start Sam beta displayed v0.2.5; its attractive swirls
+and old-peel criticism do not accept IV-B. Preserve the palette and radial-sector
+shell criterion. The IV-B/IV-C paragraphs below retain their historical build and
+permission boundaries; IV-D supersedes the unbuilt-assets status.
+
 2026-10-21. **IV-B is source-complete; graphical quality remains unverified.**
 During IV-B, quiet-PC permission excluded all execution. [IV-C](RESPONSIVE_PRESENCE_IVC.md)
 subsequently authorized short sequential non-graphical checks: topology, membrane,

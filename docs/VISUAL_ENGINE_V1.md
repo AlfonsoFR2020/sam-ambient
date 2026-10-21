@@ -7,7 +7,9 @@ irregular openings and body-relative C1 curled collars. Same field/palette/clock
 including particles are 32,988/150,252/519,500 bytes, plus unchanged halo and bounded
 uniforms as itemized in IV. No budget expansion or owner-setting migration.
 IV-C focused non-graphical checks pass; shaders, images and hardware cost remain unverified.
-Shipped JS/CSS still contain the release; HTML alone has translation opt-out metadata.
+[IV-D integration](INTEGRATION_VALIDATION_IVD.md) now builds the current source into
+ordinary-launch assets with content identity. Explicit partial-setup resource
+retirement is tested; graphical/shader/hardware acceptance remains open.
 Older material/geometry descriptions remain historical where superseded.
 
 **Responsive Presence IV-C:** [contract and evidence](RESPONSIVE_PRESENCE_IVC.md).

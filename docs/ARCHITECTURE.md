@@ -18,7 +18,11 @@ startup/unload/retirement poses reuse existing geometry; reduced motion, hidden
 suspension and governor ownership persist. Playback observation follows bounded
 accepted writes and separate delivery identity; text completion is not audio drain.
 Only Sam-owned browser profiles get a local translation preference; the private
-asset/proof bootstrap and sandbox remain. Static JS/CSS have not been rebuilt.
+asset/proof bootstrap and sandbox remain. [IV-D](INTEGRATION_VALIDATION_IVD.md) now
+builds these sources through the canonical frontend script into ordinary-launch
+static assets, adding content fingerprints/Vite entry manifest without changing
+private resolution. A setup-only resource ledger handles partial shader/uniform/
+buffer failure and idempotent disposal. Deterministic tests pass; GPU proof is open.
 
 Core startup snapshots distinguish configured/pending route identity from an
 available current route: an explicit unavailable reason suppresses current model

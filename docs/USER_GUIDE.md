@@ -26,6 +26,11 @@ Start with [Getting started](GETTING_STARTED.md). On Windows, double-click
 use, run `uv run --no-sync sam-ambient`. The dedicated Sam window proves owner
 authority through its private supervisor binding; an ordinary browser tab cannot
 authenticate or read private core state.
+The prepared source launcher uses the compiled frontend in this checkout. IV-D
+integrates the connected skin, responsive presence and quieter controls there;
+editing frontend source alone does not update it. Development build/provenance
+instructions are in [the UI readme](../ui/README.md). Graphical and owner acceptance
+of this experimental candidate remain open; no additional beta is requested.
 The integrated, unreleased Tauri source provides an owned native window with the
 same React UI and protocol. Closing that window invokes the same in-app Quit
 confirmation; it does not bypass supervisor shutdown or capability revocation.
@@ -155,7 +160,7 @@ it does not silently keep a disappeared model selected. After disconnect, any
 previously shown provider or model is labeled last known until the local service
 reports fresh status.
 Before core readiness, the main view says **Starting Sam**; after a core restart it
-says **Reconnecting**. In IV-C development source, startup is a compact summary;
+says **Reconnecting**. In the IV-C/IV-D development frontend, startup is a compact summary;
 **Details and model controls** reveals service, provider, model and speech facts.
 Required model choices and recovery remain available. The main view presents one
 plain-language explanation; raw connection and setup errors are under **Technical

@@ -66,7 +66,9 @@ def test_asset_integrity_matches_source_html_manifest_and_content(frontend):
     assert inspect_assets(root)["sourceDigestSha256Lf"] == proof["sourceDigestSha256Lf"]
 
 
-@pytest.mark.parametrize("fault", ["changed-source", "new-source", "html-entry", "missing-feature"])
+@pytest.mark.parametrize(
+    "fault", ["changed-source", "new-source", "html-entry", "missing-feature", "mixed-newlines"]
+)
 def test_asset_integrity_rejects_stale_or_mixed_artifacts(frontend, fault):
     root, static = frontend
     if fault == "changed-source":
@@ -76,6 +78,9 @@ def test_asset_integrity_rejects_stale_or_mixed_artifacts(frontend, fault):
     elif fault == "html-entry":
         index = static / "index.html"
         index.write_text(index.read_text().replace("assets/app.js", "assets/old.js"))
+    elif fault == "mixed-newlines":
+        index = static / "index.html"
+        index.write_bytes(b"\r\n" + index.read_bytes() + b"\n")
     else:
         script = static / "assets/app.js"
         script.write_text(script.read_text().replace("livingSkinPoint", "old independent sheets"))

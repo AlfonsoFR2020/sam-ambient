@@ -18,13 +18,16 @@ export default defineConfig(({ command }) => {
                   source: `${JSON.stringify(provenance, null, 2)}\n`,
                 });
               },
-              transformIndexHtml() {
-                return [
-                  {
-                    tag: "meta",
-                    attrs: { name: "sam-ui-source", content: provenance.sourceDigestSha256Lf },
-                  },
-                ];
+              transformIndexHtml(html: string) {
+                return {
+                  html: html.replace(/\r\n?/g, "\n"),
+                  tags: [
+                    {
+                      tag: "meta",
+                      attrs: { name: "sam-ui-source", content: provenance.sourceDigestSha256Lf },
+                    },
+                  ],
+                };
               },
             },
           ]

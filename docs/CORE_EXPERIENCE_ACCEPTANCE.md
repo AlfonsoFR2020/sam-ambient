@@ -1,5 +1,12 @@
 # Core Experience evidence — I through V and Visual Identity III
 
+**2026-10-21 Visual IV-D delta:** [integration record](INTEGRATION_VALIDATION_IVD.md)
+adds 290 frontend / 223 scoped Python passes, accepted-PCM long-delivery contracts,
+partial-renderer recovery repair and canonical compiled frontend provenance.
+October 21's owner observations concern Start Sam/v0.2.5. No browser/GLSL/GPU,
+live provider/audio, package or owner acceptance gate is closed by IV-D. Historical
+released acceptance matrices below retain their original scope and evidence.
+
 This is the post-Memory Foundation baseline and evidence index for **Basics Before
 Expansion**. Published v0.2.4 and v0.2.5 tags are immutable. Automated evidence does not establish
 human acoustic, voice-persona or visual acceptance. The October 9 beta completed;

@@ -1,5 +1,15 @@
 # Diagnostic launch and conversation evidence
 
+**2026-10-21 IV-D integration:** [current evidence](INTEGRATION_VALIDATION_IVD.md)
+validates fake-service correlations and builds the IV-C frontend. The canonical
+build emits `assets/sam-build.json`, HTML `sam-ui-source` and DOM
+`data-sam-ui-source` / `data-sam-ui-commit`, supplementing the owner-window HTML
+fingerprint. File-only `scripts/check_frontend_assets.py` checks current source and
+compiled entry assets. These identify code; they are not readiness or owner proof.
+`ui.document_loaded` remains DOMContentLoaded, not interactive paint. HTTP headers
+do not isolate provider-internal queuing; `playback.first_write` is acceptance,
+not acoustic presentation. No real cold-start/device timing is inferred from tests.
+
 Implementation checkpoints 1–3 — 2026-10-13. No version bump or release publication.
 
 ## Unified owner launch (2026-10-14 development)

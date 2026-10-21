@@ -1,0 +1,24 @@
+{
+  "assignmentStart": "65092bbe6a531eb7732f981354de62922014acdc",
+  "releasedBaseline": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+  "preBuildSourceCommit": "a7fdac469042591230d1707a240e6d93d56e7622",
+  "ownerBetaLauncher": "Start Sam.cmd",
+  "ownerBetaRenderer": "published-v0.2.5",
+  "assets": {
+    "src/sam_ambient/static/assets/index-D5fV1sLu.css": {
+      "sha256": "c130542eddff7c831f254dfbf9a4a69161152685fa933aeaabb845f8975b933b",
+      "sha256Lf": "cbbd048ad5a81debb836a74b97f8f9256115c89275e9df2c70f1aa4d7404d364",
+      "matchesReleaseLf": true
+    },
+    "src/sam_ambient/static/assets/index-DPoRgsL3.js": {
+      "sha256": "adf87af03097ae3119278cff53e1f01898be58cb1cbcb2e2a591f959988e86cd",
+      "sha256Lf": "7172f36868a422128616d5b700e79ea82d34a84d33d31a376805002861416d6f",
+      "matchesReleaseLf": true
+    },
+    "src/sam_ambient/static/index.html": {
+      "sha256": "a5d83c74b5f57e035ab5628410985e52ef7840fb879fcdce88aae028cfcf35bb",
+      "sha256Lf": "8966aed47d61dd5afc1715d8ef2fef725b7d3c6be4b4c1baa8581c5c02754375",
+      "matchesReleaseLf": false
+    }
+  }
+}

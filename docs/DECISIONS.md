@@ -21,6 +21,10 @@ geometry, shader effect, draw pass or new rendering subsystem. Matched compariso
 fixtures now supply the same current motion frames to both renderer versions.
 Browser/GPU execution is still unauthorized under IV-D's occupied-PC permission.
 
+The first canonical build exposed mixed template/injected HTML line endings on
+Windows. Normalize HTML in Vite's transform, with a file-only regression guard,
+then rebuild through the canonical script; never patch generated bundles by hand.
+
 ## 2026-10-21 — Playback observation and responsive presence (IV-C)
 
 Move visual output metering from synthesis to an optional trusted observer after

@@ -3,17 +3,18 @@
 **2026-10-21 owner direction / IV-C:** evolving colourful swirls were attractive
 and must be preserved. Peels remained questionable, especially inward curls; the
 preferred reference is radial shells cropped by radial sectors, rather than straps
-or an opened casing. The actual beta launcher is unknown: normal source launch
-still serves released JS/CSS, so this is not acceptance/rejection of IV-B.
+or an opened casing. HQ4 subsequently confirms Start Sam served unchanged v0.2.5
+in that beta. These observations concern the release, not acceptance/rejection of IV-B.
 [IV-C](RESPONSIVE_PRESENCE_IVC.md) adds truthful sustained preparation/turn/delivery
 expression and quieter controls, without another topology or particle redesign.
 Particles' dirty appearance and promising reflections remain observations for a
-later authorized comparison. No new rendered aesthetic success is claimed.
+later authorized comparison. [IV-D](INTEGRATION_VALIDATION_IVD.md) integrates compiled
+assets and broader deterministic proof; no new rendered aesthetic success is claimed.
 
 **2026-10-21 experimental source:** [Visual Identity IV-B](VISUAL_IDENTITY_IV.md)
 implements the provisional connected-parent-skin direction: three unequal irregular
 openings, substantial resting coating and local curling collars. It supersedes
-the released WebGL six-sheet representation in current source only. Palette,
+the released WebGL six-sheet representation in current source and IV-D compiled assets. Palette,
 independent life and authority remain; rendering/cost and connected-skin
 character are unverified. The original board is still missing; no artistic
 acceptance is implied by choosing a source representation.

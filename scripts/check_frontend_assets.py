@@ -71,7 +71,11 @@ def inspect_assets(root: Path) -> dict[str, object]:
     if provenance["sourceDigestSha256Lf"] != source_id:
         raise ValueError("Frontend source digest is inconsistent")
     index = Index()
-    index.feed((static / "index.html").read_text(encoding="utf-8"))
+    html = (static / "index.html").read_bytes()
+    without_crlf = html.replace(b"\r\n", b"")
+    if b"\r" in without_crlf or (b"\r\n" in html and b"\n" in without_crlf):
+        raise ValueError("Generated HTML has mixed line endings; repair the build transform")
+    index.feed(html.decode("utf-8"))
     if index.source_id != source_id:
         raise ValueError("HTML source identity differs from build")
     manifest = json.loads((static / ".vite/manifest.json").read_text(encoding="utf-8"))
