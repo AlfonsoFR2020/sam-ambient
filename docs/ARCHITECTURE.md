@@ -415,14 +415,15 @@ still require physical integration validation.
 The audio producer/consumer boundary is deliberately pull-based. One
 `SoundDeviceCapture.frames` iterator reads a fixed 20 ms PortAudio block only
 after `VoiceInputPipeline` has finished processing/pushing the preceding block.
-Its 10-frame pre-roll is a bounded 200 ms deque; older pre-roll frames are
+Its pre-roll is a duration/timestamp-bounded 200 ms deque (64-frame cap; normally
+ten 20 ms frames). Older pre-roll frames are
 discarded only before a speech candidate opens. Once STT opens, each frame is
 awaited at `push_audio`, so a slow STT consumer stalls capture rather than
 growing a Python frame queue. Real-time PortAudio input may then overflow; the
 adapter raises `AudioInputOverflow` and aborts that utterance, never silently
 submits discontinuous speech. The whisper.cpp adapter copies PCM into one
-per-stream bytearray capped at 120 seconds, clears it on successful finalization
-or cancellation, and caps the HTTP result. This adapter does not stream partial
+per-stream bytearray capped at 120 seconds, clears it after WAV encoding and on
+all terminal paths, and caps the HTTP result. This adapter does not stream partial
 STT results yet. `AudioFrame` holds immutable bytes copied from the input
 stream; gain creates a new frame except at unity.
 
@@ -468,6 +469,17 @@ turn ID and STT stream. The whisper.cpp stream checks its original token and
 context cancellation ID, stops accepting frames after finalization, bounds its
 audio buffer and cancels the HTTP task on token cancellation. Retired candidate
 finals are checked against current turn/candidate identity before publication.
+
+V-B seals a recognition stream before its first finalize await. Concurrent
+finalizers and writes after sealing are rejected without additional worker tasks
+or waiting locks. Active-original-token cached success is idempotent; failed or
+canceled streams cannot retry. Recognition/context checks at the pipeline and
+adapter reject late callbacks before evidence publication or commitment. Polling
+remains provisional; explicit finalization must return final evidence. Supporting
+confirmed-language updates use request epochs, never forced-decoding evidence.
+Common locales normalize to primary selectors (`es-ES` → `es`, `en-GB` → `en`);
+no dialect/code-switch detection is implied. Error bodies and reflected exception
+details cannot enter routine STT operational tracebacks.
 
 `_deliver_assistant` owns one generation's speech queue entry, TTS iterator and
 `AudioOutput.play` call. System TTS owns its synthesis subprocess and PCM buffer

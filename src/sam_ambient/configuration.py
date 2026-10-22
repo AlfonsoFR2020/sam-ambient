@@ -9,6 +9,8 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
+from sam_ambient.core.voice.recognition import recognition_language
+
 CONFIG_SCHEMA_VERSION = 1
 
 
@@ -547,14 +549,20 @@ def _optional_string(value: Any, name: str) -> str | None:
 
 
 def _recognition_language(value: Any) -> str:
-    code = _string(value, "voice.stt_language").lower()
-    if code != "auto" and (not code.isascii() or not code.isalpha() or len(code) not in (2, 3)):
-        raise ConfigurationError("voice.stt_language must be auto or a language code")
-    return code
+    try:
+        return recognition_language(_string(value, "voice.stt_language"))
+    except ValueError as error:
+        raise ConfigurationError(
+            "voice.stt_language must be auto, a language code or locale"
+        ) from error
 
 
 def _language(value: Any) -> str:
-    code = _string(value, "voice.preferred_languages item").lower()
-    if not code.isalpha() or len(code) not in (2, 3):
-        raise ConfigurationError("voice.preferred_languages items must be language codes")
-    return code
+    try:
+        return recognition_language(
+            _string(value, "voice.preferred_languages item"), allow_auto=False
+        )
+    except ValueError as error:
+        raise ConfigurationError(
+            "voice.preferred_languages items must be language codes or locales"
+        ) from error

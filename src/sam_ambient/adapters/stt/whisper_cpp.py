@@ -24,6 +24,7 @@ from sam_ambient.core.voice import (
     Transcript,
     VoiceStreamContext,
 )
+from sam_ambient.core.voice.recognition import recognition_language
 
 DEFAULT_WHISPER_CPP_URL = "http://127.0.0.1:8080"
 log = logging.getLogger(__name__)
@@ -121,15 +122,16 @@ class WhisperCppServerSTT:
             raise ValueError("timeout_s must be positive")
         if max_response_bytes <= 0 or max_audio_seconds <= 0:
             raise ValueError("STT size limits must be positive")
-        if not preferred_languages or any(
-            not code.isalpha() or len(code) not in (2, 3) for code in preferred_languages
-        ):
+        if not preferred_languages:
             raise ValueError("preferred languages must be language codes")
         if not 0.5 <= language_confidence <= 1.0:
             raise ValueError("language confidence must be between 0.5 and 1")
-        self._preferred_languages = preferred_languages
+        self._preferred_languages = tuple(
+            recognition_language(code, allow_auto=False) for code in preferred_languages
+        )
         self._language_confidence = language_confidence
         self._recent_language: str | None = None
+        self._recognition_epoch = 0
         self.base_url = normalize_whisper_cpp_url(base_url)
         if not _is_loopback_url(self.base_url) and not allow_remote:
             raise ValueError(
@@ -255,7 +257,13 @@ class WhisperCppServerSTT:
         language: str,
         cancellation: CancellationToken,
     ) -> Transcript:
+        cancellation.raise_if_cancelled()
+        language = recognition_language(language)
+        self._recognition_epoch += 1
+        epoch = self._recognition_epoch
+        recent_language = self._recent_language
         value = await self._request(wav_data, language=language, cancellation=cancellation)
+        cancellation.raise_if_cancelled()
         result = self._decode_transcript(json.dumps(value).encode())
         if not result.text or language != "auto":
             return result
@@ -280,7 +288,7 @@ class WhisperCppServerSTT:
         selected = detected
         if confidence < self._language_confidence:
             preferred = max(self._preferred_languages, key=lambda code: scores.get(code, 0))
-            selected = self._recent_language or preferred
+            selected = recent_language or preferred
         duration = value.get("duration", 0)
         if not isinstance(duration, int | float) or not math.isfinite(duration) or duration < 0:
             duration = 0
@@ -297,7 +305,11 @@ class WhisperCppServerSTT:
         cancellation.raise_if_cancelled()
         # A forced fallback is not new evidence. Only confident auto-detection may
         # change the conversational language, including languages outside preferences.
-        if result.text and confidence >= self._language_confidence:
+        if (
+            result.text
+            and confidence >= self._language_confidence
+            and epoch == self._recognition_epoch
+        ):
             self._recent_language = detected
         return result
 
@@ -335,9 +347,9 @@ class WhisperCppServerSTT:
                             "whisper.cpp response exceeded configured size limit"
                         )
                 if response.status_code >= 400:
-                    detail = bytes(raw).decode("utf-8", errors="replace")[:500]
                     raise SpeechRecognitionUnavailable(
-                        f"whisper.cpp returned HTTP {response.status_code}: {detail}"
+                        f"whisper.cpp returned HTTP {response.status_code}; "
+                        "check recognizer readiness"
                     )
         except asyncio.CancelledError as error:
             if cancellation.is_cancelled:
@@ -346,10 +358,12 @@ class WhisperCppServerSTT:
                     cancellation.reason or "cancelled",
                 ) from error
             raise
-        except httpx.TimeoutException as error:
-            raise SpeechRecognitionTimeout(f"whisper.cpp request timed out: {error}") from error
+        except httpx.TimeoutException:
+            raise SpeechRecognitionTimeout("whisper.cpp request timed out") from None
         except httpx.RequestError as error:
-            raise SpeechRecognitionUnavailable(f"whisper.cpp unavailable: {error}") from error
+            raise SpeechRecognitionUnavailable(
+                f"whisper.cpp request failed ({type(error).__name__})"
+            ) from None
         finally:
             remove_callback()
         self._decode_transcript(bytes(raw))  # Validate the response before using metadata.
@@ -370,7 +384,7 @@ class WhisperCppServerSTT:
             raise SpeechRecognitionProtocolError("whisper.cpp response must be an object")
         error_detail = value.get("error")
         if error_detail:
-            raise SpeechRecognitionUnavailable(f"whisper.cpp failed: {str(error_detail)[:500]}")
+            raise SpeechRecognitionUnavailable("whisper.cpp reported a recognition failure")
         text = value.get("text")
         if not isinstance(text, str):
             raise SpeechRecognitionProtocolError("whisper.cpp response omitted transcript text")
@@ -419,6 +433,7 @@ class _WhisperCppStream:
         self._audio_format: AudioFormat | None = None
         self._audio = bytearray()
         self._result: Transcript | None = None
+        self._sealed = False
 
     @property
     def context(self) -> VoiceStreamContext:
@@ -452,30 +467,46 @@ class _WhisperCppStream:
 
     async def finalize(self, cancellation: CancellationToken) -> Transcript:
         self._ensure_token(cancellation)
+        self._cancellation.raise_if_cancelled()
         if self._result is not None:
             return self._result
-        self._cancellation.raise_if_cancelled()
-        if self._audio_format is None or not self._audio:
-            raise SpeechRecognitionProtocolError("cannot finalize an empty STT stream")
-        wav_data = self._encode_wav(self._audio_format, bytes(self._audio))
-        self._result = await self._provider.transcribe(
-            wav_data,
-            language=self.context.language,
-            cancellation=self._cancellation,
-        )
-        self._audio.clear()
-        return self._result
+        if self._sealed:
+            raise SpeechRecognitionProtocolError("STT stream is already finalizing or failed")
+        # Seal before the first await: one immutable utterance, one request. No
+        # extra task or lock can retain a duplicate caller behind a stuck adapter.
+        self._sealed = True
+        try:
+            if self._audio_format is None or not self._audio:
+                raise SpeechRecognitionProtocolError("cannot finalize an empty STT stream")
+            wav_data = self._encode_wav(self._audio_format, self._audio)
+            self._audio.clear()  # WAV owns the samples; don't retain duplicate PCM during HTTP.
+            result = await self._provider.transcribe(
+                wav_data,
+                language=self.context.language,
+                cancellation=self._cancellation,
+            )
+            self._cancellation.raise_if_cancelled()
+            if not result.is_final:
+                raise SpeechRecognitionProtocolError(
+                    "STT finalization returned a provisional result"
+                )
+            self._result = result
+            return result
+        finally:
+            self._audio.clear()
 
     async def cancel(self, cancellation_id: str, reason: str = "cancelled") -> bool:
         if cancellation_id != self.context.cancellation_id:
             return False
         self._audio.clear()
+        self._sealed = True
+        self._result = None
         return self._cancellation.cancel(reason)
 
     def _ensure_active(self, cancellation: CancellationToken) -> None:
         self._ensure_token(cancellation)
         cancellation.raise_if_cancelled()
-        if self._result is not None:
+        if self._sealed:
             raise SpeechRecognitionProtocolError("cannot append audio after STT finalization")
 
     def _ensure_token(self, cancellation: CancellationToken) -> None:
@@ -483,7 +514,7 @@ class _WhisperCppStream:
             raise ValueError("STT stream requires its original cancellation token")
 
     @staticmethod
-    def _encode_wav(audio_format: AudioFormat, pcm: bytes) -> bytes:
+    def _encode_wav(audio_format: AudioFormat, pcm: bytes | bytearray) -> bytes:
         buffer = io.BytesIO()
         with wave.open(buffer, "wb") as wav_file:
             wav_file.setnchannels(audio_format.channels)

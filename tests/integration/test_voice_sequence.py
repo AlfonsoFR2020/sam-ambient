@@ -57,6 +57,10 @@ class Recognizer:
         fail = self.fail
 
         class Stream:
+            @property
+            def context(self):
+                return stream.context
+
             async def push_audio(self, frame, token):
                 return await stream.push_audio(frame, token)
 

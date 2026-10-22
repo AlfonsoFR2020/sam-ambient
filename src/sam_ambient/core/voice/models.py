@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
+from sam_ambient.core.voice.recognition import recognition_language
+
 
 class SampleFormat(StrEnum):
     PCM_S16LE = "pcm_s16le"
@@ -139,3 +141,4 @@ class VoiceStreamContext:
                 raise TypeError(f"{name} must be a string")
             if not value.strip():
                 raise ValueError(f"{name} must be non-blank")
+        object.__setattr__(self, "language", recognition_language(self.language))

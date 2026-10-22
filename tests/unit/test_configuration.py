@@ -91,7 +91,7 @@ def test_surface_flow_is_bounded_and_old_motion_preference_migrates(tmp_path):
         ("schema_version = 2", "unsupported schema_version"),
         ('[provider]\npreference = "cloud-magic"', "provider.preference"),
         ("[voice]\npreferred_languages = []", "non-empty array"),
-        ('[voice]\npreferred_languages = ["en-US"]', "language codes"),
+        ('[voice]\npreferred_languages = ["en-US-extra"]', "language codes"),
         ('[privacy]\nallow_cloud = "yes"', "must be a boolean"),
         ('[provider]\napi_key = "secret"', "provider.api_key"),
     ],
@@ -171,6 +171,23 @@ def test_explicit_stt_language_reaches_supervisor_core_and_cli_override(tmp_path
     assert args.stt_language == "en"
     with pytest.raises(ConfigurationError, match="stt_language"):
         load_settings(project_root=tmp_path, environment={"SAM_STT_LANGUAGE": "--unsafe"})
+
+
+@pytest.mark.parametrize("locale, expected", [("en-GB", "en"), ("es-ES", "es"), ("es_ES", "es")])
+def test_recognition_locale_normalizes_through_config_and_supervisor(
+    tmp_path, monkeypatch, locale, expected
+):
+    config = tmp_path / "config/sam.toml"
+    _write(
+        config, f'[voice]\nstt_language = "{locale}"\npreferred_languages = ["en-GB", "es-ES"]\n'
+    )
+    monkeypatch.chdir(tmp_path)
+    args = build_supervisor_parser().parse_args([])
+    configure_namespace(args, [], supervisor=True)
+    assert args.stt_language == expected
+    assert args.preferred_languages == ("en", "es")
+    command = _trusted_core_command(args, tmp_path)
+    assert command[command.index("--stt-language") + 1] == expected
 
 
 def test_visual_settings_are_typed_and_bounded(tmp_path):

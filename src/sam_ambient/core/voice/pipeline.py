@@ -14,7 +14,12 @@ from dataclasses import dataclass, replace
 from sam_ambient.core.protocol import EventType, ProtocolEvent
 from sam_ambient.core.turns import CancellationToken, TurnManager, VoiceState
 from sam_ambient.core.voice.delivery import InterruptionCoordinator, InterruptionEffects
-from sam_ambient.core.voice.interfaces import AudioInput, SpeechToText, VoiceActivityDetector
+from sam_ambient.core.voice.interfaces import (
+    AudioInput,
+    SpeechToText,
+    SpeechToTextStream,
+    VoiceActivityDetector,
+)
 from sam_ambient.core.voice.models import AudioFrame, SampleFormat, Transcript, VoiceStreamContext
 from sam_ambient.diagnostic_log import diagnostic
 
@@ -253,10 +258,12 @@ class VoiceInputPipeline:
         listening_started = False
         frame_stream = self._capture.frames(cancellation)
         # Retain only 200 ms before VAD opens STT, so initial consonants aren't clipped.
-        pre_roll: deque[AudioFrame] = deque(maxlen=10)
+        pre_roll: deque[AudioFrame] = deque()
+        pre_roll_ms = 0.0
         evidence = SpeechEvidence()
         try:
             async for frame in frame_stream:
+                cancellation.raise_if_cancelled()
                 last_frame_ms = frame.monotonic_ms
                 if not listening_started:
                     await self._publish_all(
@@ -304,6 +311,13 @@ class VoiceInputPipeline:
                     return VoiceInputResult(Transcript("", is_final=True), audio_frames)
                 if stt_stream is None:
                     pre_roll.append(frame)
+                    pre_roll_ms += frame.duration_ms
+                    while len(pre_roll) > 1 and (
+                        pre_roll_ms > 200
+                        or len(pre_roll) > 64
+                        or frame.monotonic_ms - pre_roll[0].monotonic_ms >= 200
+                    ):
+                        pre_roll_ms -= pre_roll.popleft().duration_ms
                 if stt_stream is None and self._turn_manager.state is VoiceState.USER_SPEAKING:
                     context = VoiceStreamContext(
                         session_id=self._turn_manager.session_id,
@@ -312,6 +326,9 @@ class VoiceInputPipeline:
                         language=self._language,
                     )
                     stt_stream = await self._stt.start_stream(context, cancellation)
+                    cancellation.raise_if_cancelled()
+                    if stt_stream.context != context:
+                        raise VoicePipelineEnded("STT stream context does not match this utterance")
                     await self._publish(
                         ProtocolEvent(
                             type=EventType.COMPONENT_HEALTH,
@@ -327,9 +344,12 @@ class VoiceInputPipeline:
                     )
                     for buffered in pre_roll:
                         await stt_stream.push_audio(buffered, cancellation)
+                        cancellation.raise_if_cancelled()
                     pre_roll.clear()
+                    pre_roll_ms = 0.0
                 elif stt_stream is not None and final_transcript is None:
                     await stt_stream.push_audio(frame, cancellation)
+                    cancellation.raise_if_cancelled()
                 if stt_stream is not None:
                     evidence.observe(frame, vad_result.speech_probability)
                     if evidence.sparse_too_long(frame.monotonic_ms):
@@ -360,7 +380,7 @@ class VoiceInputPipeline:
                                 else frame.monotonic_ms
                             ),
                         )
-                        final_transcript = await stt_stream.finalize(cancellation)
+                        final_transcript = await self._finalize_stream(stt_stream, cancellation)
                         if not final_transcript.text.strip():
                             return VoiceInputResult(final_transcript, audio_frames)
                         if await self._consume_control(final_transcript, frame.monotonic_ms):
@@ -377,6 +397,9 @@ class VoiceInputPipeline:
                     candidate_since_ms = None
 
                 partial = await stt_stream.partial_transcript() if stt_stream is not None else None
+                cancellation.raise_if_cancelled()
+                if partial is not None:
+                    partial = replace(partial, is_final=False)
                 if partial is not None and partial != last_partial:
                     await self._publish_transcript(frame.monotonic_ms, partial)
                     last_partial = partial
@@ -411,7 +434,7 @@ class VoiceInputPipeline:
                         )
                     )
                     stt_started = time.monotonic()
-                    final_transcript = await stt_stream.finalize(cancellation)
+                    final_transcript = await self._finalize_stream(stt_stream, cancellation)
                     diagnostic(
                         "stt.final",
                         elapsed_ms=round((time.monotonic() - stt_started) * 1000),
@@ -445,7 +468,7 @@ class VoiceInputPipeline:
                 await self._publish_all(time_events)
                 if any(event.type == EventType.TURN_COMMITTED for event in time_events):
                     if final_transcript is None and stt_stream is not None:
-                        final_transcript = await stt_stream.finalize(cancellation)
+                        final_transcript = await self._finalize_stream(stt_stream, cancellation)
                     if final_transcript is None:
                         raise VoicePipelineEnded("speech committed without an STT stream")
                     return VoiceInputResult(final_transcript, audio_frames)
@@ -475,6 +498,17 @@ class VoiceInputPipeline:
         if candidate_since_ms is None:
             return False
         return at_ms - candidate_since_ms >= self._turn_manager.endpoint_threshold_ms
+
+    @staticmethod
+    async def _finalize_stream(
+        stream: SpeechToTextStream, cancellation: CancellationToken
+    ) -> Transcript:
+        cancellation.raise_if_cancelled()
+        result = await stream.finalize(cancellation)
+        cancellation.raise_if_cancelled()
+        if not result.is_final:
+            raise VoicePipelineEnded("STT finalization returned a provisional result")
+        return result
 
     async def _consume_control(self, transcript: Transcript, at_ms: int) -> bool:
         if not transcript.is_final or self._on_final_transcript is None:

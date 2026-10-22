@@ -72,6 +72,10 @@ class Stt:
         fail = self.fail
 
         class Stream:
+            @property
+            def context(self):
+                return context
+
             async def push_audio(self, frame, token):
                 token.raise_if_cancelled()
 

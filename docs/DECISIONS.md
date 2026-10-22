@@ -1,5 +1,25 @@
 # Decision log
 
+## 2026-10-22 — Recognition ownership and explicit locale selectors (V-B)
+
+Deterministic faults establish duplicate finalization, stale canceled results,
+PCM retained after failure, reordered language evidence and content-bearing STT
+errors. Seal each utterance before finalization; reject concurrent finalizers
+without a waiting task/lock, preserve active-token cached success, and make failure
+terminal. Release PCM after WAV encoding and in all terminal paths. Recheck
+cancellation after external awaits and guard confirmed-language updates by epoch.
+Sanitize server/transport errors including their traceback chain.
+
+The capture pipeline validates stream context, treats polling as provisional,
+requires a final result for commitment, and keeps a duration/timestamp-bounded
+200 ms pre-roll (64-frame cap) rather than assuming every frame is 20 ms. Native
+sampling, VAD, endpoint thresholds and TurnManager authority are unchanged.
+
+Normalize explicit common locales to recognizer language selectors (`en-GB` → `en`,
+`es-ES` → `es`) without overriding owner choice or pretending dialect/code-switch
+support. This broadens accepted values without a key/schema migration. Preserve
+the existing uncertain-auto fallback. [Evidence and limits](SPEECH_RECOGNITION_VB.md).
+
 ## 2026-10-22 — Correlated typed recovery and bounded retirement (V-A)
 
 Fault injection reproduces frontend pending waits surviving precommit terminals,
