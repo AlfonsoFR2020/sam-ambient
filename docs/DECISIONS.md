@@ -8,7 +8,11 @@ errors. Seal each utterance before finalization; reject concurrent finalizers
 without a waiting task/lock, preserve active-token cached success, and make failure
 terminal. Release PCM after WAV encoding and in all terminal paths. Recheck
 cancellation after external awaits and guard confirmed-language updates by epoch.
-Sanitize server/transport errors including their traceback chain.
+Sanitize server/transport errors including their traceback chain. Only normalized
+language selectors and finite 0–1 probabilities may become detection evidence;
+untrusted labels cannot become logs/future fields. Malformed no-speech metadata
+cannot erase decoded text. Four initial failing metadata cases establish these
+repairs; extreme integer probability/duration cases also protect conversion bounds.
 
 The capture pipeline validates stream context, treats polling as provisional,
 requires a final result for commitment, and keeps a duration/timestamp-bounded

@@ -50,6 +50,15 @@ class SpeechAudioLimitExceeded(SpeechRecognitionError):
     pass
 
 
+def _valid_probability(value: object) -> bool:
+    return (
+        isinstance(value, int | float)
+        and not isinstance(value, bool)
+        and 0 <= value <= 1
+        and math.isfinite(value)
+    )
+
+
 def normalize_whisper_cpp_url(value: str) -> str:
     normalized = value.strip()
     if "://" not in normalized:
@@ -268,19 +277,16 @@ class WhisperCppServerSTT:
         if not result.text or language != "auto":
             return result
         probabilities = value.get("language_probabilities", {})
-        scores = (
-            {
-                code: score
-                for code, score in probabilities.items()
-                if isinstance(code, str)
-                and isinstance(score, int | float)
-                and not isinstance(score, bool)
-                and math.isfinite(score)
-                and 0 <= score <= 1
-            }
-            if isinstance(probabilities, dict)
-            else {}
-        )
+        scores = {}
+        if isinstance(probabilities, dict):
+            for code, probability in probabilities.items():
+                if not _valid_probability(probability):
+                    continue
+                try:
+                    code = recognition_language(code, allow_auto=False)
+                except (TypeError, ValueError):
+                    continue  # Untrusted labels must never become logs or future request fields.
+                scores[code] = max(probability, scores.get(code, 0))
         if not scores:  # Older servers may omit detection metadata; do not invent confidence.
             return result
         detected = max(scores, key=scores.get)
@@ -290,7 +296,12 @@ class WhisperCppServerSTT:
             preferred = max(self._preferred_languages, key=lambda code: scores.get(code, 0))
             selected = recent_language or preferred
         duration = value.get("duration", 0)
-        if not isinstance(duration, int | float) or not math.isfinite(duration) or duration < 0:
+        if (
+            not isinstance(duration, int | float)
+            or isinstance(duration, bool)
+            or not 0 <= duration <= self._max_audio_seconds
+            or not math.isfinite(duration)
+        ):
             duration = 0
         log.info(
             "STT language=%s probability=%.2f selected=%s duration=%.2fs",
@@ -394,7 +405,7 @@ class WhisperCppServerSTT:
             and segments
             and all(
                 isinstance(segment, dict)
-                and isinstance(segment.get("no_speech_prob"), int | float)
+                and _valid_probability(segment.get("no_speech_prob"))
                 and segment["no_speech_prob"] >= 0.8
                 for segment in segments
             )
@@ -472,7 +483,7 @@ class _WhisperCppStream:
             return self._result
         if self._sealed:
             raise SpeechRecognitionProtocolError("STT stream is already finalizing or failed")
-        # Seal before the first await: one immutable utterance, one request. No
+        # Seal before the first await: one immutable utterance/finalization. No
         # extra task or lock can retain a duplicate caller behind a stuck adapter.
         self._sealed = True
         try:

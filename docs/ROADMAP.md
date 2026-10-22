@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 priority (2026-10-22): committed-conversation responsiveness and deterministic recovery (V-A).**
+**Current HQ4 checkpoint (2026-10-22): bilingual recognition integrity and public documentation (V-B).**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -9,7 +9,18 @@ and first proposed connected-film assignment. The [HQ4 programme below](#hq4-pro
 is the current order; dated earlier plans remain context, not parallel task queues.
 No version bump, new runtime permission, remote action or automatic implementation.
 
-**2026-10-22 V-A checkpoint:** [reliability/evidence](CONVERSATION_RELIABILITY_VA.md)
+**2026-10-22 V-B checkpoint:** [recognition evidence](SPEECH_RECOGNITION_VB.md)
+records regression-driven stream sealing/PCM retirement, cancellation/context gates,
+provisional polling, duration-based pre-roll, explicit locale normalization and safe
+metadata. 256 distinct scoped Python / 71 frontend contract tests pass. Historical
+generated transcripts retain 7.95% / 8.75% WER; no new recognition accuracy, physical
+audio or natural bilingual acceptance is inferred. [Public documentation](PUBLIC_DOCUMENTATION_VB.md)
+now separates v0.2.5, `dev` and future ambitions, with two editable SVGs. File-only
+diagram checks pass; rendered layout remains open. No new version, build or remote action.
+Next occupied-PC opportunity: bounded speech/transport trace replay and deadline
+faults using existing privacy-safe diagnostics; implementation needs fresh HQ scope.
+
+**Historical 2026-10-22 V-A checkpoint:** [reliability/evidence](CONVERSATION_RELIABILITY_VA.md)
 repairs precommit typed waits, session/ACK retirement, explicit Stop ownership,
 typed-monitor handoff, late inventory/health dispatch and unbounded discovery joins.
 300 frontend / 246 distinct scoped Python tests pass; the final 19-case core fault
@@ -210,8 +221,10 @@ Parallel/deferred priorities remain important and separate:
 - **Conversation reliability:** V-A completes bounded offline repairs above.
   Retain correlated real-session diagnosis of long waits/false finals when separately
   authorized. Deterministic recovery does not establish the minutes-long stall's cause.
-- **Multilingual STT modernization:** a dedicated evaluation/implementation effort,
-  separating language/segmentation/capacity and actual owner-room acceptance.
+- **Multilingual STT modernization:** V-B completes a deterministic integrity/locale
+  increment and audits retained generated-corpus scores. Natural bilingual/room
+  accuracy, real latency and engine-capacity comparison remain open; no replacement
+  is presumed. Separate these from unmet acoustic source discrimination.
 - **Windows distribution:** resolve remaining local/toolchain and installed/upgrade
   evidence, signing/reputation and clean-host gates; hosted build success is narrower.
 - **Controls and Sam identity/persona:** future owner-controlled instructions and

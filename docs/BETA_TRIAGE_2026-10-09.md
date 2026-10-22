@@ -3,6 +3,11 @@
 The separate [October 21 record](BETA_TRIAGE_2026-10-21.md) tracks later owner
 observations and IV-C work. This October 9 evidence and its limits remain historical.
 
+[V-B's 2026-10-22 recognition increment](SPEECH_RECOGNITION_VB.md) repairs independently
+reproduced ownership, utterance and metadata defects, and preserves explicit en/es.
+It does not attribute this beta's poor natural bilingual accuracy, echo or device
+timing to those defects. Historical generated-corpus scores are unchanged.
+
 [V-A's 2026-10-22 offline campaign](CONVERSATION_RELIABILITY_VA.md) repairs separately
 reproduced typed-wait/cancellation/discovery-join failures. It does not retrospectively
 attribute or close this beta's long stalls, false speech or physical interruption gaps.

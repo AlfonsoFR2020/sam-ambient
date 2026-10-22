@@ -1,5 +1,11 @@
 # Sam Orb visual direction
 
+**2026-10-22 V-B scope:** the renderer, released living-pigment direction and
+compiled visual assets are unchanged. Public architecture SVGs are explanatory
+documentation, not new Orb evidence. Future topology work may be considered in a
+separately scoped, evidence-led assignment toward the owner's radial-shell/sector
+direction; V-B neither prohibits it categorically nor performs a speculative rewrite.
+
 **2026-10-21 owner direction / IV-C:** evolving colourful swirls were attractive
 and must be preserved. Peels remained questionable, especially inward curls; the
 preferred reference is radial shells cropped by radial sectors, rather than straps

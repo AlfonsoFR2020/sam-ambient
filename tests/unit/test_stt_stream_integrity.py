@@ -1,12 +1,15 @@
 """Recognizer ownership faults using memory/MockTransport only, never recognition."""
 
 import asyncio
+import json
+import logging
 import traceback
 
 import httpx
 import pytest
 
 from sam_ambient.adapters.stt.whisper_cpp import (
+    SpeechAudioLimitExceeded,
     SpeechRecognitionProtocolError,
     SpeechRecognitionTimeout,
     SpeechRecognitionUnavailable,
@@ -214,5 +217,97 @@ def test_transport_error_traceback_does_not_include_reflected_private_details(er
                     b"fixture", language="es", cancellation=CancellationToken()
                 )
             assert secret not in "".join(traceback.format_exception(caught.value))
+
+    asyncio.run(scenario())
+
+
+def test_untrusted_language_metadata_cannot_become_log_content_or_fallback(caplog):
+    async def scenario():
+        secret = "private transcript reflected as a language label"
+        requests = []
+
+        async def handler(request):
+            requests.append(request.content)
+            return httpx.Response(
+                200,
+                json={
+                    "text": "Hola",
+                    "language_probabilities": {secret: 0.99, "es": 0.95},
+                    "duration": 10**400,
+                },
+            )
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            provider = WhisperCppServerSTT(client=client)
+            caplog.set_level(logging.INFO, logger="sam_ambient.adapters.stt.whisper_cpp")
+            result = await provider.transcribe(
+                b"fixture", language="auto", cancellation=CancellationToken()
+            )
+            assert result.text == "Hola" and len(requests) == 1
+            assert provider.confirmed_language == "es"
+            assert secret not in caplog.text
+            assert "duration=0.00s" in caplog.text  # Invalid server timing is not a measurement.
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize(
+    "invalid_probability", [True, float("inf"), -1.0, 2.0, pytest.param(10**400, id="huge_integer")]
+)
+def test_invalid_no_speech_probability_cannot_discard_ordinary_transcript(invalid_probability):
+    result = WhisperCppServerSTT._decode_transcript(
+        json.dumps(
+            {"text": "Una pregunta", "segments": [{"no_speech_prob": invalid_probability}]}
+        ).encode()
+    )
+    assert result.text == "Una pregunta"
+
+
+def test_pcm_limit_does_not_grow_buffer_and_retired_stream_cannot_touch_fresh_utterance():
+    async def scenario():
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"text": "Hello"}))
+        ) as client:
+            provider = WhisperCppServerSTT(client=client, max_audio_seconds=1)
+            stream, token = await populated_stream(provider)
+            for index in range(1, 50):
+                await stream.push_audio(
+                    AudioFrame(AudioFormat(), b"\0" * 640, index * 20, index), token
+                )
+            assert len(stream._audio) == 32_000
+            with pytest.raises(SpeechAudioLimitExceeded):
+                await stream.push_audio(AudioFrame(AudioFormat(), b"\0" * 640, 1000, 50), token)
+            assert len(stream._audio) == 32_000
+            await stream.cancel(token.cancellation_id)
+            assert not stream._audio
+            fresh, fresh_token = await populated_stream(provider)
+            assert not await fresh.cancel(token.cancellation_id, "late old cancellation")
+            assert (await fresh.finalize(fresh_token)).text == "Hello"
+            assert not fresh_token.is_cancelled and not fresh._audio
+
+    asyncio.run(scenario())
+
+
+def test_response_limit_releases_pcm_and_next_utterance_can_recognize():
+    async def scenario():
+        calls = []
+
+        async def handler(_):
+            calls.append(True)
+            return (
+                httpx.Response(200, content=b"x" * 65)
+                if len(calls) == 1
+                else httpx.Response(200, json={"text": "Hola"})
+            )
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            provider = WhisperCppServerSTT(client=client, max_response_bytes=64)
+            stream, token = await populated_stream(provider)
+            with pytest.raises(SpeechRecognitionProtocolError, match="size limit"):
+                await stream.finalize(token)
+            assert not stream._audio
+            fresh, fresh_token = await populated_stream(provider)
+            assert (await fresh.finalize(fresh_token)).text == "Hola"
+            assert len(calls) == 2
 
     asyncio.run(scenario())

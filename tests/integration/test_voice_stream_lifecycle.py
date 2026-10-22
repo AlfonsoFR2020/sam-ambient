@@ -21,7 +21,8 @@ from tests.unit.test_phase9_packaging import _FakeOutput, _FakeTts
 
 
 class StrictStream:
-    def __init__(self, token, text, confidence):
+    def __init__(self, context, token, text, confidence):
+        self.context = context
         self.token = token
         self.text = text
         self.confidence = confidence
@@ -61,6 +62,7 @@ class StrictStt:
 
     async def start_stream(self, context, cancellation):
         stream = StrictStream(
+            context,
             cancellation,
             "Tell me something." if self.normal else self.candidate,
             0.9 if self.normal else self.confidence,
@@ -220,7 +222,7 @@ class SequencedStt(StrictStt):
 
     async def start_stream(self, context, cancellation):
         text, confidence = next(self.candidates)
-        stream = StrictStream(cancellation, text, confidence)
+        stream = StrictStream(context, cancellation, text, confidence)
         self.streams.append(stream)
         return stream
 
@@ -480,7 +482,7 @@ def test_rejected_short_noise_disposes_normal_stt_buffer():
     asyncio.run(scenario())
 
 
-def test_final_confidence_change_cannot_reopen_or_refinalize_normal_stream():
+def test_polled_final_cannot_shorten_endpoint_or_reopen_terminal_stream():
     async def scenario():
         class Capture:
             async def frames(self, cancellation):
@@ -492,6 +494,8 @@ def test_final_confidence_change_cannot_reopen_or_refinalize_normal_stream():
                     (640, 0),
                     (660, 1),
                     (1440, 0),
+                    (1460, 1),
+                    (1480, 1),
                 ]:
                     yield AudioFrame(
                         AudioFormat(sample_rate_hz=1000),
@@ -511,8 +515,10 @@ def test_final_confidence_change_cannot_reopen_or_refinalize_normal_stream():
                 stream.partial_transcript = early_result
                 return stream
 
-        async def publish(_event):
-            pass
+        events = []
+
+        async def publish(event):
+            events.append(event)
 
         stt = Stt()
         manager = TurnManager("confidence")
@@ -526,7 +532,13 @@ def test_final_confidence_change_cannot_reopen_or_refinalize_normal_stream():
         assert result.transcript.confidence == 0.1
         assert manager.state is VoiceState.COMMITTING
         assert stt.streams[0].finalizations == 1
-        assert stt.streams[0].frames == 5
+        # A polling result cannot advertise finality and shorten the endpoint.
+        # Only explicit finalize at the normal uncertain boundary becomes final;
+        # subsequent capture frames never enter the sealed stream.
+        assert stt.streams[0].frames == 7
+        assert any(event.type is EventType.TRANSCRIPT_PARTIAL for event in events)
+        finals = [event for event in events if event.type is EventType.TRANSCRIPT_FINAL]
+        assert len(finals) == 1 and finals[0].monotonic_ms == 1440
 
     asyncio.run(scenario())
 

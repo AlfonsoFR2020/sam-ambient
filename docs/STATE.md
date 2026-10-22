@@ -4,30 +4,30 @@ Updated: 2026-10-22. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns priority. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve the v0.2.6+ handoff; no implementation/testing permission is implied.
 ## Release and evidence boundary
 
-- [V-A reliability](CONVERSATION_RELIABILITY_VA.md) repairs correlated typed waits,
-  session/ACK cleanup, Stop before delivery, generation/typed-monitor retirement and
-  bounded noncooperative discovery cancellation. Late inventory/health cannot
-  dispatch canceled work; JSON preflight timing is content-free. 300 frontend /
-  246 distinct scoped Python tests pass; final fault matrix repeats three times.
-  One canonical build updates ordinary-launch assets; no visual-engine change.
-  Owner cold-start/typed stalls remain unattributed; real/provider/graphical gates open.
+- [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
+  late/foreign results and bounds pre-roll by duration. Locale selectors preserve
+  explicit en/es; malformed metadata/content-bearing errors are contained.
+  256 distinct scoped Python / 71 frontend contract tests pass. Historical generated
+  transcript WER/CER is unchanged; natural owner bilingual quality remains open.
+  [Public docs / SVGs](PUBLIC_DOCUMENTATION_VB.md) distinguish release/dev/future;
+  file-only vector checks do not establish rendered acceptance. No frontend rebuild.
+- [V-A reliability](CONVERSATION_RELIABILITY_VA.md) repairs typed waits, Stop and
+  generation/discovery retirement; late preflight cannot dispatch canceled work.
+  Its 300 frontend / 246 scoped Python passes and canonical build remain historical.
+  Owner cold-start/typed stalls remain unattributed; provider/device/graphical gates open.
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
-  basics before capability expansion. Provider cleanup verifies the resulting
-  inventory/server state; CLI dispatch success alone is insufficient.
-  [Cold readiness](COLD_PROVIDER_RECOVERY.md) classifies inventory outcomes and
-  bounds transient retries; exact intent, cancellation and stale-result gates pass.
+  basics before expansion. Provider cleanup confirms inventory/server state, not
+  CLI success. [Cold readiness](COLD_PROVIDER_RECOVERY.md) bounds classified retries
+  and preserves exact intent, cancellation and stale-result rejection.
 - Persisted Controls recognition mode and explicit `voice.stt_language` reach STT; [generated bilingual STT](SPEECH_BASELINE_2026-10-01.md)
   has 7.95%/8.75% literal WER and intact 250 ms sentence pauses. October 9 owner quality was poor.
-- System.Speech defaults to an installed cross-language persona, honoring explicit
-  voice preference and reporting fallbacks. First PCM reports effective selection
-  through correlated synthesis health, independently of coalesced meters.
-- Core experience now verifies ordinary RMS through the reducer to actual WebGL
-  expansion/light, rather than only near-full-scale visual fixtures. Human visual
-  acceptance remains distinct; October 9 owner found the revised response detached.
+- System.Speech prefers an installed cross-language persona, honors explicit voice
+  and reports effective selection/fallbacks independently of coalesced meters.
+- Historical ordinary-RMS → WebGL expansion/light proof is numerical; human visual
+  acceptance remains distinct. October 9 owner found the revised response detached.
 - Conversation Controls exposes core-confirmed speech health/mode/effective voice;
   preferences, actual readiness and disconnected last-known facts remain distinct.
-- Operational conversation-state transactions explicitly close their SQLite handles
-  on success/failure; shutdown no longer relies on garbage collection for these.
+- Operational SQLite transactions close handles on success/failure and shutdown.
 - The composed authenticated runtime/voice/history/Controls simulator protects
   typed/voice/failure recovery, Rescan, ordered Quit and bounded frontend response.
 - Consolidation III's real cold-inventory/Gemma/text/Rescan/owned-unload pass retained

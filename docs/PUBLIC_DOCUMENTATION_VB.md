@@ -25,8 +25,8 @@ opened URL cannot replace the owner binding. No functional UI/renderer code chan
 
 ## Proposed GitHub metadata — not applied
 
-**About:** Local-first ambient AI with a living visual presence, dependable
-conversation foundations and owner-controlled capabilities. Windows-first alpha;
+**About:** Local-first ambient AI with a living visual presence, conversation
+integrity and owner-controlled capabilities. Windows-first alpha;
 Linux in development.
 
 **Suggested topics:** `ambient-ai`, `local-first`, `ai-assistant`, `local-llm`,
@@ -75,7 +75,7 @@ not acoustic presentation. No rendered layout or owner acceptance is claimed.
   marker resolution, executable/external-content rejection, node bounds/overlap,
   conservative label fit, contrast, prominent local links/anchors and attribution.
   Six additional scoring/audit tests pass. Both groups are included in V-B's
-  253 distinct scoped Python total; they are not additional tests on top of it.
+  256 distinct scoped Python total; they are not additional tests on top of it.
 - The generator's `--check` verifies both outputs against their editable source.
   Source inspection corrected a CSS precedence issue so label accents use inline
   styles; presentation fill attributes would have lost to the shared text class.

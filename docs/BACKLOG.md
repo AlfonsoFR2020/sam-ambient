@@ -1,6 +1,19 @@
 # Post-0.2 engineering backlog
 
-**2026-10-22 V-A:** [classification and reproducible evidence](CONVERSATION_RELIABILITY_VA.md).
+**2026-10-22 V-B:** [speech classification / evidence](SPEECH_RECOGNITION_VB.md).
+Fixed and deterministically verified: duplicate/concurrent utterance finalization,
+PCM retained after failure, canceled/foreign/provisional recognition acceptance,
+reordered language evidence, frame-count-dependent pre-roll, content-bearing
+request errors and malformed detection/no-speech metadata. Explicit en/es and
+legitimate auto fallback remain; common locales normalize without dialect claims.
+256 distinct scoped Python / 71 frontend contract tests pass. Existing generated
+transcripts re-score unchanged; the owner's poor natural bilingual recognition
+remains **unattributed and awaiting representative evidence**, not closed by fakes.
+[Public docs / editable SVGs](PUBLIC_DOCUMENTATION_VB.md) are prepared locally;
+diagram structure/links pass, actual layout and remote publication remain open.
+Engine comparison, physical latency, echo/AEC and human acceptance are separate gates.
+
+**Historical 2026-10-22 V-A:** [classification and reproducible evidence](CONVERSATION_RELIABILITY_VA.md).
 Fixed in source and deterministically verified: correlated typed precommit terminal
 cleanup, session/ACK timer ownership, old-state precedence, explicit Stop retirement,
 typed-monitor release, Stop before delivery, canceled late inventory/health and unbounded
@@ -10,7 +23,8 @@ matches current source. The owner-observed long startup/typed stalls remain
 **instrumented but not causally diagnosed**. Provider-internal queues, physical
 speech timing and device recovery require separately authorized evidence. Current
 visual/UI implementation still awaits graphical/hardware/owner acceptance.
-Future STT/AEC, native distribution, shell/Memory/Agency expansion remain deferred.
+Further STT engine/accuracy evaluation, AEC, native distribution and capability
+expansion remain deferred beyond the completed V-B integrity increment.
 
 **Historical 2026-10-21 IV-D:** [integration/validation record](INTEGRATION_VALIDATION_IVD.md).
 Closed source questions: October 21 used Start Sam/v0.2.5; IV-B/IV-C now have a

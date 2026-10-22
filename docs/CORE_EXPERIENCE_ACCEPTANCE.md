@@ -1,5 +1,14 @@
 # Core Experience evidence — I through V and Visual Identity III
 
+**2026-10-22 V-B delta:** [recognition integrity](SPEECH_RECOGNITION_VB.md) adds
+sealed utterances, cancellation/context/final-evidence gates, duration-bounded
+pre-roll, explicit locale normalization and safe metadata/errors. 256 distinct
+scoped Python / 71 frontend contract tests pass. Re-scored historical generated
+speech retains English 7.95% / Spanish 8.75% WER; no new accuracy/device acceptance.
+[Public documentation and editable SVGs](PUBLIC_DOCUMENTATION_VB.md) distinguish
+v0.2.5, unreleased `dev` and future capabilities. Structure/contrast/link checks are
+file-only; rendered diagram and connected-skin acceptance remain open.
+
 **2026-10-22 V-A delta:** [reliability evidence](CONVERSATION_RELIABILITY_VA.md)
 adds regression-driven typed-wait/session cleanup, explicit Stop and monitor
 retirement, cancellation guards and bounded discovery joins. 300 frontend /
