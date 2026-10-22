@@ -1,0 +1,228 @@
+{
+  "start": "fc149333131ff64993739b99ddf30aee1b95d2d4",
+  "final": "2527ee278c0b12d4f05927495d4a9260d16b2b94",
+  "changed_files": [
+    {
+      "path": "CHANGELOG.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "3e367b992e83ca7856ea592efb11d001e0ab11cc"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "786fc66247b848d6e19916b07e0e98cf9ffd86b2"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "ac114e6efedf6115581171259b1f6f252caf6ee0"
+    },
+    {
+      "path": "config/sam.example.toml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "eaea856d8cf0feff1927bb7f7cc21adcc16463e7"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "4bc9e849d3917f65cc2d46ea01bca6d0338e4396"
+    },
+    {
+      "path": "docs/BACKLOG.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "d7891965465bb002e30f58d90a92cbac2c8c5414"
+    },
+    {
+      "path": "docs/BETA_TRIAGE_2026-10-09.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "fc2fc3226cfa4a2d43990e9d4dba67ccc4367203"
+    },
+    {
+      "path": "docs/CORE_EXPERIENCE_ACCEPTANCE.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "1c77aefc78f923ba6cb66bbfa57cb35962576c8b"
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "5481077fc89b60e2fbede034525588810fc65e0f"
+    },
+    {
+      "path": "docs/GETTING_STARTED.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "78fad83497564042d57229795d2e91681bfcbc2a"
+    },
+    {
+      "path": "docs/PUBLIC_DOCUMENTATION_VB.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "bcf0015c88cb2a8179713edadaad3779a885c1c3"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "be4a98ca6c0f3aff72dcfef434371d40fc66cb45"
+    },
+    {
+      "path": "docs/SPEECH_BASELINE_2026-10-01.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "9cee33dcb91748cd5976a0bf7034153aea6fb859"
+    },
+    {
+      "path": "docs/SPEECH_RECOGNITION_VB.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "55961ba3ba53b1ea8ed3d73651f8613a70f62541"
+    },
+    {
+      "path": "docs/STATE.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "6a5dc8cf32ebf4e9aede8de0ec9da18ae287867a"
+    },
+    {
+      "path": "docs/TROUBLESHOOTING.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "8d7fb4be80a470f104ad52c9082fb21463234ce7"
+    },
+    {
+      "path": "docs/USER_GUIDE.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "d624c71d9db67c80c39be28094ddf280fd34cd7e"
+    },
+    {
+      "path": "docs/VISUAL_DIRECTION.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "1a0476c41d3301a84a5550d4930e5cfee6ff997e"
+    },
+    {
+      "path": "docs/diagrams/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "0bb6889b14574887a9cd234fe97854910e62f8c8"
+    },
+    {
+      "path": "docs/diagrams/sam-conversation-lifecycle.svg",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "eb1a8e0fd0009cfd3d4af8a943a2d6d37f528123"
+    },
+    {
+      "path": "docs/diagrams/sam-system-architecture.svg",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "4da0e7c8cbadb371102c4df13f1b39a012f1ebbb"
+    },
+    {
+      "path": "docs/evidence/speech-vb/offline-baseline-rescore.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "d87b71a93dfc69cf293644ca84afdac7eb3c3d1c"
+    },
+    {
+      "path": "scripts/generate_architecture_diagrams.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "4d7ee95a08e541e6fa2c6726d4dd9f0579fa1e41"
+    },
+    {
+      "path": "scripts/rescore_speech_baseline.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "0433b00ead4e206e77e582bc58c621d278a40225"
+    },
+    {
+      "path": "src/sam_ambient/adapters/stt/whisper_cpp.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "78016e09bdcfa11effaeaba422fb9a7219bc4d12"
+    },
+    {
+      "path": "src/sam_ambient/configuration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "3ba1a2816195819bc8d6d5737d9497a0d2c4d2ef"
+    },
+    {
+      "path": "src/sam_ambient/core/voice/models.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "de4a776884a631bb2bfde57a613a361efe47138b"
+    },
+    {
+      "path": "src/sam_ambient/core/voice/pipeline.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "972a04722d7c3a74570468a3d83479a472343c28"
+    },
+    {
+      "path": "src/sam_ambient/core/voice/recognition.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "0020ef884b6080c9265d6e19ca35d58f7f982997"
+    },
+    {
+      "path": "tests/integration/test_core_experience.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "a81e2b67f50f1e7bae676a84267fc6ba2800ad65"
+    },
+    {
+      "path": "tests/integration/test_recognition_integrity.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "19fd5bd9b85fe9b263e0fb3d5ce406f94db94156"
+    },
+    {
+      "path": "tests/integration/test_voice_sequence.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "e9eca6452611fab8ed3ac7a77c89881431fef706"
+    },
+    {
+      "path": "tests/integration/test_voice_stream_lifecycle.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "25f9997c6bc59591a1f58ac9ec0943c41b541f7f"
+    },
+    {
+      "path": "tests/unit/test_configuration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "540b4eb7d4882d17ed920c5b9800091c4ff89ef6"
+    },
+    {
+      "path": "tests/unit/test_public_documentation.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "cb2aa046a4d5b352066f3e67f7dfb07602f308ef"
+    },
+    {
+      "path": "tests/unit/test_speech_rescore.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "55b0a8a25b5cd06bf29c57e4f755dfb21e11d286"
+    },
+    {
+      "path": "tests/unit/test_stt_stream_integrity.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob": "9c4a52d736ab9d77afe5eaa86938cab09b58dec6"
+    }
+  ]
+}

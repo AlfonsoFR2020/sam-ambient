@@ -4,8 +4,8 @@ Updated: 2026-10-22. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns priority. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve the v0.2.6+ handoff; no implementation/testing permission is implied.
 ## Release and evidence boundary
 
-- [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
-  late/foreign results and bounds pre-roll by duration. Locale selectors preserve
+- [V-B recognition](SPEECH_RECOGNITION_VB.md) / [closure](VB_CLOSURE_AUDIT_VC.md): sealed utterances,
+  retired PCM, rejected late/foreign results and duration-based pre-roll. Locales preserve
   explicit en/es; malformed metadata/content-bearing errors are contained.
   256 distinct scoped Python / 71 frontend contract tests pass. Historical generated
   transcript WER/CER is unchanged; natural owner bilingual quality remains open.
