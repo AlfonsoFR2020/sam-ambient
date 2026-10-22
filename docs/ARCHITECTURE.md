@@ -1,5 +1,10 @@
 # Architecture
 
+Unreleased V-D [keyboard PTT](KEYBOARD_PTT.md) adds an explicit persisted input
+mode and authenticated, session/gesture-correlated hold/release/cancel controls.
+It reuses the single capture/STT path and TurnManager; presentation cannot commit
+recognition or authorize capture while muted. Capture is blocked during responses.
+
 The [system / trust-boundary diagram](diagrams/sam-system-architecture.svg) shows
 presentation, core authority, external services and private persistence. The
 [development conversation lifecycle](diagrams/sam-conversation-lifecycle.svg)

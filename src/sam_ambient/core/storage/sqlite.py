@@ -154,6 +154,25 @@ class SQLiteSessionStore:
         except (sqlite3.DatabaseError, ValueError, TypeError):
             return None
 
+    def voice_input_mode(self) -> str:
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT value FROM runtime_metadata WHERE key='voice_input_mode'"
+                ).fetchone()
+            return "push_to_talk" if row and row[0] == "push_to_talk" else "ordinary"
+        except sqlite3.DatabaseError:
+            return "ordinary"
+
+    def remember_voice_input_mode(self, mode: str) -> None:
+        if mode not in {"ordinary", "push_to_talk"}:
+            raise ValueError("unsupported voice input mode")
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT OR REPLACE INTO runtime_metadata(key,value) VALUES ('voice_input_mode',?)",
+                (mode,),
+            )
+
     def recognition_language(self) -> str | None:
         try:
             with self._connect() as connection:

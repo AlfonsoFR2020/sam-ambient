@@ -23,6 +23,7 @@ class EventType(StrEnum):
     VOICE_LEVEL = "voice.level"
     VOICE_VAD = "voice.vad"
     VOICE_STATE_CHANGED = "voice.state_changed"
+    VOICE_INPUT_STATE = "voice.input_state"
     TRANSCRIPT_PARTIAL = "transcript.partial"
     TRANSCRIPT_FINAL = "transcript.final"
     STT_CANCELLED = "stt.cancelled"
@@ -53,6 +54,8 @@ class EventType(StrEnum):
 
 class ControlCommandType(StrEnum):
     MICROPHONE_SET = "control.microphone.set"
+    VOICE_INPUT_MODE_SET = "control.voice_input_mode.set"
+    PUSH_TO_TALK = "control.push_to_talk"
     TTS_OUTPUT_SET = "control.tts_output.set"
     STOP_SPEAKING = "control.stop_speaking"
     EMERGENCY_STOP = "control.emergency_stop"

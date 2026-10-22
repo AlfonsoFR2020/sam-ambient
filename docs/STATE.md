@@ -4,8 +4,8 @@ Updated: 2026-10-22. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
-- [V-C closure](PUBLIC_DOCUMENTATION_VC.md) verifies V-B recovery and 66 requirements, including 11 styles.
-  Release-based docs branch `74ab076` is clean/local; authentication and CI block a draft PR.
+- V-D [PTT core](KEYBOARD_PTT.md) is fake-service verified; frontend/build integration is pending.
+  Public v0.2.5 docs/diagram corrections are pushed in draft PR #7; [V-C](PUBLIC_DOCUMENTATION_VC.md) is history.
 - [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
   late/foreign results and bounds pre-roll. Explicit en/es and safe metadata remain.
   Its 256 scoped Python / 71 frontend passes are historical; generated WER is unchanged.

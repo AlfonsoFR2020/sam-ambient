@@ -1,5 +1,17 @@
 # Decision log
 
+## 2026-10-22 — V-D deliberate keyboard input
+
+UX-11 uses a persisted core input-mode preference and additive protocol-v1 controls,
+not local-storage microphone authority. Hold F8/release-to-finish is window-local,
+opt-in and excluded from editable/interactive focus and IME. Input cancellation
+discards unfinished recognition. The existing capture adapter has one owner until
+cleanup completes; noncooperative retirement blocks capture but not typing.
+Only final recognition reaches TurnManager; commitment freezes the route and
+transfers ownership before event backpressure. PTT is blocked during generation/
+delivery and does not introduce AEC, acoustic-origin claims or sensitivity changes.
+See [the contract and evidence limits](KEYBOARD_PTT.md). UI/device acceptance is open.
+
 ## 2026-10-22 — Requirements provenance and current authority (V-C)
 
 [Owner requirements](OWNER_REQUIREMENTS.md) records stable intent/source/evidence,

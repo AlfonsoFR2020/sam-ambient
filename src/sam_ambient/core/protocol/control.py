@@ -60,6 +60,10 @@ class CoreControlBindings:
     execute_local_control: ExecuteLocalControl | None = None
     execute_capability: Callable[[ControlCommand, OwnerConnection], Awaitable[None]] | None = None
     cancel_capability: Callable[[ControlCommand, OwnerConnection], Awaitable[bool]] | None = None
+    set_voice_input_mode: Callable[[str, str | None], Awaitable[Mapping[str, object]]] | None = None
+    push_to_talk: (
+        Callable[[ControlCommand, OwnerConnection], Awaitable[Mapping[str, object]]] | None
+    ) = None
 
 
 class ControlDispatcher:
@@ -163,6 +167,29 @@ class ControlDispatcher:
                 payload["cancel_requested"] = await self._bindings.cancel_capability(
                     command, owner_connection
                 )
+        elif command_type in {
+            ControlCommandType.VOICE_INPUT_MODE_SET,
+            ControlCommandType.PUSH_TO_TALK,
+        }:
+            if owner_connection is None or not owner_connection.active:
+                raise ValueError("authenticated owner connection required")
+            if command_type is ControlCommandType.VOICE_INPUT_MODE_SET:
+                if set(command.payload) != {"mode"} or command.payload["mode"] not in (
+                    "ordinary",
+                    "push_to_talk",
+                ):
+                    raise ValueError("voice input mode requires ordinary or push_to_talk")
+                if self._bindings.set_voice_input_mode is None:
+                    raise ValueError("voice input mode unavailable")
+                payload.update(
+                    await self._bindings.set_voice_input_mode(
+                        command.payload["mode"], command.session_id
+                    )
+                )
+            else:
+                if self._bindings.push_to_talk is None:
+                    raise ValueError("push-to-talk unavailable")
+                payload.update(await self._bindings.push_to_talk(command, owner_connection))
         elif command_type is ControlCommandType.MICROPHONE_SET:
             enabled = self._required_bool(command, "enabled")
             await self._bindings.set_microphone_enabled(enabled)

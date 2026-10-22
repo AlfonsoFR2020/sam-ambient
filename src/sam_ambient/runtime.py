@@ -12,7 +12,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sam_ambient import __author__, __product_name__, __version__
 from sam_ambient.adapters.audio.sounddevice import AudioDeviceError, scale_audio_frame
@@ -107,6 +107,7 @@ from sam_ambient.core.voice import (
     normalized_audio_metrics,
 )
 from sam_ambient.core.voice.language import response_language
+from sam_ambient.core.voice.push_to_talk import held_input
 from sam_ambient.core.voice.text import speech_text
 from sam_ambient.diagnostic_log import correlation, diagnostic
 
@@ -126,6 +127,8 @@ user request and system policy take precedence over remembered preferences."""
 _MAX_PROVIDER_TOOL_CALL_ID_CHARS = 256
 log = logging.getLogger(__name__)
 _SHUTDOWN_TASK_GRACE_S = 2.0
+_PTT_LEASE_S = 30.0
+_PTT_RETIRE_S = 0.25
 _PROVIDER_RETRY_DELAYS = (0.5, 1.0, 2.0)
 _WORD = re.compile(r"[^\W_]+", re.UNICODE)
 
@@ -363,6 +366,19 @@ class RuntimeVoiceAdapters:
     capture: AudioInput
     vad: VoiceActivityDetector
     stt: SpeechToText
+
+
+@dataclass(slots=True)
+class _HeldInput:
+    gesture_id: str
+    owner: OwnerConnection
+    token: CancellationToken
+    generation_epoch: int
+    released: asyncio.Event = field(default_factory=asyncio.Event)
+    capturing: bool = False
+    committed: bool = False
+    inference_target: CommittedInferenceTarget | None = None
+    lease: asyncio.TimerHandle | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -667,6 +683,16 @@ class SamRuntime:
         self._terminal_publish_lock = asyncio.Lock()
         self._voice_listen_token: CancellationToken | None = None
         self._voice_task: asyncio.Task[None] | None = None
+        self._voice_input_mode = (
+            self.state.voice_input_mode() if self.state is not None else "ordinary"
+        )
+        self._ptt: _HeldInput | None = None
+        self._ptt_task: asyncio.Task[None] | None = None
+        self._ptt_retired: list[tuple[str, str]] = []
+        self._input_sequence = 0
+        self._input_state = "armed"
+        self._input_gesture_id: str | None = None
+        self._input_reason: str | None = None
         self._voice_ordinary_capture_enabled = asyncio.Event()
         self._voice_ordinary_capture_enabled.set()
         self._voice_monitor_owner: TurnManager | None = None
@@ -731,6 +757,8 @@ class SamRuntime:
                 execute_local_control=self.execute_local_control,
                 execute_capability=self._execute_owner_action,
                 cancel_capability=self._cancel_owner_action,
+                set_voice_input_mode=self._set_voice_input_mode,
+                push_to_talk=self._push_to_talk,
             ),
             clock_ms=self._next_event_ms,
             observer=self.trace.command,
@@ -781,7 +809,11 @@ class SamRuntime:
         if self._closed:
             raise RuntimeError("runtime is closed")
         await self.bridge.start()
-        if self.voice is not None and self._voice_task is None:
+        if (
+            self.voice is not None
+            and self._voice_task is None
+            and self._voice_input_mode == "ordinary"
+        ):
             self._voice_task = asyncio.create_task(self._voice_loop())
 
     async def serve_forever(self) -> None:
@@ -793,6 +825,8 @@ class SamRuntime:
         if self._closed:
             return
         self._closed = True
+        if event := self._abort_ptt("runtime_closed"):
+            await self.events.publish(event)
         self.capability_authority.revoke("runtime_closed")
         self.bridge.owner.revoke()
         if self._active_token is not None:
@@ -964,6 +998,7 @@ class SamRuntime:
         if self.state is not None:
             self.state.remember_recognition_language(language)
         self.config = replace(self.config, language=language)
+        self._schedule_input_event(self._abort_ptt("recognition_language_changed"))
         if self._voice_listen_token is not None:
             self._voice_listen_token.cancel("recognition_language_changed")
         return {"recognition_language": language}
@@ -1462,7 +1497,13 @@ class SamRuntime:
             raise ValueError("user message exceeds 4000 characters")
         predecessor = self._active_generation_owner()
         self._cancel_predecessor(predecessor)
-        voice_managed = self.voice is not None and self.controls.microphone_enabled
+        self._schedule_input_event(self._abort_ptt("text_response_started"))
+        voice_managed = (
+            self.voice is not None
+            and self.controls.microphone_enabled
+            and self._voice_input_mode == "ordinary"
+            and (self._ptt_task is None or self._ptt_task.done())
+        )
         if voice_managed and self._voice_listen_token is not None:
             self._voice_listen_token.cancel("text_response_started")
         turn_id = str(uuid4())
@@ -2364,7 +2405,7 @@ class SamRuntime:
 
     async def _voice_loop(self) -> None:
         assert self.voice is not None
-        while not self._closed:
+        while not self._closed and self._voice_input_mode == "ordinary":
             await self._microphone_enabled.wait()
             await self._voice_ordinary_capture_enabled.wait()
             await self._active_done.wait()
@@ -2401,7 +2442,7 @@ class SamRuntime:
                     response = await self._start_voice_turn(*committed)
                 await asyncio.gather(response, return_exceptions=True)
             except (OperationCancelled, asyncio.CancelledError):
-                if self._closed:
+                if self._closed or self._voice_input_mode != "ordinary":
                     return
             except Exception as error:
                 self._voice_restart_failures += 1
@@ -2490,8 +2531,15 @@ class SamRuntime:
         self,
         transcript: Transcript,
         token: CancellationToken,
+        *,
+        expected_epoch: int | None = None,
+        inference_target: CommittedInferenceTarget | None = None,
     ) -> asyncio.Task[None]:
         async with self._generation_handoff_lock:
+            if expected_epoch is not None and expected_epoch != self._generation_epoch:
+                token.cancel("superseded_by_new_user_turn")
+                self.cancellations.discard(token.cancellation_id)
+                raise OperationCancelled(token.cancellation_id, "superseded_by_new_user_turn")
             turn_manager = self.voice_turns
             turn_id = turn_manager.turn_id
             if turn_id is None or turn_manager.state is not VoiceState.COMMITTING:
@@ -2513,7 +2561,7 @@ class SamRuntime:
             generation_id = str(uuid4())
             terminal = asyncio.Event()
             response_done = asyncio.Event()
-            inference_target = self._committed_inference_target()
+            inference_target = inference_target or self._committed_inference_target()
             self._generation_epoch += 1
             self._active_generation_id = generation_id
             self._active_turn_id = turn_id
@@ -2982,17 +3030,271 @@ class SamRuntime:
             return "empty_response"
         return "error"
 
+    def _input_snapshot(self) -> dict[str, object]:
+        status = self._input_state
+        if self.voice is None:
+            status = "unavailable"
+        elif not self.controls.microphone_enabled:
+            status = "disabled"
+        elif self._voice_input_mode == "ordinary":
+            status = "ordinary"
+        return {
+            "mode": self._voice_input_mode,
+            "state": status,
+            "sequence": self._input_sequence,
+            "gesture_id": self._input_gesture_id,
+            "reason": self._input_reason,
+        }
+
+    def _input_event(
+        self, status: str, gesture_id: str | None = None, reason: str | None = None
+    ) -> ProtocolEvent:
+        self._input_sequence += 1
+        self._input_state, self._input_gesture_id, self._input_reason = status, gesture_id, reason
+        return ProtocolEvent(
+            type=EventType.VOICE_INPUT_STATE,
+            monotonic_ms=self._next_event_ms(),
+            session_id=self.session_id,
+            payload=self._input_snapshot(),
+        )
+
+    def _retire_ptt_id(self, held: _HeldInput) -> None:
+        self._ptt_retired.append((held.owner.connection_id, held.gesture_id))
+        self._ptt_retired = self._ptt_retired[-32:]
+        if held.lease is not None:
+            held.lease.cancel()
+
+    def _abort_ptt(
+        self, reason: str, *, owner: OwnerConnection | None = None
+    ) -> ProtocolEvent | None:
+        held = self._ptt
+        if held is None or (owner is not None and held.owner is not owner):
+            return None
+        self._ptt = None  # Revoke before any adapter/publisher await.
+        self._retire_ptt_id(held)
+        held.token.cancel(reason)
+        self.cancellations.discard(held.token.cancellation_id)
+        if self._ptt_task is not None:
+            self._ptt_task.cancel()
+        return self._input_event("cancelled", held.gesture_id, reason)
+
+    def _schedule_input_event(self, event: ProtocolEvent | None) -> None:
+        if event is not None:
+            task = asyncio.create_task(self.events.publish(event))
+            self._tasks.add(task)
+            task.add_done_callback(self._tasks.discard)
+
+    async def _set_voice_input_mode(
+        self, mode: str, session_id: str | None
+    ) -> Mapping[str, object]:
+        if session_id != self.session_id or self._closed:
+            raise ValueError("Voice input mode requires the current session")
+        if mode == self._voice_input_mode:
+            return {"voice_input_mode": mode}
+        if not self._active_done.is_set() or self._active_playback_generation_id is not None:
+            raise ValueError("Wait for the current response before changing input mode")
+        if self.state is not None:
+            self.state.remember_voice_input_mode(mode)
+        self._voice_input_mode = mode
+        self._schedule_input_event(self._abort_ptt("voice_input_mode_changed"))
+        if self._voice_listen_token is not None:
+            self._voice_listen_token.cancel("voice_input_mode_changed")
+        if self._voice_task is not None and not self._voice_task.done():
+            self._voice_task.cancel()
+            # A still-retiring adapter keeps its capture lease; PTT never overlaps it.
+            await asyncio.wait({self._voice_task}, timeout=_PTT_RETIRE_S)
+        if mode == "ordinary":
+            self._resume_ordinary_capture()
+        await self.events.publish(self._input_event("armed"))
+        return {"voice_input_mode": mode}
+
+    def _resume_ordinary_capture(self) -> None:
+        if (
+            not self._closed
+            and self._voice_input_mode == "ordinary"
+            and self.voice is not None
+            and self.controls.microphone_enabled
+            and (self._ptt_task is None or self._ptt_task.done())
+            and (self._voice_task is None or self._voice_task.done())
+        ):
+            self._voice_task = asyncio.create_task(self._voice_loop())
+
+    def _ptt_done(self, task: asyncio.Task[None]) -> None:
+        if not task.cancelled():
+            task.exception()  # Consume an unexpected task failure; no orphan warning.
+        if self._ptt_task is task:
+            self._ptt_task = None
+        self._resume_ordinary_capture()
+
+    async def _push_to_talk(
+        self, command: ControlCommand, owner: OwnerConnection
+    ) -> Mapping[str, object]:
+        data = command.payload
+        if (
+            set(data) != {"action", "gesture_id"}
+            or data.get("action") not in ("start", "finish", "cancel")
+            or not isinstance(data.get("gesture_id"), str)
+        ):
+            raise ValueError("PTT requires action and gesture_id")
+        try:
+            valid_id = str(UUID(data["gesture_id"])) == data["gesture_id"]
+        except (ValueError, AttributeError):
+            valid_id = False
+        if (
+            not valid_id
+            or command.session_id != self.session_id
+            or not owner.active
+            or self._closed
+        ):
+            raise ValueError("PTT requires a current authenticated input identity")
+        identity, action = data["gesture_id"], data["action"]
+        if action != "start":
+            held = self._ptt
+            if held is None or held.gesture_id != identity or held.owner is not owner:
+                return {"ptt_action": "retired"}  # Stale cleanup never touches a newer gesture.
+            if action == "cancel" or not held.capturing:
+                self._schedule_input_event(
+                    self._abort_ptt(
+                        "ptt_cancelled" if action == "cancel" else "ptt_released_before_capture"
+                    )
+                )
+            elif not held.released.is_set():
+                held.released.set()
+                if held.lease is not None:
+                    held.lease.cancel()
+                held.lease = asyncio.get_running_loop().call_later(
+                    _PTT_LEASE_S, self._expire_ptt, held
+                )
+                await self.events.publish(self._input_event("finalizing", identity))
+            return {"ptt_action": action}
+        if (
+            self._voice_input_mode != "push_to_talk"
+            or not self.controls.microphone_enabled
+            or self.voice is None
+        ):
+            raise ValueError("Enable the microphone and select push-to-talk first")
+        if (
+            self._ptt is not None
+            or (self._ptt_task is not None and not self._ptt_task.done())
+            or (self._voice_task is not None and not self._voice_task.done())
+            or not self._active_done.is_set()
+            or self._active_playback_generation_id is not None
+        ):
+            raise ValueError("Capture or response is busy; typed input remains available")
+        if (owner.connection_id, identity) in self._ptt_retired:
+            raise ValueError("PTT gesture already retired")
+        held = _HeldInput(identity, owner, self.cancellations.create(), self._generation_epoch)
+        self._ptt = held
+        held.lease = asyncio.get_running_loop().call_later(_PTT_LEASE_S, self._expire_ptt, held)
+        self._ptt_task = asyncio.create_task(self._run_held_input(held))
+        self._tasks.add(self._ptt_task)
+        self._ptt_task.add_done_callback(self._tasks.discard)
+        self._ptt_task.add_done_callback(self._ptt_done)
+        await self.events.publish(self._input_event("starting", identity))
+        return {"ptt_action": "start"}
+
+    def _expire_ptt(self, held: _HeldInput) -> None:
+        if self._ptt is held:
+            self._schedule_input_event(self._abort_ptt("ptt_time_limit"))
+
+    async def _run_held_input(self, held: _HeldInput) -> None:
+        assert self.voice is not None
+        turns = TurnManager(self.session_id)
+        self.voice_turns = turns
+
+        def current() -> bool:
+            return (
+                self._ptt is held
+                and held.owner.active
+                and not self._closed
+                and held.generation_epoch == self._generation_epoch
+                and self._voice_input_mode == "push_to_talk"
+                and self.controls.microphone_enabled
+            )
+
+        async def ready() -> None:
+            if not current() or held.token.is_cancelled:
+                held.token.cancel("ptt_input_owner_retired")
+                held.token.raise_if_cancelled()
+            held.capturing = True
+            await self._capture_health("ready")
+            await self.events.publish(self._input_event("capturing", held.gesture_id))
+
+        def commit() -> None:
+            held.committed = True
+            held.inference_target = self._committed_inference_target()
+            self._ptt = None
+            self._retire_ptt_id(held)
+
+        try:
+            result = await held_input(
+                capture=self.voice.capture,
+                stt=self.voice.stt,
+                vad=self.voice.vad,
+                turns=turns,
+                cancellation=held.token,
+                released=held.released,
+                language=self.config.language,
+                clock_ms=self._next_event_ms,
+                is_current=current,
+                publish=self.events.publish,
+                on_ready=ready,
+                on_final=self._consume_voice_control,
+                on_commit=commit,
+            )
+            held.token.raise_if_cancelled()
+            if not held.committed and not current():
+                return
+            if not held.committed:
+                self._ptt = None
+                self._retire_ptt_id(held)
+            await self.events.publish(
+                self._input_event(
+                    "submitted"
+                    if result.transcript.text and not result.control_consumed
+                    else "armed",
+                    held.gesture_id,
+                )
+            )
+            if result.transcript.text and not result.control_consumed:
+                response = await self._start_voice_turn(
+                    result.transcript,
+                    held.token,
+                    expected_epoch=held.generation_epoch,
+                    inference_target=held.inference_target,
+                )
+                # Deliberately no microphone monitor while generation or delivery owns the turn.
+                await asyncio.gather(response, return_exceptions=True)
+        except (OperationCancelled, asyncio.CancelledError):
+            pass
+        except Exception as error:
+            log.warning(
+                "Push-to-talk failed (%s); typed input remains available", type(error).__name__
+            )
+            if self._ptt is held:
+                await self.events.publish(
+                    self._input_event("failed", held.gesture_id, "capture_or_recognition_failed")
+                )
+                await self._audio_health("voice_input", "capture_or_recognition_failed")
+        finally:
+            if self._ptt is held:
+                self._ptt = None
+                self._retire_ptt_id(held)
+            if self._active_token is not held.token:
+                self.cancellations.discard(held.token.cancellation_id)
+
     async def _set_microphone(self, enabled: bool) -> None:
         self.controls.microphone_enabled = enabled
         if enabled:
             self._microphone_enabled.set()
-            if self.voice is not None and (self._voice_task is None or self._voice_task.done()):
-                self._voice_restart_failures = 0
-                self._voice_task = asyncio.create_task(self._voice_loop())
+            self._voice_restart_failures = 0
+            self._resume_ordinary_capture()
         else:
             self._microphone_enabled.clear()
+            self._schedule_input_event(self._abort_ptt("microphone_muted"))
             if self._voice_listen_token is not None:
                 self._voice_listen_token.cancel("microphone_muted")
+        await self.events.publish(self._input_event("armed"))
 
     async def _set_tts_output(self, enabled: bool) -> None:
         self.controls.tts_output_enabled = enabled
@@ -3060,6 +3362,8 @@ class SamRuntime:
         targets: frozenset[CancellationTarget],
         reason: str,
     ) -> None:
+        if CancellationTarget.MODEL_GENERATION in targets:
+            self._schedule_input_event(self._abort_ptt(reason))
         # Capture the owner before any await: a newer request can arrive while
         # terminal events are being published. Adapter cooperation is cleanup,
         # not a prerequisite for acknowledging Stop or accepting new typing.
@@ -3253,6 +3557,7 @@ class SamRuntime:
         )
 
     async def _detach_owner(self, connection: OwnerConnection) -> None:
+        self._schedule_input_event(self._abort_ptt("owner_disconnected", owner=connection))
         self._provider_refresh_epoch += 1
         await self._cancel_provider_refresh()
         await self.owner_actions.detach(connection)
@@ -3291,6 +3596,7 @@ class SamRuntime:
                 "playback_generation_id": self._active_playback_generation_id,
                 "sam_version": __version__,
                 "microphone_enabled": self.controls.microphone_enabled,
+                "voice_input": self._input_snapshot(),
                 "tts_output_enabled": self.controls.tts_output_enabled,
                 "sam_name": __product_name__,
                 "sam_author": __author__,

@@ -13,6 +13,9 @@ The owner interface projects trusted state through a private authenticated bindi
 TurnManager owns committed turns and frozen model routes; policy mediates bounded
 resource access. Operational records and reviewed personal Memory are separate.
 Models, webpage contents and stored claims confer no owner permission.
+The dashed blue runtime/Memory path represents mediated local recall and reviewed
+data, never instructions or authorization. Local speech sends capture/recognition
+back toward the runtime separately from synthesized output sent to local services.
 
 ## Conversation, recognition and delivery
 
@@ -22,6 +25,9 @@ Recognition remains provisional until core commitment. Command ACK is neither
 commitment nor model readiness. Completed answer text and optional spoken delivery
 retire separately; accepted PCM writes are an observation boundary, not a timestamp
 for sound reaching a speaker or listener. Cancelled work cannot acquire a newer turn.
+Each dashed rose transition terminates at matching-work retirement. Playback
+observation follows the right-hand gutter and enters Living Presence from above.
+Perpendicular crossings do not create junctions or transfer authority.
 
 ## Editable sources and conventions
 
@@ -29,8 +35,8 @@ for sound reaching a speaker or listener. Cancelled work cannot acquire a newer 
   contains content and explicit coordinates; standard-library generation adds no
   package, external font, raster image or diagramming dependency.
 - Outputs are ordinary SVG with editable text/shapes, accessible `title` / `desc`
-  and a scalable `viewBox`. If editing an SVG directly, reconcile the generator
-  before committing so regeneration preserves the change.
+  and a scalable `viewBox`. Edit the generator first and regenerate; do not patch
+  generated SVGs independently.
 - Copper: control/authority. Blue: data/projection. Teal: local speech and optional
   delivery. Dashed rose: cancellation/failure; dashed teal: optional speech.
   Dashed containers mark trust/ownership groups; these are not network permissions.

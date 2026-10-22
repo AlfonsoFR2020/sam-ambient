@@ -2,10 +2,10 @@
 <title id="title">Sam development conversation, recognition and delivery lifecycle</title>
 <desc id="desc">Text enters authenticated command admission; ACK is not commitment or readiness. Microphone PCM and VAD feed provisional recognition. Core commitment establishes turn, generation and cancellation ownership and a frozen exact inference route. Completed written text and optional synthesized/playback delivery have separate lifetimes. Accepted PCM writes drive visual observations, not acoustic timestamps. Cancellation and terminal failures reject late work and preserve typed recovery.</desc>
 <defs>
-<marker id="arrow-control" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#e2b27f"/></marker>
-<marker id="arrow-data" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#83b8e3"/></marker>
-<marker id="arrow-delivery" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#76cbbb"/></marker>
-<marker id="arrow-warning" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#edaaa2"/></marker>
+<marker id="arrow-control" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#e2b27f"/></marker>
+<marker id="arrow-data" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#83b8e3"/></marker>
+<marker id="arrow-delivery" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#76cbbb"/></marker>
+<marker id="arrow-warning" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#edaaa2"/></marker>
 </defs>
 <style>
 text { font-family: "Segoe UI", Inter, Arial, sans-serif; }
@@ -45,10 +45,10 @@ text { font-family: "Segoe UI", Inter, Arial, sans-serif; }
 <path data-kind="data" d="M270,627 L320,627" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
 <path data-kind="delivery" d="M550,627 L610,627" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-delivery)"/>
 <path data-kind="delivery" d="M840,627 L900,627" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
-<path data-kind="delivery" d="M1160,627 L1186,627 L1186,892 L1160,892" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
-<path data-kind="warning" d="M435,440 L580,440 L580,770" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6"/>
-<path data-kind="warning" d="M155,695 L155,770 L210,770" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6"/>
-<path data-kind="warning" d="M1100,695 L1100,770 L210,770 L210,830" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-warning)"/>
+<path data-kind="delivery" id="playback-observation" data-source="playback" data-target="visual-observer" d="M1160,627 L1170,627 L1170,810 L1030,810 L1030,830" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
+<path data-kind="warning" id="stt-retirement" data-source="recognition" data-target="retire-work" d="M435,440 L435,450 L580,450 L580,760 L230,760 L230,830" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-warning)"/>
+<path data-kind="warning" id="stream-retirement" data-source="stream" data-target="retire-work" d="M155,695 L155,830" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-warning)"/>
+<path data-kind="warning" id="playback-retirement" data-source="playback" data-target="retire-work" d="M1100,695 L1100,780 L310,780 L310,830" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-warning)"/>
 <path data-kind="control" d="M380,892 L440,892" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
 <g id="typed-input" data-kind="node" data-bounds="40 205 230 105"><rect x="40" y="205" width="230" height="105" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M55,206 H255" stroke="#e2b27f" stroke-width="2"/>
 <text x="58" y="237" class="card-title" data-estimated-width="153.78">Typed request</text>
@@ -124,5 +124,5 @@ text { font-family: "Segoe UI", Inter, Arial, sans-serif; }
 <text x="918" y="916" class="body" data-estimated-width="205.56">Accepted output writes</text>
 <text x="918" y="940" class="body" data-estimated-width="201.42">No physical sound clock</text>
 </g>
-<text x="40" y="756" class="body" data-estimated-width="476.1">Completed text remains usable if speech stops or fails.</text>
+<text x="610" y="756" class="body" data-estimated-width="275.4">Stops preserve completed text.</text>
 </svg>

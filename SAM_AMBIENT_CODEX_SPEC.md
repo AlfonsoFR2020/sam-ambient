@@ -6,7 +6,12 @@ implementation; [owner requirements](docs/OWNER_REQUIREMENTS.md) preserves unmet
 intent and provenance. Windows is now the principal validated runtime path; Linux
 remains important. Apache-2.0 is the selected project license. Historical target/
 license alternatives below are not claims about current validation or open choice.
+The original “Source of truth” and Linux-first fields and §0 instructions below
+are historical: current AGENTS, release evidence, architecture and accepted
+decisions take precedence where they conflict. Unmet goals remain requirements,
+not claims of implemented or validated functionality.
 
+Historical planning fields (2026-09-01):
 Version: 1.0
 Status: MVP implementation specification
 Primary target: Linux desktop

@@ -9,10 +9,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import subprocess
 import xml.etree.ElementTree as ET
-from itertools import combinations
+from itertools import combinations, pairwise
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
@@ -177,6 +178,39 @@ def check_svg(text, expected=None):
             0 <= x + float(node.attrib["data-estimated-width"]) <= width - 10, "SVG text estimate"
         )
         require(18 <= y <= height - 10, "SVG text height")
+    nodes = {
+        node.attrib["id"]: tuple(map(float, node.attrib["data-bounds"].split()))
+        for node in root.iter()
+        if node.attrib.get("data-kind") == "node"
+    }
+    for edge in root.iter(SVG + "path"):
+        if "data-source" not in edge.attrib:
+            continue
+        points = [
+            tuple(map(float, pair.split(",")))
+            for pair in edge.attrib["d"].removeprefix("M").split(" L")
+        ]
+        require(all(math.isfinite(v) for point in points for v in point), "SVG finite edge")
+        for identity, (px, py) in (
+            (edge.attrib["data-source"], points[0]),
+            (edge.attrib["data-target"], points[-1]),
+        ):
+            require(identity in nodes, "Unknown SVG endpoint")
+            x, y, w, h = nodes[identity]
+            require(
+                (px in (x, x + w) and y <= py <= y + h) or (py in (y, y + h) and x <= px <= x + w),
+                "Floating SVG endpoint",
+            )
+        require("marker-end" in edge.attrib, "Undirected SVG transition")
+        for (ax, ay), (bx, by) in pairwise(points):
+            require(ax == bx or ay == by, "Non-orthogonal SVG route")
+            for identity, (x, y, w, h) in nodes.items():
+                if identity in (edge.attrib["data-source"], edge.attrib["data-target"]):
+                    continue
+                crosses = (
+                    ax == bx and x < ax < x + w and max(min(ay, by), y) < min(max(ay, by), y + h)
+                ) or (ay == by and y < ay < y + h and max(min(ax, bx), x) < min(max(ax, bx), x + w))
+                require(not crosses, f"SVG route crosses unrelated node: {identity}")
     if expected is not None:
         require(text == expected, "SVG differs from editable generator")
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
@@ -187,7 +221,7 @@ def check_release_diff(root, base):
         git(root, "merge-base", base, "HEAD") == base, "Release base is not the branch ancestor"
     )
     history = git(root, "rev-list", "--reverse", "--parents", f"{base}..HEAD").splitlines()
-    require(len(history) <= 2, "Public docs branch has unexpected implementation history")
+    require(len(history) <= 3, "Public docs branch has unexpected implementation history")
     parent = base
     for row in history:
         fields = row.split()

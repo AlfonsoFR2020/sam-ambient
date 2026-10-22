@@ -79,7 +79,13 @@ _ALLOWED_TRANSITIONS: dict[VoiceState, frozenset[VoiceState]] = {
         {VoiceState.LISTENING, VoiceState.COMMITTING, VoiceState.ERROR, VoiceState.OFFLINE}
     ),
     VoiceState.LISTENING: frozenset(
-        {VoiceState.IDLE, VoiceState.USER_SPEAKING, VoiceState.ERROR, VoiceState.OFFLINE}
+        {
+            VoiceState.IDLE,
+            VoiceState.USER_SPEAKING,
+            VoiceState.COMMITTING,
+            VoiceState.ERROR,
+            VoiceState.OFFLINE,
+        }
     ),
     VoiceState.USER_SPEAKING: frozenset(
         {
@@ -278,6 +284,17 @@ class TurnManager:
         )
         self._reset_observation()
         return (cancelled, self._transition(VoiceState.IDLE, at_ms, reason))
+
+    def commit_push_to_talk(self, at_ms: int) -> tuple[ProtocolEvent, ...]:
+        """Explicit release still requires a final, nonempty recognized utterance."""
+        self._check_time(at_ms)
+        if (
+            self.state is not VoiceState.LISTENING
+            or not self.transcript_final
+            or not self.transcript
+        ):
+            raise RuntimeError("PTT commitment requires current final recognized input")
+        return self._commit(at_ms, reason="push_to_talk_released")
 
     def on_vad(self, at_ms: int, speech_probability: float) -> tuple[ProtocolEvent, ...]:
         self._check_time(at_ms)
