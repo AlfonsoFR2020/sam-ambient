@@ -11,7 +11,7 @@ parallel queues. No row grants execution permission.
 | --- | --- | --- |
 | P0 · AUTH-01–05, GOV-03/05 | Preserve private owner proof, policy, privacy, route/resource ownership and rollback. V-B closure is sound ([audit](VB_CLOSURE_AUDIT_VC.md)); no new generic reliability/security campaign | Repair a demonstrated breach first; no symptom-to-cause inference |
 | P1 · CONV-01–05, EXP-03 | Natural bilingual accuracy, false turns, apparent deafness, cold/typed stalls and full delivery response remain open. V-A/V-B/IV-C protect related source defects | Offline fault/trace work can continue; real attribution/timing needs scoped provider/audio evidence |
-| P1 · UX-11; P2 · CONV-08 | Recovered keyboard push-to-talk and owner interruption-sensitivity requirements need bounded contracts; Ctrl+M and core modes are not complete user features | Good occupied-PC follow-up: focus/key/token/mute/cancel fake scenarios; PTT is not AEC, no acoustic policy relaxation |
+| P1 · UX-11; P2 · CONV-08 | [V-D PTT](KEYBOARD_PTT.md) implements opt-in held F8 through authenticated capture/final recognition, with fake keyboard/voice verification; UI/device acceptance stays open. CONV-08 remains a distinct unimplemented owner preference | No AEC or threshold change. Related preference design may reuse persistence/control boundaries, not the gain slider |
 | P1 · VIS-01–04, SHELL-01/02, QUAL-01–04, EXP-01–04 | Preserve released living swirls; prove connected skin, radial-sector shells, attachments/curl direction, optics, whole-body expression and worthwhile High | Graphical permission gates selection/acceptance, not future safe source planning; missing board is not a blanket blocker |
 | P1 · UX-01–05/08/10; P2 · UX-06/07/09 | Verify existing startup/Console/Memory/Quit/voice-label/translation behavior; retain persona, ranges/debug, session/resume and interruption-retention requests | Existing functional surfaces/storage are implemented. Separate new preferences, layout acceptance and unreproduced history observations |
 | P1 · CONV-06/07; P2 · CONV-09 | Retain incremental speech, consistent pleasant voice, named profiles, natural-language settings and per-model control | Whole-WAV backend is not incremental synthesis. Diagnose a delay before engine/timeout changes; exact routes and credential policy remain |
@@ -31,10 +31,11 @@ parallel queues. No row grants execution permission.
 - Particle population multipliers, centre wandering and a particular renderer/theme
   framework are proposals, not recovered owner obligations. Do not promote them
   above dirty-particle/whole-presence feedback without evidence.
-- [V-C public-docs handoff](PUBLIC_DOCUMENTATION_VC.md): release-based branch
-  `docs/public-v025-refresh` (`74ab076`) is locally verified and retained for review.
-  Authentication and all-push/PR quality/native workflows prevent a safe draft PR
-  in the present scope. No public landing page, About or topics change is claimed.
+- Public docs branch `docs/public-v025-refresh` (`5047050`) is pushed in
+  [draft PR #7](https://github.com/AlfonsoFR2020/sam-ambient/pull/7), preserving the
+  release runtime. Hosted Ubuntu quality has an unchanged release lifecycle-test
+  assertion failure; dev's event-based assertion is not ported into this docs-only
+  branch. Main, About and topics remain unchanged; [V-C](PUBLIC_DOCUMENTATION_VC.md) is history.
 
 ## Dated implementation evidence
 

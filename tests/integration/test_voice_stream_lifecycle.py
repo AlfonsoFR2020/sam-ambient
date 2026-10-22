@@ -755,14 +755,23 @@ def test_committed_voice_turn_replaces_generation_waiting_for_first_output(tmp_p
             second = await runtime._start_voice_turn(
                 *committed_voice_turn(runtime, "replacement voice turn")
             )
-            second_generation = runtime.active_generation_id
-            assert second_generation not in {None, first_generation}
             provider.release_first.set()
             await asyncio.gather(first, second)
 
             observed = []
             while subscription.pending:
                 observed.append(await subscription.get())
+            # A fast replacement can legitimately finish before _start_voice_turn
+            # returns. Prove its identity/terminality from events, not a live pointer.
+            second_completed = [
+                event
+                for event in observed
+                if event.type == EventType.MODEL_COMPLETED
+                and event.generation_id != first_generation
+            ]
+            assert len(second_completed) == 1
+            second_generation = second_completed[0].generation_id
+            assert second_generation not in {None, first_generation}
             first_terminals = [
                 event
                 for event in observed

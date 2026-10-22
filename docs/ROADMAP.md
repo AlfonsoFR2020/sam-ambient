@@ -1,13 +1,13 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 checkpoint (2026-10-22): V-C closure, recovered requirements and isolated public documentation.**
+**Current HQ4 checkpoint (2026-10-22): V-D public-docs draft PR and opt-in keyboard PTT.**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
 [Visual Core continuity](HANDOFF_CODEX_VISUAL_CORE.md) specifies the current renderer
 and first proposed connected-film assignment. The [HQ4 programme below](#hq4-programme--v026-and-beyond)
 is the current order; dated earlier plans remain context, not parallel task queues.
-No version bump, new runtime permission, remote action or automatic implementation.
+This plan grants no version bump, runtime permission, remote action or automatic implementation.
 
 ## Reconciled near-term programme
 
@@ -21,7 +21,7 @@ does not displace older substantial art or conversation needs.
 | Order / track | Next bounded result | Evidence gate |
 | --- | --- | --- |
 | 0 · maintain P0 | Act on demonstrated authority/data-loss/ownership regression; preserve AUTH-01–05 | No general redesign or invented incident diagnosis |
-| 1 · occupied-PC conversation/usability | Scope UX-11 keyboard PTT fallback and CONV-08 owner sensitivity semantics against existing input/turn boundaries; deterministic key/focus/mute/cancel/recovery first | Source work/fakes can proceed in a new assignment; device/owner behavior remains open; no AEC claim |
+| 1 · occupied-PC conversation/usability | UX-11 held-F8 source and deterministic ownership are implemented; physical/UI acceptance remains. Next independent candidate: UX-08 new-session/resume/history continuity with bounded fake reconnect/reload evidence | A new HQ slice must define session preference semantics; no storage rewrite or real incident attribution. CONV-08 preference design stays separate |
 | 2 · occupied-PC reliability | Reconstruct representative waiting/retirement/recognition traces with existing content-free diagnostics; repair only reproduced gaps in CONV-01–04. Assess CONV-07 whole-WAV latency separately | Real-session causes require provider/audio evidence; do not add another telemetry system or replace STT speculatively |
 | 3 · visual priority, conditional execution | Prove IV-B/IV-C shaders, rich-colour radial-shell continuity, compact poses, lifecycle/whole-Orb speech and High value; retain VIS/SHELL/EXP/QUAL P1 standing | RENDER/REAL/OWNER gates; useful CPU/reference preparation may be separately assigned while graphical sessions remain unavailable |
 | 4 · usability/platform follow-on | Resolve remaining controls/history/persona scope, then clean-host Windows distribution and Linux acceptance; preserve functioning Console/Memory | Separate source bugs, graphical acceptance, new preferences and installer/signing decisions |
@@ -34,11 +34,14 @@ connected-skin baseline. Naming it starts neither a branch nor implementation.
 Meaningful verified experimental increments remain preferred over indefinite
 perfection; unavailable human beta does not block independent safe engineering.
 
-V-C's [closure handoff](PUBLIC_DOCUMENTATION_VC.md) confirms V-B's final Git/object
-recovery, 76 distinct focused Python / 71 frontend checks and consistent historical
-256-test accounting. `docs/public-v025-refresh` is a clean local 15-path documentation
-commit (`74ab076`) directly on released `main`; no implementation history is merged.
-Draft PR publication awaits authenticated tooling and an explicit CI execution decision.
+V-D's [PTT contract](KEYBOARD_PTT.md) records source and acceptance boundaries.
+[Public draft PR #7](https://github.com/AlfonsoFR2020/sam-ambient/pull/7) contains
+only the release-based 15-path documentation/tooling diff, now at `5047050`.
+Existing hosted CI is authorized; Windows quality/native and CodeQL pass, while
+Ubuntu quality fails an unchanged v0.2.5 lifecycle test's live-pointer assertion.
+That assertion is corrected on dev; no runtime/test history is ported into the
+public docs branch. Review/merge and About/topics remain owner decisions.
+V-C's [closure handoff](PUBLIC_DOCUMENTATION_VC.md) remains historical evidence.
 
 ## Dated checkpoint evidence
 

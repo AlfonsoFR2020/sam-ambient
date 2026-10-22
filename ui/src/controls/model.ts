@@ -27,6 +27,7 @@ export function shouldOfferSpeechInputRetry(state: UiState): boolean {
 
 export type ControlAction =
   | { type: "microphone.set"; enabled: boolean }
+  | { type: "voice_input_mode.set"; mode: "ordinary" | "push_to_talk" }
   | { type: "tts_output.set"; enabled: boolean }
   | { type: "stop_speaking" }
   | { type: "emergency_stop" }
@@ -56,6 +57,14 @@ export function commandForAction(
   state: UiState,
   runtime?: CommandRuntime,
 ): ControlCommand | null {
+  if (action.type === "voice_input_mode.set") {
+    return createControlCommand(
+      "control.voice_input_mode.set",
+      { mode: action.mode },
+      state,
+      runtime,
+    );
+  }
   if (action.type === "microphone.set") {
     return createControlCommand(
       "control.microphone.set",

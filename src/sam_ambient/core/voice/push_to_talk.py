@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
+from dataclasses import replace
 
 from sam_ambient.core.turns import CancellationToken, TurnManager
 from sam_ambient.core.voice.interfaces import AudioInput, SpeechToText, VoiceActivityDetector
@@ -78,7 +79,10 @@ async def held_input(
                 if not started:
                     started = True
                     await on_ready()
-                await publish(helper._level_event(frame, vad.analyze(frame).speech_probability))
+                level_frame = replace(frame, monotonic_ms=max(frame.monotonic_ms, clock_ms()))
+                await publish(
+                    helper._level_event(level_frame, vad.analyze(frame).speech_probability)
+                )
         finally:
             await iterator.aclose()
 

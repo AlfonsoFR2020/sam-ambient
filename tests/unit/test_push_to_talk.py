@@ -372,6 +372,55 @@ def test_ordinary_capture_is_retired_before_ptt_and_mode_return_never_overlaps(t
     asyncio.run(scenario())
 
 
+def test_two_released_utterances_have_distinct_ownership_and_pauses_never_auto_finalize(tmp_path):
+    async def scenario():
+        runtime, owner, capture, stt, events = fixture(tmp_path)
+        try:
+            await arm(runtime, owner)
+            for _ in range(2):
+                identity, ack = await gesture(runtime, owner)
+                assert ack.type == EventType.CONTROL_ACKNOWLEDGED
+                capture.pcm()
+                await until(lambda: runtime._input_state == "capturing")
+                for sequence in range(8):
+                    capture.queue.put_nowait(
+                        AudioFrame(AudioFormat(), b"\0" * 640, sequence + 2, sequence + 1)
+                    )
+                await until(lambda: capture.queue.empty())
+                assert runtime._input_state == "capturing"  # Silence is not key release.
+                await gesture(runtime, owner, "finish", identity)
+                await until(lambda: runtime._ptt_task is None)
+            assert stt.final_calls == 2
+            assert len({context.turn_id for context in stt.contexts}) == 2
+            assert len({context.cancellation_id for context in stt.contexts}) == 2
+            assert sum(e.type == EventType.TURN_COMMITTED for e in events) == 2
+            assert capture.maximum_active == 1
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_generation_and_playback_block_ptt_without_acquiring_capture(tmp_path):
+    async def scenario():
+        runtime, owner, capture, _, _ = fixture(tmp_path)
+        try:
+            await arm(runtime, owner)
+            runtime._active_done.clear()
+            _, rejected = await gesture(runtime, owner)
+            assert rejected.type == EventType.CONTROL_REJECTED
+            runtime._active_done.set()
+            runtime._active_playback_generation_id = "draining"
+            _, rejected = await gesture(runtime, owner)
+            assert rejected.type == EventType.CONTROL_REJECTED
+            assert capture.opened == 0
+            runtime._active_playback_generation_id = None
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
 def test_frozen_route_and_postcommit_focus_cancel_do_not_retarget_the_answer(tmp_path):
     async def scenario():
         runtime, owner, capture, _stt, events = fixture(tmp_path)

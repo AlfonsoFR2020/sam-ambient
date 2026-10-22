@@ -109,6 +109,44 @@ class BlockingInputStream(FakeInputStream):
         self._released.set()
 
 
+def test_repeated_input_cancellation_retains_lease_until_fake_close_completes():
+    async def scenario():
+        class SlowClose(BlockingInputStream):
+            def __init__(self):
+                super().__init__()
+                self.closing = threading.Event()
+                self.release_close = threading.Event()
+
+            def close(self):
+                self.closing.set()
+                self.release_close.wait(timeout=2)
+                super().close()
+
+        stream = SlowClose()
+        capture = SoundDeviceCapture(stream_factory=lambda **_: stream)
+        token = CancellationToken()
+
+        async def read():
+            async for _ in capture.frames(token):
+                pass
+
+        task = asyncio.create_task(read())
+        try:
+            assert await asyncio.to_thread(stream.reading.wait, 0.5)
+            token.cancel("ptt_release")
+            assert await asyncio.to_thread(stream.closing.wait, 0.5)
+            task.cancel()  # A focus/owner cancellation while close is already running.
+            for _ in range(4):
+                await asyncio.sleep(0)
+            assert not task.done(), "Capture ownership must outlive physical adapter cleanup"
+        finally:
+            stream.release_close.set()
+            await asyncio.gather(task, return_exceptions=True)
+        assert stream.closed
+
+    asyncio.run(scenario())
+
+
 class FakeOutputStream:
     def __init__(self, *, underflow: bool = False) -> None:
         self.underflow = underflow

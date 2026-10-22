@@ -1,5 +1,15 @@
 # Local protocol
 
+Unreleased V-D adds `control.voice_input_mode.set` (`mode`: `ordinary` or
+`push_to_talk`) and `control.push_to_talk` (exact `action`: `start`/`finish`/`cancel`,
+canonical UUID `gesture_id`). These are additive v1 commands, require a live
+authenticated owner context and current runtime session, and never commit input
+from an ACK. `voice.input_state` and the ready snapshot's `voice_input` contain
+`mode`, `state`, `sequence`, `gesture_id` and a bounded content-free `reason`.
+Only increasing core projections establish input state; a new session resets the
+sequence. Gestures and unfinished finals are retired on owner loss. See
+[PTT ownership and limits](KEYBOARD_PTT.md); v0.2.5 does not support these commands.
+
 Protocol version 1 uses JSON objects with these required fields:
 
 - `protocol`: integer protocol version, currently `1`;

@@ -21,6 +21,7 @@ import {
   DEFAULT_VISUAL_PREFERENCES,
   shouldOfferSpeechInputRetry,
 } from "./controls/model";
+import { bindPushToTalk, PushToTalkKeyboard, pttLabel } from "./controls/push-to-talk";
 import { DemoTransport } from "./demo/scenarios";
 import { MessageContent } from "./MessageContent";
 import { MemoryManager } from "./memory/Manager";
@@ -555,6 +556,11 @@ export default function App() {
   const controlsButton = useRef<HTMLButtonElement>(null);
   const transport = useMemo(chooseTransport, []);
   const client = useMemo(() => new ProtocolClient(transport, browserScheduler), [transport]);
+  const ptt = useMemo(
+    () => new PushToTalkKeyboard(client.getSnapshot, (command) => client.sendControl(command)),
+    [client],
+  );
+  const pttBlocked = useRef(false);
   const state = useSyncExternalStore(client.subscribe, client.getSnapshot);
   const stateRef = useRef(state);
   const [preferences, setPreferences] = useState(() => ({
@@ -587,11 +593,31 @@ export default function App() {
   const startupVisible =
     !startupDismissed && state.startupLifecycle !== "dismissed" && !state.applicationStopped;
   stateRef.current = state;
+  pttBlocked.current =
+    quitConfirmation || restartConfirmation || visualDiagnosticsOpen || Boolean(workspaceSurface);
 
   useEffect(() => {
     client.start();
-    return () => client.stop();
-  }, [client]);
+    return () => {
+      ptt.cancel();
+      client.stop();
+    };
+  }, [client, ptt]);
+
+  useEffect(() => bindPushToTalk(ptt, window, document, () => pttBlocked.current), [ptt]);
+  useEffect(() => client.subscribe(() => ptt.update()), [client, ptt]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Each presentation-context change revokes the key independently of the core snapshot.
+  useEffect(() => {
+    ptt.cancel();
+  }, [
+    ptt,
+    controlsOpen,
+    controlsTab,
+    workspaceSurface,
+    visualDiagnosticsOpen,
+    quitConfirmation,
+    restartConfirmation,
+  ]);
 
   useEffect(() => {
     if (state.visualSettings) setVisualSettings(resolveVisualEngineSettings(state.visualSettings));
@@ -652,6 +678,7 @@ export default function App() {
 
   const applyAction = useCallback(
     (action: ControlAction) => {
+      ptt.cancel();
       if (action.type !== "visual_settings.set")
         setControlEvent((prior) => ({
           id: prior.id + 1,
@@ -671,7 +698,7 @@ export default function App() {
         setPreferences((current) => applyLocalPreference(current, action));
       }
     },
-    [client],
+    [client, ptt],
   );
 
   const toggleFullscreen = useCallback(async () => {
@@ -797,6 +824,11 @@ export default function App() {
           </small>
         )}
         <ProviderStatus state={state} />
+        {state.voiceInput?.mode === "push_to_talk" && (
+          <output className="status__ptt" aria-live="polite" aria-atomic="true">
+            {pttLabel(state)}
+          </output>
+        )}
       </header>
       {!startupVisible &&
         !quitRequested &&
@@ -986,15 +1018,60 @@ export default function App() {
                 </div>
               </form>
               <ControlButton
-                help="Enable or pause microphone capture and speech recognition. Separate from spoken replies. Ctrl+M."
-                disabled={pending || state.connection !== "connected"}
+                help={
+                  state.voiceInput?.mode === "push_to_talk"
+                    ? "Permit speech input; PTT still requires holding F8. Separate from spoken replies. Ctrl+M."
+                    : "Enable or pause microphone capture and speech recognition. Separate from spoken replies. Ctrl+M."
+                }
+                disabled={state.connection !== "connected"}
                 onClick={() =>
                   applyAction({ type: "microphone.set", enabled: !state.microphoneEnabled })
                 }
                 aria-keyshortcuts="Control+M"
               >
-                Microphone {state.microphoneEnabled ? "on" : "muted"}
+                Microphone{" "}
+                {state.microphoneEnabled
+                  ? state.voiceInput?.mode === "push_to_talk"
+                    ? "enabled"
+                    : "on"
+                  : "muted"}
               </ControlButton>
+              <label className="visual-setting">
+                <span>Voice input method</span>
+                <select
+                  aria-label="Voice input method"
+                  value={state.voiceInput?.mode ?? "ordinary"}
+                  disabled={
+                    state.connection !== "connected" ||
+                    !state.voiceInput ||
+                    Boolean(state.generationId || state.playbackGenerationId)
+                  }
+                  onChange={(event) =>
+                    applyAction({
+                      type: "voice_input_mode.set",
+                      mode:
+                        event.currentTarget.value === "push_to_talk" ? "push_to_talk" : "ordinary",
+                    })
+                  }
+                >
+                  <option value="ordinary">Ordinary microphone</option>
+                  <option value="push_to_talk">Keyboard push-to-talk</option>
+                </select>
+              </label>
+              {state.voiceInput?.mode === "push_to_talk" && (
+                <fieldset
+                  className="controls__ptt-area"
+                  tabIndex={0}
+                  aria-label="Keyboard push-to-talk area"
+                  aria-keyshortcuts="F8"
+                >
+                  <legend>Hold F8 to talk · release to finish</legend>
+                  <small>
+                    Focus here or outside fields. Escape, focus loss or mute discards unfinished
+                    input. Unavailable during a response; typed input remains available.
+                  </small>
+                </fieldset>
+              )}
               {shouldOfferSpeechInputRetry(state) && (
                 <ControlButton
                   help="Retry the system-default microphone and local speech-recognition stream."
@@ -1014,7 +1091,8 @@ export default function App() {
                 Spoken replies {state.ttsOutputEnabled ? "on" : "muted"}
               </ControlButton>
               <small className="controls__voice-meaning">
-                Spoken replies control Sam’s output. Microphone controls listening.
+                Spoken replies control Sam’s output. Microphone controls listening. Input gain
+                changes amplitude, not interruption policy. PTT is not echo cancellation.
               </small>
               <ControlButton
                 help="Stop the current spoken response without shutting down Sam."

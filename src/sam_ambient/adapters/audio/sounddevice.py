@@ -141,7 +141,18 @@ class SoundDeviceCapture:
             raise AudioDeviceError(f"audio input failed: {error}") from error
         finally:
             remove_callback()
-            await asyncio.shield(asyncio.to_thread(self._close_safely, stream))
+            closing = asyncio.create_task(asyncio.to_thread(self._close_safely, stream))
+            interrupted = False
+            while not closing.done():
+                try:
+                    await asyncio.shield(closing)
+                except asyncio.CancelledError:
+                    # A second cancel must not release the capture lease while
+                    # the existing stream is still closing in its worker.
+                    interrupted = True
+            await closing
+            if interrupted:
+                raise asyncio.CancelledError
 
     @staticmethod
     def _bind_abort(

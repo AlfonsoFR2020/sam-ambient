@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- V-D keyboard push-to-talk: explicit core-persisted input mode, hold F8/release
+  to finish, authenticated gesture/session ownership and final-only commitment.
+  Focus/mute/disconnect/cancellation discard unfinished input; generation/playback
+  remains protected. Repeated input cancellation retains capture ownership until
+  adapter close completes. Physical/UI acceptance and natural recognition remain
+  open. [Contract and limits](docs/KEYBOARD_PTT.md). The isolated v0.2.5 documentation
+  refresh is in draft PR #7; its runtime/versions remain unchanged.
+
 - V-B recognition integrity: seal each final-only utterance before dispatch, clear
   PCM on all terminal paths, reject late/cancelled/foreign recognition, preserve
   provisional polling and duration-bounded pre-roll. Common language locales

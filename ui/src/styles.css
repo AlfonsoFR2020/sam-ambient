@@ -1324,6 +1324,25 @@ select {
   grid-column: 1 / -1;
   color: #bfa78b;
 }
+.status .status__ptt {
+  flex-basis: 100%;
+  margin-left: 0;
+  color: #d1b69a;
+  font-size: 0.78rem;
+}
+.controls__ptt-area {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border: 1px solid #8f735a;
+  border-radius: 10px;
+  color: #e1cfbd;
+}
+.controls__ptt-area:focus-visible {
+  outline: 2px solid #d9b48a;
+  outline-offset: 3px;
+}
 @media (max-width: 600px) {
   .workspace-tools {
     right: 20px;

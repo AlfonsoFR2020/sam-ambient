@@ -33,6 +33,8 @@ export interface ProtocolEvent {
 
 export const CONTROL_COMMAND_TYPES = [
   "control.microphone.set",
+  "control.voice_input_mode.set",
+  "control.push_to_talk",
   "control.tts_output.set",
   "control.stop_speaking",
   "control.emergency_stop",
@@ -154,6 +156,24 @@ export interface ProviderDiscoveryState {
   retrying?: boolean;
 }
 
+export interface VoiceInputStatus {
+  mode: "ordinary" | "push_to_talk";
+  state:
+    | "disabled"
+    | "ordinary"
+    | "armed"
+    | "starting"
+    | "capturing"
+    | "finalizing"
+    | "submitted"
+    | "cancelled"
+    | "failed"
+    | "unavailable";
+  sequence: number;
+  gestureId?: string;
+  reason?: string;
+}
+
 export interface UiState {
   samVersion?: string;
   samName?: string;
@@ -202,6 +222,7 @@ export interface UiState {
   lastMonotonicByType: Readonly<Record<string, number>>;
   droppedVisualizationEvents: number;
   microphoneEnabled: boolean;
+  voiceInput?: VoiceInputStatus;
   ttsOutputEnabled: boolean;
   capabilityAuthorityActive: boolean;
   capabilityAuthorityEpoch: number;

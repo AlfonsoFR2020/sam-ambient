@@ -297,6 +297,17 @@ Recognition language has a full-width keyboard-accessible selector. Controls tab
 remain at the top while scrolling. In the source owner app, Appearance fullscreen
 uses the browser fullscreen API and the scene follows actual window resizing.
 
+**Unreleased development: keyboard push-to-talk.** In **Controls → Conversation →
+Voice input method**, select **Keyboard push-to-talk** deliberately. The microphone
+must also be enabled. Focus the PTT keyboard area or a non-editable part of Sam,
+hold **F8** and release it to finish. Arming does not open the capture device;
+the status distinguishes starting, confirmed capturing and final recognition.
+Release before capture confirmation cancels. Escape, focus/visibility loss, mode
+changes, mute and Emergency Stop discard unfinished input. PTT is blocked during
+generation/playback; text remains available. There is no global hotkey or AEC
+guarantee. Input gain changes amplitude, not interruption policy. The mode is saved
+by the core; a reconnect never resumes a held key. See [PTT details](KEYBOARD_PTT.md).
+
 Keyboard: **Ctrl+M** toggles the microphone outside text fields;
 **Ctrl+Shift+X** performs Emergency stop even while a text field is focused;
 **Ctrl+Q** opens quit confirmation even while a text field is focused; **Ctrl+R**

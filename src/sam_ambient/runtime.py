@@ -3038,6 +3038,13 @@ class SamRuntime:
             status = "disabled"
         elif self._voice_input_mode == "ordinary":
             status = "ordinary"
+        elif (
+            self._ptt is None
+            and self._ptt_task is not None
+            and not self._ptt_task.done()
+            and status in {"cancelled", "failed"}
+        ) or (self._voice_task is not None and not self._voice_task.done()):
+            status = "unavailable"  # Retiring capture retains its exclusive lease.
         return {
             "mode": self._voice_input_mode,
             "state": status,
@@ -3103,6 +3110,8 @@ class SamRuntime:
             self._voice_task.cancel()
             # A still-retiring adapter keeps its capture lease; PTT never overlaps it.
             await asyncio.wait({self._voice_task}, timeout=_PTT_RETIRE_S)
+            if not self._voice_task.done():
+                self._voice_task.add_done_callback(self._ordinary_capture_retired)
         if mode == "ordinary":
             self._resume_ordinary_capture()
         await self.events.publish(self._input_event("armed"))
@@ -3119,11 +3128,22 @@ class SamRuntime:
         ):
             self._voice_task = asyncio.create_task(self._voice_loop())
 
+    def _ordinary_capture_retired(self, task: asyncio.Task[None]) -> None:
+        if self._voice_task is task and not self._closed:
+            self._resume_ordinary_capture()
+            self._schedule_input_event(
+                self._input_event(self._input_state, self._input_gesture_id, self._input_reason)
+            )
+
     def _ptt_done(self, task: asyncio.Task[None]) -> None:
         if not task.cancelled():
             task.exception()  # Consume an unexpected task failure; no orphan warning.
         if self._ptt_task is task:
             self._ptt_task = None
+        if not self._closed and self._input_state in {"cancelled", "failed"}:
+            self._schedule_input_event(
+                self._input_event(self._input_state, self._input_gesture_id, self._input_reason)
+            )
         self._resume_ordinary_capture()
 
     async def _push_to_talk(
@@ -3218,6 +3238,7 @@ class SamRuntime:
                 held.token.raise_if_cancelled()
             held.capturing = True
             await self._capture_health("ready")
+            await self._audio_health("stt", "ready")
             await self.events.publish(self._input_event("capturing", held.gesture_id))
 
         def commit() -> None:

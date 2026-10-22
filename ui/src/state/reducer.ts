@@ -1,3 +1,4 @@
+import { voiceInputProjection } from "../controls/push-to-talk";
 import {
   type ConnectionState,
   INITIAL_UI_STATE,
@@ -355,6 +356,9 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
           : state.conversationalState,
       conversationalState: "OFFLINE",
       voiceInputHealth: undefined,
+      voiceInput: state.voiceInput
+        ? { ...state.voiceInput, state: "unavailable", gestureId: undefined }
+        : undefined,
       lastLocalControl: undefined,
       sttHealth: undefined,
       synthesisHealth: undefined,
@@ -466,8 +470,18 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
     },
   };
 
+  if (event.type === "voice.input_state") {
+    return { ...next, voiceInput: voiceInputProjection(event.payload, next.voiceInput) };
+  }
   if (event.type === "system.ready") {
     const readyState = isConversationalState(event.payload.state) ? event.payload.state : "IDLE";
+    next = {
+      ...next,
+      voiceInput: voiceInputProjection(
+        event.payload.voice_input,
+        startsNewSession ? undefined : next.voiceInput,
+      ),
+    };
     const readyActive = !["IDLE", "ERROR", "OFFLINE"].includes(readyState);
     const readyTurnId = readyActive ? event.turn_id : undefined;
     const readyGenerationId = readyActive ? event.generation_id : undefined;

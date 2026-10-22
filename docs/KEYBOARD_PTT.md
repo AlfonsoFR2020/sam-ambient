@@ -1,8 +1,9 @@
 # Keyboard push-to-talk — UX-11
 
 V-D, 2026-10-22. Unreleased development; v0.2.5 does not include this input mode.
-The core contract and fake-service verification are implemented. Frontend wiring,
-the canonical asset build and final V-D closure are pending at this checkpoint.
+The core and frontend hold/release/cancel path and fake-service/keyboard checks
+are implemented. Canonical assets and final V-D evidence are recorded at closure;
+physical/UI and owner acceptance remain open.
 
 ## Deliberate input contract
 
@@ -65,6 +66,17 @@ No acoustic thresholds, recognizer engine, model routing or interruption sensiti
 policy changes are part of this work. CONV-08 remains separate future owner control.
 
 ## Evidence and later gates
+
+### Related CONV-08 preference boundary — design only
+
+Interruption mode remains `TurnConfig.interruption_mode` with aggressive/balanced/
+conservative semantics. A separately scoped owner preference could reuse the
+authenticated dispatcher, private metadata and authoritative projection pattern,
+apply only between input/response owners, and freeze the selected TurnConfig per
+turn. It must stay independent of microphone enablement, PTT and amplitude gain.
+No such selector/policy activation is implemented here; threshold multipliers and
+acoustic-origin protections are unchanged. Hardware acceptance cannot be inferred
+from an enum or fake VAD. This does not complete CONV-08.
 
 The focused core tests use queued PCM, fake recognition and controlled completion
 gates, with bounded asynchronous settlement and a temporary preference store.
