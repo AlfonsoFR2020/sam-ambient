@@ -17,6 +17,7 @@ from sam_ambient.core.turns import CancellationToken, OperationCancelled, VoiceS
 from sam_ambient.runtime import ProviderRefresh, RuntimeConfig, RuntimeVoiceAdapters, SamRuntime
 from tests.fixtures.conversation_faults import GatedProvider
 from tests.integration.test_voice_input_pipeline import FakeStt, SequenceVad
+from tests.unit.test_phase9_packaging import _FakeOutput, _FakeTts
 
 
 class EmptyCapture:
@@ -162,6 +163,86 @@ def test_stop_speaking_does_not_cancel_a_stalled_model_request(tmp_path) -> None
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("voice_enabled", [False, True])
+@pytest.mark.parametrize(
+    "control", [ControlCommandType.STOP_SPEAKING, ControlCommandType.EMERGENCY_STOP]
+)
+def test_stop_between_completed_text_and_speech_preparation_preserves_answer(
+    tmp_path, voice_enabled, control
+) -> None:
+    async def scenario() -> None:
+        provider = GatedProvider("stream")
+        provider.release.set()
+        output = _FakeOutput()
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(tmp_path, model="exact-model"),
+            voice=RuntimeVoiceAdapters(EmptyCapture(), SequenceVad(), FakeStt())
+            if voice_enabled
+            else None,
+            tts=_FakeTts(),
+            audio_output=output,
+        )
+        events = await runtime.events.subscribe()
+        gap = GatedProvider("stream")
+        original_publish = runtime._publish_generation
+
+        async def delay_assistant_commit(event_type, generation_id, **fields):
+            if (
+                event_type is EventType.TRANSCRIPT_FINAL
+                and fields.get("payload", {}).get("role") == "assistant"
+            ):
+                # Model completion is already published; no TTS has begun. Model
+                # adapters are done, but the post-model boundary can still yield.
+                await gap._gate("stream", 1)
+            await original_publish(event_type, generation_id, **fields)
+
+        runtime._publish_generation = delay_assistant_commit
+        try:
+            generation = runtime.submit_user_message("complete text before delivery")
+            await asyncio.wait_for(gap.entered.wait(), 1)
+            owner = runtime._active_generation_owner()
+            assert owner is not None and owner.terminal.is_set()
+            assert runtime._active_playback_generation_id is None
+            command = ControlCommand(
+                type=control,
+                command_id="stop-before-tts",
+                monotonic_ms=1,
+                session_id=runtime.session_id,
+            )
+            assert (await runtime.controls.dispatch(command)).type is EventType.CONTROL_ACKNOWLEDGED
+            assert runtime._active_done.is_set()
+            assert runtime.voice_turns.state is VoiceState.IDLE
+            gap.release.set()
+            await asyncio.wait_for(owner.task, 1)
+            observed = []
+            while events.pending:
+                observed.append(await events.get())
+            assert (
+                sum(
+                    event.type is EventType.MODEL_COMPLETED
+                    and event.generation_id == generation
+                    and event.payload.get("text") == "answer 1"
+                    for event in observed
+                )
+                == 1
+            )
+            assert not any(event.type is EventType.MODEL_CANCELLED for event in observed)
+            assert sum(event.type is EventType.TTS_CANCELLED for event in observed) == 1
+            assert not any(
+                event.type in {EventType.TTS_STARTED, EventType.TTS_FAILED} for event in observed
+            )
+            assert output.frames == 0
+            snapshot = runtime.delivery.snapshot(generation)
+            assert snapshot is not None and snapshot.generated_text == "answer 1"
+        finally:
+            gap.release.set()
+            await events.close()
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
 def test_partial_failure_is_not_a_committed_answer_and_new_typing_recovers(tmp_path) -> None:
     async def scenario() -> None:
         provider = GatedProvider("stream", partial_failure=True)
@@ -261,8 +342,9 @@ def test_cancelled_health_result_cannot_dispatch_model_request() -> None:
 
 
 @pytest.mark.parametrize("operation", ["rescan", "disconnect"])
+@pytest.mark.parametrize("late_outcome", ["result", "error"])
 def test_noncooperative_discovery_does_not_hold_command_or_disconnect_cleanup(
-    tmp_path, monkeypatch, operation
+    tmp_path, monkeypatch, operation, late_outcome
 ) -> None:
     from sam_ambient import runtime as runtime_module
 
@@ -277,6 +359,8 @@ def test_noncooperative_discovery_does_not_hold_command_or_disconnect_cleanup(
             calls.append((provider, model))
             if len(calls) == 1:
                 await late._gate("inventory", 1)
+                if late_outcome == "error":
+                    raise RuntimeError("synthetic late discovery failure")
                 return ProviderRefresh(late, "late-model", "late")
             return ProviderRefresh(current, "exact-model", "recovered")
 
@@ -334,7 +418,7 @@ def test_noncooperative_discovery_does_not_hold_command_or_disconnect_cleanup(
             assert runtime._active_done.is_set()
             late.release.set()
             await asyncio.wait_for(asyncio.gather(old_task, return_exceptions=True), 0.2)
-            assert late.close_calls == 1
+            assert late.close_calls == int(late_outcome == "result")
             assert runtime.provider is current and runtime._model == "exact-model"
             await runtime._refresh_providers(None, None, False, "confirmed-rescan")
             await asyncio.wait_for(runtime._provider_refresh_task, 0.2)

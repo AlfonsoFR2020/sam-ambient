@@ -2123,6 +2123,7 @@ class SamRuntime:
         cancellation: CancellationToken,
         turn_manager: TurnManager | None,
     ) -> str:
+        cancellation.raise_if_cancelled()
         if turn_manager is not None:
             await self._publish_all(
                 turn_manager.on_tts_started(self._next_event_ms(), generation_id=generation_id)
@@ -3000,13 +3001,23 @@ class SamRuntime:
 
     async def _cancel_active_playback(self, reason: str) -> None:
         generation_id = self._active_playback_generation_id
+        if generation_id is None and self._active_terminal is not None:
+            # Completed text can yield (for example on persistence) before TTS
+            # acquires its playback ID. Stop must cover that pending delivery too.
+            if self._active_terminal.is_set():
+                generation_id = self._active_generation_id
         if generation_id is None:
             return
         # Claim the stop before publishing so repeated controls cannot emit a
         # second terminal delivery event while audio unwinds asynchronously.
         self._active_playback_generation_id = None
         snapshot = self.delivery.snapshot(generation_id)
-        if snapshot is None or snapshot.completed:
+        if (
+            snapshot is None
+            or snapshot.completed
+            or not snapshot.generated_text
+            or snapshot.interrupted_at_ms is not None
+        ):
             return
         at_ms = self._next_event_ms()
         events: tuple[ProtocolEvent, ...] = ()
@@ -3052,13 +3063,27 @@ class SamRuntime:
         # Capture the owner before any await: a newer request can arrive while
         # terminal events are being published. Adapter cooperation is cleanup,
         # not a prerequisite for acknowledging Stop or accepting new typing.
-        owner = (
-            self._active_generation_owner()
-            if CancellationTarget.MODEL_GENERATION in targets
-            else None
+        stop_delivery = bool(
+            targets.intersection({CancellationTarget.TTS_QUEUE, CancellationTarget.PLAYBACK})
         )
+        retire_generation = CancellationTarget.MODEL_GENERATION in targets
+        if stop_delivery and not retire_generation and self._active_terminal is not None:
+            snapshot = (
+                self.delivery.snapshot(self._active_generation_id)
+                if self._active_generation_id is not None
+                else None
+            )
+            # Speech-only Stop never cancels live inference. Once text is terminal,
+            # retire the remaining delivery owner even before its first TTS event.
+            retire_generation = (
+                self._active_terminal.is_set()
+                and snapshot is not None
+                and bool(snapshot.generated_text)
+                and not snapshot.completed
+            )
+        owner = self._active_generation_owner() if retire_generation else None
         self._cancel_predecessor(owner, reason)
-        if targets.intersection({CancellationTarget.TTS_QUEUE, CancellationTarget.PLAYBACK}):
+        if stop_delivery:
             await self._cancel_active_playback(reason)
         if owner is not None:
             await self._retire_predecessor(owner)

@@ -400,12 +400,20 @@ class TurnManager:
         generation_id: str,
         reason: str,
     ) -> tuple[ProtocolEvent, ...]:
-        """Terminalize active delivery without deleting its committed response."""
+        """Terminalize active or not-yet-started delivery, preserving completed text."""
 
         self._check_time(at_ms)
-        if generation_id != self.generation_id or not self._tts_active:
+        pending_delivery = not self._model_active and (
+            self.state is VoiceState.THINKING
+            or (
+                self.state in {VoiceState.INTERRUPTION_CANDIDATE, VoiceState.RECOVERING}
+                and self._candidate_origin_state is VoiceState.THINKING
+            )
+        )
+        if generation_id != self.generation_id or (not self._tts_active and not pending_delivery):
             return ()
         if self.state not in {
+            VoiceState.THINKING,
             VoiceState.SPEAKING,
             VoiceState.INTERRUPTION_CANDIDATE,
             VoiceState.RECOVERING,

@@ -179,6 +179,13 @@ waits for logical `response_done`, including capture-error cleanup. Stop speakin
 still targets delivery alone. Late inventory/health results recheck cancellation
 before installing a model or dispatching inference.
 
+Delivery retirement also covers the asynchronous gap after completed model text
+and before the first TTS event/playback ID. Stop speaking can retire that completed
+response's delivery owner, but cannot cancel live inference. A correlated
+`tts.cancelled` preserves the completed model terminal/text and settles pending
+delivery to IDLE; canceled work rechecks its token before beginning TTS. Repeated
+Stop cannot emit another delivery terminal or relaunch synthesis after late unwind.
+
 Rescan/owner-disconnect cancellation waits at most 250 ms for the previous model
 operation. A noncooperative task remains tracked and serialized; no replacement
 external operation starts while it is retiring. Its old epoch cannot activate a

@@ -15,6 +15,13 @@ adapter to cooperate. Reuse captured predecessor identity/once-only terminal and
 candidate. Keep Stop speaking delivery-only. Inventory/health await boundaries
 must recheck cancellation before route mutation or a new inference request.
 
+Final fault injection also reproduces Stop between completed text and TTS
+preparation. Include pending delivery in the existing delivery cancellation path;
+settle it without replacing completed text/model terminal. Speech-only Stop may
+retire this already-completed response's delivery owner, never live inference.
+Recheck cancellation before TTS starts so late post-model unwind cannot resurrect
+speech or turn an acknowledged stop into a spurious synthesis failure.
+
 An unbounded discovery cancellation join can hold authenticated command admission
 or owner cleanup. Give it 250 ms cancellation grace. If still running, reject a
 new model operation truthfully, fence unconfirmed readiness and retain/track the
