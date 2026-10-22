@@ -1,0 +1,99 @@
+{
+  "format": 1,
+  "scope": "offline_transcript_rescore_only",
+  "historical_source": "SPEECH_BASELINE_2026-10-01.md",
+  "normalization": "NFC, casefold, word tokens; accents retained; CER includes normalized spaces",
+  "new_recognition_executed": false,
+  "new_latency_measurement": false,
+  "owner_representative_audio": false,
+  "inputs": [
+    {
+      "name": "speech-baseline.json",
+      "sha256": "b8c35b30cd20bb57f502eadcbd8224f74074589fb1c03d81add8dd57999a0bbf"
+    },
+    {
+      "name": "voice-sequence.json",
+      "sha256": "4f4deb77a4c2a55b69d2e616504d663ce2d1b1f77964bcc94abbd4f7b2332822"
+    }
+  ],
+  "recognition": [
+    {
+      "language": "en",
+      "mode": "forced",
+      "cases": 9,
+      "word_errors": 7,
+      "words": 88,
+      "char_errors": 30,
+      "chars": 449,
+      "wer": 0.079545,
+      "cer": 0.066815,
+      "cached_metric_mismatches": 0
+    },
+    {
+      "language": "en",
+      "mode": "auto",
+      "cases": 9,
+      "word_errors": 7,
+      "words": 88,
+      "char_errors": 30,
+      "chars": 449,
+      "wer": 0.079545,
+      "cer": 0.066815,
+      "cached_metric_mismatches": 0
+    },
+    {
+      "language": "es",
+      "mode": "forced",
+      "cases": 9,
+      "word_errors": 7,
+      "words": 80,
+      "char_errors": 23,
+      "chars": 434,
+      "wer": 0.0875,
+      "cer": 0.052995,
+      "cached_metric_mismatches": 0
+    },
+    {
+      "language": "es",
+      "mode": "auto",
+      "cases": 9,
+      "word_errors": 7,
+      "words": 80,
+      "char_errors": 23,
+      "chars": 434,
+      "wer": 0.0875,
+      "cer": 0.052995,
+      "cached_metric_mismatches": 0
+    }
+  ],
+  "paced_sequence": [
+    {
+      "language": "es",
+      "cases": 2,
+      "word_errors": 0,
+      "words": 17,
+      "char_errors": 0,
+      "chars": 90,
+      "wer": 0.0,
+      "cer": 0.0,
+      "cached_metric_mismatches": 0
+    },
+    {
+      "language": "en",
+      "cases": 2,
+      "word_errors": 0,
+      "words": 22,
+      "char_errors": 0,
+      "chars": 112,
+      "wer": 0.0,
+      "cer": 0.0,
+      "cached_metric_mismatches": 0
+    }
+  ],
+  "limits": [
+    "Retained transcripts from generated System.Speech clips, not natural owner speech.",
+    "Original PCM was not retained; no new decoding or acoustic comparison is possible.",
+    "Historical pipeline rows without references are not independently rescored.",
+    "Control-flow repairs do not establish accuracy or latency gains."
+  ]
+}

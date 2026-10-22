@@ -5,6 +5,13 @@ Consolidation II, checkpoint 2. Real installed whisper.cpp b4938 server and
 small non-personal corpus. No microphone, speaker output, model/voice download or
 human acceptance. The base model is not replaced or tuned.
 
+**2026-10-22 V-B audit:** [recognition increment](SPEECH_RECOGNITION_VB.md) re-scores
+the retained generated-corpus reference/transcript pairs without audio, synthesis
+or recognition execution. [Aggregate counts and input hashes](evidence/speech-vb/offline-baseline-rescore.json)
+agree with the historical WER/CER (zero cached metric mismatches). This does not
+measure V-B recognition accuracy, latency or natural owner speech; original PCM
+was not retained. The original measurements below remain historical evidence.
+
 ## Reproduction and measurement boundary
 
 Run `.venv/Scripts/python.exe scripts/speech_baseline.py --root .` from the checkout.

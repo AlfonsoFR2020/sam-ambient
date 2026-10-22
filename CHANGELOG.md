@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- V-B recognition integrity: seal each final-only utterance before dispatch, clear
+  PCM on all terminal paths, reject late/cancelled/foreign recognition, preserve
+  provisional polling and duration-bounded pre-roll. Common language locales
+  normalize to primary whisper.cpp codes without overriding owner selection.
+  Error reports exclude reflected server/transport content. Deterministic evidence
+  does not establish natural English/Spanish accuracy. Public documentation now
+  distinguishes v0.2.5, `dev` and future intent; editable trust/lifecycle SVGs accompany
+  it. See [speech](docs/SPEECH_RECOGNITION_VB.md) and
+  [documentation evidence](docs/PUBLIC_DOCUMENTATION_VB.md).
+
+- V-A conversation reliability: correlated typed waits, bounded retirement of
+  noncooperative generation/discovery, rejection of late preflight results and
+  cancellation across completed text / pending speech. 246 scoped Python and
+  300 frontend tests passed at that checkpoint; real-session latency remains
+  unattributed. See [evidence](docs/CONVERSATION_RELIABILITY_VA.md).
+
 - IV-D integration: canonical IV-B/IV-C frontend assets with source fingerprints
   and Vite entry manifest; tested partial renderer initialization/idempotent cleanup;
   broader deterministic and shared long-PCM contracts. 290 frontend / 223 scoped

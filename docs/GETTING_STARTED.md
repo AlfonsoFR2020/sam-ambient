@@ -1,11 +1,17 @@
 # Getting started with Sam
 
-Post-v0.2.3 development starts a separate local memory store in user application
+**Release scope:** [v0.2.5](RELEASE_NOTES_0.2.5.md) is the published experimental
+Python/source alpha. Windows is the principal validated runtime/development path;
+Linux is an important target with passing v0.2.5 hosted Python/package checks,
+but desktop and physical voice acceptance remain open. Unreleased changes on
+`dev` are identified below; they are not part of the published artifacts.
+
+Sam starts a separate local memory store in user application
 data, not the checkout. No external database/embedding service is needed. Tests
 use isolated paths. Advanced standalone core runs accept `--memory-db PATH` or
 `--no-memory`; owner management is described in [Using Sam](USER_GUIDE.md).
 
-Development builds prefer a dedicated Sam window using installed Edge, Chrome or
+Source launches use a dedicated Sam window using installed Edge, Chrome or
 Chromium via the installed Python Playwright driver, after UI readiness while
 the core continues starting. No browser installation is performed. The ignored
 `.sam/owner-ui-profile` has a private owner-proof binding; ordinary browser/debug
@@ -16,27 +22,29 @@ providers and prepares speech. This is actual connection state, not a progress
 percentage; readiness or a precise degraded explanation replaces it.
 Quit Sam stops the runtime and requests closure of its Windows app window; if the
 browser/platform refuses, close the stopped page manually. Closing the dedicated
-window also stops Sam; closing a fallback browser tab does not. A second launch
+window also stops Sam; closing an unauthenticated debug tab does not. A second launch
 for the same root reports the existing local UI instead of competing for ports.
 
 Sam 0.2.5 experimental alpha is a Windows-first source/Python pre-release that runs from source with
-a local app-window/browser UI.
-There is no accepted installer yet. The integrated native shell is release-candidate
-source, not an accepted package. Install prerequisites yourself; Sam downloads no
+a private local owner-window UI.
+There is no public installer or signed native distribution. The integrated native
+shell is development source, not an accepted package. Install prerequisites yourself; Sam downloads no
 models.
 
 ## End-user runtime prerequisites
 
-- Python 3.12+ and [uv](https://docs.astral.sh/uv/), then a checkout of this repository.
+- Python 3.12+, [uv](https://docs.astral.sh/uv/) and Git, then a checkout of this repository.
+- Installed Edge or Chrome for the isolated, authenticated source window. Sam
+  does not install a browser or reuse your personal browsing profile.
 - For answers: an installed local inference runtime with at least one **chat/instruct**
   model that fits your machine. An embedding model cannot answer conversations.
 - [LM Studio](https://lmstudio.ai/) is the recommended currently validated Windows
   provider. Open it once after installation so its bundled `lms` CLI is available.
 - Ollama support is covered by automated discovery/startup tests, but the current
-  Windows release-candidate validation used LM Studio. Already-running loopback
+  Windows v0.2.5 validation used LM Studio. Already-running loopback
   OpenAI-compatible endpoints can also be configured explicitly.
-- Windows is the current development/validated text platform. Linux is the primary
-  deployment target, but full Linux voice/hardware acceptance remains pending.
+- Windows is the principal validated platform. Linux remains a development target;
+  hosted CI coverage does not establish Linux desktop or voice-hardware acceptance.
 
 The source checkout includes compiled frontend assets. Node/pnpm is needed only to
 rebuild them. Rust, Cargo, Tauri, WebView2, MSVC Build Tools, and the Windows SDK are
@@ -130,12 +138,32 @@ ordinary browser mode is an unauthenticated debugging surface.
 The repository also contains guarded companion and NSIS packaging scripts for
 later release work. They are intentionally outside this source-integration flow;
 do not treat their presence as package, signing, antivirus, or release acceptance.
-The current [0.2.4 candidate](ALPHA_CANDIDATE_0.2.4.md) validates frozen private-parent
-authentication and explicit Playwright resources/notices. NSIS uses installed local
-build tools without reinstalling dependencies; Windows helper execution failure
-currently blocks installer acceptance. No security bypass or unsigned publication.
+Historical [0.2.4 candidate evidence](ALPHA_CANDIDATE_0.2.4.md) covers the frozen
+private-parent boundary and explicit Playwright resources/notices. The
+[v0.2.5 release record](RELEASE_READINESS_0.2.5.md) also records hosted Windows native
+checks; these do not replace clean-host, signing, security-software or owner
+acceptance. Do not bypass security software or treat unsigned development
+packages as a public installer.
 
 ## First launch
+
+For the published release, pin the tag before preparing the environment:
+
+```powershell
+git clone --branch v0.2.5 https://github.com/AlfonsoFR2020/sam-ambient.git
+cd sam-ambient
+uv sync --locked
+& ".\Start Sam.cmd" --no-voice --no-tts
+```
+
+This first session uses typed input without speech devices. After speech setup,
+restart without `--no-voice --no-tts` before enabling the independent input/output
+controls. An existing `dev`
+checkout runs unreleased source; it does not become v0.2.5 merely because the
+version string is unchanged. Do not switch a checkout containing local work just
+to follow this example. Python wheel/sdist users can instead install the exact
+v0.2.5 release artifact and follow its CLI setup; neither artifact is a Windows
+installer.
 
 On Windows, after preparing the source environment once, double-click
 [`Start Sam.cmd`](../Start%20Sam.cmd) in the checkout. It uses that checkout's
@@ -150,9 +178,10 @@ uv sync --locked
 For a terminal/debug session, run `uv run --no-sync sam-ambient` from the
 checkout. The supervisor starts the
 core and static UI. Startup may take several tens of seconds while an installed
-model loads. The browser/app window opens once after UI readiness:
-[http://127.0.0.1:8766](http://127.0.0.1:8766). Closing a fallback browser tab
-does not stop Sam; closing the owned app window requests graceful shutdown.
+model loads. The dedicated owner window opens after UI readiness, using the
+private binding at loopback port 8766 (core bridge: 8765). Opening that URL in a
+normal browser does not authenticate or provide private command access. Closing
+the owned app window requests graceful shutdown; closing a debug tab does not.
 The startup card reports observed connection, provider, model and speech status.
 Raw connection detail is expandable while the main explanation stays plain-language.
 If several models
@@ -160,10 +189,11 @@ are available, choose a provider/model and optionally remember it. After changin
 LM Studio externally, use **Rescan**; **Continue in available mode** keeps diagnostics
 and settings usable but cannot produce an answer without a model.
 
-Open **Controls → Text request**, type a short question, and press **Send**. Ask a
+Open **Controls → Conversation → Text request**, type a short question, and press **Send**. Ask a
 follow-up: committed recent conversation context is retained locally. When the
 separate voice prerequisites below are ready, enable **Microphone** to talk and
-leave **Voice** enabled for spoken replies.
+leave **Voice** enabled for spoken replies (renamed **Spoken replies** in unreleased
+development). These are independent input/output preferences, not readiness claims.
 
 ## Configuration
 
@@ -231,13 +261,13 @@ uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000
   running; these choices do not authorize stopping a pre-existing LM Studio service.
 - **Microphone sensitivity** and **Output volume** are Sam input/output gains from
   0-200%; they do not change Windows mixer levels.
-- **Display** contains quality, performance profile, reduced motion, visual
+- **Appearance** contains quality, performance profile, reduced motion, visual
   intensity, motion, audio reactivity, particles, transcript, and fullscreen.
 
 ## Voice prerequisites
 
 Text can work without voice. Microphone and playback use system-default devices.
-For the most reliable 0.2.2 alpha experience, start in text mode; voice input is
+For the most reliable v0.2.5 alpha experience, start in text mode; voice input is
 experimental and has known physical and sustained-noise limitations.
 Input needs a separately installed whisper.cpp server and multilingual model,
 normally at `http://127.0.0.1:8080`.
@@ -255,6 +285,15 @@ Output uses Windows System.Speech; Linux needs an external `espeak-ng` or `espea
 Physical speech accuracy, speaker echo and natural barge-in still require human
 acceptance; automated tests are not a claim that every microphone setup works.
 Use `--no-voice --no-tts` for text-only operation.
+
+In `[voice]`, `stt_language = "en"` or `"es"` forces recognition language;
+`"auto"` permits recognizer detection. `preferred_languages = ["en", "es"]`
+guides an uncertain automatic decode and never overrides a forced choice.
+**Unreleased V-B:** common locale selectors such as `en-GB`, `es-ES` and `es_ES`
+normalize to whisper.cpp's primary language code. They do not select a regional
+acoustic model or guarantee code-switch recognition. Use `en` / `es` for v0.2.5.
+The [recognition report](SPEECH_RECOGNITION_VB.md) distinguishes deterministic
+pipeline protections from unmeasured natural-speech accuracy.
 
 ## Status, shutdown and common failures
 

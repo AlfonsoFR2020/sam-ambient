@@ -1,6 +1,11 @@
 # Using Sam
 
-## Personal memory (post-v0.2.3 development)
+This guide covers the published [v0.2.5 Python/source alpha](RELEASE_NOTES_0.2.5.md)
+and explicitly labelled unreleased changes on `dev`. Start with typed interaction
+on Windows, the principal validated runtime path. Hosted Linux checks do not
+establish Linux desktop/physical voice acceptance. No public installer is available.
+
+## Personal memory
 
 Open **Memory** in Sam's authenticated owner window to deliberately store a fact,
 preference or project context. Inspect its source/review state, correct it, approve
@@ -42,7 +47,7 @@ the existing readiness experience. Native
 packaging, signing, security-software review, and combined human acceptance remain
 release gates; do not bypass security alerts to run unsigned native artifacts.
 
-## Owner Console and bounded page inspection (post-v0.2.3 dev)
+## Owner Console and bounded page inspection
 
 Open **Console** in the authenticated Sam window. Choose directory listing,
 bounded text-file reading or system information. Paths are relative to Sam's
@@ -73,13 +78,16 @@ a new typed conversation. See [capabilities](AGENCY_CAPABILITIES.md) and
    chat/instruct model that fits your machine; embedding models cannot answer. If it
    is not already ready, load it and start the localhost server from **Developer**, or
    follow the UI/CLI procedure in [Getting started](GETTING_STARTED.md).
-2. From the Sam checkout run `uv sync --locked` once, then double-click
-   `Start Sam.cmd`. The launcher does not install dependencies.
+2. Use a clean checkout pinned to `v0.2.5` for the published alpha; see the exact
+   [setup commands](GETTING_STARTED.md#first-launch). Run `uv sync --locked` once,
+   then `Start Sam.cmd --no-voice --no-tts` for a typed first session. The launcher
+   does not install dependencies. A `dev` checkout serves unreleased code/assets.
 3. Let Sam use a valid remembered model or the sole installed conversational model.
    If the startup picker appears, choose a model. Use **Rescan** after changing LM
    Studio. Sam may load an existing model but never downloads one.
-4. Open **Controls**. Type in **Text request** and press **Send**. Enable
-   **Microphone** and **Voice** only after the separate speech setup is ready.
+4. Open **Controls → Conversation**. Type in **Text request** and press **Send**.
+   After separate speech setup, restart without `--no-voice --no-tts`, then enable
+   **Microphone** and **Voice** (development: **Spoken replies**) independently.
    Wait for the model to finish loading: a requested/pending model is not an
    available inference route. Missing speech leaves typed conversation available.
 5. Adjust Sam input/output gain and basic visual/profile settings in Controls.
@@ -111,7 +119,8 @@ user turn. Interrupted assistant
 content is marked rather than pretending all generated text was heard.
 
 The discreet state label distinguishes Listening, Transcribing, Thinking and
-Speaking. Microphone/Voice controls mute input/output. System-default devices
+Speaking. **Microphone** controls recognition input; **Voice** (development:
+**Spoken replies**) controls speech output while keeping text answers. System-default devices
 are used; voice requires the external speech dependencies described in Getting
 started. Cancelling capture returns the listening state to idle; a speech-input
 failure can be retried from **Conversation → Retry speech input** while an
@@ -139,6 +148,14 @@ is available for session configuration. Default `"auto"` detects language;
 `preferred_languages` only guides uncertain automatic decoding and is **not**
 a hard language selection. This does not improve the capacity of the installed
 base Whisper model or establish real Spanish transcription quality.
+
+**Unreleased V-B recognition increment:** configuration and stream contexts also
+accept common locale selectors (`en-GB`, `es-ES`, `es_ES`) and normalize them to
+`en` / `es`. This preserves deliberate language selection; it does not infer a
+change of language mid-utterance, promise Castilian acoustic specialization or
+replace the installed recognizer. Cancelled/retired recognition cannot commit a
+new turn; one sealed utterance cannot be finalized twice concurrently. A failure
+leaves typed requests available. See [recognition evidence](SPEECH_RECOGNITION_VB.md).
 
 Open **Controls → System** for provider/model and STT/TTS status.
 Speech health, recognition mode and the actual most recent voice are also shown

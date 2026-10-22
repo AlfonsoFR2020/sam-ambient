@@ -1,5 +1,12 @@
 # Architecture
 
+The [system / trust-boundary diagram](diagrams/sam-system-architecture.svg) shows
+presentation, core authority, external services and private persistence. The
+[development conversation lifecycle](diagrams/sam-conversation-lifecycle.svg)
+separates provisional recognition, core commitment, completed text and optional
+delivery. [Editable sources and conventions](diagrams/README.md) preserve that
+distinction; file-only vector checks are not rendered layout acceptance.
+
 **2026-10-21 experimental source amendment:** [Visual Identity IV-B](VISUAL_IDENTITY_IV.md)
 replaces the six independent WebGL sheets described in the released baseline below
 with one indexed cube-sphere parent skin and three irregular openings. Six welded

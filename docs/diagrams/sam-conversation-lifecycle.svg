@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000" role="img" aria-labelledby="title desc" lang="en">
+<title id="title">Sam development conversation, recognition and delivery lifecycle</title>
+<desc id="desc">Text enters authenticated command admission; ACK is not commitment or readiness. Microphone PCM and VAD feed provisional recognition. Core commitment establishes turn, generation and cancellation ownership and a frozen exact inference route. Completed written text and optional synthesized/playback delivery have separate lifetimes. Accepted PCM writes drive visual observations, not acoustic timestamps. Cancellation and terminal failures reject late work and preserve typed recovery.</desc>
+<defs>
+<marker id="arrow-control" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#e2b27f"/></marker>
+<marker id="arrow-data" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#83b8e3"/></marker>
+<marker id="arrow-delivery" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#76cbbb"/></marker>
+<marker id="arrow-warning" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#edaaa2"/></marker>
+</defs>
+<style>
+text { font-family: "Segoe UI", Inter, Arial, sans-serif; }
+.title { fill: #f4eee5; font-size: 36px; font-weight: 650; }
+.body { fill: #bbc9d5; font-size: 18px; }
+.card-title { fill: #f4eee5; font-size: 22px; font-weight: 600; }
+</style>
+<rect width="1200" height="1000" fill="#10161c"/>
+<text x="40" y="51" class="title" data-estimated-width="651.96">Conversation / recognition / delivery</text>
+<text x="40" y="83" class="body" data-estimated-width="715.86">Development lifecycle • recognition is evidence; text and speech finish separately.</text>
+<path data-kind="control" d="M40,116 L66,116" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<text x="76" y="122" class="body" data-estimated-width="171.18">Control / authority</text>
+<path data-kind="data" d="M330,116 L356,116" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<text x="366" y="122" class="body" data-estimated-width="156.06">Data / projection</text>
+<path data-kind="warning" d="M630,116 L656,116" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-warning)"/>
+<text x="666" y="122" class="body" data-estimated-width="136.8">Cancel / failure</text>
+<path data-kind="delivery" d="M900,116 L926,116" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
+<text x="936" y="122" class="body" data-estimated-width="146.7">Optional delivery</text>
+<g id="input-commit" data-kind="boundary"><rect x="20" y="150" width="1160" height="310" rx="18" fill="#17212b" stroke="#415568" stroke-width="1.3" stroke-dasharray="7 6"/>
+<text x="40" y="179" class="body" style="fill: #e2b27f" data-estimated-width="245.7">INPUT &amp; CORE COMMITMENT</text>
+</g>
+<g id="text-generation" data-kind="boundary"><rect x="20" y="510" width="1160" height="220" rx="18" fill="#17212b" stroke="#415568" stroke-width="1.3" stroke-dasharray="7 6"/>
+<text x="40" y="539" class="body" style="fill: #83b8e3" data-estimated-width="162.54">TEXT GENERATION</text>
+</g>
+<g id="optional-delivery" data-kind="boundary"><rect x="590" y="530" width="590" height="200" rx="18" fill="#17212b" stroke="#415568" stroke-width="1.3" stroke-dasharray="7 6"/>
+<text x="610" y="559" class="body" style="fill: #76cbbb" data-estimated-width="254.88">OPTIONAL SPEECH DELIVERY</text>
+</g>
+<g id="recovery" data-kind="boundary"><rect x="20" y="780" width="1160" height="200" rx="18" fill="#17212b" stroke="#415568" stroke-width="1.3" stroke-dasharray="7 6"/>
+<text x="40" y="809" class="body" style="fill: #edaaa2" data-estimated-width="343.62">CANCELLATION / FAILURE / RECOVERY</text>
+</g>
+<path data-kind="control" d="M270,257 L320,257" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="data" d="M270,385 L320,385" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="control" d="M550,257 L590,257 L590,322 L610,322" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="data" d="M550,385 L590,385 L590,350 L610,350" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="control" d="M840,322 L900,322" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="data" d="M1030,390 L1030,482 L155,482 L155,560" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="data" d="M270,627 L320,627" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="delivery" d="M550,627 L610,627" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-delivery)"/>
+<path data-kind="delivery" d="M840,627 L900,627" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
+<path data-kind="delivery" d="M1160,627 L1186,627 L1186,892 L1160,892" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
+<path data-kind="warning" d="M435,440 L580,440 L580,770" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6"/>
+<path data-kind="warning" d="M155,695 L155,770 L210,770" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6"/>
+<path data-kind="warning" d="M1100,695 L1100,770 L210,770 L210,830" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-warning)"/>
+<path data-kind="control" d="M380,892 L440,892" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<g id="typed-input" data-kind="node" data-bounds="40 205 230 105"><rect x="40" y="205" width="230" height="105" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M55,206 H255" stroke="#e2b27f" stroke-width="2"/>
+<text x="58" y="237" class="card-title" data-estimated-width="153.78">Typed request</text>
+<text x="58" y="267" class="body" data-estimated-width="125.82">Owner command</text>
+<text x="58" y="291" class="body" data-estimated-width="181.08">Local pending status</text>
+</g>
+<g id="authenticated-admission" data-kind="node" data-bounds="320 205 230 105"><rect x="320" y="205" width="230" height="105" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M335,206 H535" stroke="#e2b27f" stroke-width="2"/>
+<text x="338" y="237" class="card-title" data-estimated-width="166.54">Owner admission</text>
+<text x="338" y="267" class="body" data-estimated-width="160.74">Fresh owner proof</text>
+<text x="338" y="291" class="body" data-estimated-width="145.26">ACK ≠ readiness</text>
+</g>
+<g id="capture" data-kind="node" data-bounds="40 330 230 110"><rect x="40" y="330" width="230" height="110" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M55,331 H255" stroke="#83b8e3" stroke-width="2"/>
+<text x="58" y="362" class="card-title" data-estimated-width="183.04">Microphone input</text>
+<text x="58" y="392" class="body" data-estimated-width="184.32">PCM + pre-roll + VAD</text>
+<text x="58" y="416" class="body" data-estimated-width="145.62">Utterance token</text>
+</g>
+<g id="recognition" data-kind="node" data-bounds="320 330 230 110"><rect x="320" y="330" width="230" height="110" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M335,331 H535" stroke="#83b8e3" stroke-width="2"/>
+<text x="338" y="362" class="card-title" data-estimated-width="167.42">Provisional STT</text>
+<text x="338" y="392" class="body" data-estimated-width="119.88">en / es / auto</text>
+<text x="338" y="416" class="body" data-estimated-width="162.0">Final ≠ commitment</text>
+</g>
+<g id="turn-commit" data-kind="node" data-bounds="610 255 230 135"><rect x="610" y="255" width="230" height="135" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M625,256 H825" stroke="#e2b27f" stroke-width="2"/>
+<text x="628" y="287" class="card-title" data-estimated-width="178.64">Commit user turn</text>
+<text x="628" y="317" class="body" data-estimated-width="156.06">Turn + generation</text>
+<text x="628" y="341" class="body" data-estimated-width="181.62">Cancellation identity</text>
+<text x="628" y="365" class="body" data-estimated-width="170.64">Freeze exact route</text>
+</g>
+<g id="request-dispatch" data-kind="node" data-bounds="900 255 260 135"><rect x="900" y="255" width="260" height="135" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M915,256 H1145" stroke="#e2b27f" stroke-width="2"/>
+<text x="918" y="287" class="card-title" data-estimated-width="197.12">Confirm &amp; dispatch</text>
+<text x="918" y="317" class="body" data-estimated-width="196.2">Exact provider + model</text>
+<text x="918" y="341" class="body" data-estimated-width="148.68">Loading ≠ Active</text>
+<text x="918" y="365" class="body" data-estimated-width="186.3">No silent replacement</text>
+</g>
+<g id="stream" data-kind="node" data-bounds="40 560 230 135"><rect x="40" y="560" width="230" height="135" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M55,561 H255" stroke="#83b8e3" stroke-width="2"/>
+<text x="58" y="592" class="card-title" data-estimated-width="177.98">Stream response</text>
+<text x="58" y="622" class="body" data-estimated-width="190.98">Headers / first token</text>
+<text x="58" y="646" class="body" data-estimated-width="156.6">Provisional deltas</text>
+<text x="58" y="670" class="body" data-estimated-width="186.3">Bounded wait + cancel</text>
+</g>
+<g id="completed-text" data-kind="node" data-bounds="320 560 230 135"><rect x="320" y="560" width="230" height="135" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M335,561 H535" stroke="#e2b27f" stroke-width="2"/>
+<text x="338" y="592" class="card-title" data-estimated-width="184.36">Completed answer</text>
+<text x="338" y="622" class="body" data-estimated-width="131.04">Committed text</text>
+<text x="338" y="646" class="body" data-estimated-width="139.86">Model completed</text>
+<text x="338" y="670" class="body" data-estimated-width="192.24">Preserved after Stop</text>
+</g>
+<g id="synthesis" data-kind="node" data-bounds="610 560 230 135"><rect x="610" y="560" width="230" height="135" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M625,561 H825" stroke="#76cbbb" stroke-width="2"/>
+<text x="628" y="592" class="card-title" data-estimated-width="165.88">Prepare speech</text>
+<text x="628" y="622" class="body" data-estimated-width="187.38">WAV / PCM synthesis</text>
+<text x="628" y="646" class="body" data-estimated-width="185.76">No text regeneration</text>
+<text x="628" y="670" class="body" data-estimated-width="185.22">May fail / be stopped</text>
+</g>
+<g id="playback" data-kind="node" data-bounds="900 560 260 135"><rect x="900" y="560" width="260" height="135" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M915,561 H1145" stroke="#76cbbb" stroke-width="2"/>
+<text x="918" y="592" class="card-title" data-estimated-width="172.92">Playback &amp; drain</text>
+<text x="918" y="622" class="body" data-estimated-width="174.96">Bounded PCM writes</text>
+<text x="918" y="646" class="body" data-estimated-width="191.52">Drain retires delivery</text>
+<text x="918" y="670" class="body" data-estimated-width="185.4">Writes ≠ sound clock</text>
+</g>
+<g id="retire-work" data-kind="node" data-bounds="40 830 340 125"><rect x="40" y="830" width="340" height="125" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M55,831 H365" stroke="#edaaa2" stroke-width="2"/>
+<text x="58" y="862" class="card-title" data-estimated-width="221.32">Retire matching work</text>
+<text x="58" y="892" class="body" data-estimated-width="231.12">Stop / supersede / failure</text>
+<text x="58" y="916" class="body" data-estimated-width="238.14">Reject late IDs and results</text>
+<text x="58" y="940" class="body" data-estimated-width="235.8">Never acquire a newer turn</text>
+</g>
+<g id="typed-recovery" data-kind="node" data-bounds="440 830 360 125"><rect x="440" y="830" width="360" height="125" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M455,831 H785" stroke="#e2b27f" stroke-width="2"/>
+<text x="458" y="862" class="card-title" data-estimated-width="165.88">Typed recovery</text>
+<text x="458" y="892" class="body" data-estimated-width="220.68">Committed answers remain</text>
+<text x="458" y="916" class="body" data-estimated-width="275.94">A fresh turn gets its own route</text>
+<text x="458" y="940" class="body" data-estimated-width="217.08">Real failure stays visible</text>
+</g>
+<g id="visual-observer" data-kind="node" data-bounds="900 830 260 125"><rect x="900" y="830" width="260" height="125" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M915,831 H1145" stroke="#76cbbb" stroke-width="2"/>
+<text x="918" y="862" class="card-title" data-estimated-width="166.54">Living presence</text>
+<text x="918" y="892" class="body" data-estimated-width="221.22">Lifecycle + scalar meters</text>
+<text x="918" y="916" class="body" data-estimated-width="205.56">Accepted output writes</text>
+<text x="918" y="940" class="body" data-estimated-width="201.42">No physical sound clock</text>
+</g>
+<text x="40" y="756" class="body" data-estimated-width="476.1">Completed text remains usable if speech stops or fails.</text>
+</svg>

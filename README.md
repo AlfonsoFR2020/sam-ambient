@@ -2,307 +2,136 @@
   <img src="sam-logo.png" alt="Sam" width="520">
 </p>
 
-Sam **0.2.5 experimental source/Python alpha** uses the
-[GitHub pre-release](https://github.com/AlfonsoFR2020/sam-ambient/releases/tag/v0.2.5)
-wheel, source archive and checksums. See [scope and limitations](docs/RELEASE_NOTES_0.2.5.md). No Windows
-installer is available; unsigned native development artifacts are not distributed.
-
 # Sam
 
-**A local-first ambient AI interface exploring what happens when artificial intelligence becomes a native layer of the computer itself.**
+**An ambient AI presence for conversation, local intelligence and owner-controlled computing.**
 
-Sam combines a reactive ambient presence with interruptible conversation and
-approval-controlled computer capabilities. Models and speech engines remain
-replaceable; trusted code owns permissions, recovery, and updates.
+Sam explores a computer you can work with through conversation: a living visual
+presence, replaceable language and speech models, and capabilities governed by
+trusted code. Its longer-term ambition is an AI-native interface to computing,
+with the owner retaining control over data, actions and software changes.
 
-Post-v0.2.3 development includes owner-managed local personal memory with source
-and review metadata, correction and deletion in a separate **Memory** surface.
-It is not automatic chat-log retention. See [memory foundation](docs/MEMORY_FOUNDATION_I.md).
+**Published: [v0.2.5 experimental source/Python alpha](https://github.com/AlfonsoFR2020/sam-ambient/releases/tag/v0.2.5).**
+The release contains a Python wheel, source archive and checksums. There is no
+public Windows installer or signed native distribution. Windows is the principal
+validated development/runtime path. Linux remains an important target: v0.2.5
+passed its hosted Linux Python/package checks, while Linux desktop and physical
+voice acceptance remain open. See the [release scope](docs/RELEASE_NOTES_0.2.5.md).
 
-Inspired in part by the vision of ambient computing portrayed in *Her*, Sam
-explores an interaction model in which an AI assistant is not merely a chatbot
-inside another application, but a persistent, conversational layer through
-which the user can interact with the computer itself.
+## What makes Sam different
 
-The ambition goes considerably further. Sam is being designed as an
-**AI-native layer over the operating system**: able to work with local and
-remote models, delegate to specialized agents, operate desktop applications,
-adapt its own environment, and eventually propose, test, and safely deploy
-modifications to its own software and even its Linux environment while
-remaining under explicit user control. The goal is an assistant that can
-progressively maintain and extend the computer it inhabits rather than merely
-answer questions about it.
+- **A living presence.** The Orb combines evolving pigment, regional colour
+  territories, flowing material, light and motion with real conversational
+  signals. Reduced Motion, quality adaptation and Canvas/static recovery are
+  part of the renderer's contract.
+- **Local-first conversation.** Choose an exact provider and model. Each committed
+  turn keeps its inference route; Sam does not silently substitute a cloud model
+  or download models for you.
+- **Conversation integrity.** Committed text, generation and spoken delivery have
+  distinct lifetimes. Cancellation and recovery preserve completed answers, and
+  typed input remains available when voice is unavailable.
+- **Owner authority.** An authenticated private interface, capability policy,
+  approvals and revocation govern bounded tools and Agency. A model does not own
+  operating-system privileges or update authority.
+- **Reviewed personal Memory.** Local, owner-managed entries have source/review
+  information and correction/deletion controls. This is separate from operational
+  recovery records and is not automatic retention of every conversation.
+- **Recoverability.** A separate supervisor, durable committed text, diagnostics
+  and staged update/rollback foundations keep the conversational runtime from
+  becoming its own deployment authority.
 
-In the longer term, that points toward a more radical possibility:
-**the AI itself becoming the primary user interface to the operating system**.
+![Sam system architecture: authenticated presentation, trusted core, services and private persistence](docs/diagrams/sam-system-architecture.svg)
 
-Instead of navigating fixed menus, settings panels, launchers, file managers,
-and application-specific interfaces, the user could express intent directly
-through voice, text, or context and let the AI compose the underlying system
-actions dynamically while also generating the interaction surface itself at
-runtime.
+*Control and authority use copper paths; data and presentation use blue paths.
+The visual engine observes trusted state. It does not command models, devices or
+tools. [Architecture and trust boundaries](docs/ARCHITECTURE.md) explain the
+contracts; the [development lifecycle diagram](docs/diagrams/sam-conversation-lifecycle.svg)
+shows recognition, committed turns and separate speech delivery.*
 
-This includes **generative UI**: context-specific interfaces, visualizations,
-controls, documents, dashboards, transient tools, or miniature task-specific
-applications rendered on demand. Sam could choose the most useful
-representation for each interaction and continuously recompose it as the
-conversation, system state, and user intent evolve.
+## Released, in development, and future
 
-A response might appear as natural language in one moment, a live control panel
-in the next, then an interactive graph, structured workspace, or hybrid of
-several forms. In this model, **the interface itself becomes another generative
-layer of the system rather than a static container built around predefined
-workflows**.
+| Line | What it means |
+| --- | --- |
+| **Released · v0.2.5** | The published Python/source alpha: living pigment and six swept film sheets, authenticated owner window, local-provider management, conversation/cancellation foundations, reviewed Memory, bounded Agency and diagnostics. Voice input is experimental; typed use is the safest starting point. |
+| **Development · v0.2.6+ on `dev`** | A connected parent skin, lifecycle expression, playback-boundary visual metering, conversation reliability repairs and recognition-integrity improvements. Deterministic tests and asset integration do not establish graphical, physical-audio or owner acceptance. |
+| **Future** | Broader desktop agency, generative interfaces, expanded OS integration and controlled self-modification are roadmap ambitions, not completed product capabilities. |
 
-Traditional graphical interfaces can remain available where useful, but
-increasingly as one possible surface among many rather than the primary way the
-user must understand and control the machine. The operating system itself
-becomes less a collection of applications and windows that the user has to
-learn to operate, and more a **programmable environment continuously
-interpreted, orchestrated, and reshaped by an intelligent agent**.
+The owner's positive assessment of the evolving swirls concerns the released
+v0.2.5 renderer. The new connected skin still needs graphical and owner review.
+Natural bilingual recognition, acoustic interruption/echo conditions and
+real-session response latency also retain explicit acceptance limits. See the
+[current state](docs/STATE.md), [roadmap](docs/ROADMAP.md) and
+[known work](docs/BACKLOG.md).
 
-Sam is an experiment toward that kind of computer: one in which interaction is
-centered on **goals, conversation, context, and dynamically generated
-interfaces**, rather than on manually traversing fixed software structures.
+## Try the published alpha on Windows
 
-**Status:** **Sam 0.2.3 alpha pre-release is published.** Windows is
-the currently validated local-provider and native development path. Full Linux compatibility is
-deferred to the dedicated 0.3.0 Linux review; the remaining hosted Ubuntu Python-test
-failure is a known non-blocker under the current Windows-first alpha policy.
-Signing and antivirus review remain public-installer gates. The release notes
-state the accepted real-provider, physical-voice and visual validation limits.
-Text interaction is the recommended, most reliable
-0.2.3 alpha mode; voice input remains experimental.
-The development line opens an isolated Sam app window with installed Edge/Chrome/
-Chromium through Playwright's private pipes (no browser download). Only this
-owner window or a native shell using bundled trusted assets can authenticate; normal
-browser/debug tabs do not receive authority. An unavailable owner window fails
-closed. See [owner authority](docs/OWNER_AUTHORITY.md).
-The source window uses sandboxed Chromium app mode, follows the actual window size,
-and supports the Appearance fullscreen action; it is not a normal personal browser tab.
-Starting the same Sam root twice reports the existing local UI instead of creating
-competing runtimes. Closing the dedicated window gracefully stops Sam.
-The integrated Tauri 2 shell provides the same ambient UI in a native
-window and starts a self-contained Python companion through a fixed resource
-boundary. A public installer still requires packaging, signing and antivirus
-review.
-On `dev`, speech follows detected response language using installed Windows voices
-with locale/language fallback; see the [User Guide](docs/USER_GUIDE.md). No cloud
-speech service or additional voice installation is performed automatically.
+Use Python 3.12+, [uv](https://docs.astral.sh/uv/), Git and an installed Edge or
+Chrome browser for Sam's isolated source application window. A local chat model
+is required for answers; [LM Studio](https://lmstudio.ai/) is the principal
+validated provider. Download a suitable chat/instruct model yourself, then follow
+the [provider setup](docs/GETTING_STARTED.md#install-load-and-serve-a-model-with-lm-studio). No model is
+bundled or downloaded automatically.
 
-## What works today
+Pin the release rather than an unreleased development checkout:
 
-- Ambient React UI driven by conversation state and normalized audio metrics.
-- Full-duplex-oriented voice contracts, tentative barge-in, cancellation, and
-  a ledger distinguishing generated text from spoken text.
-- Local model selection: Ollama, LM Studio/llmster, and explicit
-  OpenAI-compatible endpoints. No automatic model downloads or cloud fallback.
-- Bounded filesystem and process tools, explicit approvals, and global
-  capability revocation enforced outside the model.
-- Approval-gated local MCP stdio adapter seam; no external server or desktop
-  control backend is bundled.
-- A separate supervisor with crash recovery, safe mode, durable committed
-  text, and staged component updates with health checks and automatic rollback.
-
-```mermaid
-flowchart TD
-    Shell[Tauri native shell or browser-dev shell] --> UI[React UI + Visual Engine]
-    UI <--> WS[localhost WebSocket]
-    WS <--> Python[Python companion in packaged Windows builds]
-    Python --> Supervisor[Supervisor + core]
-    Supervisor --> Runtime[Model router / voice / capability policy / MCP]
-    Runtime <--> Providers[Local providers: LM Studio, Ollama, compatible APIs]
-```
-
-## Quick start
-
-### Supported Windows source path
-
-Runtime requirements are Python 3.12+, [uv](https://docs.astral.sh/uv/), and a
-local conversational model provider. [LM Studio](https://lmstudio.ai/) is the
-currently recommended and validated provider. Install it, open it once so its
-bundled `lms` command is available, then use LM Studio's model search/download
-view to download a chat/instruct model that fits your machine. An embedding model
-cannot answer conversations.
-
-If the model or local server is not already running, use LM Studio's **Developer**
-tab to load the downloaded model and start the server on localhost, normally port
-1234. The equivalent terminal sequence is:
-
-```sh
-lms ls
-lms load MODEL_KEY
-lms server start --port 1234
-lms server status
-lms ps
-```
-
-Use a model key shown by `lms ls`; `lms ps` confirms the loaded model and shows the
-identifier Sam can use. Keep the default localhost binding. Sam may also start an
-installed LM Studio server and load an explicit, last-good, or sole installed
-conversational model, but it never downloads one. With several viable models, choose
-one in the startup picker. See [Getting started](docs/GETTING_STARTED.md) for the full
-LM Studio UI and CLI procedure.
-
-Node/pnpm is needed only to rebuild the React UI. Rust, Cargo, Tauri, MSVC Build
-Tools, and the Windows SDK are native-shell developer prerequisites; they are not
-end-user requirements for a future packaged Sam installation.
-
-On Windows, prepare the source environment once from the checkout, then
-double-click [`Start Sam.cmd`](Start%20Sam.cmd) for ordinary beta use:
-
-```sh
+```powershell
+git clone --branch v0.2.5 https://github.com/AlfonsoFR2020/sam-ambient.git
+cd sam-ambient
 uv sync --locked
+& ".\Start Sam.cmd" --no-voice --no-tts
 ```
 
-For terminal/debug use, run `uv run --no-sync sam-ambient` from the checkout.
-The launcher uses the existing environment and never installs dependencies.
-On first launch Sam starts the supervisor,
-core, and static UI, then opens
-**[http://127.0.0.1:8766](http://127.0.0.1:8766)** once the UI is ready. The window
-shows core/model/speech preparation rather than remaining blank. The core bridge
-uses localhost port 8765. Closing the dedicated window stops Sam; a normal browser
-debug tab can be closed independently, but cannot authenticate to private core state.
+This starts with typed interaction and speech disabled. The launcher uses the
+prepared environment; it does not install dependencies. In **Controls →
+Conversation**, use **Text request**. Check the selected model's actual readiness
+before expecting an answer. Sam can prepare an installed, owner-selected local
+model, and asks for a choice when several models are viable.
 
-Native-shell source lives in `ui/src-tauri`. Tauri supplies only the native
-window, application lifecycle, identity, and packaged-resource boundary; React
-remains the UI and Python remains the supervisor/core. Rust, Cargo, MSVC, and the
-Windows SDK are build dependencies, not intended end-user requirements. The
-guarded NSIS path bundles the Python companion, while providers, models, and
-Whisper assets remain external. Browser mode remains supported. See
-[Getting started](docs/GETTING_STARTED.md) for native development details.
+Sam opens a dedicated authenticated owner window. A localhost URL or ordinary
+browser tab does not grant command authority. Closing that window stops Sam;
+**Quit Sam** or **Ctrl+Q** requests graceful shutdown. See
+[Getting started](docs/GETTING_STARTED.md), the [User guide](docs/USER_GUIDE.md) and
+[owner authority](docs/OWNER_AUTHORITY.md) before enabling voice or tools.
 
-Use **Controls → Conversation → Text request** to type, or enable **Microphone**
-when the separate speech prerequisites are ready. **Rescan providers/models** refreshes inventory;
-**Restart Sam** restarts managed Python components while keeping external model
-services available; **Reload interface** reconnects only the React UI; and
-**Quit Sam** performs confirmed shutdown. Input/output gain, visual quality,
-performance profile, reduced motion, intensity, and local-resource-on-exit
-preferences are grouped in **Appearance**, **Device**, and **System**. Exit
-preferences default to keeping providers and models available and only act on
-resources Sam itself started or loaded.
+| Provider path | Scope |
+| --- | --- |
+| **LM Studio / llmster** | Principal Windows validation path; explicit installed-model selection and bounded local preparation. |
+| **Ollama** | Supported adapter and deterministic coverage; broader machine/runtime acceptance remains separate. |
+| **OpenAI-compatible endpoint** | Explicit configuration only. Cloud use is opt-in; disabled fallback must not export local context. Reviewed Memory is not injected into cloud turns. |
 
-The Visual Engine uses a warm, responsive light field rather than a solid sphere.
-Listening opens the ribbons, transcription gathers them, thinking folds inward,
-and speaking follows output amplitude. Controls remain keyboard-accessible at the
-lower edge; reduced-motion preference keeps state feedback without continuous motion.
-Open **Controls → System** for provider, model, speech and privacy readiness.
-**Controls → Diagnostics** opens the optional core, audio and renderer status panel;
-it is available by touch as well as Ctrl+Alt+V. Technical connection errors stay
-there or under startup details while the main view gives a plain-language status.
+Voice requires separately installed compatible whisper.cpp recognition and a
+local speech backend. Windows uses installed System.Speech voices; Linux uses
+eSpeak NG. English and Spanish recognition selections are explicit; real-world
+mixed-language accuracy is not guaranteed. See
+[speech prerequisites and limits](docs/GETTING_STARTED.md#voice-prerequisites)
+and the [historical speech baseline](docs/SPEECH_BASELINE_2026-10-01.md).
+For a content-free diagnostic launch, use
+[`Diagnose Sam.cmd`](Diagnose%20Sam.cmd) and the
+[diagnostic guide](docs/DIAGNOSTIC_LAUNCH.md).
 
-See [Getting started](docs/GETTING_STARTED.md) for prerequisites and first launch,
-and the [User guide](docs/USER_GUIDE.md) for controls, status, and safe operation.
+## Explore and contribute
 
-Sam loads versioned TOML configuration in this order: built-in defaults,
-per-user configuration, `config/sam.toml` in the workspace, environment
-overrides, then explicit CLI options. Copy
-[`config/sam.example.toml`](config/sam.example.toml) to begin; runtime-learned
-last-good model state and credentials remain separate from this file.
+Node/pnpm is needed to rebuild the React frontend, not for ordinary use of
+prepared assets. Native-shell development additionally needs Rust and the
+platform toolchain; it does not imply a released native installer. Follow the
+locked tool versions and commands in [Contributing](CONTRIBUTING.md) and the
+[frontend guide](ui/README.md).
 
-**Quit Sam** (or Ctrl+Q, with confirmation) stops the application; Ctrl+C works
-in the launch console. Escape still closes the controls/fullscreen view.
+| Learn about | Start here |
+| --- | --- |
+| Setup, controls and recovery | [Getting started](docs/GETTING_STARTED.md) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) |
+| Architecture and ownership | [Architecture](docs/ARCHITECTURE.md) · [Owner authority](docs/OWNER_AUTHORITY.md) · [Editable diagrams](docs/diagrams/README.md) |
+| Security and licensing | [Security](SECURITY.md) · [Third-party notices](THIRD_PARTY.md) |
+| Development and configuration | [Contributing](CONTRIBUTING.md) · [Configuration example](config/sam.example.toml) · [Decisions](docs/DECISIONS.md) |
+| Release and project direction | [v0.2.5 notes](docs/RELEASE_NOTES_0.2.5.md) · [Changelog](CHANGELOG.md) · [Roadmap](docs/ROADMAP.md) |
 
-```sh
-uv run sam doctor --root .
-uv run sam-ambient --verbose
-uv run sam-ambient --provider lm-studio --model your-loaded-model
-uv run sam-ambient --provider openai-compatible --base-url http://127.0.0.1:8000/v1
-```
+## License and attribution
 
-Selection is deterministic: a valid explicit local provider/model first, then a valid
-last-successful local choice, then the sole installed conversational model. Multiple
-viable models require owner selection rather than an arbitrary list-order choice.
-Stale saved preferences fall back; explicit unavailable choices stay degraded.
-Provider startup/readiness stays short; an explicit, remembered, or sole installed
-LM Studio chat model gets a separate cancellable 180-second load window. Multiple
-installed candidates require an explicit choice. Running services and loaded models
-are reused without transferring ownership. Graceful-Quit cleanup defaults to keeping
-resources; owner opt-in can unload only a model Sam loaded or stop only a service Sam
-started. Restart and Emergency Stop do not apply those exit policies. Expand the
-provider status for the selection reason and STT/TTS status.
-`sam doctor` remains read-only and groups findings as READY, AVAILABLE, OPTIONAL,
-MISSING, DEGRADED, or ACTION NEEDED. **Rescan providers/models** can detect bounded
-local availability changes without requiring a restart when safe.
+Copyright 2026 Alfonso Ernesto de la Fuente Ruiz, PhD
 
-Voice input needs an audio device and a separately installed whisper.cpp
-server, defaulting to `http://127.0.0.1:8080`. Windows output uses System.Speech;
-Linux output uses a separately installed `espeak-ng` or `espeak` executable.
+Original Sam material is licensed under the Apache License, Version 2.0.
+See [LICENSE](LICENSE), [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md) for the
+exact terms and retained third-party notices.
 
-Missing voice dependencies leave text input/output available. Without a model,
-the UI and diagnostics work, but Sam cannot generate a response.
-
-Use `--no-voice --no-tts` for text-only operation.
-
-The current working directory is the authorized read root; use `--root PATH`
-to choose another. Writes require `--allow-workspace-write` and approval.
-Process execution always requires approval and **is not an OS sandbox**.
-
-Operational data stays in `<root>/.sam/`. See [Security](SECURITY.md).
-
-## Build and install a package
-
-Frontend development requires Node 22.12+ and pnpm (the version is pinned in
-`ui/package.json`). Run `pnpm install --frozen-lockfile` inside `ui/`, then:
-
-```sh
-# Linux/macOS; use scripts/package.ps1 on Windows
-scripts/package.sh
-uv tool install ./dist/sam_ambient-0.2.3-py3-none-any.whl
-sam-ambient --root /path/to/workspace
-```
-
-The wheel includes compiled UI assets, launchers, example configuration, and
-notices. No models or third-party speech runtimes are bundled.
-
-The release gate is also available locally through `scripts/test.*`,
-`scripts/package.*`, and `scripts/check_release.py`. GitHub CI runs the equivalent
-deterministic Python/frontend gates on Windows and Linux; releases remain manual.
-
-## Limits and direction
-
-Physical echo cancellation and Linux end-to-end voice tuning remain pending;
-STT is final-only. Native package/release validation, signing/AV review, and
-supervisor self-update are deferred. Windows guarantees direct-child termination,
-not full descendant containment. Local staged updates require trusted preparation
-and validation.
-
-Next: combined native/ambient human acceptance, physical voice acceptance, and a
-seamless installer using the supported readiness layer. The integrated native
-source is not release approval. The local MCP stdio seam exists on `dev`;
-deskwright, remote MCP transports, and delegated workers are
-future integrations, not features of this release. See the [Roadmap](docs/ROADMAP.md).
-
-Longer term, Sam's architecture is intended to support increasingly capable
-computer-use backends, delegated agents, dynamically generated interaction
-surfaces, and deeper integration with the host operating environment without
-making any single model provider, desktop-control system, or UI framework
-fundamental to the design.
-
-[Architecture](docs/ARCHITECTURE.md) ·
-[Troubleshooting](docs/TROUBLESHOOTING.md) ·
-[Changelog](CHANGELOG.md) ·
-[Contributing](CONTRIBUTING.md)
-
-## License
-
-Sam is licensed under [Apache-2.0](LICENSE) and may be used, modified, and
-distributed subject to that license. See [NOTICE](NOTICE) for attribution.
-
-Third-party software retains its own terms, recorded in
-[THIRD_PARTY.md](THIRD_PARTY.md).
-
----
-
-*Sam is an independent project inspired by broader ideas of ambient and
-AI-native computing, including concepts portrayed in* Her. *It is not affiliated
-with or endorsed by the film or its rights holders.*
-
-## Diagnostic launch
-
-`Start Sam.cmd` preserves normal one-action launch. Compose `--verbose`,
-`--keep-console`, `--log-file "PATH with spaces"`, `--keep-model` and `--keep-provider`
-as needed. `Diagnose Sam.cmd` is the same path with a diagnostic preset, not another
-implementation. Overrides never save cleanup preferences; external ownership,
-owner authentication and Chromium sandbox remain unchanged.
-See [commands, precedence, privacy and retention](docs/DIAGNOSTIC_LAUNCH.md).
+Sam is an independent project, inspired in part by the ambient-computing vision
+portrayed in *Her*. It is not affiliated with the film or its creators.
