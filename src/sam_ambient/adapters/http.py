@@ -92,11 +92,30 @@ class HttpxJsonTransport:
     ) -> dict[str, Any]:
         request_options = self._request_options(body, headers, timeout_s)
         remove_callback = self._bind_cancellation(cancellation)
+        started_ms = time.monotonic_ns() // 1_000_000
+        state = "failed"
+        diagnostic(
+            "provider.json_request",
+            state="starting",
+            source_ms=started_ms,
+            operation_id=cancellation.cancellation_id,
+        )
         try:
             async with self._client.stream(method, url, **request_options) as response:
+                diagnostic(
+                    "provider.json_headers",
+                    state="rejected" if response.status_code >= 400 else "accepted",
+                    elapsed_ms=time.monotonic_ns() // 1_000_000 - started_ms,
+                    operation_id=cancellation.cancellation_id,
+                )
                 raw = await self._read_limited(response)
+                cancellation.raise_if_cancelled()
                 self._raise_for_status(response, raw, headers)
+            result = self._decode_object(raw)
+            state = "completed"
+            return result
         except asyncio.CancelledError as error:
+            state = "cancelled"
             self._raise_if_token_cancelled(cancellation, error)
             raise
         except httpx.TimeoutException as error:
@@ -105,7 +124,12 @@ class HttpxJsonTransport:
             raise HttpTransportError(str(error)) from error
         finally:
             remove_callback()
-        return self._decode_object(raw)
+            diagnostic(
+                "provider.json_closed",
+                state=state,
+                elapsed_ms=time.monotonic_ns() // 1_000_000 - started_ms,
+                operation_id=cancellation.cancellation_id,
+            )
 
     async def stream_lines(
         self,

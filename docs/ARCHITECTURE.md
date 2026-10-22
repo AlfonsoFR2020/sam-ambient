@@ -149,6 +149,12 @@ available. Rescan changes availability for future
 turns but never silently replaces the model already chosen for an active
 generation. The UI disables new text submission when no model is active.
 
+V-A validates session identity before any client timer/action side effects.
+Same-session correlation retires command bookkeeping even when an older event
+cannot change conversation display. Commitment, rejection and precommit terminal
+events clear only their matching typed wait; ACK alone does not prove commitment.
+New local typed submission takes precedence over old speech/error presence.
+
 On supersession, `SamRuntime` captures the predecessor's generation, turn,
 cancellation, terminal, delivery and command identities. It cancels the token
 and running task, retires the model terminal and queued speech, then admits the
@@ -163,6 +169,23 @@ ignores cancellation may still have a detached request until it returns. The
 HTTP transport itself binds token cancellation to the request task and closes
 its response stream on unwind. Generation and speech-delivery completion remain
 separate so interrupted playback does not delete committed assistant text.
+
+Explicit model cancellation uses the same captured-owner retirement as
+supersession. It publishes at most one model terminal and releases active
+ownership before acknowledging Stop, without joining a noncooperative adapter.
+`TurnManager.on_model_cancelled` returns matching active inference to IDLE and
+disposes its provisional interruption candidate. The typed response monitor
+waits for logical `response_done`, including capture-error cleanup. Stop speaking
+still targets delivery alone. Late inventory/health results recheck cancellation
+before installing a model or dispatching inference.
+
+Rescan/owner-disconnect cancellation waits at most 250 ms for the previous model
+operation. A noncooperative task remains tracked and serialized; no replacement
+external operation starts while it is retiring. Its old epoch cannot activate a
+route or publish a late failure over a new operation. Report failed/retiring,
+retain the selected identity, and require a fresh Rescan before asserting Active.
+Completion callbacks are registered once per operation and cannot clear a newer
+scan. This is a cancellation grace, not a longer provider/model timeout or retry.
 
 Capture endpoint waits are owned by `TurnManager`/`VoiceInputPipeline`, including
 the bounded candidate-duration path. Provider adapters own model stream and

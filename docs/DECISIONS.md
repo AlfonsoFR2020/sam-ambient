@@ -1,5 +1,33 @@
 # Decision log
 
+## 2026-10-22 — Correlated typed recovery and bounded retirement (V-A)
+
+Fault injection reproduces frontend pending waits surviving precommit terminals,
+foreign-session timer retirement, reordered ACK bookkeeping and old presence
+hiding new typing. Validate session before side effects; correlate command cleanup
+separately from stale conversation projection. Keep ACK, commitment, model completion
+and delivery completion distinct. Reuse IV-C presence; change no renderer or routing
+semantics. [V-A evidence](CONVERSATION_RELIABILITY_VA.md).
+
+Explicit Stop must release logical generation ownership without waiting for an
+adapter to cooperate. Reuse captured predecessor identity/once-only terminal and
+`response_done`; settle matching TurnManager inference and its provisional
+candidate. Keep Stop speaking delivery-only. Inventory/health await boundaries
+must recheck cancellation before route mutation or a new inference request.
+
+An unbounded discovery cancellation join can hold authenticated command admission
+or owner cleanup. Give it 250 ms cancellation grace. If still running, reject a
+new model operation truthfully, fence unconfirmed readiness and retain/track the
+old task until it unwinds; require fresh Rescan. Never overlap external loads,
+implicitly change the selected route, force-kill an external service or retry
+forever. Existing shutdown grace and resource-ownership policy remain separate.
+
+Pre-stream JSON preflight previously had no header/body timing evidence. Add
+three low-frequency content-free records on the existing diagnostic channel,
+with hashed operation/generation/command identities and no endpoints/content.
+Do not introduce another timing/reporting subsystem or infer provider-internal
+queueing, physical playback or retrospective beta causality.
+
 ## 2026-10-21 — Integrated frontend provenance and bounded renderer recovery (IV-D)
 
 HQ4 confirms the October 21 beta used `Start Sam.cmd` with unchanged v0.2.5

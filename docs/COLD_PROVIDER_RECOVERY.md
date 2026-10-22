@@ -51,6 +51,16 @@ retain the existing choice/fallback policy rather than silently claiming activit
 
 ## Runtime recovery checkpoint
 
+**V-A hardening (2026-10-22):** discovery cancellation on Rescan or owner
+disconnect now has 250 ms grace. A noncooperative operation remains tracked and
+fenced by its old epoch; reject overlapping model operations and expose
+failed/retiring status rather than holding the command dispatcher indefinitely.
+The selected identity remains, but uncertain external effects require fresh
+Rescan before Active. Late results close only their distinct provider adapter.
+This exceptional retirement case differs from an ordinary failed inventory scan,
+which continues to preserve a confirmed good route. Existing four-attempt retry,
+exact intent and external service/model ownership rules remain intact.
+
 The existing refresh task owns at most four discovery attempts, with 0.5 / 1 / 2 s
 backoff for unresolved LM Studio inventory timeout, including cold daemon readiness.
 A generic nonzero CLI exit is retryable only when daemon, server or endpoint is

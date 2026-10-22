@@ -1,6 +1,8 @@
 import asyncio
 from collections.abc import Iterator
 
+import pytest
+
 from sam_ambient.core.protocol import EventBus, EventType, ProtocolEvent
 from sam_ambient.core.turns import (
     CancellationRegistry,
@@ -49,6 +51,22 @@ def begin_speaking(manager: TurnManager) -> None:
     begin_thinking(manager)
     manager.on_tts_started(852, generation_id="generation-1")
     assert manager.state is VoiceState.SPEAKING
+
+
+@pytest.mark.parametrize("candidate", [False, True])
+def test_explicit_model_cancel_returns_idle_once_and_disposes_only_its_candidate(candidate):
+    manager = make_manager()
+    begin_thinking(manager)
+    if candidate:
+        manager.on_vad(900, 0.9)
+    assert manager.on_model_cancelled(910, generation_id="stale-generation", reason="stop") == ()
+    assert manager.state is not VoiceState.IDLE
+    events = manager.on_model_cancelled(920, generation_id="generation-1", reason="stop")
+    assert manager.state is VoiceState.IDLE
+    assert sum(event.type is EventType.MODEL_CANCELLED for event in events) == 1
+    assert sum(event.type is EventType.STT_CANCELLED for event in events) == int(candidate)
+    assert manager.on_model_cancelled(930, generation_id="generation-1", reason="repeat") == ()
+    assert manager.on_model_completed(940, generation_id="generation-1") == ()
 
 
 def make_runtime() -> tuple[

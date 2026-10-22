@@ -102,6 +102,7 @@ _ALLOWED_TRANSITIONS: dict[VoiceState, frozenset[VoiceState]] = {
     VoiceState.COMMITTING: frozenset({VoiceState.THINKING, VoiceState.ERROR, VoiceState.OFFLINE}),
     VoiceState.THINKING: frozenset(
         {
+            VoiceState.IDLE,
             VoiceState.SPEAKING,
             VoiceState.INTERRUPTION_CANDIDATE,
             VoiceState.INTERRUPTED,
@@ -520,6 +521,26 @@ class TurnManager:
                 {"status": "completed"},
             ),
         )
+
+    def on_model_cancelled(
+        self, at_ms: int, *, generation_id: str, reason: str
+    ) -> tuple[ProtocolEvent, ...]:
+        """Retire the matching inference independently of adapter completion."""
+
+        self._check_time(at_ms)
+        if generation_id != self.generation_id or not self._model_active:
+            return ()
+        cancelled = self._event(
+            EventType.MODEL_CANCELLED, at_ms, {"reason": reason, "status": "cancelled"}
+        )
+        candidate_cancelled = self._candidate_stt_cancelled_event(at_ms, reason)
+        self._model_active = False
+        self._clear_interruption_candidate()
+        events = [cancelled]
+        if candidate_cancelled is not None:
+            events.append(candidate_cancelled)
+        events.append(self._transition(VoiceState.IDLE, at_ms, "model_cancelled"))
+        return tuple(events)
 
     def on_tts_started(
         self,

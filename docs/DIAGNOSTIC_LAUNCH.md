@@ -108,6 +108,18 @@ next checkpoint; this does not claim the beta's intermittent stall is solved.
 
 ## Conversation timing and ownership
 
+**V-A amendment (2026-10-22):** `provider.json_request`,
+`provider.json_headers` and `provider.json_closed` cover JSON health/inventory
+preflight separately from streaming request/headers/first line. They retain the
+current generation/command context plus a hashed cancellation-operation identity;
+elapsed header and body/decode completion or failed/cancelled retirement are
+content-free. A slow preflight before `provider.request` is now distinguishable
+from a streaming-header wait. No URLs, credentials, model IDs, JSON/token content
+or raw errors are added. `provider.retirement` records blocked/cancelled discovery
+retirement. Retention/allowlists and summary bounds remain unchanged. Virtual-clock
+MockTransport tests protect success, HTTP rejection, malformed JSON and cancellation.
+These observations do not identify provider-internal queues or the owner's stall.
+
 **IV-C development amendment (2026-10-21):** separate content-free intervals now
 cover dispatch-to-turn commitment, synthesis/first PCM, first accepted output
 write and playback-to-drain. Summaries add `longest_commit_ms`,

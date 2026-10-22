@@ -66,10 +66,58 @@ commit-before-ACK, reordered ACKs, old/new request ownership and socket replacem
 The focused client/reducer/presence/fault batch passes **67 tests**, with TypeScript
 project checking and focused Biome checking successful. No UI render is inferred.
 
-## Core integration checkpoint
+## Reproduced core defects and correction
 
-The same campaign has reproduced stalled explicit cancellation, late canceled
-inventory/health returns and noncooperative discovery joins. Runtime repairs and
-the Python fault/HTTP matrices are being integrated in the next recovery boundary.
-Final verification, exact source changes, backlog classification and generated
-asset identity will be recorded here before V-A closes.
+Five original Python cases fail before correction: explicit Stop at inventory,
+health and streaming gates retains the active owner; canceled late inventory can
+install a model; canceled late health can dispatch inference. Explicit Stop now
+cancels the captured owner token/running task, retires its once-only terminal and
+speech queue, sets `response_done` and releases only that generation. A matching
+TurnManager inference returns to IDLE and disposes its candidate. Post-await token
+checks prevent model installation/dispatch. Stop speaking remains delivery-only.
+
+A further fake-capture regression proves that the typed monitor's final task join
+retained microphone monitoring after logical Stop. It now follows `response_done`,
+including terminal capture-error cleanup. This tests ownership handoff without
+opening a microphone; physical capture/driver behavior remains unverified.
+
+An unbounded discovery join reproduced a real dispatcher/owner-cleanup block.
+The first reproduction reached its 10-second outer watchdog and was stopped;
+the fixture now uses an independently bounded task snapshot so its own timeout
+cannot join the adapter being tested. Rescan/disconnect give cancellation 250 ms
+grace. If still retiring, publish a correlated failure, retain selected identity,
+fence unconfirmed readiness and reject another model operation. The old task stays
+tracked; no overlapping external loads or implicit route changes. Once it unwinds,
+only its distinct late provider is closed; fresh Rescan confirms recovery.
+Epoch checks also reject late discovery exceptions. Retirement callbacks are
+registered once per model operation and cannot clear a newer operation's flag.
+
+The reusable `tests/fixtures/conversation_faults.py` gates first inventory/health/
+stream work while later requests remain independent. Thirteen integrated cases
+cover the three Stop stages with/without fake voice, Stop before commitment,
+delivery-only Stop speaking, partial network failure and typed recovery, late
+inventory/health, and noncooperative Rescan/disconnect. Existing adjacent matrices
+cover exact routing, failed/empty/timed-out cold discovery, desired versus callable,
+delayed useful output, supersession, stale terminals and failed delivery with text.
+
+## Diagnostic addition and limits
+
+The source path performs JSON health/inventory before streaming, but only streaming
+had request/header/close records. Three `provider.json_*` records now separate
+preflight headers and body/decode from streaming admission. Existing context and a
+hashed operation identity correlate them; no prompt, transcript, JSON, credentials,
+URL or model identity enters these records. Virtual-time success/rejection/bad-JSON
+tests prove the gap and privacy. JSON and streaming cancellation close their fake
+HTTP streams. Existing bounded trace summaries and log rotation are reused.
+
+This does not measure internal provider queueing, physical sound, UI paint or real
+startup cost. No speculative timeouts, provider restarts, model changes or automatic
+cloud fallback are added. Real-session latency attribution still needs separately
+authorized representative evidence.
+
+## Verification checkpoint
+
+The integrated core checkpoint passes **43 tests** across the new fault matrix,
+HTTP transport and deterministic turn/interruption simulation. Focused Ruff and
+TypeScript/Biome checks pass. Broader adjacent regressions, bounded repetition,
+final backlog reconciliation and the single frontend build follow before closure.

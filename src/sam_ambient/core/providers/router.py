@@ -123,6 +123,9 @@ class ProviderRouter:
         for provider in candidates:
             cancellation.raise_if_cancelled()
             health = await provider.health(cancellation)
+            # A provider may return after ignoring cancellation during preflight.
+            # Never turn that late observation into a new inference request.
+            cancellation.raise_if_cancelled()
             if not health.available:
                 failures.append(f"{provider.id}: {health.detail}")
                 continue
