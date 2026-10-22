@@ -28,6 +28,38 @@ def test_reference_and_inline_links_are_checked_but_code_examples_are_not():
     assert "recognition-language" in anchors("## `Recognition` language")
 
 
+def test_reviewed_memory_and_voice_are_trusted_directional_data_paths():
+    import xml.etree.ElementTree as ET
+
+    from scripts.check_public_docs import SVG
+
+    root = ET.fromstring(generated_diagrams()["sam-system-architecture.svg"])
+    edges = {node.attrib.get("id"): node for node in root.iter(SVG + "path")}
+    recall = edges["reviewed-recall"].attrib
+    assert recall["data-kind"] == "data" and "marker-start" in recall
+    assert (recall["data-source"], recall["data-target"]) == ("runtime", "reviewed-memory")
+    assert edges["local-input"].attrib["data-source"] == "speech-services"
+    assert edges["recognized-input"].attrib["data-target"] == "runtime"
+    assert edges["local-output"].attrib["data-target"] == "speech-services"
+
+
+def test_exception_routes_end_at_retirement_and_playback_projection_has_its_own_route():
+    import xml.etree.ElementTree as ET
+
+    from scripts.check_public_docs import SVG
+
+    text = generated_diagrams()["sam-conversation-lifecycle.svg"]
+    root = ET.fromstring(text)
+    edges = {node.attrib.get("id"): node for node in root.iter(SVG + "path")}
+    for identity in ("stt-retirement", "stream-retirement", "playback-retirement"):
+        edge = edges[identity].attrib
+        assert edge["data-target"] == "retire-work"
+        assert edge["data-kind"] == "warning" and "stroke-dasharray" in edge
+    assert edges["playback-observation"].attrib["data-target"] == "visual-observer"
+    with pytest.raises(ValueError, match="Floating SVG endpoint"):
+        check_svg(text.replace("1030,830", "1030,820"))
+
+
 @pytest.mark.parametrize("link", ["missing.md", "target.md#missing", "../outside.md"])
 def test_missing_or_escaping_links_fail(tmp_path, link):
     (tmp_path / "README.md").write_text(f"[link]({link})", encoding="utf-8")

@@ -57,3 +57,12 @@ a later visual-review gate. Do not equate structural checks with rendered approv
 For module contracts and the exact implementation, see
 [Architecture](../ARCHITECTURE.md), [development recognition](../DEVELOPMENT_STATUS.md#recognition)
 and [public documentation scope](../PUBLIC_DOCUMENTATION_VC.md).
+
+## V-D semantic corrections
+
+Runtime mediates reviewed local recall; stored claims never confer instructions or
+permissions. Input/recognition returns toward runtime separately from speech
+output. Rose exceptional routes end at matching-work retirement; playback
+observation enters Living Presence from the top via the right-hand gutter.
+Perpendicular crossings are not junctions. Checks validate declared endpoints
+and reject routes through unrelated node interiors. Layout remains unrendered.

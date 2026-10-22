@@ -52,7 +52,7 @@ class Diagram:
         for name in ("control", "data", "delivery", "warning"):
             self.parts.append(
                 f'<marker id="arrow-{name}" markerWidth="9" markerHeight="9" '
-                'refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">'
+                'refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse">'
                 f'<path d="M0,0 L9,4.5 L0,9 Z" fill="{PALETTE[name]}"/></marker>'
             )
         self.parts += [
@@ -88,12 +88,30 @@ class Diagram:
         self.text(x + 20, y + 29, label, color=accent, available=w - 40)
         self.parts.append("</g>")
 
-    def edge(self, points, kind="data", *, dashed=False, arrow=True):
+    def edge(
+        self,
+        points,
+        kind="data",
+        *,
+        dashed=False,
+        arrow=True,
+        identity=None,
+        source=None,
+        target=None,
+        both=False,
+    ):
         d = "M" + " L".join(f"{x},{y}" for x, y in points)
         dash = ' stroke-dasharray="7 6"' if dashed else ""
         marker = f' marker-end="url(#arrow-{kind})"' if arrow else ""
+        if both:
+            marker += f' marker-start="url(#arrow-{kind})"'
+        metadata = (
+            ""
+            if identity is None
+            else (f' id="{identity}" data-source="{source}" data-target="{target}"')
+        )
         self.parts.append(
-            f'<path data-kind="{kind}" d="{d}" fill="none" stroke="{PALETTE[kind]}" '
+            f'<path data-kind="{kind}"{metadata} d="{d}" fill="none" stroke="{PALETTE[kind]}" '
             f'stroke-width="2.3" stroke-linejoin="round"{dash}{marker}/>'
         )
 
@@ -138,6 +156,8 @@ def system_architecture() -> str:
         "The supervisor owns lifecycle and staged updates; TurnManager owns committed turns "
         "and immutable model routes. Capability policy mediates approved OS access. "
         "Local voice and separate private operational and reviewed-memory stores remain bounded. "
+        "Runtime mediates reviewed local recall; stored claims confer no instructions or permissions. "
+        "Capture and recognition return to runtime; synthesized delivery travels to local output. "
         "Models receive no direct OS, update or owner authority. "
         "Cloud use requires explicit policy.",
         980,
@@ -158,10 +178,52 @@ def system_architecture() -> str:
     d.edge([(800, 380), (880, 380)], "control")
     d.edge([(880, 425), (800, 425)], "data")
     d.edge([(460, 480), (460, 535)], "control")
-    d.edge([(700, 480), (700, 535)], "control")
-    d.edge([(800, 590), (880, 590)], "delivery")
+    d.edge(
+        [(725, 480), (725, 535)],
+        "control",
+        identity="runtime-delivery",
+        source="runtime",
+        target="voice",
+    )
+    d.edge(
+        [(665, 535), (665, 480)],
+        "data",
+        identity="recognized-input",
+        source="voice",
+        target="runtime",
+    )
+    d.edge(
+        [(800, 575), (880, 575)],
+        "delivery",
+        identity="local-output",
+        source="voice",
+        target="speech-services",
+    )
+    d.edge(
+        [(880, 630), (800, 630)],
+        "data",
+        identity="local-input",
+        source="speech-services",
+        target="voice",
+    )
     d.edge([(460, 660), (460, 720), (1010, 720), (1010, 760)], "control")
-    d.edge([(580, 480), (580, 690), (420, 690), (420, 745)], "data", dashed=True)
+    d.edge(
+        [(580, 480), (580, 690), (420, 690), (420, 790), (230, 790), (230, 805)],
+        "data",
+        dashed=True,
+        identity="durable-history",
+        source="runtime",
+        target="operational-store",
+    )
+    d.edge(
+        [(780, 480), (780, 505), (810, 505), (810, 775), (740, 775), (740, 805)],
+        "data",
+        dashed=True,
+        both=True,
+        identity="reviewed-recall",
+        source="runtime",
+        target="reviewed-memory",
+    )
     d.card(
         "owner",
         60,
@@ -280,7 +342,7 @@ def system_architecture() -> str:
         340,
         85,
         "Reviewed personal Memory",
-        ["Local store / scoped recall"],
+        ["Reviewed data / scoped local recall"],
         accent="delivery",
     )
     d.text(540, 711, "Policy-approved resource access", color="control", available=400)
@@ -323,10 +385,37 @@ def conversation_lifecycle() -> str:
     d.edge([(270, 627), (320, 627)], "data")
     d.edge([(550, 627), (610, 627)], "delivery", dashed=True)
     d.edge([(840, 627), (900, 627)], "delivery")
-    d.edge([(1160, 627), (1186, 627), (1186, 892), (1160, 892)], "delivery")
-    d.edge([(435, 440), (580, 440), (580, 770)], "warning", dashed=True, arrow=False)
-    d.edge([(155, 695), (155, 770), (210, 770)], "warning", dashed=True, arrow=False)
-    d.edge([(1100, 695), (1100, 770), (210, 770), (210, 830)], "warning", dashed=True)
+    d.edge(
+        [(1160, 627), (1170, 627), (1170, 810), (1030, 810), (1030, 830)],
+        "delivery",
+        identity="playback-observation",
+        source="playback",
+        target="visual-observer",
+    )
+    d.edge(
+        [(435, 440), (435, 450), (580, 450), (580, 760), (230, 760), (230, 830)],
+        "warning",
+        dashed=True,
+        identity="stt-retirement",
+        source="recognition",
+        target="retire-work",
+    )
+    d.edge(
+        [(155, 695), (155, 830)],
+        "warning",
+        dashed=True,
+        identity="stream-retirement",
+        source="stream",
+        target="retire-work",
+    )
+    d.edge(
+        [(1100, 695), (1100, 780), (310, 780), (310, 830)],
+        "warning",
+        dashed=True,
+        identity="playback-retirement",
+        source="playback",
+        target="retire-work",
+    )
     d.edge([(380, 892), (440, 892)], "control")
     d.card(
         "typed-input",
@@ -459,7 +548,7 @@ def conversation_lifecycle() -> str:
         ["Lifecycle + scalar meters", "Accepted output writes", "No physical sound clock"],
         accent="delivery",
     )
-    d.text(40, 756, "Completed text remains usable if speech stops or fails.")
+    d.text(610, 756, "Stops preserve completed text.", available=450)
     return d.finish()
 
 

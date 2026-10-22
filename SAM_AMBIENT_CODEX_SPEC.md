@@ -7,6 +7,12 @@ Linux remains important. Apache-2.0 is the selected project license. Historical
 target/license alternatives below are not current validation or an open choice.
 Unmet specification goals are not automatically completed features; see
 [development status](docs/DEVELOPMENT_STATUS.md) for the unreleased line.
+The original “Source of truth”, Linux-first fields and §0 instructions below
+are historical. The current release record, [architecture](docs/ARCHITECTURE.md),
+README and accepted decisions take precedence where they conflict. They do not
+turn future goals into implemented capabilities.
+
+Historical planning fields (2026-09-01):
 Version: 1.0
 Status: MVP implementation specification
 Primary target: Linux desktop

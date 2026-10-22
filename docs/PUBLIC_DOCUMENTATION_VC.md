@@ -101,3 +101,24 @@ Retain accurate current topics such as `ambient-ai`, `local-first`, `lm-studio`,
 `human-in-the-loop`. Remove `generative-ui` and `adaptive-ui` from current-capability
 metadata while those features remain future work; review broad `agentic-ai` wording
 against the existing bounded Agency scope. No topic change has been made remotely.
+
+## V-D correction and publication checkpoint — 2026-10-22
+
+The V-C results above are historical. V-D preserves the design and corrects
+reviewed-Memory recall, separate local input/output directions, directed
+exceptional retirement paths and the playback-observation route. SVGs are
+regenerated from the stdlib source; file-only endpoint/node-crossing checks
+and 14 documentation tests cover the corrections. No raster/layout review ran.
+
+Released v0.2.5 `ui/src/visual-engine/quality.ts` defines 12/24/64 particles;
+the User Guide's 40 was a documentation error, now corrected. Historical
+specification authority/Linux fields are explicitly superseded. Development
+snapshot links are pinned historical evidence, distinct from current dev.
+
+V-D authorizes the existing standard hosted CI and a non-forced docs-branch
+push/draft PR. Authentication and actual publication outcome are reported in
+the V-D development handoff; no merge, About/topic or release is authorized.
+
+Current `sam-system-architecture.svg` normalized-LF SHA256: `eda3e1c07475a02fdd4ad73c55bf3647687716e188ae1c3aa268b5b2c3e4f9e5`.
+
+Current `sam-conversation-lifecycle.svg` normalized-LF SHA256: `78e457014acdf512d4377cebff8eefe3cebd5a95a9983154035a63341c20d6ca`.

@@ -20,7 +20,7 @@ retain disclosed limitations.
 
 ## Unreleased development
 
-Verified pushed development snapshot: `2527ee278c0b12d4f05927495d4a9260d16b2b94`.
+Pinned historical development snapshot (not a live pointer to `dev`): `2527ee278c0b12d4f05927495d4a9260d16b2b94`.
 The v0.2.6+ label denotes an experimental development line, not a released version.
 These implementation records live on `dev`, rather than being copied into the
 released source tree as though the code shipped here:
