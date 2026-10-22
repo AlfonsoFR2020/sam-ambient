@@ -1,4 +1,12 @@
 # SAM — Codex Engineering Specification
+
+Current interpretation (2026-10-22): this retains the original planning baseline.
+[STATE](docs/STATE.md) and [accepted decisions](docs/DECISIONS.md) describe actual
+implementation; [owner requirements](docs/OWNER_REQUIREMENTS.md) preserves unmet
+intent and provenance. Windows is now the principal validated runtime path; Linux
+remains important. Apache-2.0 is the selected project license. Historical target/
+license alternatives below are not claims about current validation or open choice.
+
 Version: 1.0
 Status: MVP implementation specification
 Primary target: Linux desktop

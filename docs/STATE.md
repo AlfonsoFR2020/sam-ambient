@@ -1,16 +1,16 @@
 # Sam implementation state
 
 Updated: 2026-10-22. This is current development truth, not a release acceptance claim.
-[ROADMAP](ROADMAP.md) owns priority. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve the v0.2.6+ handoff; no implementation/testing permission is implied.
+[ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
-- [V-B recognition](SPEECH_RECOGNITION_VB.md) / [closure](VB_CLOSURE_AUDIT_VC.md): sealed utterances,
-  retired PCM, rejected late/foreign results and duration-based pre-roll. Locales preserve
-  explicit en/es; malformed metadata/content-bearing errors are contained.
-  256 distinct scoped Python / 71 frontend contract tests pass. Historical generated
-  transcript WER/CER is unchanged; natural owner bilingual quality remains open.
-  [Public docs / SVGs](PUBLIC_DOCUMENTATION_VB.md) distinguish release/dev/future;
-  file-only vector checks do not establish rendered acceptance. No frontend rebuild.
+- [V-C closure](VB_CLOSURE_AUDIT_VC.md) verifies V-B history/objects and pushed dev.
+  The register preserves 66 requirements, including 11 styles; public-docs isolation is pending.
+- [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
+  late/foreign results and bounds pre-roll. Explicit en/es and safe metadata remain.
+  Its 256 scoped Python / 71 frontend passes are historical; generated WER is unchanged.
+  [Public docs/SVGs](PUBLIC_DOCUMENTATION_VB.md) distinguish release/dev/future.
+  Natural bilingual quality and rendered acceptance remain open; no frontend rebuild.
 - [V-A reliability](CONVERSATION_RELIABILITY_VA.md) repairs typed waits, Stop and
   generation/discovery retirement; late preflight cannot dispatch canceled work.
   Its 300 frontend / 246 scoped Python passes and canonical build remain historical.

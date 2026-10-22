@@ -1,5 +1,13 @@
 # Sam Orb visual direction
 
+**2026-10-22 V-C reconciliation:** [owner requirements](OWNER_REQUIREMENTS.md)
+retains VIS/SHELL/EXP/QUAL and eleven separate STYLE requests. Lava/richer rainbow,
+wireframe, smoke/cloud, fractal, painterly, synthwave, dark, gold, HAL-like and other
+identities remain future directions, with material variants distinguished from
+structural representations. Preserve the successful released palette by default.
+Radial-shell work remains P1 and may use a future isolated feature branch; no theme
+engine, geometry rewrite, renderer or graphical acceptance is added by V-C.
+
 **2026-10-22 V-B scope:** the renderer, released living-pigment direction and
 compiled visual assets are unchanged. Public architecture SVGs are explanatory
 documentation, not new Orb evidence. Future topology work may be considered in a

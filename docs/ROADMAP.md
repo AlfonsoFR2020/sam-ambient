@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 checkpoint (2026-10-22): bilingual recognition integrity and public documentation (V-B).**
+**Current HQ4 checkpoint (2026-10-22): V-C closure, recovered requirements and isolated public documentation.**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -8,6 +8,38 @@ preserves the release, governance and remaining experience gaps;
 and first proposed connected-film assignment. The [HQ4 programme below](#hq4-programme--v026-and-beyond)
 is the current order; dated earlier plans remain context, not parallel task queues.
 No version bump, new runtime permission, remote action or automatic implementation.
+
+## Reconciled near-term programme
+
+[Owner requirements](OWNER_REQUIREMENTS.md) records intent/provenance/acceptance;
+[BACKLOG's current index](BACKLOG.md#current-execution-index--v-c-reconciliation-2026-10-22)
+retains actions. This is the current ordering; dated proposals below are history.
+Severity, privacy/data integrity, core usability and dependencies lead; recurrence,
+owner emphasis, age/deferral, benefit, feasibility and cost follow. Cheap new work
+does not displace older substantial art or conversation needs.
+
+| Order / track | Next bounded result | Evidence gate |
+| --- | --- | --- |
+| 0 · maintain P0 | Act on demonstrated authority/data-loss/ownership regression; preserve AUTH-01–05 | No general redesign or invented incident diagnosis |
+| 1 · occupied-PC conversation/usability | Scope UX-11 keyboard PTT fallback and CONV-08 owner sensitivity semantics against existing input/turn boundaries; deterministic key/focus/mute/cancel/recovery first | Source work/fakes can proceed in a new assignment; device/owner behavior remains open; no AEC claim |
+| 2 · occupied-PC reliability | Reconstruct representative waiting/retirement/recognition traces with existing content-free diagnostics; repair only reproduced gaps in CONV-01–04. Assess CONV-07 whole-WAV latency separately | Real-session causes require provider/audio evidence; do not add another telemetry system or replace STT speculatively |
+| 3 · visual priority, conditional execution | Prove IV-B/IV-C shaders, rich-colour radial-shell continuity, compact poses, lifecycle/whole-Orb speech and High value; retain VIS/SHELL/EXP/QUAL P1 standing | RENDER/REAL/OWNER gates; useful CPU/reference preparation may be separately assigned while graphical sessions remain unavailable |
+| 4 · usability/platform follow-on | Resolve remaining controls/history/persona scope, then clean-host Windows distribution and Linux acceptance; preserve functioning Console/Memory | Separate source bugs, graphical acceptance, new preferences and installer/signing decisions |
+| Later · explicit retained product directions | STYLE-01–11 and CAP-03–08: variants, broader OS/delegation, generative interfaces, semantic/multi-person context, controlled self-modification | New scope, actual benefit and authority/resource evidence; no theme engine chosen in advance |
+
+Visual art remains a P1 product requirement, not a low-priority polish task. Order 3
+reflects unavailable execution permission, not permission to ignore it indefinitely.
+Future peel investigation may use `feature/organic-radial-shells` from the preserved
+connected-skin baseline. Naming it starts neither a branch nor implementation.
+Meaningful verified experimental increments remain preferred over indefinite
+perfection; unavailable human beta does not block independent safe engineering.
+
+V-C's [closure audit](VB_CLOSURE_AUDIT_VC.md) confirms V-B's final Git/object recovery,
+fresh 57 Python / 71 frontend checks and consistent historical 256-test accounting.
+The public documentation branch must start at released `main`, not merge `dev`.
+Publication is conditional on authenticated tooling and acceptable workflow triggers.
+
+## Dated checkpoint evidence
 
 **2026-10-22 V-B checkpoint:** [recognition evidence](SPEECH_RECOGNITION_VB.md)
 records regression-driven stream sealing/PCM retirement, cancellation/context gates,

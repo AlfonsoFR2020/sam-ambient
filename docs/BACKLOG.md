@@ -1,5 +1,39 @@
 # Post-0.2 engineering backlog
 
+## Current execution index — V-C reconciliation, 2026-10-22
+
+[Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
+IDs; this file remains the retained action backlog. [ROADMAP](ROADMAP.md) orders
+assignments. The dated evidence below is history/supporting detail, not additional
+parallel queues. No row grants execution permission.
+
+| Priority / requirement IDs | Retained action and current disposition | Prerequisite / boundary |
+| --- | --- | --- |
+| P0 · AUTH-01–05, GOV-03/05 | Preserve private owner proof, policy, privacy, route/resource ownership and rollback. V-B closure is sound ([audit](VB_CLOSURE_AUDIT_VC.md)); no new generic reliability/security campaign | Repair a demonstrated breach first; no symptom-to-cause inference |
+| P1 · CONV-01–05, EXP-03 | Natural bilingual accuracy, false turns, apparent deafness, cold/typed stalls and full delivery response remain open. V-A/V-B/IV-C protect related source defects | Offline fault/trace work can continue; real attribution/timing needs scoped provider/audio evidence |
+| P1 · UX-11; P2 · CONV-08 | Recovered keyboard push-to-talk and owner interruption-sensitivity requirements need bounded contracts; Ctrl+M and core modes are not complete user features | Good occupied-PC follow-up: focus/key/token/mute/cancel fake scenarios; PTT is not AEC, no acoustic policy relaxation |
+| P1 · VIS-01–04, SHELL-01/02, QUAL-01–04, EXP-01–04 | Preserve released living swirls; prove connected skin, radial-sector shells, attachments/curl direction, optics, whole-body expression and worthwhile High | Graphical permission gates selection/acceptance, not future safe source planning; missing board is not a blanket blocker |
+| P1 · UX-01–05/08/10; P2 · UX-06/07/09 | Verify existing startup/Console/Memory/Quit/voice-label/translation behavior; retain persona, ranges/debug, session/resume and interruption-retention requests | Existing functional surfaces/storage are implemented. Separate new preferences, layout acceptance and unreproduced history observations |
+| P1 · CONV-06/07; P2 · CONV-09 | Retain incremental speech, consistent pleasant voice, named profiles, natural-language settings and per-model control | Whole-WAV backend is not incremental synthesis. Diagnose a delay before engine/timeout changes; exact routes and credential policy remain |
+| P2 · PLAT-01/02 | Ordinary signed Windows install, clean-host/upgrade and Linux desktop/audio acceptance remain separate from published Python artifacts and hosted CI | No native packaging or physical acceptance in V-C; mobile remains later |
+| P3 · STYLE-01–11 | Explicit future lava, richer/rainbow, wireframe, smoke/cloud, fractal, painterly, synthwave, dark, gold, HAL-like and other identities | Distinguish material/palette experiments from structural representations; no theme engine or new renderer assigned |
+| P2/P3 · CAP-01–08 | Preserve bounded capabilities/reviewed Memory; retain broader OS/media workspace, delegation, generative UI, semantic context, multi-person and controlled self-modification | Owner authority and a separately approved slice precede expansion; research references are not selected dependencies |
+| P1 · GOV-01/02/04/06 | Meaningful experimental releases, scarce beta, durable source truth and isolated public-docs branch | Do not freeze safe work or merge unreleased implementation to publish docs |
+
+### Recovery and supersession notes
+
+- All 66 register entries retain origin/status/gap/priority/dependency/track. Older
+  unmet requirements get explicit consideration; severity, integrity and core
+  usability precede age, then recurrence, owner emphasis, benefit and feasible cost.
+- Future candidate `feature/organic-radial-shells`: preserve current IV-B and palette
+  as a Git baseline; investigate topology/sectors, attachment, curl and optics only
+  under a new bounded assignment. The branch is **not created or implemented** here.
+- Particle population multipliers, centre wandering and a particular renderer/theme
+  framework are proposals, not recovered owner obligations. Do not promote them
+  above dirty-particle/whole-presence feedback without evidence.
+
+## Dated implementation evidence
+
 **2026-10-22 V-B:** [speech classification / evidence](SPEECH_RECOGNITION_VB.md).
 Fixed and deterministically verified: duplicate/concurrent utterance finalization,
 PCM retained after failure, canceled/foreign/provisional recognition acceptance,
@@ -118,7 +152,7 @@ are not automatically blockers for a future release.
 - Ship no public Windows installer until native packaging, signing, AV/reputation,
   artifact smoke, and acceptance gates pass.
 
-## UI and Visual Engine
+## UI and Visual Engine — retained detail linked by VIS/SHELL/EXP/QUAL IDs
 
 - **HQ4 first assignment (owner priority, 2026-10-15):** reference-led connected
   peeling film, resolving the current band impression before another optical/gain
@@ -229,7 +263,7 @@ are not automatically blockers for a future release.
   pull path, but real PortAudio overflow/underflow frequency, System TTS whole-WAV
   memory cost, and whether metered output tracks emitted sound need measurement.
 
-## Behavior and settings
+## Behavior and settings — retained detail linked by UX/CONV IDs
 
 - Add an owner setting for new-session versus resume-previous-conversation behavior.
 - **Provider/model presentation implemented:** core-confirmed preparation status,
@@ -242,7 +276,9 @@ are not automatically blockers for a future release.
   isolated-browser recovery checks. The historical black-screen report was not
   reproduced by the controlled transport scenarios.
 - Add an owner setting for transcript retention during interruption.
-- Physically accept LM Studio automatic model load and ownership-aware eject behavior.
+- Broaden the already recorded bounded LM Studio load/text/owned-unload evidence
+  to supported hosts and failure timing (AUTH-05); do not mark the first successful
+  Gemma lifecycle as unimplemented.
 - Define model/context/VRAM policy.
 - Add named, trusted connection profiles to extend the existing atomic inference
   target switch from provider/model to profile/provider/model. Keep credentials outside
@@ -254,7 +290,7 @@ are not automatically blockers for a future release.
 - Later expose supported per-model system prompt, temperature, context, and generation
   settings through typed provider capabilities rather than universal assumptions.
 
-## Product directions
+## Product directions — retained detail linked by CAP/PLAT/GOV IDs
 
 - Add richer local TTS options.
 - Extend the implemented status/latency diagnostics only for genuinely missing
@@ -262,7 +298,8 @@ are not automatically blockers for a future release.
 - Future managed terminal/shell is distinct from the implemented bounded read-only
   Console (workspace list/read/system info). Rendered Console acceptance remains open.
 - Add a file and multimedia workspace.
-- Add a structured persistent context and knowledge database.
+- Reviewed persistent Memory already exists (CAP-02); semantic knowledge/context
+  sophistication remains future CAP-08, not a missing database foundation.
 - Add trusted natural-language settings control.
 - Add installer-assisted provider and model setup using the existing readiness layer.
 - Publish a detailed manual/wiki after workflows stabilize.

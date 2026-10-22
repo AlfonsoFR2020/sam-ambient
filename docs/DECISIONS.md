@@ -1,5 +1,21 @@
 # Decision log
 
+## 2026-10-22 — Requirements provenance and current authority (V-C)
+
+[Owner requirements](OWNER_REQUIREMENTS.md) records stable intent/source/evidence,
+acceptance gaps and priority bands. BACKLOG remains the single retained action
+backlog; ROADMAP owns ordering; STATE owns implementation. Historical documents
+remain provenance rather than parallel live queues. Unavailable original board,
+HQ transcripts and earlier style dates remain unknown; current owner instructions
+can confirm intent without inventing its historical origin.
+
+Retain keyboard PTT, selectable interruption sensitivity and incremental speech
+as explicit early-spec gaps: a microphone toggle, internal mode enum or streaming
+interface does not complete those owner experiences. No new feature is implemented
+by recording them. Preserve future radial-shell isolation and all named styles.
+Public docs use an isolated branch from released main with docs-only ancestry;
+never promote mixed dev source simply to refresh the landing page.
+
 ## 2026-10-22 — Recognition ownership and explicit locale selectors (V-B)
 
 Deterministic faults establish duplicate finalization, stale canceled results,
