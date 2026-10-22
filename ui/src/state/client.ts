@@ -324,6 +324,15 @@ export class ProtocolClient {
       this.setState({ ...this.state, protocolError: message });
       return;
     }
+    // A rejected session must not cancel current command timers before the
+    // reducer can reject its presentation data. Socket epochs remain separate.
+    if (
+      event.type !== "system.ready" &&
+      this.state.sessionId &&
+      event.session_id &&
+      event.session_id !== this.state.sessionId
+    )
+      return;
     if (event.type === "capability.state") {
       this.agency = projectAgencyEvent(this.agency, event);
       const id = event.payload.request_id;
@@ -359,27 +368,31 @@ export class ProtocolClient {
           ? event.payload.request_id
           : undefined;
       const terminalTurnId =
-        ((event.type === "transcript.final" &&
-          event.payload.role === "user" &&
-          event.payload.candidate !== true) ||
+        (event.type === "turn.committed" ||
+          (event.type === "transcript.final" &&
+            event.payload.role === "user" &&
+            event.payload.candidate !== true) ||
           event.type === "model.cancelled" ||
           event.type === "component.error") &&
         (!event.session_id || !this.state.sessionId || event.session_id === this.state.sessionId) &&
         typeof event.payload.command_id === "string" &&
+        (this.state.pendingCommandIds.includes(event.payload.command_id) ||
+          this.state.pendingUserMessageId === event.payload.command_id)
+          ? event.payload.command_id
+          : undefined;
+      const acknowledgementId =
+        (event.type === "control.acknowledged" || event.type === "control.rejected") &&
+        typeof event.payload.command_id === "string" &&
         this.state.pendingCommandIds.includes(event.payload.command_id)
           ? event.payload.command_id
           : undefined;
-      if (event.type === "control.acknowledged" || event.type === "control.rejected") {
-        const id = event.payload.command_id;
-        if (typeof id === "string") {
-          this.commandTimeouts.get(id)?.();
-          this.commandTimeouts.delete(id);
-        }
-      }
       const reduced = reduceProtocolEvent(this.state, event);
       // A superseded turn's event is stale for conversation display, but it
       // still retires the command that submitted that turn.
-      const terminalCommandId = terminalDiscoveryId ?? terminalTurnId;
+      const terminalCommandId = terminalDiscoveryId ?? terminalTurnId ?? acknowledgementId;
+      const endsTypedRequest =
+        this.state.pendingUserMessageId === terminalCommandId &&
+        (terminalTurnId !== undefined || event.type === "control.rejected");
       if (terminalCommandId) {
         this.commandTimeouts.get(terminalCommandId)?.();
         this.commandTimeouts.delete(terminalCommandId);
@@ -389,6 +402,17 @@ export class ProtocolClient {
           ? {
               ...reduced,
               pendingCommandIds: reduced.pendingCommandIds.filter((id) => id !== terminalCommandId),
+              ...(endsTypedRequest ? { pendingUserMessageId: undefined } : {}),
+              ...(endsTypedRequest &&
+              reduced === this.state &&
+              ["component.error", "model.cancelled", "control.rejected"].includes(event.type)
+                ? {
+                    protocolError:
+                      event.type === "model.cancelled"
+                        ? "The request was cancelled before its turn was committed. You can send another request."
+                        : "The request failed before its turn was committed. You can retry.",
+                  }
+                : {}),
             }
           : reduced,
       );

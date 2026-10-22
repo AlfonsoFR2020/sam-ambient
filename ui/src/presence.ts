@@ -52,6 +52,11 @@ export function presencePresentation(state: UiState): PresencePresentation {
     label = state.sessionId ? "Reconnecting to Sam" : "Starting Sam";
     detail = "Waiting for the local service; model readiness is not confirmed.";
     busy = true;
+  } else if (state.pendingUserMessageId) {
+    phase = "submitting";
+    label = "Sending request";
+    detail = "Waiting for the core to commit your typed turn.";
+    busy = true;
   } else if (state.conversationalState === "ERROR") {
     phase = "failed";
     label = "Needs attention";
@@ -66,11 +71,6 @@ export function presencePresentation(state: UiState): PresencePresentation {
         ? "Speech output is being delivered. Stop speaking preserves the written answer."
         : "The written answer is ready; waiting for speech output.";
     busy = phase === "preparing_speech";
-  } else if (state.pendingUserMessageId) {
-    phase = "submitting";
-    label = "Sending request";
-    detail = "Waiting for the core to commit your typed turn.";
-    busy = true;
   } else if (state.provisionalTranscript?.role === "assistant") {
     phase = "responding";
     label = "Writing response";
