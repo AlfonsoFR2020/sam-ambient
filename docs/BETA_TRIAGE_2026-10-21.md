@@ -7,6 +7,13 @@ HQ4's IV-D clarification establishes that the beta used **Start Sam.cmd** and th
 unchanged v0.2.5 frontend. [IV-D integration evidence](INTEGRATION_VALIDATION_IVD.md)
 records the later compiled candidate; no new owner acceptance is implied.
 
+**2026-10-22 V-A amendment:** [offline reliability](CONVERSATION_RELIABILITY_VA.md)
+reproduces and repairs specific typed-wait, cancellation and discovery-join defects.
+Preflight JSON timings extend existing correlated diagnostics. 300 frontend /
+246 scoped Python checks pass with a rebuilt ordinary frontend; no new beta,
+provider/device or graphical run occurred. None of these synthetic cases establishes
+the cause of the observed startup unresponsiveness or slow typed replies below.
+
 | Owner observation | Established source finding / action | Remaining evidence |
 | --- | --- | --- |
 | Evolving colourful swirls look attractive | Palette banks, pigment/material field, transport clocks and Flow direction preserved | Preserve during matched graphical review |

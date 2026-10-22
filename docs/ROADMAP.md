@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 priority (2026-10-21): integrate and prove Visual IV, preserving the living palette.**
+**Current HQ4 priority (2026-10-22): committed-conversation responsiveness and deterministic recovery (V-A).**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -9,7 +9,19 @@ and first proposed connected-film assignment. The [HQ4 programme below](#hq4-pro
 is the current order; dated earlier plans remain context, not parallel task queues.
 No version bump, new runtime permission, remote action or automatic implementation.
 
-**2026-10-21 IV-D checkpoint:** [integration evidence](INTEGRATION_VALIDATION_IVD.md)
+**2026-10-22 V-A checkpoint:** [reliability/evidence](CONVERSATION_RELIABILITY_VA.md)
+repairs precommit typed waits, session/ACK retirement, explicit Stop ownership,
+typed-monitor handoff, late inventory/health dispatch and unbounded discovery joins.
+300 frontend / 246 distinct scoped Python tests pass; the final 19-case core fault
+matrix passes three repeated runs. One canonical build integrates corrected status
+into the private ordinary-launch assets. The visual engine/palette are unchanged.
+Real cold-start/typed latency remains unattributed. Next occupied-PC proposal:
+bounded diagnostic-trace reconstruction fixtures for cold/preflight/first-token
+and delivery delays, using existing privacy-preserving records, plus only
+reproduced gaps. HQ direction is required; no automatic next assignment.
+Graphical/device/provider acceptance remains separately authorized and open.
+
+**Historical 2026-10-21 IV-D checkpoint:** [integration evidence](INTEGRATION_VALIDATION_IVD.md)
 records 290 frontend / 223 scoped Python passes, renderer failure-cleanup repair,
 canonical build/source fingerprints and prepared matched comparison inputs.
 [IV-C](RESPONSIVE_PRESENCE_IVC.md) and provisional [IV-B](VISUAL_IDENTITY_IV.md)
@@ -173,14 +185,15 @@ linked above. Publication is completed, not the next planning task.
 
 ## HQ4 programme — v0.2.6 and beyond
 
-**Owner priority: substantial visual improvement, with frequent meaningful alphas.**
+**Visual programme, deferred during the V-A reliability assignment.**
+The owner still wants substantial visual improvement and meaningful alphas.
 A possible v0.2.6 visual milestone is a target, not a version/publication commitment.
 Use the [first Visual Core assignment](HANDOFF_CODEX_VISUAL_CORE.md#first-visual-core-assignment)
 for the bounded technical contract; do not maintain a second detailed checklist here.
 
 | Rank | Objective / expected visible gain | Evidence, dependency and risk |
 | --- | --- | --- |
-| 1 | Connected peeling film instead of wrapping bands | Current six-sheet animation/optics work, but carrier coverage can read as straps. Reference-led representation comparison first; original board missing. High visible gain, medium/high geometry/depth risk; later owner judgment essential. |
+| 1 | Prove the provisional connected skin against released wrapping sheets | IV-B implements shared Candidate B; IV-D compiles it and CPU contracts pass. Matched shader/colour/radial-shell/pose proof remains open; original board missing and owner judgment remains separate. No new topology redesign is scheduled. |
 | 2 | Local traveling form/light/specular expression coordinated with skin and nearby particles | Existing real lifecycle/envelopes/crest provide the seam; choose skin first, then a small coherent extension. No new semantic/audio signal or another global radius multiplier. |
 | 3 | Useful High spatial fidelity with sustained responsiveness | Current isolated timings do not prove inference coexistence or lower-power cost. Improve only observed weak curvature/depth/space; authorize representative runtime measurement separately. |
 | 4 | Palette/particle composition coherent with the chosen film | Regional 0–300 s palette evolution already implemented. Preserve it; refine balance/film legibility rather than rebuild another color system. Human harmony/character judgment remains open. |
@@ -194,9 +207,9 @@ permission is explicit and task-specific, including headless GPU work.
 
 Parallel/deferred priorities remain important and separate:
 
-- **Conversation reliability:** diagnose correlated long waits/false finals with the
-  shipped launcher; reproduce before changing ownership, escalate reasoning for an
-  actual cross-lifetime defect. No blanket claim that minutes-long stalls are solved.
+- **Conversation reliability:** V-A completes bounded offline repairs above.
+  Retain correlated real-session diagnosis of long waits/false finals when separately
+  authorized. Deterministic recovery does not establish the minutes-long stall's cause.
 - **Multilingual STT modernization:** a dedicated evaluation/implementation effort,
   separating language/segmentation/capacity and actual owner-room acceptance.
 - **Windows distribution:** resolve remaining local/toolchain and installed/upgrade

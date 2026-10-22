@@ -1,13 +1,16 @@
 # Sam implementation state
 
-Updated: 2026-10-21. This is current development truth, not a release acceptance claim.
+Updated: 2026-10-22. This is current development truth, not a release acceptance claim.
 [ROADMAP](ROADMAP.md) owns priority. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve the v0.2.6+ handoff; no implementation/testing permission is implied.
 ## Release and evidence boundary
 
-- [Palette/readiness](LIVING_PALETTE_AND_READINESS.md) adds regional cyclic harmonies,
-  particle hue and confirmed model status/Orb cues. Stale reconnect waits for fresh
-  readiness; unloaded labels use typed outcomes. 156 checks / 3 headless cases pass.
-  No real provider/audio run; Identity III geometry/film bounds and acceptance remain.
+- [V-A reliability](CONVERSATION_RELIABILITY_VA.md) repairs correlated typed waits,
+  session/ACK cleanup, Stop before delivery, generation/typed-monitor retirement and
+  bounded noncooperative discovery cancellation. Late inventory/health cannot
+  dispatch canceled work; JSON preflight timing is content-free. 300 frontend /
+  246 distinct scoped Python tests pass; final fault matrix repeats three times.
+  One canonical build updates ordinary-launch assets; no visual-engine change.
+  Owner cold-start/typed stalls remain unattributed; real/provider/graphical gates open.
 - Core Experience Consolidation follows [the acceptance matrix](CORE_EXPERIENCE_ACCEPTANCE.md):
   basics before capability expansion. Provider cleanup verifies the resulting
   inventory/server state; CLI dispatch success alone is insufficient.
@@ -27,10 +30,8 @@ Updated: 2026-10-21. This is current development truth, not a release acceptance
   on success/failure; shutdown no longer relies on garbage collection for these.
 - The composed authenticated runtime/voice/history/Controls simulator protects
   typed/voice/failure recovery, Rescan, ordered Quit and bounded frontend response.
-- Consolidation III classifies cold inventory failures and bounds recovery. A real
-  preflight timeout recovered; automatic Gemma activation, two text turns, Rescan
-  and Sam-loaded unload passed. Reused serving remained; broader hosts are unverified.
-  Actual en/es synthesis/meters reach fixed WebGL without physical playback.
+- Consolidation III's real cold-inventory/Gemma/text/Rescan/owned-unload pass retained
+  reused serving; broader hosts remain unverified. Generated en/es PCM is not physical playback.
 - **v0.2.5 published:** `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709`; wheel/sdist/checksums only. [Publication evidence](HANDOFF_SAM_HQ4.md#released-baseline-and-security-disposition).
 - Exact-release Windows/Ubuntu Quality, Package smoke and hosted Native package passed;
   public native signing/reputation, clean-host/upgrade and human acceptance remain open.
@@ -155,9 +156,9 @@ See [memory implementation/evidence](MEMORY_FOUNDATION_I.md) and
 See [AEC contract](AEC_DOUBLE_TALK_CONTRACT.md) and the physical beta record.
 ## Embodiment and basic UI
 
-- [IV-D integration](INTEGRATION_VALIDATION_IVD.md) validates IV-B skin / IV-C presence:
+- [IV-D integration](INTEGRATION_VALIDATION_IVD.md) verifies deterministic IV-B / IV-C contracts:
   290 frontend and 223 scoped Python checks pass; canonical assets and source hashes match.
-  Partial renderer cleanup is repaired; palette/Flow, quality and authority remain.
+  Partial renderer cleanup is repaired; [palette/Flow](LIVING_PALETTE_AND_READINESS.md), quality and authority remain.
 - [October 21 triage](BETA_TRIAGE_2026-10-21.md): owner confirms Start Sam used v0.2.5;
   its swirls/old-peel observations do not accept IV-B. GPU/physical/human proof stays open.
 - Controls inventory is audited: Conversation, Appearance, Device, System, Diagnostics.
@@ -186,8 +187,7 @@ and the beta record; numerical visual change does not establish perceptual succe
   updater publication and non-developer distribution remain later work.
 ## Focused validation and next direction
 
-Memory's store/authority/provenance/recovery gate remains in its specialist document;
-[Security maintenance](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15) shipped in v0.2.5; only Linux/BSD GTK GLib remains in the release-time alert review.
+Memory's gate remains in its specialist document; [security maintenance](DEPENDENCY_ADVISORY_TRIAGE_2026-09-30.md#focused-maintenance--2026-10-15) shipped in v0.2.5; Linux/BSD GTK GLib remains deferred.
 
 The [current matrix](CORE_EXPERIENCE_ACCEPTANCE.md) preserves prior runtime gates;
 [October 9 triage](BETA_TRIAGE_2026-10-09.md) records 90 voice and 110 owner/provider

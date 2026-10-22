@@ -1,6 +1,18 @@
 # Post-0.2 engineering backlog
 
-**2026-10-21 IV-D:** [integration/validation record](INTEGRATION_VALIDATION_IVD.md).
+**2026-10-22 V-A:** [classification and reproducible evidence](CONVERSATION_RELIABILITY_VA.md).
+Fixed in source and deterministically verified: correlated typed precommit terminal
+cleanup, session/ACK timer ownership, old-state precedence, explicit Stop retirement,
+typed-monitor release, Stop before delivery, canceled late inventory/health and unbounded
+discovery cancellation joins. The final matrix also protects late discovery errors.
+300 frontend / 246 distinct scoped Python tests pass; one ordinary-launch build
+matches current source. The owner-observed long startup/typed stalls remain
+**instrumented but not causally diagnosed**. Provider-internal queues, physical
+speech timing and device recovery require separately authorized evidence. Current
+visual/UI implementation still awaits graphical/hardware/owner acceptance.
+Future STT/AEC, native distribution, shell/Memory/Agency expansion remain deferred.
+
+**Historical 2026-10-21 IV-D:** [integration/validation record](INTEGRATION_VALIDATION_IVD.md).
 Closed source questions: October 21 used Start Sam/v0.2.5; IV-B/IV-C now have a
 canonical compiled-asset path and content identity. Broader deterministic gates
 pass (290 frontend / 223 scoped Python); partial renderer initialization/disposal
@@ -100,12 +112,13 @@ are not automatically blockers for a future release.
   preserve current implementation/evidence and missing concept-board status.
   No theme engine or implementation is authorized by this planning entry.
   [Assignment IV-B implementation](VISUAL_IDENTITY_IV.md) provisionally chooses
-  connected Candidate B. Source/test authoring is complete; automated/graphical
-  proof and performance remain pending machine-free permission, not passed gates.
+  connected Candidate B. IV-D compiled assets and deterministic CPU/source gates
+  pass; graphical/shader proof, matched performance and owner acceptance remain open.
 - **Living Orb direction:** retain the shared, seam-safe body/peel field and the
   `mobile_2020` and bounded nine/ten-draw budgets. IV-B's connected skin supersedes
   the released six-sheet source; compare its continuity and depth against the
-  older loxodromic fallback on representative hardware. Broad palette,
+  released six swept sheets on representative hardware. Canvas/static recovery
+  remains a separate fallback. Broad palette,
   translucency and depth still need human visual acceptance; see
   [Visual direction](VISUAL_DIRECTION.md).
 - **Human acceptance of circulation and drag ownership:** the first human beta
@@ -120,8 +133,9 @@ are not automatically blockers for a future release.
 - **Palette and relief:** [composed local banks](LIVING_PALETTE_AND_READINESS.md)
   now evolve broader blue/violet/green/red/gold families over existing clocks;
   0–300 s palette-only/transport-only comparisons preserve large regions, quiet film
-  and short-frame continuity. Appeal remains unaccepted; do not equate numeric
-  color change with attractiveness or add rainbow noise. Keep
+  and short-frame continuity. The owner liked the released swirls on October 21;
+  candidate composition still needs graphical/owner acceptance. Do not equate
+  numeric change with attractiveness or add rainbow noise. Keep
   the current bounded ovoid/mountain character pending art direction: it comes from
   Y scaling 1.06, field/breath displacement and older audio response terms clamped
   to ±0.04. Tune prominence later rather than flattening it by assumption.
@@ -175,16 +189,17 @@ are not automatically blockers for a future release.
   envelopes, but has no measured server health, loaded-model memory/latency,
   frequency features or physical audio-device diagnostics. Do not fabricate values,
   create a second telemetry pipeline or turn this into a terminal emulator.
-- Revisit remaining soft-edge alpha-order artifacts in overlapping sheets if
-  representative views reveal them. Six reused ranges now use bounded CPU center
-  ordering; exact per-triangle transparency is still absent, with High opaque-core
-  depth priming only for sufficiently opaque interiors.
+- Revisit alpha-order artifacts only if representative connected-skin views reveal
+  them. The released six-sheet ordering is historical; IV-B adapts contact/range
+  ordering to the parent skin. Exact per-triangle transparency remains absent;
+  graphical evidence must precede additional optical machinery.
 - Consider bounded centre XYZ wandering and later waveform-driven peel/particle
   perturbations only after the relevant input evidence is available. The current
   centre remains fixed and diagnostics label it as such.
 - Long-history buffering/performance remains unmeasured; independent scrolling
   and near-bottom auto-follow are implemented.
-- Clarify microphone mute/toggle semantics, which appeared confusing or reversed.
+- IV-C separates Spoken replies from Microphone/recognition labels and has source
+  coverage. Rendered clarity and actual device-toggle semantics await acceptance.
 - Physically validate the full voice/audio path and useful live voice reactivity
   after material surface, membrane and interaction improvements. Do not consume
   another human beta session for a narrow frontend patch alone.
@@ -228,9 +243,10 @@ are not automatically blockers for a future release.
 ## Product directions
 
 - Add richer local TTS options.
-- Add a health, latency, and model-status panel.
-- Add a structured observability/debug overlay.
-- Add a managed terminal/console surface.
+- Extend the implemented status/latency diagnostics only for genuinely missing
+  trusted telemetry; existing bounded monitor and content-free traces are complete.
+- Future managed terminal/shell is distinct from the implemented bounded read-only
+  Console (workspace list/read/system info). Rendered Console acceptance remains open.
 - Add a file and multimedia workspace.
 - Add a structured persistent context and knowledge database.
 - Add trusted natural-language settings control.

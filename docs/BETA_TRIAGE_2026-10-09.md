@@ -3,6 +3,10 @@
 The separate [October 21 record](BETA_TRIAGE_2026-10-21.md) tracks later owner
 observations and IV-C work. This October 9 evidence and its limits remain historical.
 
+[V-A's 2026-10-22 offline campaign](CONVERSATION_RELIABILITY_VA.md) repairs separately
+reproduced typed-wait/cancellation/discovery-join failures. It does not retrospectively
+attribute or close this beta's long stalls, false speech or physical interruption gaps.
+
 This records the repair stage before candidate preparation. HQ subsequently
 authorized proportionate alpha acceptance of unreproduced voice/aesthetic limits;
 [current candidate evidence](ALPHA_CANDIDATE_0.2.4.md) supersedes the hold below.

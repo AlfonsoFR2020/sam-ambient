@@ -1,5 +1,12 @@
 # Core Experience evidence — I through V and Visual Identity III
 
+**2026-10-22 V-A delta:** [reliability evidence](CONVERSATION_RELIABILITY_VA.md)
+adds regression-driven typed-wait/session cleanup, explicit Stop and monitor
+retirement, cancellation guards and bounded discovery joins. 300 frontend /
+246 distinct scoped Python checks pass; final 19-case fault matrix repeats three
+times; one canonical build matches the source. Cold/typed stalls remain unattributed,
+and provider/device, shader/graphical, package and human acceptance stay open.
+
 **2026-10-21 Visual IV-D delta:** [integration record](INTEGRATION_VALIDATION_IVD.md)
 adds 290 frontend / 223 scoped Python passes, accepted-PCM long-delivery contracts,
 partial-renderer recovery repair and canonical compiled frontend provenance.
