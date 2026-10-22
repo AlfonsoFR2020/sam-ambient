@@ -17,9 +17,12 @@ fallback discovery.
 
 ## Browser or UI does not open
 
-Open **http://127.0.0.1:8766** manually. A failed browser handoff does not stop Sam.
-Development builds prefer installed Edge/Chrome/Chromium app mode in a Sam-only
-profile. `--ui-mode browser` bypasses it. There is no browser installation, native
+Use the reported owner-window startup error to repair the installed Edge/Chrome
+or Python Playwright setup, then restart through `Start Sam.cmd`. A manually
+opened loopback URL is an unauthenticated debug view; it cannot replace the
+private owner binding. Source launches use app mode in a Sam-only profile and
+fail closed when that binding cannot be created. `--ui-mode browser` is a debug
+surface, not an authentication bypass. There is no browser installation, native
 shell fallback, or broad process-kill fallback; if automatic app-window closure is
 refused, close the stopped page yourself. Closing the dedicated window gracefully
 stops Sam; closing a fallback browser tab does not. A second launch reports the existing UI URL.
@@ -36,7 +39,8 @@ Quit through **Quit Sam** or Ctrl+Q; confirm once. The page shows that Sam has
 stopped and can be closed. Ctrl+C in the launch console also stops the managed
 components. Merely closing a fallback browser tab leaves Sam running.
 Confirmation is an in-app **Confirm quit / Cancel** dialog with keyboard focus;
-Escape cancels it. After acknowledgement, reconnection is disabled.
+Escape cancels it. After accepted shutdown, reconnection is disabled;
+acknowledgement is not evidence that external models/services have already stopped.
 
 ## Native shell does not build
 

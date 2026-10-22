@@ -1,4 +1,12 @@
 # SAM — Codex Engineering Specification
+
+Release-context note (2026-10-22): this preserves the original planning baseline.
+The [README](README.md) and [v0.2.5 release record](docs/RELEASE_READINESS_0.2.5.md)
+describe actual release scope. Windows is the principal validated runtime path;
+Linux remains important. Apache-2.0 is the selected project license. Historical
+target/license alternatives below are not current validation or an open choice.
+Unmet specification goals are not automatically completed features; see
+[development status](docs/DEVELOPMENT_STATUS.md) for the unreleased line.
 Version: 1.0
 Status: MVP implementation specification
 Primary target: Linux desktop

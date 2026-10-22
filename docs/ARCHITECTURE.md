@@ -1,5 +1,17 @@
 # Architecture
 
+Scope: the published v0.2.5 source architecture and its retained contracts.
+The [system / trust-boundary diagram](diagrams/sam-system-architecture.svg) depicts
+shared authority foundations. The [conversation lifecycle diagram](diagrams/sam-conversation-lifecycle.svg)
+is explicitly **unreleased development**: playback-write observations and later
+recognition/retirement safeguards must not be attributed to v0.2.5.
+See [development status](DEVELOPMENT_STATUS.md) and [editable diagram notes](diagrams/README.md).
+
+The released visual identity uses six attached swept sheets with shared living
+pigment and regional palette banks. The connected parent skin is a later candidate,
+not part of the published frontend. Diagrams explain engineering boundaries;
+neither file-only SVG checks nor isolated renderer metrics establish visual acceptance.
+
 Core startup snapshots distinguish configured/pending route identity from an
 available current route: an explicit unavailable reason suppresses current model
 and provider until confirmed discovery succeeds. Operational runtime and supervisor

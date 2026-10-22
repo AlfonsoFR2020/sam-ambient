@@ -1,6 +1,12 @@
 # Using Sam
 
-## Personal memory (post-v0.2.3 development)
+This guide describes the published [v0.2.5 Python/source alpha](RELEASE_NOTES_0.2.5.md).
+Windows is the principal validated runtime path; Linux desktop/physical voice
+acceptance and public signed/native distribution remain open. Unreleased controls,
+connected skin, playback metering and recognition changes are described separately
+in [development status](DEVELOPMENT_STATUS.md).
+
+## Personal memory
 
 Open **Memory** in Sam's authenticated owner window to deliberately store a fact,
 preference or project context. Inspect its source/review state, correct it, approve
@@ -37,7 +43,7 @@ the existing readiness experience. Native
 packaging, signing, security-software review, and combined human acceptance remain
 release gates; do not bypass security alerts to run unsigned native artifacts.
 
-## Owner Console and bounded page inspection (post-v0.2.3 dev)
+## Owner Console and bounded page inspection
 
 Open **Console** in the authenticated Sam window. Choose directory listing,
 bounded text-file reading or system information. Paths are relative to Sam's
@@ -68,13 +74,15 @@ a new typed conversation. See [capabilities](AGENCY_CAPABILITIES.md) and
    chat/instruct model that fits your machine; embedding models cannot answer. If it
    is not already ready, load it and start the localhost server from **Developer**, or
    follow the UI/CLI procedure in [Getting started](GETTING_STARTED.md).
-2. From the Sam checkout run `uv sync --locked` once, then double-click
-   `Start Sam.cmd`. The launcher does not install dependencies.
+2. Use a clean checkout pinned to `v0.2.5`; follow [First launch](GETTING_STARTED.md#first-launch).
+   Run `uv sync --locked` once, then `Start Sam.cmd --no-voice --no-tts` for
+   typed use. The launcher does not install dependencies.
 3. Let Sam use a valid remembered model or the sole installed conversational model.
    If the startup picker appears, choose a model. Use **Rescan** after changing LM
    Studio. Sam may load an existing model but never downloads one.
-4. Open **Controls**. Type in **Text request** and press **Send**. Enable
-   **Microphone** and **Voice** only after the separate speech setup is ready.
+4. Open **Controls → Conversation**. Type in **Text request** and press **Send**.
+   After speech setup, restart without `--no-voice --no-tts` before enabling
+   **Microphone** (input) and **Voice** (spoken output) independently.
    Wait for the model to finish loading: a requested/pending model is not an
    available inference route. Missing speech leaves typed conversation available.
 5. Adjust Sam input/output gain and basic visual/profile settings in Controls.
@@ -87,7 +95,7 @@ requirements only. End users will not need them merely to run a packaged Sam bui
 
 ## Conversation and status
 
-Current development shows provider/model preparation below the Sam status header,
+Sam shows provider/model preparation below the Sam status header,
 even after startup information is dismissed. Loading names the requested model
 and can take a minute or more. **Waiting** is elapsed time observed by this window,
 not a countdown or completion estimate; **Model ready** requires core confirmation.
