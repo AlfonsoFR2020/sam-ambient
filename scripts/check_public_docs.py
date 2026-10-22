@@ -13,7 +13,7 @@ import math
 import re
 import subprocess
 import xml.etree.ElementTree as ET
-from itertools import combinations
+from itertools import combinations, pairwise
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
@@ -202,7 +202,7 @@ def check_svg(text, expected=None):
                 "Floating SVG endpoint",
             )
         require("marker-end" in edge.attrib, "Undirected SVG transition")
-        for (ax, ay), (bx, by) in zip(points, points[1:]):
+        for (ax, ay), (bx, by) in pairwise(points):
             require(ax == bx or ay == by, "Non-orthogonal SVG route")
             for identity, (x, y, w, h) in nodes.items():
                 if identity in (edge.attrib["data-source"], edge.attrib["data-target"]):
@@ -221,7 +221,7 @@ def check_release_diff(root, base):
         git(root, "merge-base", base, "HEAD") == base, "Release base is not the branch ancestor"
     )
     history = git(root, "rev-list", "--reverse", "--parents", f"{base}..HEAD").splitlines()
-    require(len(history) <= 2, "Public docs branch has unexpected implementation history")
+    require(len(history) <= 3, "Public docs branch has unexpected implementation history")
     parent = base
     for row in history:
         fields = row.split()

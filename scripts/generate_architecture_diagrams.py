@@ -156,7 +156,8 @@ def system_architecture() -> str:
         "The supervisor owns lifecycle and staged updates; TurnManager owns committed turns "
         "and immutable model routes. Capability policy mediates approved OS access. "
         "Local voice and separate private operational and reviewed-memory stores remain bounded. "
-        "Runtime mediates reviewed local recall; stored claims confer no instructions or permissions. "
+        "Runtime mediates reviewed local recall; stored claims confer no instructions "
+        "or permissions. "
         "Capture and recognition return to runtime; synthesized delivery travels to local output. "
         "Models receive no direct OS, update or owner authority. "
         "Cloud use requires explicit policy.",
