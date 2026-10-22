@@ -34,10 +34,11 @@ connected-skin baseline. Naming it starts neither a branch nor implementation.
 Meaningful verified experimental increments remain preferred over indefinite
 perfection; unavailable human beta does not block independent safe engineering.
 
-V-C's [closure audit](VB_CLOSURE_AUDIT_VC.md) confirms V-B's final Git/object recovery,
-fresh 57 Python / 71 frontend checks and consistent historical 256-test accounting.
-The public documentation branch must start at released `main`, not merge `dev`.
-Publication is conditional on authenticated tooling and acceptable workflow triggers.
+V-C's [closure handoff](PUBLIC_DOCUMENTATION_VC.md) confirms V-B's final Git/object
+recovery, 76 distinct focused Python / 71 frontend checks and consistent historical
+256-test accounting. `docs/public-v025-refresh` is a clean local 15-path documentation
+commit (`74ab076`) directly on released `main`; no implementation history is merged.
+Draft PR publication awaits authenticated tooling and an explicit CI execution decision.
 
 ## Dated checkpoint evidence
 

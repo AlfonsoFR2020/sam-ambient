@@ -1,0 +1,75 @@
+{
+  "format": 1,
+  "base": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+  "branch": "docs/public-v025-refresh",
+  "tip": "74ab076b479380e97016c6a46e9c45c51f6a69e0",
+  "direct_release_parent": true,
+  "changed_files": [
+    "CONTRIBUTING.md",
+    "README.md",
+    "SAM_AMBIENT_CODEX_SPEC.md",
+    "docs/ARCHITECTURE.md",
+    "docs/DEVELOPMENT_STATUS.md",
+    "docs/GETTING_STARTED.md",
+    "docs/PUBLIC_DOCUMENTATION_VC.md",
+    "docs/TROUBLESHOOTING.md",
+    "docs/USER_GUIDE.md",
+    "docs/diagrams/README.md",
+    "docs/diagrams/sam-conversation-lifecycle.svg",
+    "docs/diagrams/sam-system-architecture.svg",
+    "scripts/check_public_docs.py",
+    "scripts/generate_architecture_diagrams.py",
+    "tests/unit/test_public_docs_checker.py"
+  ],
+  "unchanged_git_objects": {
+    "src": "36fc0e02e33d98163f7216a29228bc2e93949e34",
+    "ui": "cae02c78f598375932a94f7b2ee9af8fe66b755c",
+    ".github": "766ac8ab69ad9d452dbda9fb6eedfe014456908a",
+    "pyproject.toml": "f76497fbce64130103175a9d093f39ac7b549e1b",
+    "uv.lock": "ddeb67eeb744ee5faedee1d5cc219054f580cac9",
+    "LICENSE": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+    "NOTICE": "6e52564cd3b2710afac8227bd902160c1ca80e64",
+    "THIRD_PARTY.md": "78f8af18758b7c5913ed30be1ef3fbb132909af9",
+    "sam-logo.png": "0d5e3df995a14af5c348bc3635c53d49c7f5e8fa"
+  },
+  "file_only_checks": {
+    "profile": "release",
+    "pages": 18,
+    "local_links": 101,
+    "svg_sha256_lf": {
+      "sam-system-architecture.svg": "71225fafd46712523ba4569911e8ad005055c33c59bb9dd812e4b9e07e431b70",
+      "sam-conversation-lifecycle.svg": "e7821f5ea47135f34304ce8e520c6230781fc2cb15295a492ad9ca1c02b6dc13"
+    },
+    "minimum_palette_text_contrast": 6.64,
+    "rendered": false,
+    "external_urls_checked": false,
+    "release_diff": {
+      "base": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+      "commits": 1,
+      "changed_files": [
+        "CONTRIBUTING.md",
+        "README.md",
+        "SAM_AMBIENT_CODEX_SPEC.md",
+        "docs/ARCHITECTURE.md",
+        "docs/DEVELOPMENT_STATUS.md",
+        "docs/GETTING_STARTED.md",
+        "docs/PUBLIC_DOCUMENTATION_VC.md",
+        "docs/TROUBLESHOOTING.md",
+        "docs/USER_GUIDE.md",
+        "docs/diagrams/README.md",
+        "docs/diagrams/sam-conversation-lifecycle.svg",
+        "docs/diagrams/sam-system-architecture.svg",
+        "scripts/check_public_docs.py",
+        "scripts/generate_architecture_diagrams.py",
+        "tests/unit/test_public_docs_checker.py"
+      ]
+    }
+  },
+  "remote_mutations": false,
+  "draft_pr": null,
+  "publication_limits": [
+    "Authenticated gh user probe returned HTTP 401.",
+    "Push/PR workflow includes full quality and native packaging without docs filters.",
+    "No CI bypass, push, PR, merge or metadata update was performed."
+  ]
+}

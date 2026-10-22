@@ -31,6 +31,10 @@ parallel queues. No row grants execution permission.
 - Particle population multipliers, centre wandering and a particular renderer/theme
   framework are proposals, not recovered owner obligations. Do not promote them
   above dirty-particle/whole-presence feedback without evidence.
+- [V-C public-docs handoff](PUBLIC_DOCUMENTATION_VC.md): release-based branch
+  `docs/public-v025-refresh` (`74ab076`) is locally verified and retained for review.
+  Authentication and all-push/PR quality/native workflows prevent a safe draft PR
+  in the present scope. No public landing page, About or topics change is claimed.
 
 ## Dated implementation evidence
 
