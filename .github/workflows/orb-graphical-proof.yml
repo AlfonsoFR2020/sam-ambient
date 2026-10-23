@@ -53,7 +53,10 @@ jobs:
           python3 -m scripts.check_frontend_assets --output vf2-evidence/source-assets.json
       - name: Install pinned Playwright Chromium on hosted runner only
         working-directory: ui
-        run: pnpm exec playwright install --with-deps --only-shell chromium
+        timeout-minutes: 3
+        # Retain the image's OS libraries; missing libraries fail explicitly rather
+        # than upgrading the hosted OS through a long apt dependency operation.
+        run: pnpm exec playwright install --only-shell chromium
       - name: Bounded isolated graphics, one worker, no inherited credentials
         working-directory: ui
         shell: bash

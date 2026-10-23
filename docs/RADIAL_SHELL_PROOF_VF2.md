@@ -115,6 +115,12 @@ A CPU equivalence/seam/polar regression and all adjacent selected geometry,
 material, resource and recovery checks pass: 73 distinct cases in ten files.
 The strict GPU limits remain unchanged; the corrected hosted proof is pending.
 
+The corrected-source run `39985734501` stalled over seven minutes in the optional
+browser system-dependency installation before rendering. The next attempt retains
+the hosted image's OS libraries, installs only the locked browser, and bounds that
+step to three minutes. Missing libraries remain a hard failure; sandboxing stays
+enabled. This avoids an unnecessary apt operation without bypassing a test gate.
+
 One low-priority canonical frontend build (`tsc -b && vite build`) then completed
 in 3.77 seconds without warnings at clean source commit
 `1d03eacd77269f75539c12e704e97e401ab23b1b`. The replacement production bundle is
