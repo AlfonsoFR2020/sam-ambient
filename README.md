@@ -56,6 +56,10 @@ shows recognition, committed turns and separate speech delivery.*
 | **Development · v0.2.6+ on `dev`** | A connected parent skin, lifecycle expression, playback-boundary visual metering, conversation/recognition integrity repairs, opt-in [keyboard push-to-talk](docs/KEYBOARD_PTT.md) and [retained conversation controls](docs/CONVERSATION_SESSIONS.md). Deterministic tests and asset integration do not establish graphical, physical-audio or owner acceptance. |
 | **Future** | Broader desktop agency, generative interfaces, expanded OS integration and controlled self-modification are roadmap ambitions, not completed product capabilities. |
 
+An isolated [V-F1 feature experiment](docs/ORB_APPEARANCE_VF1.md) adds internal
+appearance boundaries and a radial-sector skin prototype. It is not merged into
+`dev`, selected by default or offered as an owner theme control.
+
 The owner's positive assessment of the evolving swirls concerns the released
 v0.2.5 renderer. The new connected skin still needs graphical and owner review.
 Natural bilingual recognition, acoustic interruption/echo conditions and

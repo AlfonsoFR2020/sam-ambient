@@ -251,6 +251,12 @@ and additional render spectra fail rejection. No ownership engine is selected.
 It remains optional offline tooling, with no imports/dependencies in production
 voice. A passing engine and reproducible owned build still precede integration.
 
+[V-F1 appearance foundation](ORB_APPEARANCE_VF1.md), isolated on its feature branch,
+pairs trusted setup geometry/descriptors/equations/contact behind explicit internal
+appearance definitions. The connected skin remains default; experimental radial
+sectors share the body, pigment, clocks, quality and resource owner. There is no
+owner selector or new authority. Graphics and integration acceptance remain open.
+
 [Sam Visual Engine v1](VISUAL_ENGINE_V1.md) remains the authoritative shell-neutral
 renderer, audio/state and visual-settings specification. `dev` implements its
 Stages A-D: a typed envelope-only adapter and isolated WebGL2 spheroid with bounded

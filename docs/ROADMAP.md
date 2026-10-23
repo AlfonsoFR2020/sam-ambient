@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 checkpoint (2026-10-23): V-E retained sessions and isolated release-test maintenance.**
+**Current HQ4 checkpoint (2026-10-23): V-F1 isolated appearance foundation / radial-sector prototype.**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -29,8 +29,11 @@ does not displace older substantial art or conversation needs.
 
 Visual art remains a P1 product requirement, not a low-priority polish task. Order 3
 reflects unavailable execution permission, not permission to ignore it indefinitely.
-Future peel investigation may use `feature/organic-radial-shells` from the preserved
-connected-skin baseline. Naming it starts neither a branch nor implementation.
+V-F1 uses `feature/orb-appearance-foundation` from preserved dev `cc69bc2` for
+[typed appearance boundaries and one radial-sector prototype](ORB_APPEARANCE_VF1.md).
+It keeps the connected skin as default; CPU validity does not select the appearance.
+The earlier `feature/organic-radial-shells` name is a historical isolation proposal,
+not another branch or an automatically authorized follow-on programme.
 Meaningful verified experimental increments remain preferred over indefinite
 perfection; unavailable human beta does not block independent safe engineering.
 

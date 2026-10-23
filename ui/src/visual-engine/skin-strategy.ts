@@ -4,7 +4,7 @@ import type { RenderBudget } from "./quality";
 import { createSkinOpenings, packSkinOpenings, type SkinVector } from "./skin-domain";
 import { createSkinGeometry, type SkinGeometry } from "./skin-geometry";
 
-export type SkinStrategyId = "connected-parent";
+export type SkinStrategyId = "connected-parent" | "radial-sectors";
 export type BodyPoint = (direction: SkinVector) => SkinVector;
 export interface SkinDescriptors {
   readonly centers: Float32Array;

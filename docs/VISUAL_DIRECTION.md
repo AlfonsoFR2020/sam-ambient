@@ -1,5 +1,12 @@
 # Sam Orb visual direction
 
+**2026-10-23 V-F1 feature prototype:** [appearance foundation](ORB_APPEARANCE_VF1.md)
+adds explicit internal material/skin boundaries and one connected radial-sector
+alternative, with outward compact-rim and topology checks. The connected parent
+skin stays default, living pigment remains unchanged and eleven optional identities
+remain future requirements. No rendered radial-shell reading or owner approval is
+inferred; broad shell character, rich-colour optics and whole-Orb expression stay P1.
+
 **2026-10-22 V-C reconciliation:** [owner requirements](OWNER_REQUIREMENTS.md)
 retains VIS/SHELL/EXP/QUAL and eleven separate STYLE requests. Lava/richer rainbow,
 wireframe, smoke/cloud, fractal, painterly, synthwave, dark, gold, HAL-like and other

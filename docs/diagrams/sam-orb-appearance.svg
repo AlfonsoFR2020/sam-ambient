@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850" role="img" aria-labelledby="title desc" lang="en">
+<title id="title">Sam Orb appearance boundaries</title>
+<desc id="desc">Presentation-only motion and measured input remain shared. A trusted internal appearance definition selects the existing living material and either the default connected skin or an experimental connected radial-sector skin. Each setup strategy pairs geometry, descriptors, equations, CPU reference and contact. One renderer owns resources and per-frame uniforms. Canvas and static recovery preserve existing semantics. No visual module owns microphone, conversation, model or tool authority. This is source architecture, not rendered acceptance of the prototype.</desc>
+<defs>
+<marker id="arrow-control" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#e2b27f"/></marker>
+<marker id="arrow-data" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#83b8e3"/></marker>
+<marker id="arrow-delivery" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#76cbbb"/></marker>
+<marker id="arrow-warning" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#edaaa2"/></marker>
+</defs>
+<style>
+text { font-family: "Segoe UI", Inter, Arial, sans-serif; }
+.title { fill: #f4eee5; font-size: 36px; font-weight: 650; }
+.body { fill: #bbc9d5; font-size: 18px; }
+.card-title { fill: #f4eee5; font-size: 22px; font-weight: 600; }
+</style>
+<rect width="1200" height="850" fill="#10161c"/>
+<text x="40" y="51" class="title" data-estimated-width="574.2">Sam / Orb appearance boundaries</text>
+<text x="40" y="83" class="body" data-estimated-width="642.06">V-F1 feature architecture: shared life, explicit structure, one renderer.</text>
+<path data-kind="data" d="M40,116 L66,116" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<text x="76" y="122" class="body" data-estimated-width="216.0">Live presentation inputs</text>
+<path data-kind="control" d="M440,116 L466,116" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<text x="476" y="122" class="body" data-estimated-width="235.8">Trusted static composition</text>
+<path data-kind="warning" d="M840,116 L866,116" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-warning)"/>
+<text x="876" y="122" class="body" data-estimated-width="225.9">Failure / shared recovery</text>
+<g id="motion" data-kind="node" data-bounds="40 175 320 165"><rect x="40" y="175" width="320" height="165" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M55,176 H345" stroke="#83b8e3" stroke-width="2"/>
+<text x="58" y="207" class="card-title" data-estimated-width="216.26">Shared life &amp; signals</text>
+<text x="58" y="237" class="body" data-estimated-width="240.48">State / measured envelopes</text>
+<text x="58" y="261" class="body" data-estimated-width="259.02">Interaction + separate clocks</text>
+<text x="58" y="285" class="body" data-estimated-width="232.38">Reduced Motion / visibility</text>
+</g>
+<g id="material" data-kind="node" data-bounds="440 175 320 165"><rect x="440" y="175" width="320" height="165" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M455,176 H745" stroke="#76cbbb" stroke-width="2"/>
+<text x="458" y="207" class="card-title" data-estimated-width="155.1">Living material</text>
+<text x="458" y="237" class="body" data-estimated-width="236.34">Unit object-direction field</text>
+<text x="458" y="261" class="body" data-estimated-width="250.92">Transport / regional palette</text>
+<text x="458" y="285" class="body" data-estimated-width="256.68">Shared light + particle colour</text>
+</g>
+<g id="appearance" data-kind="node" data-bounds="840 175 320 165"><rect x="840" y="175" width="320" height="165" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M855,176 H1145" stroke="#e2b27f" stroke-width="2"/>
+<text x="858" y="207" class="card-title" data-estimated-width="233.42">Appearance definition</text>
+<text x="858" y="237" class="body" data-estimated-width="221.22">Default: living-connected</text>
+<text x="858" y="261" class="body" data-estimated-width="225.72">Internal: radial-shell trial</text>
+<text x="858" y="285" class="body" data-estimated-width="235.26">No owner theme preference</text>
+</g>
+<g id="renderer" data-kind="node" data-bounds="40 435 720 205"><rect x="40" y="435" width="720" height="205" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M55,436 H745" stroke="#83b8e3" stroke-width="2"/>
+<text x="58" y="467" class="card-title" data-estimated-width="444.4">Shared WebGL renderer / resource owner</text>
+<text x="58" y="497" class="body" data-estimated-width="567.0">Shared displaced body, satin film and High depth/contact support</text>
+<text x="58" y="521" class="body" data-estimated-width="440.1">One owner: 4 programs / 7 buffers / bounded draws</text>
+<text x="58" y="545" class="body" data-estimated-width="505.8">Frame uniforms only; no mesh rebuild or strategy callbacks</text>
+<text x="58" y="569" class="body" data-estimated-width="519.84">Presentation never owns microphone, turns, routes or tools</text>
+</g>
+<g id="skin" data-kind="node" data-bounds="840 435 320 205"><rect x="840" y="435" width="320" height="205" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M855,436 H1145" stroke="#e2b27f" stroke-width="2"/>
+<text x="858" y="467" class="card-title" data-estimated-width="233.42">Skin strategy / setup</text>
+<text x="858" y="497" class="body" data-estimated-width="246.24">Parent skin / radial sectors</text>
+<text x="858" y="521" class="body" data-estimated-width="274.32">Mesh + descriptors + equations</text>
+<text x="858" y="545" class="body" data-estimated-width="279.0">CPU reference / contact paired</text>
+<text x="858" y="569" class="body" data-estimated-width="265.5">Same object-direction pigment</text>
+</g>
+<g id="recovery" data-kind="node" data-bounds="40 705 1120 105"><rect x="40" y="705" width="1120" height="105" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M55,706 H1145" stroke="#edaaa2" stroke-width="2"/>
+<text x="58" y="737" class="card-title" data-estimated-width="464.64">Shared recovery preserves its own identity</text>
+<text x="58" y="767" class="body" data-estimated-width="951.12">Canvas/static keep existing semantics. New representations require explicit compatibility and bounded proof.</text>
+</g>
+<path data-kind="data" id="live-frame" data-source="motion" data-target="renderer" d="M200,340 L200,435" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="delivery" id="material-source" data-source="material" data-target="renderer" d="M600,340 L600,435" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
+<path data-kind="control" id="selected-structure" data-source="appearance" data-target="skin" d="M1000,340 L1000,435" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="control" id="selected-material" data-source="appearance" data-target="material" d="M840,255 L760,255" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="control" id="setup-resources" data-source="skin" data-target="renderer" d="M840,535 L760,535" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="warning" id="failed-surface" data-source="renderer" data-target="recovery" d="M400,640 L400,705" fill="none" stroke="#edaaa2" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-warning)"/>
+<text x="774" y="520" class="body" data-estimated-width="49.5">setup</text>
+<text x="418" y="682" class="body" data-estimated-width="470.88">Existing fallback / governor / accessibility contracts</text>
+</svg>

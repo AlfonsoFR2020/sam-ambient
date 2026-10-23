@@ -1,5 +1,11 @@
 # Sam Visual Engine v1
 
+**2026-10-23 isolated V-F1 foundation:** [typed appearance contracts](ORB_APPEARANCE_VF1.md)
+separate trusted internal material/skin composition from shared motion and resource
+ownership. The connected-skin default, persisted settings and all signals remain.
+An experimental connected radial-sector skin is not the ordinary default; shared
+Canvas/static recovery does not emulate it. CPU proofs are not GPU/visual acceptance.
+
 **2026-10-21 experimental source amendment:** [IV-B](VISUAL_IDENTITY_IV.md) supersedes
 the released six-sheet geometry below with one welded parent skin, three broad
 irregular openings and body-relative C1 curled collars. Same field/palette/clocks,

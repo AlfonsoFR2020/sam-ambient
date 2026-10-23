@@ -1,9 +1,10 @@
 # Sam implementation state
-- V-F1 feature work: [appearance foundation](ORB_APPEARANCE_VF1.md) preserves the default; radial-sector strategy is in progress, with graphics unavailable.
+
 Updated: 2026-10-23. This is current development truth, not a release acceptance claim.
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
+- V-F1 feature: [appearance/radial prototype](ORB_APPEARANCE_VF1.md), unchanged default; 174 Node / 38 scoped Python cases pass. Graphics open; not merged into dev.
 - V-E [sessions/audit](SESSION_CONTINUITY_VE.md): New/Resume/rehydration passes 176 scoped Python / 182 frontend cases; final production assets match all 68 source inputs.
   Public docs PR #7 stays draft; isolated released-test maintenance PR #8 is green and unmerged. V-D [assets](KEYBOARD_PTT_VD.md) are historical.
 - [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
@@ -195,6 +196,5 @@ Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Published v0.2.5 scope](RELEASE_READINESS_0.2.5.md) retains separate native/install/signing gates.
 [Composable launch](DIAGNOSTIC_LAUNCH.md) adds independent flags; 152 focused checks pass.
 Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
-Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded.
-UI shutdown now retires idle/partial HTTP clients; 30 focused checks pass. Native acceptance stays separate.
+Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded. UI shutdown retires idle/partial HTTP clients; 30 focused checks pass. Native acceptance stays separate.
 Expansion/AEC parked. [Visual IV](VISUAL_IDENTITY_IV.md) remains experimental; [IV-D](INTEGRATION_VALIDATION_IVD.md) integrates assets and deterministic proof. Shaders, graphical comparison, performance and human acceptance are unverified.

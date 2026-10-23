@@ -199,16 +199,21 @@ void main(){
 }`;
 
 /** Trusted static composition; no external source, dynamic loading or frame rebuild. */
-export function appearanceShaderSources(id?: OrbAppearanceId) {
+function composeAppearanceShaders(id?: OrbAppearanceId) {
   const { skin, material } = resolveOrbAppearance(id);
-  return {
+  return Object.freeze({
     orbVertex: ORB_VERTEX,
     orbFragment: orbFragment(skin.contactGLSL, material.fragmentGLSL),
     skinVertex: peelVertex(skin.shapeGLSL, skin.surfaceGLSL),
     skinFragment: peelFragment(material.fragmentGLSL),
-  };
+  });
 }
-const baselineSources = appearanceShaderSources();
+const baselineSources = composeAppearanceShaders();
+export function appearanceShaderSources(id?: OrbAppearanceId) {
+  return id === undefined || id === "living-connected"
+    ? baselineSources
+    : composeAppearanceShaders(id);
+}
 export const ORB_FRAGMENT = baselineSources.orbFragment;
 export const PEEL_VERTEX = baselineSources.skinVertex;
 export const PEEL_FRAGMENT = baselineSources.skinFragment;

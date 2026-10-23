@@ -2,7 +2,7 @@
 
 <a id="current-execution-index--v-c-reconciliation-2026-10-22"></a>
 <a id="current-execution-index--v-d-closure-2026-10-23"></a>
-## Current execution index — V-E session continuity, 2026-10-23
+## Current execution index — V-F1 appearance foundation, 2026-10-23
 
 [Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
 IDs; this file remains the retained action backlog. [ROADMAP](ROADMAP.md) orders
@@ -27,9 +27,11 @@ parallel queues. No row grants execution permission.
 - All 66 register entries retain origin/status/gap/priority/dependency/track. Older
   unmet requirements get explicit consideration; severity, integrity and core
   usability precede age, then recurrence, owner emphasis, benefit and feasible cost.
-- Future candidate `feature/organic-radial-shells`: preserve current IV-B and palette
-  as a Git baseline; investigate topology/sectors, attachment, curl and optics only
-  under a new bounded assignment. The branch is **not created or implemented** here.
+- V-F1's `feature/orb-appearance-foundation` implements [internal strategy boundaries
+  and a radial-sector prototype](ORB_APPEARANCE_VF1.md), preserving IV-B as default
+  and dev `cc69bc2` as a baseline. The earlier `feature/organic-radial-shells` name
+  remains a historical proposal, not an additional active branch. Comparison needs
+  separately authorized graphics; all STYLE requests remain future capabilities.
 - Particle population multipliers, centre wandering and a particular renderer/theme
   framework are proposals, not recovered owner obligations. Do not promote them
   above dirty-particle/whole-presence feedback without evidence.
@@ -41,6 +43,13 @@ parallel queues. No row grants execution permission.
   docs. Neither branch receives dev runtime. Main/About/topics remain unchanged.
 
 ## Dated implementation evidence
+
+**2026-10-23 V-F1:** [appearance/geometry contract](ORB_APPEARANCE_VF1.md) records
+one engine, a frozen default material, paired setup geometry/equations/contact,
+connected radial-sector geometry and CPU/resource proofs. Default numerical hashes
+stay unchanged. No owner selector, saved theme, new signal or renderer is added.
+SHELL-01/02 advance in experimental source; radial character, optics, GPU cost and
+owner acceptance remain open. Not merged/pushed into dev; no V-F2 starts here.
 
 **2026-10-23 V-E:** [session contract](CONVERSATION_SESSIONS.md) and
 [audit/implementation](SESSION_CONTINUITY_VE.md) cover UX-08 New/Resume, launch policy,

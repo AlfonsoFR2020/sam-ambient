@@ -31,6 +31,13 @@ Perpendicular crossings do not create junctions or transfer authority.
 
 ## Editable sources and conventions
 
+An additional [Orb appearance subsystem](sam-orb-appearance.svg) describes V-F1's
+isolated, unreleased feature architecture. It preserves default connected skin and
+shared recovery; the radial-sector alternative remains internal and unrendered.
+Its [stdlib/shared-tooling generator](../../scripts/generate_visual_subsystem_diagram.py)
+runs with `python -m scripts.generate_visual_subsystem_diagram` (or `--check`).
+The same XML/bounds/route checks apply; actual visual review remains unavailable.
+
 - Source of truth: [`generate_architecture_diagrams.py`](../../scripts/generate_architecture_diagrams.py)
   contains content and explicit coordinates; standard-library generation adds no
   package, external font, raster image or diagramming dependency.

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- V-F1 isolated appearance foundation and connected radial-sector prototype, with
+  unchanged default shader/mesh fingerprints and shared material/clocks/resources.
+  Internal selection only; no theme UI, settings migration or graphical acceptance.
+  [Feature scope](docs/ORB_APPEARANCE_VF1.md); not merged into dev.
+
 - V-E retained conversation controls, persisted resume/new-on-launch policy and
   authenticated saved-history/live-draft snapshots. Transactional session revisions
   reject stale work; new contexts preserve prior records and exact route policy.

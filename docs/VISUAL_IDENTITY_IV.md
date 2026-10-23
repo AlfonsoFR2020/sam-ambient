@@ -1,5 +1,11 @@
 # Visual Identity IV — connected living skin
 
+**V-F1 feature-branch amendment (2026-10-23):** [appearance foundation](ORB_APPEARANCE_VF1.md)
+retains this parent skin as the default and numerical compatibility baseline, while
+adding an internally selected connected radial-sector prototype. This does not reject
+or graphically accept IV-B; shader execution, optical comparison and owner acceptance
+remain open. Historical evidence and the original assessment manifest are unchanged.
+
 **IV-D integration amendment (2026-10-21):** [current evidence](INTEGRATION_VALIDATION_IVD.md)
 records 290 frontend / 223 scoped Python passes, canonical compiled assets with
 source/asset fingerprints, partial renderer setup/disposal repair and additional

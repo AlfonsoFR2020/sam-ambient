@@ -52,6 +52,42 @@ const readyInput = () => {
 };
 
 describe("visual engine lifecycle", () => {
+  it("carries internal appearance through tier rebuilds while Canvas reports shared recovery", () => {
+    const selections: unknown[] = [];
+    let disposed = 0;
+    const engine = new VisualEngine({
+      appearance: "radial-shell-experimental",
+      createCanvas: fakeCanvas,
+      backendFactory: (_canvas, kind, _budget, _settings, _seed, _motion, appearance) => {
+        selections.push(appearance);
+        return kind === "webgl2"
+          ? null
+          : {
+              kind: "canvas2d",
+              update() {},
+              configure() {},
+              resize() {},
+              setObjectOrientation() {},
+              render() {},
+              dispose() {
+                disposed++;
+              },
+            };
+      },
+      requestFrame: () => 1,
+      cancelFrame() {},
+    });
+    engine.mount(fakeHost());
+    engine.configure({ quality: "high" });
+    expect(selections).toEqual(Array(4).fill("radial-shell-experimental"));
+    expect(engine.diagnosticSnapshot()).toMatchObject({
+      appearance: "radial-shell-experimental",
+      appearancePath: "shared-recovery",
+    });
+    engine.setVisible(false);
+    engine.dispose();
+    expect(disposed).toBe(2);
+  });
   it("retains only the latest 64 meaningful diagnostic events", () => {
     const engine = new VisualEngine();
     for (let index = 0; index < 80; index++) engine.recordExternalEvent(`event ${index}`);

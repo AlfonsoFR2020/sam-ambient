@@ -8,7 +8,7 @@ export interface RenderBudget {
   readonly fineOctaves: 0 | 1 | 2;
   readonly sphereLongitude: number;
   readonly sphereLatitude: number;
-  /** Six connected chart draw ranges; zero is used by isolated body fixtures. */
+  /** Legacy name: six setup skin draw ranges, not six sheets. Zero isolates the body. */
   readonly peels: number;
   readonly skinSegments: number;
   readonly skinRows: number;

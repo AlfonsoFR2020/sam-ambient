@@ -90,5 +90,7 @@ describe("V-F1 default appearance compatibility", () => {
     expect(DEFAULT_ORB_APPEARANCE.fallback).toBe("shared-recovery");
     expect(DEFAULT_VISUAL_ENGINE_SETTINGS).not.toHaveProperty("appearance");
     expect(() => resolveOrbAppearance("external-glsl" as OrbAppearanceId)).toThrow(/Unsupported/);
+    expect(appearanceShaderSources()).toBe(appearanceShaderSources("living-connected"));
+    expect(Object.isFrozen(appearanceShaderSources())).toBe(true);
   });
 });
