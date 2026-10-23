@@ -1,0 +1,203 @@
+{
+  "config": {
+    "argv": [
+      "/opt/hostedtoolcache/node/22.23.3/x64/bin/node",
+      "/home/runner/work/sam-ambient/sam-ambient/ui/node_modules/@playwright/test/cli.js",
+      "test",
+      "-c",
+      "playwright.orb-vf2.config.ts"
+    ],
+    "configFile": "/home/runner/work/sam-ambient/sam-ambient/ui/playwright.orb-vf2.config.ts",
+    "rootDir": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 330000,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "undefined/undefined/commit/undefined",
+        "buildHref": "undefined/undefined/actions/runs/undefined"
+      },
+      "gitCommit": {
+        "shortHash": "5ab659e",
+        "hash": "5ab659e55f0b497bb3307c0ec00b6b5bab8e3cb2",
+        "subject": "test(visual): trace domain discrepancy and retain unaccepted shell disposition",
+        "body": "test(visual): trace domain discrepancy and retain unaccepted shell disposition\n",
+        "author": {
+          "name": "Zev Ambient Build Agent",
+          "email": "codex@localhost",
+          "time": 1792773486000
+        },
+        "committer": {
+          "name": "Zev Ambient Build Agent",
+          "email": "codex@localhost",
+          "time": 1792773486000
+        },
+        "branch": "feature/orb-appearance-foundation"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/sam-ambient/sam-ambient/ui/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "ci": {
+            "commitHref": "undefined/undefined/commit/undefined",
+            "buildHref": "undefined/undefined/actions/runs/undefined"
+          },
+          "gitCommit": {
+            "shortHash": "5ab659e",
+            "hash": "5ab659e55f0b497bb3307c0ec00b6b5bab8e3cb2",
+            "subject": "test(visual): trace domain discrepancy and retain unaccepted shell disposition",
+            "body": "test(visual): trace domain discrepancy and retain unaccepted shell disposition\n",
+            "author": {
+              "name": "Zev Ambient Build Agent",
+              "email": "codex@localhost",
+              "time": 1792773486000
+            },
+            "committer": {
+              "name": "Zev Ambient Build Agent",
+              "email": "codex@localhost",
+              "time": 1792773486000
+            },
+            "branch": "feature/orb-appearance-foundation"
+          },
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "orb-vf2.spec.ts"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/vf2-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "node ./node_modules/vite/bin/vite.js --host 127.0.0.1 --port 1436",
+      "url": "http://127.0.0.1:1436/tests/fixtures/visual-identity.html",
+      "reuseExistingServer": false,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "orb-vf2.spec.ts",
+      "file": "orb-vf2.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "hosted matched skin smoke, equations and representative views",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 36765,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m0.0001\u001b[39m\nReceived:   \u001b[31m0.00010608920274735034\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m0.0001\u001b[39m\nReceived:   \u001b[31m0.00010608920274735034\u001b[39m\n    at /home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf2.spec.ts:107:44",
+                    "location": {
+                      "file": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf2.spec.ts",
+                      "column": 44,
+                      "line": 107
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 105 |\u001b[39m       expect\u001b[33m.\u001b[39msoft(result\u001b[33m.\u001b[39msamples)\u001b[33m.\u001b[39mtoBe(\u001b[35m192\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 106 |\u001b[39m       expect\u001b[33m.\u001b[39msoft(result\u001b[33m.\u001b[39mfinite)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 107 |\u001b[39m       expect\u001b[33m.\u001b[39msoft(result\u001b[33m.\u001b[39mmaxPositionError)\u001b[33m.\u001b[39mtoBeLessThan(\u001b[35m0.0001\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 108 |\u001b[39m       expect\u001b[33m.\u001b[39msoft(result\u001b[33m.\u001b[39mmaxNormalError)\u001b[33m.\u001b[39mtoBeLessThan(\u001b[35m0.005\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 109 |\u001b[39m       \u001b[36mif\u001b[39m (appearance \u001b[33m===\u001b[39m \u001b[32m\"radial-shell-experimental\"\u001b[39m) {\n \u001b[90m 110 |\u001b[39m         \u001b[36mconst\u001b[39m hypothesis \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(\u001b[36masync\u001b[39m (appearance) \u001b[33m=>\u001b[39m {\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf2.spec.ts",
+                        "column": 44,
+                        "line": 107
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m0.0001\u001b[39m\nReceived:   \u001b[31m0.00010608920274735034\u001b[39m\n\n  105 |       expect.soft(result.samples).toBe(192);\n  106 |       expect.soft(result.finite).toBe(true);\n> 107 |       expect.soft(result.maxPositionError).toBeLessThan(0.0001);\n      |                                            ^\n  108 |       expect.soft(result.maxNormalError).toBeLessThan(0.005);\n  109 |       if (appearance === \"radial-shell-experimental\") {\n  110 |         const hypothesis = await page.evaluate(async (appearance) => {\n    at /home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf2.spec.ts:107:44"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-23T16:38:28.263Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/sam-ambient/sam-ambient/ui/test-results/orb-vf2-hosted-matched-ski-cd38f-ns-and-representative-views/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/work/sam-ambient/sam-ambient/ui/test-results/orb-vf2-hosted-matched-ski-cd38f-ns-and-representative-views/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf2.spec.ts",
+                    "column": 44,
+                    "line": 107
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "5685220f31a8efc8f5a3-8e5273f69b1a2f395c22",
+          "file": "orb-vf2.spec.ts",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-23T16:38:27.278Z",
+    "duration": 38807.876,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
