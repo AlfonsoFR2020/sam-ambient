@@ -268,6 +268,9 @@ def test_delayed_noncooperative_final_is_quarantined_and_cannot_commit_after_can
             await until(lambda: stt.final_calls == 1)
             assert capture.active == 0
             await gesture(runtime, owner, "cancel", identity)
+            await runtime._set_microphone(False)
+            await runtime._set_microphone(True)
+            assert runtime._input_snapshot()["state"] == "unavailable"
             _, busy = await gesture(runtime, owner)
             assert busy.type == EventType.CONTROL_REJECTED
             runtime.submit_user_message("New typed owner")

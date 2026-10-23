@@ -52,6 +52,11 @@ that a user message has been committed.
 - Blur, hidden/page loss, focus/control changes, Escape, unmount, mute, mode/language
   change, owner disconnect, Emergency Stop, shutdown and newer typing discard an
   unfinished gesture. They do not finalize provisional recognition.
+- Release retains local gesture ownership until an authoritative terminal state.
+  Blur can therefore revoke a queued finish, or cancel unfinished recognition after
+  finish transport acceptance. Rejected/timed-out start admission retires only its
+  exact command; key repeat cannot start another gesture. A rapid mute/unmute still
+  reports unavailable while cancelled capture cleanup retains its lease.
 - Missing key release is bounded by a **30-second held-input lease**. Finalization
   has a separate 30-second logical deadline. Expiry revokes ownership and requests
   adapter cancellation; it is not an inference timeout increase or retry loop.

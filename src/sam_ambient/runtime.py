@@ -3042,7 +3042,7 @@ class SamRuntime:
             self._ptt is None
             and self._ptt_task is not None
             and not self._ptt_task.done()
-            and status in {"cancelled", "failed"}
+            and status in {"cancelled", "failed", "armed"}
         ) or (self._voice_task is not None and not self._voice_task.done()):
             status = "unavailable"  # Retiring capture retains its exclusive lease.
         return {
@@ -3140,7 +3140,7 @@ class SamRuntime:
             task.exception()  # Consume an unexpected task failure; no orphan warning.
         if self._ptt_task is task:
             self._ptt_task = None
-        if not self._closed and self._input_state in {"cancelled", "failed"}:
+        if not self._closed and self._input_state in {"cancelled", "failed", "armed"}:
             self._schedule_input_event(
                 self._input_event(self._input_state, self._input_gesture_id, self._input_reason)
             )

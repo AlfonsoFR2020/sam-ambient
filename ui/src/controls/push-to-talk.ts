@@ -92,11 +92,15 @@ interface HeldKey {
   id: string;
   session: string;
   sent: Promise<void>;
+  cancelled?: boolean;
+  startCommandId?: string;
+  sawStartPending?: boolean;
 }
 
 /** Local key lifetime only. Core state and ACKs cannot acquire a keyboard hold. */
 export class PushToTalkKeyboard {
   private held?: HeldKey;
+  private pending?: HeldKey;
   private lastCancelled?: string;
   constructor(
     private readonly snapshot: () => UiState,
@@ -105,13 +109,13 @@ export class PushToTalkKeyboard {
   ) {}
 
   private request(action: "start" | "finish" | "cancel", held: HeldKey): Promise<void> {
-    return this.send(
-      createControlCommand(
-        "control.push_to_talk",
-        { action, gesture_id: held.id },
-        { sessionId: held.session },
-      ),
+    const command = createControlCommand(
+      "control.push_to_talk",
+      { action, gesture_id: held.id },
+      { sessionId: held.session },
     );
+    if (action === "start") held.startCommandId = command.command_id;
+    return this.send(command);
   }
   keyDown(input: KeyInput, allowed: boolean): boolean {
     if (input.key === "Escape") {
@@ -126,6 +130,7 @@ export class PushToTalkKeyboard {
       }
       return true;
     }
+    if (this.pending) return false;
     const state = this.snapshot();
     if (
       !allowed ||
@@ -151,7 +156,10 @@ export class PushToTalkKeyboard {
     this.held = held;
     held.sent = this.request("start", held);
     void held.sent.catch(() => {
-      if (this.held === held) this.cancel();
+      if (this.held === held || this.pending === held) {
+        this.cancel();
+        this.held = this.pending = undefined;
+      }
     });
     return true;
   }
@@ -159,6 +167,7 @@ export class PushToTalkKeyboard {
     if ((input.key !== "F8" && input.code !== "F8") || !this.held) return false;
     const held = this.held;
     this.held = undefined;
+    this.pending = held;
     const state = this.snapshot();
     const confirmed =
       allowed &&
@@ -177,6 +186,7 @@ export class PushToTalkKeyboard {
       const identity = `${held.session}:${held.id}`;
       if (this.lastCancelled === identity) return;
       this.lastCancelled = identity;
+      held.cancelled = true; // Revoke a queued finish before transport acceptance.
     }
     // Serialize behind start transport acceptance. A failed start gets one
     // best-effort cancel; core retirement/lease remains the backstop.
@@ -184,16 +194,23 @@ export class PushToTalkKeyboard {
       .catch(() => {})
       .then(() => {
         const state = this.snapshot();
-        if (state.connection !== "connected" || state.sessionId !== held.session) return;
+        if (
+          state.connection !== "connected" ||
+          state.sessionId !== held.session ||
+          (action === "finish" && held.cancelled)
+        )
+          return;
         return this.request(action, held);
       })
       .catch(() => {});
   }
   cancel(): void {
-    const held = this.held;
+    const held = this.held ?? this.pending;
     this.held = undefined;
-    if (held) this.end(held, "cancel");
-    else {
+    if (held) {
+      this.pending = held;
+      this.end(held, "cancel");
+    } else {
       const state = this.snapshot();
       // Release already happened; unfinished final recognition is still cancelable.
       if (
@@ -210,23 +227,38 @@ export class PushToTalkKeyboard {
   }
   update(): void {
     const state = this.snapshot();
-    if (!this.held) return;
+    const held = this.held ?? this.pending;
+    if (!held) return;
+    if (held.startCommandId && state.pendingCommandIds.includes(held.startCommandId))
+      held.sawStartPending = true;
     if (
       state.connection !== "connected" ||
-      state.sessionId !== this.held.session ||
+      state.sessionId !== held.session ||
       !state.microphoneEnabled ||
       state.voiceInput?.mode !== "push_to_talk" ||
       state.voiceInput.state === "unavailable" ||
       state.voiceInput.state === "disabled" ||
       state.pendingShutdownId ||
       state.applicationStopped
-    )
+    ) {
       this.cancel();
-    else if (
-      state.voiceInput?.gestureId === this.held.id &&
-      ["cancelled", "failed", "submitted"].includes(state.voiceInput.state)
+      this.held = this.pending = undefined;
+    } else if (
+      state.voiceInput?.gestureId === held.id &&
+      ["cancelled", "failed", "submitted", "armed"].includes(state.voiceInput.state)
     )
-      this.held = undefined;
+      this.held = this.pending = undefined;
+    else if (
+      held.sawStartPending &&
+      held.startCommandId &&
+      !state.pendingCommandIds.includes(held.startCommandId) &&
+      state.protocolError &&
+      state.voiceInput?.gestureId !== held.id
+    ) {
+      // Reject/timeout retires this exact admission; an old ACK cannot clear a new hold.
+      this.cancel();
+      this.held = this.pending = undefined;
+    }
   }
 }
 

@@ -192,6 +192,38 @@ const keyEvent = (type: string, patch = {}) =>
   Object.assign(new Event(type, { cancelable: true }), press, patch);
 
 describe("real listener wiring without a browser", () => {
+  it("blur after finish transport acceptance still cancels before core finalizing", async () => {
+    const c = setup(),
+      host = new EventTarget(),
+      doc = new FocusDocument();
+    const dispose = bindPushToTalk(c.keyboard, host, doc, () => false);
+    host.dispatchEvent(keyEvent("keydown"));
+    c.captured();
+    host.dispatchEvent(keyEvent("keyup"));
+    await settle();
+    expect(c.commands.map((command) => command.payload.action)).toEqual(["start", "finish"]);
+    host.dispatchEvent(new Event("blur"));
+    await settle();
+    expect(c.commands.map((command) => command.payload.action)).toEqual([
+      "start",
+      "finish",
+      "cancel",
+    ]);
+    dispose();
+  });
+  it("blur between release and core finalizing discards the queued finish", async () => {
+    const c = setup(),
+      host = new EventTarget(),
+      doc = new FocusDocument();
+    const dispose = bindPushToTalk(c.keyboard, host, doc, () => false);
+    host.dispatchEvent(keyEvent("keydown"));
+    c.captured();
+    host.dispatchEvent(keyEvent("keyup"));
+    host.dispatchEvent(new Event("blur"));
+    await settle();
+    expect(c.commands.map((command) => command.payload.action)).toEqual(["start", "cancel"]);
+    dispose();
+  });
   it.each(["blur", "pagehide", "hidden", "compositionstart", "focusin", "unmount"])(
     "%s discards input and keyup cannot finish it",
     async (kind) => {
@@ -245,6 +277,42 @@ describe("real listener wiring without a browser", () => {
 });
 
 describe("authoritative projection and status", () => {
+  it("a rejected exact start retires the key without allowing repeat to restart capture", async () => {
+    const c = setup();
+    c.keyboard.keyDown(press, true);
+    const id = c.commands[0].command_id;
+    c.set({ pendingCommandIds: [id] });
+    c.set({ pendingCommandIds: [], protocolError: "Capture busy" });
+    expect(c.keyboard.keyUp(press, true)).toBe(false);
+    expect(c.keyboard.keyDown({ ...press, repeat: true }, true)).toBe(false);
+    await settle();
+    expect(c.commands.map((command) => command.payload.action)).toEqual(["start", "cancel"]);
+  });
+  it("completed input releases pending ownership for a new distinct utterance", async () => {
+    const c = setup();
+    for (let sequence = 0; sequence < 2; sequence++) {
+      expect(c.keyboard.keyDown(press, true)).toBe(true);
+      c.captured();
+      const id = c.state.voiceInput?.gestureId;
+      c.keyboard.keyUp(press, true);
+      await settle();
+      c.set({
+        voiceInput: {
+          mode: "push_to_talk",
+          state: "submitted",
+          sequence: sequence + 20,
+          gestureId: id,
+        },
+      });
+    }
+    expect(c.commands.map((command) => command.payload.action)).toEqual([
+      "start",
+      "finish",
+      "start",
+      "finish",
+    ]);
+    expect(c.commands[0].payload.gesture_id).not.toBe(c.commands[2].payload.gesture_id);
+  });
   it("selects an authenticated typed command and never treats ACK as capture", () => {
     const c = setup();
     const cmd = commandForAction({ type: "voice_input_mode.set", mode: "push_to_talk" }, c.state, {
