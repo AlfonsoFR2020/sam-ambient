@@ -1399,6 +1399,12 @@ select {
   color: #c49e77;
   flex-shrink: 0;
 }
+.controls-reveal,
+.quit-reveal {
+  font: inherit;
+  font-size: 0.78rem;
+  min-height: 38px;
+}
 .workspace-tools > button:hover {
   background: #302821;
   border-color: #c6a78088;
@@ -1506,6 +1512,11 @@ select {
   .startup-card {
     top: 104px;
     right: 12px;
+  }
+}
+@media (max-width: 430px) {
+  .controls-reveal {
+    bottom: 18px;
   }
 }
 .controls__sessions p,

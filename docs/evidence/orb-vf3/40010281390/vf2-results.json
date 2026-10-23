@@ -1,0 +1,366 @@
+{
+  "config": {
+    "argv": [
+      "/opt/hostedtoolcache/node/22.23.3/x64/bin/node",
+      "/home/runner/work/sam-ambient/sam-ambient/ui/node_modules/@playwright/test/cli.js",
+      "test",
+      "-c",
+      "playwright.orb-vf2.config.ts"
+    ],
+    "configFile": "/home/runner/work/sam-ambient/sam-ambient/ui/playwright.orb-vf2.config.ts",
+    "rootDir": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 330000,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "undefined/undefined/commit/undefined",
+        "buildHref": "undefined/undefined/actions/runs/undefined"
+      },
+      "gitCommit": {
+        "shortHash": "45db02a",
+        "hash": "45db02a426851a125540767acc5c82d10fb3611c",
+        "subject": "build(ui): preserve V-F3 source assets for hosted comparison",
+        "body": "build(ui): preserve V-F3 source assets for hosted comparison\n",
+        "author": {
+          "name": "Zev Ambient Build Agent",
+          "email": "codex@localhost",
+          "time": 1792783065000
+        },
+        "committer": {
+          "name": "Zev Ambient Build Agent",
+          "email": "codex@localhost",
+          "time": 1792783065000
+        },
+        "branch": "feature/orb-appearance-foundation"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/sam-ambient/sam-ambient/ui/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "ci": {
+            "commitHref": "undefined/undefined/commit/undefined",
+            "buildHref": "undefined/undefined/actions/runs/undefined"
+          },
+          "gitCommit": {
+            "shortHash": "45db02a",
+            "hash": "45db02a426851a125540767acc5c82d10fb3611c",
+            "subject": "build(ui): preserve V-F3 source assets for hosted comparison",
+            "body": "build(ui): preserve V-F3 source assets for hosted comparison\n",
+            "author": {
+              "name": "Zev Ambient Build Agent",
+              "email": "codex@localhost",
+              "time": 1792783065000
+            },
+            "committer": {
+              "name": "Zev Ambient Build Agent",
+              "email": "codex@localhost",
+              "time": 1792783065000
+            },
+            "branch": "feature/orb-appearance-foundation"
+          },
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "orb-vf3.spec.ts",
+          "orb-vf3-ui.spec.ts",
+          "agency-console.spec.ts",
+          "memory-manager.spec.ts"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/vf2-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "node ./node_modules/vite/bin/vite.js --host 127.0.0.1 --port 1436",
+      "url": "http://127.0.0.1:1436/tests/fixtures/visual-identity.html",
+      "reuseExistingServer": false,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "agency-console.spec.ts",
+      "file": "agency-console.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "owner console keeps returned content inert, bounded and separate from history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5248,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-23T19:18:15.163Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34105f01280664db996e-f14fc9b484dae09abe15",
+          "file": "agency-console.spec.ts",
+          "line": 3,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "memory-manager.spec.ts",
+      "file": "memory-manager.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "owner memory surface keeps provenance, edits and deletion outside chat",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8350,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-23T19:18:20.674Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b450c283da152d39b6a2-bd1faca2a0da07524791",
+          "file": "memory-manager.spec.ts",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "memory follows variable page offsets and restores previous pages",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6620,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-23T19:18:29.059Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b450c283da152d39b6a2-b76062595a356fb4c275",
+          "file": "memory-manager.spec.ts",
+          "line": 87,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "orb-vf3-ui.spec.ts",
+      "file": "orb-vf3-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "synthetic workspace tools, focus and quiet loading presentation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16301,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-23T19:18:35.701Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cd9745a5c41718677e10-1a6ae38c7911c5158214",
+          "file": "orb-vf3-ui.spec.ts",
+          "line": 3,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "orb-vf3.spec.ts",
+      "file": "orb-vf3.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "hosted matched skin smoke, equations and representative views",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 60491,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m0.0001\u001b[39m\nReceived:   \u001b[31m0.00010608920274735034\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m0.0001\u001b[39m\nReceived:   \u001b[31m0.00010608920274735034\u001b[39m\n    at /home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf3.spec.ts:113:44",
+                    "location": {
+                      "file": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf3.spec.ts",
+                      "column": 44,
+                      "line": 113
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 111 |\u001b[39m       expect\u001b[33m.\u001b[39msoft(result\u001b[33m.\u001b[39msamples)\u001b[33m.\u001b[39mtoBe(\u001b[35m192\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 112 |\u001b[39m       expect\u001b[33m.\u001b[39msoft(result\u001b[33m.\u001b[39mfinite)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 113 |\u001b[39m       expect\u001b[33m.\u001b[39msoft(result\u001b[33m.\u001b[39mmaxPositionError)\u001b[33m.\u001b[39mtoBeLessThan(\u001b[35m0.0001\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 114 |\u001b[39m       expect\u001b[33m.\u001b[39msoft(result\u001b[33m.\u001b[39mmaxNormalError)\u001b[33m.\u001b[39mtoBeLessThan(\u001b[35m0.005\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 115 |\u001b[39m     }\n \u001b[90m 116 |\u001b[39m     \u001b[36mfor\u001b[39m (\u001b[36mconst\u001b[39m sample \u001b[36mof\u001b[39m \u001b[33mVF3_CASES\u001b[39m) \u001b[36mawait\u001b[39m capturePair(sample)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf3.spec.ts",
+                        "column": 44,
+                        "line": 113
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m0.0001\u001b[39m\nReceived:   \u001b[31m0.00010608920274735034\u001b[39m\n\n  111 |       expect.soft(result.samples).toBe(192);\n  112 |       expect.soft(result.finite).toBe(true);\n> 113 |       expect.soft(result.maxPositionError).toBeLessThan(0.0001);\n      |                                            ^\n  114 |       expect.soft(result.maxNormalError).toBeLessThan(0.005);\n  115 |     }\n  116 |     for (const sample of VF3_CASES) await capturePair(sample);\n    at /home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf3.spec.ts:113:44"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-23T19:18:52.048Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/sam-ambient/sam-ambient/ui/test-results/orb-vf3-hosted-matched-ski-f6f30-ns-and-representative-views/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/work/sam-ambient/sam-ambient/ui/test-results/orb-vf3-hosted-matched-ski-f6f30-ns-and-representative-views/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/runner/work/sam-ambient/sam-ambient/ui/tests/browser/orb-vf3.spec.ts",
+                    "column": 44,
+                    "line": 113
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "c425102d0254b2f44064-ddba3adab474a9a3c150",
+          "file": "orb-vf3.spec.ts",
+          "line": 10,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-23T19:18:13.756Z",
+    "duration": 98879.53499999999,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

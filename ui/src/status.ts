@@ -107,6 +107,11 @@ export function statusPresentation(state: UiState): StatusPresentation {
       "responding",
       "preparing_speech",
       "speaking",
+      "discovering",
+      "loading",
+      "unloading",
+      "unloaded",
+      "failed",
     ].includes(presence.phase)
       ? presence.label
       : undefined,

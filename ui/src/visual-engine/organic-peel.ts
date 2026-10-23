@@ -34,7 +34,8 @@ export function createOrganicPeels(seed = 0x5a17): readonly OrganicPeel[] {
     );
     const meridian = skinNormalize(skinCross(skinCross(center, axis), center));
     const cross = skinCross(center, meridian);
-    const tilt = [-0.38, 0.28, -0.22][i];
+    // Unequal sweeping directions avoid an upright crown of identical leaf tips.
+    const tilt = [-0.75, 0.62 + Math.PI, -0.6][i];
     const tangent = meridian.map(
       (v, k) => v * Math.cos(tilt) + cross[k] * Math.sin(tilt),
     ) as unknown as SkinVector;
@@ -42,9 +43,9 @@ export function createOrganicPeels(seed = 0x5a17): readonly OrganicPeel[] {
       center,
       tangent,
       side: skinCross(center, tangent),
-      length: [1.12, 0.94, 1.04][i],
-      width: [0.49, 0.43, 0.53][i],
-      bend: [0.19, -0.16, 0.13][i],
+      length: [1.4, 1.24, 1.33][i],
+      width: [0.46, 0.42, 0.48][i],
+      bend: [0.32, -0.28, 0.25][i],
       height: [0.235, 0.205, 0.25][i],
       phase: angle + i * 0.7,
     };
@@ -105,7 +106,7 @@ export function createOrganicPeelGeometry(budget: RenderBudget, seed = 0x5a17): 
   if (!budget.peels)
     return { vertices: new Float32Array(), indices: new Uint16Array(), ranges: [], boundaries: [] };
   const n = budget.skinSegments * 4,
-    rows = budget.skinRows;
+    rows = Math.max(6, budget.skinRows);
   if (
     budget.peels !== 6 ||
     !Number.isInteger(n) ||

@@ -83,6 +83,7 @@ describe("plain-language runtime status", () => {
       pendingModel: "local-chat",
     });
     expect(status.notice).toBe("Loading local-chat…");
+    expect(status.label).toBe("Loading local-chat");
     expect(status.limitations).toHaveLength(1);
   });
 });

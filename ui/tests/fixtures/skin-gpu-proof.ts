@@ -84,7 +84,7 @@ ${
     ? `
 float t=proof_domain.z,c=cos(t),s=sin(t),a=u_contact_centers[0].w,b=u_contact_shapes[0].x;
 vec2 square=vec2(c*c/(a*a),s*s/(b*b));float sum=dot(square,square),phase=u_contact_shapes[0].w;
-proof_rim=vec4(length(proof_domain.xy),radialShellRim(0,t).x,c,s);
+proof_rim=vec4(length(proof_domain.xy),radialShellRim(0,t,normalize(proof_domain.xy)).x,c,s);
 proof_math=vec4(sum,pow(sum,-.25),cos(3.*t+phase),sin(2.*t-phase));
 proof_shape=vec4(a,b,phase,u_contact_shapes[0].y);`
     : "proof_rim=vec4(0.);proof_math=vec4(0.);proof_shape=vec4(0.);"
@@ -215,6 +215,7 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
       finite = true,
       samples = 0;
     let worstPosition: unknown = null;
+    let fixedRadialSample: unknown = null;
     for (const travel of [0, 1.7, 2 * Math.PI - 1e-5, 2 * Math.PI + 1e-5]) {
       const pose: SkinPose = {
         travel,
@@ -250,6 +251,23 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
             : strategy.id === "organic-peels"
               ? createOrganicPeels().map((p) => organicPeelRegion(n, p)[0])
               : createRadialShellWindows().map((window) => radialShellRegion(n, window).q);
+        if (
+          strategy.id === "radial-sectors" &&
+          travel === 1.7 &&
+          Math.abs(n[0] - 0.35471242628781263) < 1e-7 &&
+          Math.abs(n[1] - 0.4076248105035505) < 1e-7
+        )
+          fixedRadialSample = {
+            travel,
+            n,
+            cpu: p,
+            gpu: Array.from(output.slice(i * stride, i * stride + 3)),
+            qCPU: q,
+            qGPU: Array.from(output.slice(i * stride + 6, i * stride + 9)),
+            domainCPU: domainReference(n),
+            domainGPU: Array.from(output.slice(i * stride + 9, i * stride + 12)),
+            traceGPU: Array.from(output.slice(i * stride + 12, i * stride + 24)),
+          };
         for (let axis = 0; axis < 3; axis++) {
           const error = Math.abs(p[axis] - output[i * stride + axis]);
           if (error > maxPositionError) {
@@ -299,6 +317,7 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
       maxRegionError,
       finite,
       worstPosition,
+      fixedRadialSample,
       highFloatPrecision: gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT)?.precision,
       samples,
       error: gl.getError(),

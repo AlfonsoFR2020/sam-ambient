@@ -62,9 +62,12 @@ export function createRadialShellWindows(seed = 0x5a17): readonly RadialShellWin
 }
 /** Smooth, perturbed superellipse in angular coordinates: sector sides follow
  * meridians; rounded ends avoid a rectangular cut or singular corner normals. */
-export function radialShellRim(p: RadialShellWindow, theta: number): readonly [number, number] {
-  const c = Math.cos(theta),
-    s = Math.sin(theta);
+export function radialShellRim(
+  p: RadialShellWindow,
+  theta: number,
+  unit: readonly [number, number] = [Math.cos(theta), Math.sin(theta)],
+): readonly [number, number] {
+  const [c, s] = unit;
   const sum = (c / p.halfAzimuth) ** 4 + (s / p.halfLatitude) ** 4;
   const derivative = 4 * c * s * ((s * s) / p.halfLatitude ** 4 - (c * c) / p.halfAzimuth ** 4);
   const base = sum ** -0.25;
@@ -87,9 +90,10 @@ export function radialShellRegion(n: SkinVector, p: RadialShellWindow): SkinRegi
   const y = latitude - p.latitude,
     r = Math.hypot(x, y);
   const theta = r < 1e-8 ? 0 : Math.atan2(y, x);
-  const [rim, slope] = radialShellRim(p, theta);
-  const gx = -Math.cos(theta) - (slope * Math.sin(theta)) / Math.max(1e-5, r);
-  const gy = -Math.sin(theta) + (slope * Math.cos(theta)) / Math.max(1e-5, r);
+  const cs: readonly [number, number] = r < 1e-8 ? [1, 0] : [x / r, y / r];
+  const [rim, slope] = radialShellRim(p, theta, cs);
+  const gx = -cs[0] - (slope * cs[1]) / Math.max(1e-5, r);
+  const gy = -cs[1] + (slope * cs[0]) / Math.max(1e-5, r);
   const gradient = p.axis.map(
     (v, i) =>
       (gx * (p.side[i] * Math.cos(azimuth) - p.equator[i] * Math.sin(azimuth)) +
@@ -122,8 +126,9 @@ uniform vec4 u_contact_shapes[3]; // half-height, collar, lift, phase
 uniform vec4 u_contact_pose;
 uniform vec2 u_contact_phase;
 uniform float u_skin_clearance;
-vec2 radialShellRim(int i,float theta) {
-  float c=cos(theta),s=sin(theta),a=u_contact_centers[i].w,b=u_contact_shapes[i].x;
+vec2 radialShellRim(int i,float theta,vec2 cs) {
+  // Chart direction avoids a redundant atan -> sin/cos reconstruction.
+  float c=cs.x,s=cs.y,a=u_contact_centers[i].w,b=u_contact_shapes[i].x;
   vec2 square=vec2(c*c/(a*a),s*s/(b*b));
   float sum=dot(square,square);
   float derivative=4.*c*s*(s*s/(b*b*b*b)-c*c/(a*a*a*a));
@@ -143,14 +148,17 @@ vec2 skinRegion(vec3 n,int i) {
   if(abs(dot(n,u_contact_centers[i].xyz))>sqrt(.99))return vec2(0.);
   vec2 xy=radialShellCoordinates(n,i);
   float r=length(xy),theta=r<1.e-8 ? 0. : atan(xy.y,xy.x);
-  return vec2(clamp((radialShellRim(i,theta).x+u_contact_shapes[i].y-r)/u_contact_shapes[i].y,0.,1.1),theta);
+  vec2 cs=r<1.e-8 ? vec2(1.,0.) : xy/r;
+  return vec2(clamp((radialShellRim(i,theta,cs).x+u_contact_shapes[i].y-r)/u_contact_shapes[i].y,0.,1.1),theta);
 }
 vec3 skinInward(vec3 n,int i,float theta) {
   vec2 xy=radialShellCoordinates(n,i);
   float latitude=xy.y+u_contact_sides[i].w;
   float azimuth=xy.x+u_contact_tangents[i].w;
-  float slope=radialShellRim(i,theta).y/max(1.e-5,length(xy));
-  vec2 g=vec2(-cos(theta)-slope*sin(theta),-sin(theta)+slope*cos(theta));
+  float r=length(xy);
+  vec2 cs=r<1.e-8 ? vec2(1.,0.) : xy/r;
+  float slope=radialShellRim(i,theta,cs).y/max(1.e-5,r);
+  vec2 g=vec2(-cs.x-slope*cs.y,-cs.y+slope*cs.x);
   return normalize((g.x*(u_contact_sides[i].xyz*cos(azimuth)-u_contact_tangents[i].xyz*sin(azimuth))
     +g.y*(u_contact_centers[i].xyz-sin(latitude)*n))/max(.1,cos(latitude)));
 }

@@ -17,6 +17,7 @@ export const VF3_PLAN = Object.freeze({
 });
 export const VF3_SMOKE = VF2_SMOKE;
 export const VF3_CASES: readonly VF2Case[] = [
+  { ...VF2_SMOKE, name: "phase0", curlSeconds: 0 },
   { ...VF2_SMOKE, name: "colour-yaw0-curl0", yaw: 0, curlSeconds: 0 },
   { ...VF2_SMOKE, name: "colour-yaw1.6-curl12", yaw: 1.6, curlSeconds: 12 },
   { ...VF2_SMOKE, name: "neutral", options: { neutralMaterial: true } },

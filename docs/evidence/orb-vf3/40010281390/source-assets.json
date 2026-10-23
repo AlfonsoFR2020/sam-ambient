@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "sourceCommit": "685c8520675cc11a627b24057f65689a48c170d9",
+  "sourceDirtyAtBuild": false,
+  "sourceDigestSha256Lf": "4c8c2aa6764b210b1b5de657e7c65ea6d17243c30a670f957c2fc39f40c97d3d",
+  "sourceFileCount": 75,
+  "visualIdentity": "connected-skin-ivd-experimental",
+  "entryAssets": [
+    "/assets/index-BYyUpUVr.css",
+    "/assets/index-C9X9wOvX.js"
+  ],
+  "artifactSha256": {
+    "src/sam_ambient/static/.vite/manifest.json": "ea93f837064f5dc17639c34272f8cf863b1a512e66cba0f2c30e8f0cee2a6dca",
+    "src/sam_ambient/static/assets/index-BYyUpUVr.css": "447341eb41e574de898274b18acbedc0940628b3b8ed7d7975421bb88a35d095",
+    "src/sam_ambient/static/assets/index-C9X9wOvX.js": "bb9c6e123e9c8522df55135b7e5aff5ee224867fd284de0944058c6bff19e5ac",
+    "src/sam_ambient/static/assets/sam-build.json": "ca8f5a37d38c7b17a5153032d146d02a67562ff45df2ff5e55075693c43d6378",
+    "src/sam_ambient/static/index.html": "912f655efac3b86c458d1dc0760de73b5f23c54a1c4bc5157679cda4a44f5707"
+  },
+  "graphicalExecution": false
+}

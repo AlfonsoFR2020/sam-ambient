@@ -20,7 +20,7 @@ const pose = skinPoseFromFrame(frameAt(0));
 describe("V-F3 positive organic peel geometry (CPU)", () => {
   it("holds comparison clocks and bounds the actual hosted matrix", () => {
     expect(VF3_APPEARANCES).toHaveLength(3);
-    expect(VF3_CASES).toHaveLength(8);
+    expect(VF3_CASES).toHaveLength(9);
     expect(VF3_PARTICLES).toHaveLength(4);
     const first = vf2Frame(VF3_SMOKE),
       later = vf2Frame({ ...VF3_SMOKE, curlSeconds: 12 });
@@ -45,7 +45,7 @@ describe("V-F3 positive organic peel geometry (CPU)", () => {
       ];
     });
     expect(counts).toEqual([
-      ["low", 852, 1464, 26124],
+      ["low", 996, 1752, 29580],
       ["medium", 3856, 7200, 122652],
       ["high", 12996, 25056, 408956],
     ]);
@@ -57,7 +57,7 @@ describe("V-F3 positive organic peel geometry (CPU)", () => {
       expect(proof).toMatchObject({ components: 3, boundaries: 3, euler: 3, ranges: 6 });
       expect(proof.minOutwardWinding).toBeGreaterThan(0);
       expect(proof.minDoubleArea).toBeGreaterThan(1e-7);
-      expect(proof.vertices).toBe(3 * (1 + 4 * budget.skinSegments * budget.skinRows));
+      expect(proof.vertices).toBe(3 * (1 + 4 * budget.skinSegments * Math.max(6, budget.skinRows)));
       expect(
         proof.vertices + (budget.sphereLongitude + 1) * (budget.sphereLatitude + 1),
       ).toBeLessThan(20_000);

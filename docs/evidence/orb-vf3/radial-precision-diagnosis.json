@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "run": 40010281390,
+  "sample": {
+    "travel": 1.7,
+    "n": [
+      0.35471242628781263,
+      0.4076248105035505,
+      0.8414399018937465
+    ],
+    "axis": 2,
+    "cpu": [
+      0.45342793437891205,
+      0.5580088548568175,
+      1.0757972072678947
+    ],
+    "gpu": [
+      0.4534722864627838,
+      0.5580904483795166,
+      1.075903296470642
+    ],
+    "qCPU": [
+      0.9999999513203084,
+      0,
+      0
+    ],
+    "qGPU": [
+      1.0005810260772705,
+      0,
+      0
+    ],
+    "domainCPU": {
+      "coordinates": [
+        -0.0825142953438287,
+        0.6350798507733331,
+        1.6999999700845152
+      ],
+      "rim": 0.6404178427591084,
+      "collar": 0.2
+    },
+    "domainGPU": [
+      -0.08251428604125977,
+      0.6350798010826111,
+      1.7000000476837158
+    ],
+    "traceGPU": {
+      "radiusRimCosSin": [
+        0.6404178142547607,
+        0.6405340433120728,
+        -0.12882786989212036,
+        0.9914833307266235
+      ],
+      "sumBaseCos3Sin2": [
+        7.461716175079346,
+        0.605048656463623,
+        0.42589130997657776,
+        0.8847413659095764
+      ],
+      "halfWidthHeightPhaseCollar": [
+        0.47999998927116394,
+        0.6000000238418579,
+        2.3140196800231934,
+        0.20000000298023224
+      ]
+    }
+  },
+  "analysis": {
+    "cosError": 1.6671689667180356e-05,
+    "sinError": -0.0001814735820596658,
+    "measuredPairLength": 0.9998178910030068,
+    "sumError": -0.0054630927568908305,
+    "quarterPowerErrorAtMeasuredSum": -2.4667281217638504e-08,
+    "cos3Error": -1.3603127220485067e-05,
+    "sin2Error": -1.9391828854020687e-05,
+    "measuredRimError": 0.00011620055296435172,
+    "uniformPairScalePredictedRimError": 0.0001166470934866269,
+    "float32StepRim": 0.6404178738594055,
+    "float32StepRimError": 3.110029711539397e-08,
+    "normalizedXY": [
+      -0.12884446025860624,
+      0.9916648148747986
+    ]
+  },
+  "interpretation": "Dominant rim error is reconstructed sin/cos pair length, amplified homogeneously by fourth powers. FP32 steps with accurate trig and the quarter-power alone do not explain it. Math-library reference is not a GPU emulator. Production correction and unchanged strict guard require hosted rerun."
+}

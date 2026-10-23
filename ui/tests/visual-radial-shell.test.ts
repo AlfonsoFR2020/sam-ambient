@@ -54,6 +54,29 @@ const poses = [
 const near = (a: SkinVector, b: SkinVector) => Math.hypot(...subtract(a, b));
 
 describe("experimental connected radial sectors (CPU, no shader execution)", () => {
+  it("removes the measured atan/trig reconstruction error without changing the mathematical rim", () => {
+    const theta = 1.7000000476837158;
+    const p = {
+      ...windows[0],
+      halfAzimuth: Math.fround(windows[0].halfAzimuth),
+      halfLatitude: Math.fround(windows[0].halfLatitude),
+      phase: Math.fround(windows[0].phase),
+    };
+    // Real hosted run 40010281390. This is a replay of measured intermediates,
+    // not a fake GPU proof or a replacement for the strict transform-feedback gate.
+    const measured: readonly [number, number] = [-0.12882786989212036, 0.9914833307266235];
+    const xy: readonly [number, number] = [-0.08251428604125977, 0.6350798010826111];
+    const cs: readonly [number, number] = [xy[0] / Math.hypot(...xy), xy[1] / Math.hypot(...xy)];
+    const reference = radialShellRim(p, theta);
+    expect(Math.abs(radialShellRim(p, theta, measured)[0] - reference[0])).toBeGreaterThan(0.0001);
+    expect(Math.abs(radialShellRim(p, theta, cs)[0] - reference[0])).toBeLessThan(0.0000001);
+    for (const theta of [-Math.PI, -1.7, 0, 1.7, Math.PI]) {
+      const xy = [Math.cos(theta) * 0.63, Math.sin(theta) * 0.63];
+      expect(
+        radialShellRim(p, theta, [xy[0] / Math.hypot(...xy), xy[1] / Math.hypot(...xy)])[0],
+      ).toBeCloseTo(radialShellRim(p, theta)[0], 14);
+    }
+  });
   for (const budget of Object.values(RENDER_BUDGETS)) {
     it(`${budget.quality}: exhaustively validates connected topology, outward rest winding and welded polar seams`, () => {
       const mesh = createRadialShellGeometry(budget),

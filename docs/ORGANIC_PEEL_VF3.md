@@ -42,3 +42,41 @@ The existing sandboxed hosted workflow is reused for a bounded three-strategy
 matrix, particle alternatives, numerical intermediate trace and synthetic UI
 interaction. No local graphical execution is permitted or performed. Actual
 results and final disposition follow after evidence, not from this source checkpoint.
+
+## First actual comparison and evidence-led correction
+
+[Run 40010281390](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40010281390)
+retains all 27 geometry views, four particle comparisons and four UI screenshots in
+[its evidence directory](evidence/orb-vf3/40010281390). Four UI interaction tests pass;
+the graphical test fails solely on the unchanged strict radial position guard.
+Parent and positive-peel proofs pass (192 samples each); peels have max position
+error .0000069374 and normal error .0001304003. All three render through WebGL2.
+
+The new positive peel removes circular window rims and has clear lifted silhouette,
+but its fronts are still rounded/leaf-like and several tips form an upright crown.
+These negative images are retained. One bounded refinement lengthens/asymmetrically
+curves the domains, reverses one peel's direction and varies the sweep. Low uses
+six radial rows instead of four to support the longer curve. It remains a candidate,
+not an accepted default; a second matched render must judge the result.
+
+The actual shader trace at the old worst sample shows sin(1.7000000477) = .9914833307
+instead of .9916648043 and cos = -.1288278699 instead of -.1288445416. Pair length
+is .999817891. The fourth-power superellipse turns this nonunit pair into a
+.0001162006 rim error, then .000581 collar error. The quarter-power's error at the
+GPU's own input is only 2.47e-8. The [independent arithmetic record](evidence/orb-vf3/radial-precision-diagnosis.json)
+also evaluates packed uniforms and explicit Float32 steps: ordinary rounding with
+accurate trig does not explain the measured error. Uniform pair scaling predicts
+the dominant rim shift. This identifies the redundant angle/trig reconstruction,
+not the quarter-root or chart map, as the significant source on this renderer.
+
+CPU/GLSL now use the normalized chart x/y directly for the rim base, derivative and
+gradient. This is the same mathematical direction, without atan-to-sin/cos loss;
+it is not a tolerance change or geometry clamp. Shape harmonics and all default
+equations stay unchanged. A replay regression protects the measured sensitivity.
+The strict .0001 position/.005 normal gates stay mandatory for the second run.
+
+UI screenshots expose a concrete additional defect: an admitted loading snapshot
+could display primary **Ready** while the secondary status said Loading. A focused
+test first reproduces its missing primary label, then passes after existing lifecycle
+labels are retained by the status projection. No readiness authority or state machine
+changes. Narrow footer alignment is also corrected from the actual screenshot.

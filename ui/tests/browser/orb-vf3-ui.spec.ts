@@ -69,6 +69,7 @@ test("synthetic workspace tools, focus and quiet loading presentation", async ({
   const startup = page.getByRole("complementary", { name: "Sam startup" });
   await expect(startup).toBeVisible();
   await expect(startup).toContainText(/loading|preparing/i);
+  await expect(page.locator(".status > span").nth(1)).toHaveText("Loading Synthetic model");
   expect((await startup.boundingBox())?.width).toBeLessThanOrEqual(305);
   await page.screenshot({ path: info.outputPath("ui-loading.png") });
   const consoleButton = page.getByRole("button", { name: "Console", exact: true });
@@ -95,5 +96,16 @@ test("synthetic workspace tools, focus and quiet loading presentation", async ({
   expect(box?.x).toBeGreaterThanOrEqual(0);
   expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(390);
   await page.screenshot({ path: info.outputPath("ui-memory-narrow.png") });
+  const footer = await Promise.all(
+    ["Controls", "Quit", "Console", "Memory"].map((name) =>
+      page.getByRole("button", { name, exact: true }).boundingBox(),
+    ),
+  );
+  expect(
+    footer.every((box) => box && box.width > 0 && box.x >= 0 && box.x + box.width <= 390),
+  ).toBe(true);
+  expect(
+    Math.max(...footer.map((b) => b?.y ?? 0)) - Math.min(...footer.map((b) => b?.y ?? 0)),
+  ).toBeLessThan(1);
   expect(errors).toEqual([]);
 });
