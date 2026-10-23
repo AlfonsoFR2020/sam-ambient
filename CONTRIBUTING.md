@@ -64,6 +64,12 @@ Changes to configuration keys must include validation
 tests and update `config/sam.example.toml` plus the relevant setup/user docs.
 CI validates releases but never publishes them.
 
+The isolated feature-branch [V-F2 graphics workflow](.github/workflows/orb-graphical-proof.yml)
+uses one sandboxed hosted browser and short-retention fixture evidence. It is not
+part of ordinary local validation. Its config refuses local execution; occupied-PC
+restrictions prohibit launching it locally. See [the proof contract](docs/RADIAL_SHELL_PROOF_VF2.md)
+for permissions, exact comparison inputs and the software-renderer limitations.
+
 Optional offline Windows acoustic experiments require **already installed** C++
 Build Tools/Windows SDK and the existing NumPy fixture environment. The build
 helper installs nothing and writes only ignored `.sam` artifacts. See the

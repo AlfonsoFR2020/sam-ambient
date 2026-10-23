@@ -1,0 +1,71 @@
+name: Orb graphical proof (experimental)
+
+on:
+  push:
+    branches: [feature/orb-appearance-foundation]
+    paths:
+      - .github/workflows/orb-graphical-proof.yml
+      - ui/playwright.orb-vf2.config.ts
+      - ui/tests/browser/orb-vf2.spec.ts
+      - ui/tests/fixtures/orb-vf2.ts
+      - ui/tests/fixtures/visual-identity-II.ts
+      - ui/tests/fixtures/skin-gpu-proof.ts
+      - ui/src/visual-engine/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orb-graphical-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proof:
+    if: github.repository == 'AlfonsoFR2020/sam-ambient'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/vf2-browsers
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+      - name: Install existing locked frontend dependencies
+        working-directory: ui
+        run: pnpm install --frozen-lockfile
+      - name: Verify committed source and production-asset provenance
+        run: |
+          mkdir -p vf2-evidence
+          python3 -m scripts.check_frontend_assets --output vf2-evidence/source-assets.json
+      - name: Install pinned Playwright Chromium on hosted runner only
+        working-directory: ui
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Bounded isolated graphics, one worker, no inherited credentials
+        working-directory: ui
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/vf2-home" "$RUNNER_TEMP/vf2-temp"
+          env -i PATH="$PATH" HOME="$RUNNER_TEMP/vf2-home" TMPDIR="$RUNNER_TEMP/vf2-temp" \
+            CI=true GITHUB_ACTIONS=true SAM_HOSTED_GRAPHICS=vf2 \
+            SAM_VF2_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            PLAYWRIGHT_BROWSERS_PATH="$PLAYWRIGHT_BROWSERS_PATH" \
+            NODE_OPTIONS=--max-old-space-size=1536 GOMAXPROCS=1 UV_THREADPOOL_SIZE=1 \
+            timeout 360s node node_modules/@playwright/test/cli.js test -c playwright.orb-vf2.config.ts
+      - name: Preserve screenshots, source identity and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orb-vf2-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            vf2-evidence/
+            ui/test-results/
+          retention-days: 3
+          if-no-files-found: error
