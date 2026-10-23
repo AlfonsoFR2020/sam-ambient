@@ -1,4 +1,5 @@
 import { useId, useRef, useState, useSyncExternalStore } from "react";
+import { WorkspacePanelHeader, WorkspaceToolButton } from "../components/WorkspaceTool";
 import type { ProtocolClient } from "../state/client";
 import { TERMINAL_ACTION_STATES } from "./state";
 
@@ -41,31 +42,23 @@ export function AgencyConsole({
   const activeCount = actions.filter((action) => !TERMINAL_ACTION_STATES.has(action.state)).length;
   return (
     <>
-      <button
-        type="button"
-        className="agency-reveal"
-        ref={reveal}
-        title="Console · run bounded owner actions and inspect their results"
-        aria-expanded={open}
-        aria-controls={panelId}
+      <WorkspaceToolButton
+        tool="Console"
+        buttonRef={reveal}
+        expanded={open}
+        controls={panelId}
         onClick={() => setOpen(!open)}
-      >
-        Console
-      </button>
+      />
       {open && (
         <section id={panelId} className="agency-console" aria-label="Sam Console">
-          <header>
-            <strong>Sam Console</strong>
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                reveal.current?.focus();
-              }}
-            >
-              Close
-            </button>
-          </header>
+          <WorkspacePanelHeader
+            title="Sam Console"
+            description="Bounded owner actions"
+            onClose={() => {
+              setOpen(false);
+              reveal.current?.focus();
+            }}
+          />
           <p>Inspect workspace files, system information and public pages. Results appear below.</p>
           {!connected && <output>Connect through Sam's owner window to run actions.</output>}
           {activeCount >= 4 && (

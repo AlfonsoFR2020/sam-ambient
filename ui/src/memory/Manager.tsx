@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { TERMINAL_ACTION_STATES } from "../agency/state";
+import { WorkspacePanelHeader, WorkspaceToolButton } from "../components/WorkspaceTool";
 import type { ProtocolClient } from "../state/client";
 import { type MemoryRecord, memoryRecord, memoryRows } from "./model";
 
@@ -106,13 +107,11 @@ export function MemoryManager({
 
   return (
     <>
-      <button
-        type="button"
-        className="memory-reveal"
-        ref={reveal}
-        title="Memory · review and manage Sam’s saved local records"
-        aria-expanded={open}
-        aria-controls={panelId}
+      <WorkspaceToolButton
+        tool="Memory"
+        buttonRef={reveal}
+        expanded={open}
+        controls={panelId}
         onClick={() => {
           const next = !open;
           setOpen(next);
@@ -123,26 +122,20 @@ export function MemoryManager({
             setEditing(undefined);
           }
         }}
-      >
-        Memory
-      </button>
+      />
       {open && (
         <section id={panelId} className="memory-manager" aria-label="Sam Memory">
-          <header>
-            <strong>Sam Memory</strong>
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                reveal.current?.focus();
-                setRecords([]);
-                setEditing(undefined);
-                setContent("");
-              }}
-            >
-              Close
-            </button>
-          </header>
+          <WorkspacePanelHeader
+            title="Sam Memory"
+            description="Reviewed personal context"
+            onClose={() => {
+              setOpen(false);
+              reveal.current?.focus();
+              setRecords([]);
+              setEditing(undefined);
+              setContent("");
+            }}
+          />
           <p>
             Selected local context, not chat history. Proposed claims require review; credentials do
             not belong here.

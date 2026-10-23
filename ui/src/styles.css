@@ -1384,6 +1384,130 @@ select {
   border-radius: 0.65rem;
   padding: 0.7rem;
 }
+
+/* V-F3: one compact tool vocabulary; nonmodal surfaces keep real owner actions. */
+.workspace-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.015em;
+}
+.workspace-tool svg {
+  color: #c49e77;
+  flex-shrink: 0;
+}
+.workspace-tools > button:hover {
+  background: #302821;
+  border-color: #c6a78088;
+}
+:is(.workspace-tools, .memory-manager, .agency-console, .startup-card)
+  :is(button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid #e2b986;
+  outline-offset: 3px;
+}
+:is(.memory-manager, .agency-console) {
+  border-radius: 18px;
+  border-color: #a88f704d;
+  background: linear-gradient(150deg, #25211ef5, #141618fa);
+  padding: 22px;
+}
+.memory-manager {
+  top: 112px;
+  max-height: calc(100dvh - 190px);
+}
+.agency-console {
+  inset: 112px max(20px, calc((100vw - 720px) / 2)) 108px;
+}
+.workspace-panel__header {
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #c6a78030;
+  gap: 16px;
+}
+.workspace-panel__header h2 {
+  font-size: 1.05rem;
+  font-weight: 550;
+  margin: 4px 0 0;
+  letter-spacing: 0.015em;
+}
+.workspace-panel__eyebrow {
+  color: #c4a584;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+:is(.memory-manager, .agency-console) > p {
+  color: #bcae9f;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+:is(.memory-manager, .agency-console) button {
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+}
+:is(.memory-manager, .agency-console) button:hover:enabled {
+  border-color: #dab489;
+  background: #393027;
+}
+:is(.memory-manager, .agency-console) button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+:is(.memory-manager, .agency-console) input,
+:is(.memory-manager, .agency-console) select,
+.memory-manager textarea {
+  min-height: 36px;
+  font: inherit;
+  font-size: 0.8rem;
+  max-width: 100%;
+}
+.startup-card {
+  top: 112px;
+  width: min(300px, calc(100vw - 40px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+}
+.startup-card[data-expanded="true"] {
+  width: min(390px, calc(100vw - 40px));
+}
+.startup-card__identity {
+  width: 32px;
+  height: 32px;
+  font-size: 0.86rem;
+  background: #b77f50;
+  box-shadow: none;
+}
+.startup-card h1 {
+  font-size: 1rem;
+}
+.startup-card__toggle {
+  border-top: 1px solid #bfa78b25;
+  padding-top: 8px;
+  width: 100%;
+  text-align: left;
+}
+@media (max-width: 600px) {
+  .agency-console {
+    inset: 104px 12px 80px;
+    padding: 16px;
+  }
+  .memory-manager {
+    top: 104px;
+    right: 12px;
+    width: calc(100vw - 24px);
+    padding: 16px;
+  }
+  .startup-card {
+    top: 104px;
+    right: 12px;
+  }
+}
 .controls__sessions p,
 .controls__sessions small {
   margin: 0;

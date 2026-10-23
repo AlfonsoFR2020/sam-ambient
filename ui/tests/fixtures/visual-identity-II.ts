@@ -1,4 +1,5 @@
 import type { OrbAppearanceId } from "../../src/visual-engine/appearance";
+import type { ParticlePresentation } from "../../src/visual-engine/geometry";
 import { MotionEvaluator, type MotionFrame } from "../../src/visual-engine/motion";
 import { RENDER_BUDGETS, type ResolvedQuality } from "../../src/visual-engine/quality";
 import {
@@ -63,6 +64,8 @@ export function fixture(
   options: {
     size?: number;
     appearance?: OrbAppearanceId;
+    particleCount?: 64 | 128 | 256;
+    particlePresentation?: ParticlePresentation;
     dpr?: number;
     bodyOnly?: boolean;
     membraneOnly?: boolean;
@@ -79,6 +82,7 @@ export function fixture(
     dpr = options.dpr ?? 1;
   const budget = {
     ...RENDER_BUDGETS[quality],
+    ...(quality === "high" && options.particleCount ? { particles: options.particleCount } : {}),
     membraneDepthPass: options.depthPass ?? RENDER_BUDGETS[quality].membraneDepthPass,
     peels: options.bodyOnly || options.particlesOnly ? 0 : RENDER_BUDGETS[quality].peels,
     ...(options.membraneOnly || options.particlesOnly
@@ -204,6 +208,7 @@ export function fixture(
       0x5a17,
       evaluator,
       options.appearance,
+      options.particlePresentation,
     );
     backend.resize(size, size, dpr);
     backend.update(visualInput(0));

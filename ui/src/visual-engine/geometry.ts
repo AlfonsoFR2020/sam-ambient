@@ -50,7 +50,14 @@ export function createSphereGeometry(longitude: number, latitude: number): Index
 }
 
 /** Seeded, tier-stable analytic paths; an interleaved radial quantile gives a sparse far tail. */
-export function createParticleGeometry(count: number, seed = 0x5a17): ArrayGeometry {
+export type ParticlePresentation = "released" | "near-field";
+export function createParticleGeometry(
+  count: number,
+  seed = 0x5a17,
+  presentation: ParticlePresentation = "released",
+): ArrayGeometry {
+  if (!Number.isInteger(count) || count < 0 || count > 256)
+    throw new RangeError("particle setup cap is 256");
   const random = seeded(seed ^ 0x9e37_79b9);
   const vertices = new Float32Array(count * 8);
   for (let index = 0; index < count; index++) {
@@ -78,6 +85,20 @@ export function createParticleGeometry(count: number, seed = 0x5a17): ArrayGeome
       ],
       index * 8,
     );
+    if (presentation === "near-field") {
+      // Eight-bit radical inverse distributes all tested caps without repeating a
+      // 64-slot radial pattern. Smaller, near-body motes replace the coarse far tail.
+      let bits = index,
+        reversed = 0;
+      for (let b = 0; b < 8; b++) {
+        reversed = reversed * 2 + (bits & 1);
+        bits >>>= 1;
+      }
+      const q = (reversed + 0.5) / 256;
+      vertices[index * 8 + 1] = 1.12 + 0.62 * q * q;
+      vertices[index * 8 + 4] *= 0.64;
+      vertices[index * 8 + 6] *= 0.82 * (1 - 0.45 * q);
+    }
   }
   return { vertices, count };
 }

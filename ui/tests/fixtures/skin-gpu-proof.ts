@@ -1,5 +1,10 @@
 import { type OrbAppearanceId, resolveOrbAppearance } from "../../src/visual-engine/appearance";
 import { type SkinPose, skinNormal } from "../../src/visual-engine/membrane";
+import {
+  createOrganicPeels,
+  organicPeelDirection,
+  organicPeelRegion,
+} from "../../src/visual-engine/organic-peel";
 import { RENDER_BUDGETS } from "../../src/visual-engine/quality";
 import {
   createRadialShellWindows,
@@ -68,9 +73,22 @@ out vec3 proof_position;
 out vec3 proof_normal;
 out vec3 proof_regions;
 out vec3 proof_domain;
+out vec4 proof_rim;
+out vec4 proof_math;
+out vec4 proof_shape;
 void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_normal=livingSkinNormal(n);
 proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);
 ${strategy.id === "radial-sectors" ? "vec2 xy=radialShellCoordinates(n,0);proof_domain=vec3(xy,atan(xy.y,xy.x));" : "proof_domain=vec3(0.);"}
+${
+  strategy.id === "radial-sectors"
+    ? `
+float t=proof_domain.z,c=cos(t),s=sin(t),a=u_contact_centers[0].w,b=u_contact_shapes[0].x;
+vec2 square=vec2(c*c/(a*a),s*s/(b*b));float sum=dot(square,square),phase=u_contact_shapes[0].w;
+proof_rim=vec4(length(proof_domain.xy),radialShellRim(0,t).x,c,s);
+proof_math=vec4(sum,pow(sum,-.25),cos(3.*t+phase),sin(2.*t-phase));
+proof_shape=vec4(a,b,phase,u_contact_shapes[0].y);`
+    : "proof_rim=vec4(0.);proof_math=vec4(0.);proof_shape=vec4(0.);"
+}
 gl_Position=vec4(0.,0.,0.,1.);}`,
     );
     const fragment = compile(
@@ -83,7 +101,15 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
     gl.attachShader(program, fragment);
     gl.transformFeedbackVaryings(
       program,
-      ["proof_position", "proof_normal", "proof_regions", "proof_domain"],
+      [
+        "proof_position",
+        "proof_normal",
+        "proof_regions",
+        "proof_domain",
+        "proof_rim",
+        "proof_math",
+        "proof_shape",
+      ],
       gl.INTERLEAVED_ATTRIBS,
     );
     gl.linkProgram(program);
@@ -123,6 +149,11 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
               ),
             );
           }
+    else if (strategy.id === "organic-peels")
+      for (const p of createOrganicPeels())
+        for (const u of [-0.7, -0.3, 0.4, 0.99])
+          for (const v of [-0.08, -0.03, 0.03, 0.08])
+            directions.push(...organicPeelDirection(p, u, v));
     else
       for (const p of createRadialShellWindows())
         for (const theta of [0, 1.7, 3.4, 5.1])
@@ -136,7 +167,7 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
               ),
             );
           }
-    const stride = 12;
+    const stride = 24;
     const input = new Float32Array(directions),
       output = new Float32Array((input.length / 3) * stride);
     vao = gl.createVertexArray();
@@ -216,7 +247,9 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
         const q =
           strategy.id === "connected-parent"
             ? createSkinOpenings().map((opening) => skinRegion(n, opening).q)
-            : createRadialShellWindows().map((window) => radialShellRegion(n, window).q);
+            : strategy.id === "organic-peels"
+              ? createOrganicPeels().map((p) => organicPeelRegion(n, p)[0])
+              : createRadialShellWindows().map((window) => radialShellRegion(n, window).q);
         for (let axis = 0; axis < 3; axis++) {
           const error = Math.abs(p[axis] - output[i * stride + axis]);
           if (error > maxPositionError) {
@@ -233,6 +266,16 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
               domainGPU:
                 strategy.id === "radial-sectors"
                   ? Array.from(output.slice(i * stride + 9, i * stride + 12))
+                  : null,
+              traceGPU:
+                strategy.id === "radial-sectors"
+                  ? {
+                      radiusRimCosSin: Array.from(output.slice(i * stride + 12, i * stride + 16)),
+                      sumBaseCos3Sin2: Array.from(output.slice(i * stride + 16, i * stride + 20)),
+                      halfWidthHeightPhaseCollar: Array.from(
+                        output.slice(i * stride + 20, i * stride + 24),
+                      ),
+                    }
                   : null,
             };
           }

@@ -1,7 +1,12 @@
 import { type OrbAppearanceId, resolveOrbAppearance } from "./appearance";
 import type { RendererBackend } from "./backend";
 import { DISCOURSE_CREST_GLSL } from "./discourse-crest";
-import { createParticleGeometry, createSphereGeometry, type IndexedGeometry } from "./geometry";
+import {
+  createParticleGeometry,
+  createSphereGeometry,
+  type IndexedGeometry,
+  type ParticlePresentation,
+} from "./geometry";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
 import { LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
 import type { MotionEvaluator, MotionFrame } from "./motion";
@@ -529,6 +534,7 @@ export class WebGLBackend implements RendererBackend {
     seed: number,
     motion: MotionEvaluator,
     appearance?: OrbAppearanceId,
+    particlePresentation: ParticlePresentation = "released",
   ) {
     this.reducedMotionMedia =
       typeof matchMedia === "undefined"
@@ -640,7 +646,7 @@ export class WebGLBackend implements RendererBackend {
         [{ location: 0, size: 2, offset: 0 }],
         this.resources,
       );
-      const particleGeometry = createParticleGeometry(budget.particles, seed);
+      const particleGeometry = createParticleGeometry(budget.particles, seed, particlePresentation);
       this.particles = arrayResource(
         gl,
         particleGeometry.vertices,

@@ -1,5 +1,16 @@
 # Decision log
 
+## 2026-10-23 — V-F3 positive peel experiment, default preserved
+
+Following owner rejection of V-F2's panel/casing morphology, test three broad-rooted
+positive lobes instead of more openings in a complete coat. Their film mesh has
+three components attached to the common displaced body. This reversible artistic
+interpretation follows V-F3's explicit preference for peel identity over formal
+connectedness. It is internal only; the connected parent remains default. Reuse
+shared material coordinates, clocks, complete-surface normals, renderer and six
+draw ranges. See [V-F3 evidence and limitations](ORGANIC_PEEL_VF3.md). No default
+acceptance, new theme system or claim of missing-reference reconstruction follows.
+
 ## 2026-10-23 — V-F1 explicit appearance and skin boundaries
 
 Keep one visual engine and its authoritative presentation-only MotionFrame. A closed

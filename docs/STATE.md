@@ -4,6 +4,8 @@ Updated: 2026-10-23. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
+- V-F3 source work: [positive organic peel experiment](ORGANIC_PEEL_VF3.md), bounded particle comparisons and shared tool presentation are in progress on the isolated feature. Hosted comparison/numerical trace pending; parent default retained. V-F2 morphology is owner-rejected, pigment preserved.
+
 - V-F2 feature: [hosted radial/parent evidence](RADIAL_SHELL_PROOF_VF2.md) captures matched WebGL2 views; 73 focused CPU passes and matching 73-input build. Strict radial GPU parity remains open; default unchanged, no dev merge or owner acceptance.
 - V-E [sessions/audit](SESSION_CONTINUITY_VE.md): New/Resume/rehydration has 176 scoped Python / 182 frontend passes at its checkpoint; its 68-input assets are historical.
   V-E recorded docs PR #7 draft / test-maintenance PR #8 green and unmerged; no remote check in V-F1. V-D [assets](KEYBOARD_PTT_VD.md) are historical.
