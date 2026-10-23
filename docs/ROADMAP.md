@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 checkpoint (2026-10-22): V-D public-docs draft PR and opt-in keyboard PTT.**
+**Current HQ4 checkpoint (2026-10-23): V-D integrated assets, public-docs draft PR and opt-in keyboard PTT.**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -12,7 +12,7 @@ This plan grants no version bump, runtime permission, remote action or automatic
 ## Reconciled near-term programme
 
 [Owner requirements](OWNER_REQUIREMENTS.md) records intent/provenance/acceptance;
-[BACKLOG's current index](BACKLOG.md#current-execution-index--v-c-reconciliation-2026-10-22)
+[BACKLOG's current index](BACKLOG.md#current-execution-index--v-d-closure-2026-10-23)
 retains actions. This is the current ordering; dated proposals below are history.
 Severity, privacy/data integrity, core usability and dependencies lead; recurrence,
 owner emphasis, age/deferral, benefit, feasibility and cost follow. Cheap new work
@@ -34,7 +34,8 @@ connected-skin baseline. Naming it starts neither a branch nor implementation.
 Meaningful verified experimental increments remain preferred over indefinite
 perfection; unavailable human beta does not block independent safe engineering.
 
-V-D's [PTT contract](KEYBOARD_PTT.md) records source and acceptance boundaries.
+V-D's [closure/evidence](KEYBOARD_PTT_VD.md) and [PTT contract](KEYBOARD_PTT.md)
+record integrated assets, 189 Python / 165 frontend passes and acceptance boundaries.
 [Public draft PR #7](https://github.com/AlfonsoFR2020/sam-ambient/pull/7) contains
 only the release-based 15-path documentation/tooling diff, now at `5047050`.
 Existing hosted CI is authorized; Windows quality/native and CodeQL pass, while

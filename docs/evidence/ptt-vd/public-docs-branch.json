@@ -1,0 +1,120 @@
+{
+  "profile": "release",
+  "pages": 18,
+  "local_links": 102,
+  "svg_sha256_lf": {
+    "sam-system-architecture.svg": "eda3e1c07475a02fdd4ad73c55bf3647687716e188ae1c3aa268b5b2c3e4f9e5",
+    "sam-conversation-lifecycle.svg": "78e457014acdf512d4377cebff8eefe3cebd5a95a9983154035a63341c20d6ca"
+  },
+  "minimum_palette_text_contrast": 6.64,
+  "rendered": false,
+  "external_urls_checked": false,
+  "release_diff": {
+    "base": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+    "commits": 3,
+    "changed_files": [
+      "CONTRIBUTING.md",
+      "README.md",
+      "SAM_AMBIENT_CODEX_SPEC.md",
+      "docs/ARCHITECTURE.md",
+      "docs/DEVELOPMENT_STATUS.md",
+      "docs/GETTING_STARTED.md",
+      "docs/PUBLIC_DOCUMENTATION_VC.md",
+      "docs/TROUBLESHOOTING.md",
+      "docs/USER_GUIDE.md",
+      "docs/diagrams/README.md",
+      "docs/diagrams/sam-conversation-lifecycle.svg",
+      "docs/diagrams/sam-system-architecture.svg",
+      "scripts/check_public_docs.py",
+      "scripts/generate_architecture_diagrams.py",
+      "tests/unit/test_public_docs_checker.py"
+    ]
+  },
+  "verifiedDate": "2026-10-23",
+  "branch": "docs/public-v025-refresh",
+  "head": "50470506277b23324c5793e3ff0b920a6f7df21e",
+  "pullRequest": {
+    "url": "https://github.com/AlfonsoFR2020/sam-ambient/pull/7",
+    "draft": true,
+    "state": "OPEN",
+    "base": "main"
+  },
+  "remoteRefsReadOnly": {
+    "main": "dc64c5d180fb44cf7a29bf4d0d1ae2f853347709",
+    "dev": "2527ee278c0b12d4f05927495d4a9260d16b2b94",
+    "docs/public-v025-refresh": "50470506277b23324c5793e3ff0b920a6f7df21e"
+  },
+  "hostedChecks": [
+    {
+      "name": "Quality (ubuntu-latest)",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810029325/job/119933487850"
+    },
+    {
+      "name": "Quality (ubuntu-latest)",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810023672/job/119933468158"
+    },
+    {
+      "name": "Analyze (actions)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810024090/job/119933475857"
+    },
+    {
+      "name": "Quality (windows-latest)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810029325/job/119933487219"
+    },
+    {
+      "name": "Quality (windows-latest)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810023672/job/119933468133"
+    },
+    {
+      "name": "Analyze (c-cpp)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810024090/job/119933476316"
+    },
+    {
+      "name": "Analyze (javascript-typescript)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810024090/job/119933476436"
+    },
+    {
+      "name": "Analyze (python)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810024090/job/119933476472"
+    },
+    {
+      "name": "Analyze (rust)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810024090/job/119933476346"
+    },
+    {
+      "name": "Native package (Windows)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810029325/job/119933486699"
+    },
+    {
+      "name": "Native package (Windows)",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810023672/job/119933467454"
+    },
+    {
+      "name": "Package smoke",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810029325/job/119935232227"
+    },
+    {
+      "name": "Package smoke",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39810023672/job/119936800942"
+    },
+    {
+      "name": "CodeQL",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/AlfonsoFR2020/sam-ambient/runs/119933744564"
+    }
+  ],
+  "ciLimitation": "Ubuntu quality fails the unchanged released test_committed_voice_turn_replaces_generation_waiting_for_first_output live-active-generation assertion. Windows quality/native and CodeQL pass; package smoke skipped. The event-based assertion repair remains only on dev; no release runtime/test/workflow change or bypass."
+}

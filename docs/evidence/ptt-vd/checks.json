@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "assignment": "V-D",
+  "verifiedDate": "2026-10-23",
+  "sourceCommit": "231fb7da26b5d777cf50b65c5fe8e6df3285eb08",
+  "python": {
+    "distinctPassed": 189,
+    "failed": 0,
+    "skipped": 0,
+    "byModule": {
+      "tests.integration.test_voice_input_pipeline": 13,
+      "tests.integration.test_voice_stream_lifecycle": 24,
+      "tests.unit.test_cancellation": 5,
+      "tests.unit.test_control_commands": 10,
+      "tests.unit.test_local_controls": 5,
+      "tests.unit.test_owner_requirements": 7,
+      "tests.unit.test_protocol": 7,
+      "tests.unit.test_public_docs_checker": 14,
+      "tests.unit.test_public_documentation": 15,
+      "tests.unit.test_push_to_talk": 23,
+      "tests.unit.test_sounddevice_audio": 15,
+      "tests.unit.test_stt_stream_integrity": 28,
+      "tests.unit.test_voice_recovery": 9,
+      "tests.voice_sim.test_turn_manager": 14
+    }
+  },
+  "frontend": {
+    "distinctPassed": 165,
+    "failed": 0,
+    "skipped": 0,
+    "byFile": {
+      "ui/tests/client.test.ts": 13,
+      "ui/tests/commands.test.ts": 14,
+      "ui/tests/conversation-faults.test.ts": 10,
+      "ui/tests/conversation_lifecycle.test.ts": 17,
+      "ui/tests/demo.test.ts": 1,
+      "ui/tests/native-runtime.test.ts": 1,
+      "ui/tests/presence.test.ts": 7,
+      "ui/tests/protocol.test.ts": 3,
+      "ui/tests/provider-reliability.test.ts": 14,
+      "ui/tests/push-to-talk.test.ts": 33,
+      "ui/tests/reducer.test.ts": 37,
+      "ui/tests/status.test.ts": 11,
+      "ui/tests/websocket-transport.test.ts": 4
+    },
+    "workers": 1,
+    "environment": "node; no browser"
+  },
+  "accounting": "174 Python core/adjacent/checker cases plus 15 disjoint original documentation cases; repeated focus runs and release-profile repeats are not added.",
+  "static": {
+    "ruff": "13 changed Python files pass lint and format",
+    "biome": "7 changed frontend source/test files pass",
+    "typescript": "tsc -b --pretty false passes",
+    "diagrams": "generator --check passes; no rasterization",
+    "git": "fsck --connectivity-only --no-dangling --no-progress passes"
+  },
+  "repeatedProfiles": {
+    "releaseDocumentationCheckerPassed": 14,
+    "finalDevelopmentDocumentationPassed": 36,
+    "includedInDistinctTotal": false
+  },
+  "limits": [
+    "No physical capture, recognition accuracy, acoustic timing or application run",
+    "No browser, GPU, graphical layout, owner acceptance or native packaging locally"
+  ]
+}

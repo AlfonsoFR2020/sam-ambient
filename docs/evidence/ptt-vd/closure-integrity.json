@@ -1,0 +1,29 @@
+{
+  "profile": "development",
+  "pages": 21,
+  "local_links": 244,
+  "svg_sha256_lf": {
+    "sam-system-architecture.svg": "eda3e1c07475a02fdd4ad73c55bf3647687716e188ae1c3aa268b5b2c3e4f9e5",
+    "sam-conversation-lifecycle.svg": "78e457014acdf512d4377cebff8eefe3cebd5a95a9983154035a63341c20d6ca"
+  },
+  "minimum_palette_text_contrast": 6.64,
+  "rendered": false,
+  "external_urls_checked": false,
+  "closurePages": 5,
+  "closureLocalLinks": 46,
+  "requirements": {
+    "requirements": 66,
+    "styles": 11,
+    "priority_bands": {
+      "P0": 7,
+      "P1": 33,
+      "P2": 9,
+      "P3": 17
+    },
+    "dependencies_resolve": true,
+    "prerequisite_cycles": false,
+    "acceptance_inferred": false
+  },
+  "assetEvidenceMatches": true,
+  "countsAgree": true
+}

@@ -1,6 +1,7 @@
 # Post-0.2 engineering backlog
 
-## Current execution index — V-C reconciliation, 2026-10-22
+<a id="current-execution-index--v-c-reconciliation-2026-10-22"></a>
+## Current execution index — V-D closure, 2026-10-23
 
 [Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
 IDs; this file remains the retained action backlog. [ROADMAP](ROADMAP.md) orders
@@ -38,6 +39,14 @@ parallel queues. No row grants execution permission.
   branch. Main, About and topics remain unchanged; [V-C](PUBLIC_DOCUMENTATION_VC.md) is history.
 
 ## Dated implementation evidence
+
+**2026-10-23 V-D:** [closure/evidence](KEYBOARD_PTT_VD.md). UX-11 opt-in F8 capture,
+release/focus/cancellation ownership and typed recovery pass deterministic checks:
+189 distinct scoped Python / 165 frontend cases; canonical assets include the final
+focus fix. Physical input, accessibility and owner acceptance remain open. CONV-08
+is design-only future control, with no changed acoustic threshold. Public PR #7 is
+draft and CI-blocked as above; no merge/version/dev push. Next independent safe
+candidate: UX-08 session/resume/history continuity under a new bounded HQ assignment.
 
 **2026-10-22 V-B:** [speech classification / evidence](SPEECH_RECOGNITION_VB.md).
 Fixed and deterministically verified: duplicate/concurrent utterance finalization,

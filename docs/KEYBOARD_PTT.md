@@ -91,7 +91,8 @@ typed supersession/recovery, invalid/empty/provisional/foreign recognition, dela
 noncooperative finals, postcommit focus cancellation and immutable route handoff.
 They measure control/ownership behavior, not recognition accuracy or physical latency.
 
-See [requirements UX-11](OWNER_REQUIREMENTS.md#ux-11),
+See the [V-D closure and build evidence](KEYBOARD_PTT_VD.md),
+[requirements UX-11](OWNER_REQUIREMENTS.md#ux-11),
 [architecture](ARCHITECTURE.md) and [user guide](USER_GUIDE.md).
 Graphical/focus, natural bilingual speech, actual devices and owner acceptance remain
 separate gates. No application/audio/browser session is authorized by this document.
