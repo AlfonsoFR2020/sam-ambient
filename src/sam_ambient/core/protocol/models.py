@@ -17,6 +17,7 @@ class ProtocolError(ValueError):
 
 class EventType(StrEnum):
     SYSTEM_READY = "system.ready"
+    CONVERSATION_CHANGED = "conversation.changed"
     SYSTEM_STOPPING = "system.stopping"
     COMPONENT_HEALTH = "component.health"
     COMPONENT_ERROR = "component.error"
@@ -56,6 +57,8 @@ class ControlCommandType(StrEnum):
     MICROPHONE_SET = "control.microphone.set"
     VOICE_INPUT_MODE_SET = "control.voice_input_mode.set"
     PUSH_TO_TALK = "control.push_to_talk"
+    CONVERSATION_SELECT = "control.conversation.select"
+    CONVERSATION_LAUNCH_POLICY_SET = "control.conversation.launch_policy.set"
     TTS_OUTPUT_SET = "control.tts_output.set"
     STOP_SPEAKING = "control.stop_speaking"
     EMERGENCY_STOP = "control.emergency_stop"

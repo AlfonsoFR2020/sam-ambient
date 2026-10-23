@@ -4,8 +4,8 @@ Updated: 2026-10-23. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
-- V-D [closure/assets](KEYBOARD_PTT_VD.md): opt-in hold F8; 189 Python / 165 frontend checks pass; production assets match.
-  Public docs draft PR #7 (`5047050`) is pushed; Ubuntu's unchanged release test assertion blocks CI.
+- V-E [audit/session work](SESSION_CONTINUITY_VE.md): V-D is sound; session backend has 58 scoped Python passes; UI/build pending.
+  Public docs PR #7 stays draft; isolated released-test maintenance PR #8 is green and unmerged. V-D [assets](KEYBOARD_PTT_VD.md) are historical.
 - [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
   late/foreign results and bounds pre-roll. Explicit en/es and safe metadata remain.
   Its 256 scoped Python / 71 frontend passes are historical; generated WER is unchanged.

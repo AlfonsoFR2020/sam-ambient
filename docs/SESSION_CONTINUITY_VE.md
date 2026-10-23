@@ -71,8 +71,14 @@ ready snapshot exposes only a recovered count, **not saved messages**, so a fres
 can legitimately present empty history although the store still has text. This is a
 reproducible missing rehydration contract, not evidence that historical data was lost.
 
-The implementation will retain resume as default, reattach reload/reconnect to the
-live session, add authenticated new/resume commands and a persisted launch policy,
-and keep model routes/Memory separate. Session changes block active work. A genuine
-application-launch identity, already supplied by the supervisor, will distinguish
-fresh launch from core recovery. Final implementation and evidence follow below.
+The backend retains resume as default and adds authenticated new/resume commands,
+a persisted launch policy and private history/draft snapshots. The supervisor's
+existing application-launch identity distinguishes fresh launch from core recovery.
+Session/revision compare-and-select is atomic; cancellation cannot strand durable
+selection ahead of live state. Active response, PTT/capture cleanup, tools and enabled
+ordinary input block switching (mute input first). Prior committed records remain;
+no operation is automatically replayed, and model selection/Memory stay separate.
+The additive registry backfills legacy state without altering existing text tables.
+History/inference queries filter session **before** their limits. Snapshot text and
+retained-session lists are bounded. Thirteen new session cases and 45 adjacent
+cases pass; Ruff passes. Frontend integration and final evidence follow below.

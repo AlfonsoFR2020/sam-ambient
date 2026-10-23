@@ -57,7 +57,8 @@ from sam_ambient.core.providers import (
     ProviderTimeout,
     RoutingPolicy,
 )
-from sam_ambient.core.storage import SQLiteSessionStore
+from sam_ambient.core.session.conversation import ConversationView
+from sam_ambient.core.storage import SQLiteSessionStore, StoredMessage
 from sam_ambient.core.tools import (
     AppOpenTool,
     ApprovalBroker,
@@ -289,6 +290,7 @@ class RuntimeConfig:
     allow_cloud: bool = False
     workspace_writable: bool = False
     runtime_instance_id: str | None = None
+    application_instance_id: str | None = None
     capability_epoch: int = 0
     capabilities_active: bool = True
     capability_reason: str | None = None
@@ -599,13 +601,17 @@ class SamRuntime:
                 self._lifecycle_settings = _validated_lifecycle_settings(persisted_lifecycle)
             except ValueError:
                 log.warning("Ignoring invalid persisted lifecycle preferences")
-        self.session_id = self.state.session_id() if self.state is not None else str(uuid4())
-        self._recovered_message_count = (
-            len(self.state.recent(limit=50)) if self.state is not None else 0
+        selection = (
+            self.state.open_conversation(config.application_instance_id) if self.state else None
         )
+        self.session_id = selection.session_id if selection else str(uuid4())
+        self.conversations = ConversationView(self.session_id, selection)
+        self._session_changing = False
+        self._recovered_message_count = len(self.conversations.history)
         self.events = events or EventBus()
         self.trace = ConversationTrace()
         self.events.add_observer(self.trace.event)
+        self.events.add_observer(self.conversations.observe)
         self.cancellations = CancellationRegistry()
         self.voice_turns = TurnManager(self.session_id)
         self.voice = voice
@@ -759,6 +765,7 @@ class SamRuntime:
                 cancel_capability=self._cancel_owner_action,
                 set_voice_input_mode=self._set_voice_input_mode,
                 push_to_talk=self._push_to_talk,
+                conversation_control=self._conversation_control,
             ),
             clock_ms=self._next_event_ms,
             observer=self.trace.command,
@@ -1488,6 +1495,8 @@ class SamRuntime:
     ) -> str:
         if self._closed:
             raise RuntimeError("runtime is closed")
+        if self._session_changing:
+            raise RuntimeError("Wait for the conversation change before submitting")
         if self._provider_phase == "unloading_model":
             raise RuntimeError("Wait for the model unload before sending a request")
         normalized = text.strip()
@@ -1690,15 +1699,7 @@ class SamRuntime:
         manager = turn_manager or (self.voice_turns if voice_managed else None)
         try:
             cancellation.raise_if_cancelled()
-            if self.state is not None:
-                await asyncio.to_thread(
-                    self.state.append,
-                    session_id=session_id,
-                    turn_id=turn_id,
-                    role="user",
-                    content=text,
-                    committed_at_ms=time.time_ns() // 1_000_000,
-                )
+            await self._remember_conversation_message(session_id, turn_id, "user", text)
             if manager is not None:
                 if manager.state is VoiceState.IDLE:
                     accepted = manager.accept_text_turn(
@@ -1934,15 +1935,9 @@ class SamRuntime:
                         cancellation_id=cancellation.cancellation_id,
                         payload={"text": assistant_text, "outcome": "completed"},
                     )
-                if self.state is not None:
-                    await asyncio.to_thread(
-                        self.state.append,
-                        session_id=session_id,
-                        turn_id=turn_id,
-                        role="assistant",
-                        content=assistant_text,
-                        committed_at_ms=time.time_ns() // 1_000_000,
-                    )
+                await self._remember_conversation_message(
+                    session_id, turn_id, "assistant", assistant_text
+                )
                 await self._publish_generation(
                     EventType.TRANSCRIPT_FINAL,
                     generation_id,
@@ -2141,7 +2136,7 @@ class SamRuntime:
         """Reuse bounded committed state, never generated-but-undelivered content."""
         if self.state is None:
             return []
-        recent = await asyncio.to_thread(self.state.recent, limit=12)
+        recent = await asyncio.to_thread(self.state.recent, limit=12, session_id=session_id)
         result: list[Message] = []
         remaining = 6_000
         for item in reversed(recent):
@@ -2153,6 +2148,126 @@ class SamRuntime:
             remaining -= len(item.content)
         result.reverse()
         return result
+
+    async def _remember_conversation_message(
+        self, session_id: str, turn_id: str, role: str, text: str
+    ) -> None:
+        committed_at_ms = time.time_ns() // 1_000_000
+        if self.state is not None:
+            item = await asyncio.to_thread(
+                self.state.append,
+                session_id=session_id,
+                turn_id=turn_id,
+                role=role,
+                content=text,
+                committed_at_ms=committed_at_ms,
+            )
+        else:
+            item = StoredMessage(
+                session_id, turn_id, role, text[:16_384], committed_at_ms, len(text) > 16_384
+            )
+        self.conversations.remember(item)
+
+    async def _conversation_control(
+        self, command: ControlCommand, owner: OwnerConnection
+    ) -> Mapping[str, object]:
+        if self._closed or not owner.active or command.session_id != self.session_id:
+            raise ValueError("Conversation requires the current authenticated session")
+        if self.state is None:
+            raise ValueError("Retained conversation controls require operational storage")
+        data = command.payload
+        revision = data.get("expected_revision")
+        if (
+            isinstance(revision, bool)
+            or not isinstance(revision, int)
+            or revision != self.conversations.revision
+        ):
+            raise ValueError("Conversation changed; refresh before trying again")
+        if command.type == "control.conversation.launch_policy.set":
+            if set(data) != {"expected_revision", "policy"} or data.get("policy") not in {
+                "resume",
+                "new",
+            }:
+                raise ValueError("Choose resume or new launch policy")
+            action, target = "policy", data["policy"]
+        else:
+            action, target = data.get("action"), data.get("target_session_id")
+            if not (
+                (action == "new" and set(data) == {"action", "expected_revision"})
+                or (
+                    action == "resume"
+                    and set(data) == {"action", "expected_revision", "target_session_id"}
+                    and isinstance(target, str)
+                    and 0 < len(target) <= 128
+                )
+            ):
+                raise ValueError("Choose an explicit new or retained conversation")
+        if (
+            self._session_changing
+            or not self._active_done.is_set()
+            or self._active_playback_generation_id is not None
+            or (self._active_response_task is not None and not self._active_response_task.done())
+            or self._ptt is not None
+            or (self._ptt_task is not None and not self._ptt_task.done())
+            or self._voice_listen_token is not None
+            or self.owner_actions.active
+            or (
+                self.voice is not None
+                and self.controls.microphone_enabled
+                and self._voice_input_mode == "ordinary"
+            )
+        ):
+            raise ValueError(
+                "Stop the response and mute ordinary input; wait for capture/tools to finish"
+            )
+        self._session_changing = True
+        previous = self.session_id
+        interrupted = False
+        task = asyncio.create_task(
+            asyncio.to_thread(
+                self.state.change_conversation,
+                session_id=previous,
+                expected_revision=revision,
+                action=action,
+                target=target,
+            )
+        )
+        try:
+            # A disconnected requester cannot leave durable selection ahead of live state.
+            while not task.done():
+                try:
+                    await asyncio.shield(task)
+                except asyncio.CancelledError:
+                    interrupted = True
+            selected = task.result()
+            self._generation_epoch += 1
+            self.session_id = selected.session_id
+            if action == "policy":
+                self.conversations.revision = selected.revision
+                self.conversations.launch_policy = selected.launch_policy
+            else:
+                self.conversations.restore(selected)
+                self.voice_turns = TurnManager(self.session_id)
+            self._recovered_message_count = len(selected.history)
+            event = self._ready_event()
+            event = replace(
+                event,
+                type=EventType.CONVERSATION_CHANGED,
+                payload={
+                    **event.payload,
+                    "previous_session_id": previous,
+                    "command_id": command.command_id,
+                },
+            )
+            await self.events.publish(event)
+            if interrupted:
+                raise asyncio.CancelledError
+            return {
+                "conversation_session_id": self.session_id,
+                "conversation_revision": selected.revision,
+            }
+        finally:
+            self._session_changing = False
 
     async def _deliver_assistant(
         self,
@@ -3165,6 +3280,7 @@ class SamRuntime:
             or command.session_id != self.session_id
             or not owner.active
             or self._closed
+            or self._session_changing
         ):
             raise ValueError("PTT requires a current authenticated input identity")
         identity, action = data["gesture_id"], data["action"]
@@ -3656,6 +3772,11 @@ class SamRuntime:
                 "capability_authority_epoch": authority.epoch,
                 "runtime_instance_id": self.config.runtime_instance_id,
                 "recovered_message_count": self._recovered_message_count,
+                "conversation": self.conversations.snapshot(
+                    active_turn_id=self._active_turn_id
+                    if self._active_generation_id is not None
+                    else None
+                ),
             },
         )
 

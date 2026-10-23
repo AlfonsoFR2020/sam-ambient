@@ -870,6 +870,7 @@ async def _serve_runtime(
             allow_cloud=args.allow_cloud,
             workspace_writable=args.allow_workspace_write,
             runtime_instance_id=args.runtime_instance_id,
+            application_instance_id=args.application_instance_id,
             capability_epoch=args.capability_epoch,
             capabilities_active=not (args.capabilities_revoked or args.safe_mode),
             capability_reason=(

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import time
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from dataclasses import dataclass
@@ -25,6 +26,15 @@ class StoredMessage:
     content: str
     committed_at_ms: int
     truncated: bool
+
+
+@dataclass(frozen=True, slots=True)
+class ConversationSelection:
+    session_id: str
+    revision: int
+    launch_policy: str
+    history: tuple[StoredMessage, ...]
+    retained: tuple[dict[str, object], ...]
 
 
 class SQLiteSessionStore:
@@ -53,6 +63,10 @@ class SQLiteSessionStore:
                         committed_at_ms INTEGER NOT NULL,
                         truncated INTEGER NOT NULL CHECK(truncated IN (0, 1)),
                         UNIQUE(session_id, turn_id, role)
+                    );
+                    CREATE TABLE IF NOT EXISTS conversation_sessions (
+                        session_id TEXT PRIMARY KEY,
+                        created_at_ms INTEGER NOT NULL
                     );
                     """
                 )
@@ -270,6 +284,10 @@ class SQLiteSessionStore:
         try:
             with self._connect() as connection:
                 connection.execute(
+                    "INSERT OR IGNORE INTO conversation_sessions VALUES (?,?)",
+                    (session_id, committed_at_ms),
+                )
+                connection.execute(
                     """INSERT OR IGNORE INTO committed_messages(
                         session_id, turn_id, role, content, committed_at_ms, truncated
                     ) VALUES (?, ?, ?, ?, ?, ?)""",
@@ -285,16 +303,159 @@ class SQLiteSessionStore:
             raise RuntimeStateError("failed to persist committed message") from error
         return StoredMessage(session_id, turn_id, role, bounded, committed_at_ms, truncated)
 
-    def recent(self, *, limit: int = 50) -> tuple[StoredMessage, ...]:
+    def recent(
+        self, *, limit: int = 50, session_id: str | None = None
+    ) -> tuple[StoredMessage, ...]:
         if not 1 <= limit <= self.maximum_messages:
             raise ValueError("message limit is outside the configured bound")
         try:
             with self._connect() as connection:
                 rows = connection.execute(
                     """SELECT session_id, turn_id, role, content, committed_at_ms, truncated
-                       FROM committed_messages ORDER BY sequence DESC LIMIT ?""",
-                    (limit,),
+                       FROM committed_messages WHERE (? IS NULL OR session_id = ?)
+                       ORDER BY sequence DESC LIMIT ?""",
+                    (session_id, session_id, limit),
                 ).fetchall()
         except sqlite3.DatabaseError as error:
             raise RuntimeStateError("failed to load committed messages") from error
         return tuple(StoredMessage(*row[:-1], bool(row[-1])) for row in reversed(rows))
+
+    @staticmethod
+    def _conversation_metadata(connection) -> tuple[int, str]:
+        values = dict(
+            connection.execute(
+                "SELECT key,value FROM runtime_metadata WHERE key IN "
+                "('conversation_schema','conversation_revision','conversation_launch_policy')"
+            )
+        )
+        if values.get("conversation_schema", "1") != "1":
+            raise RuntimeStateError("unsupported conversation state schema")
+        try:
+            revision = int(values.get("conversation_revision", "0"))
+            if not 0 <= revision < 2**53 - 1:
+                raise ValueError
+        except ValueError as error:
+            raise RuntimeStateError("invalid conversation revision") from error
+        policy = values.get("conversation_launch_policy", "resume")
+        return revision, policy if policy in {"resume", "new"} else "resume"
+
+    @staticmethod
+    def _metadata_set(connection, key: str, value: str) -> None:
+        connection.execute(
+            "INSERT OR REPLACE INTO runtime_metadata(key,value) VALUES (?,?)", (key, value)
+        )
+
+    def _conversation_selection(self, connection, session_id: str) -> ConversationSelection:
+        revision, policy = self._conversation_metadata(connection)
+        rows = connection.execute(
+            """SELECT session_id,turn_id,role,content,committed_at_ms,truncated
+               FROM committed_messages WHERE session_id=? ORDER BY sequence DESC LIMIT 50""",
+            (session_id,),
+        ).fetchall()
+        retained = connection.execute(
+            """SELECT s.session_id,COUNT(m.sequence),
+                      COALESCE(MAX(m.committed_at_ms),s.created_at_ms)
+               FROM conversation_sessions s LEFT JOIN committed_messages m
+               ON m.session_id=s.session_id GROUP BY s.session_id
+               ORDER BY (s.session_id=?) DESC,3 DESC,s.rowid DESC LIMIT 32""",
+            (session_id,),
+        ).fetchall()
+        return ConversationSelection(
+            session_id,
+            revision,
+            policy,
+            tuple(StoredMessage(*row[:-1], bool(row[-1])) for row in reversed(rows)),
+            tuple(
+                {"session_id": row[0], "message_count": row[1], "updated_at_ms": row[2]}
+                for row in retained
+            ),
+        )
+
+    def open_conversation(
+        self, application_instance_id: str | None = None
+    ) -> ConversationSelection:
+        """Additive legacy upgrade; a supervisor launch is distinct from core recovery."""
+        current = self.session_id()
+        try:
+            with self._connect() as connection:
+                connection.execute("BEGIN IMMEDIATE")
+                revision, policy = self._conversation_metadata(connection)
+                connection.execute(
+                    """INSERT OR IGNORE INTO conversation_sessions
+                       SELECT session_id,MIN(committed_at_ms) FROM committed_messages
+                       GROUP BY session_id"""
+                )
+                self._metadata_set(connection, "conversation_schema", "1")
+                if application_instance_id:
+                    if (
+                        len(application_instance_id) > 128
+                        or application_instance_id.strip() != application_instance_id
+                    ):
+                        raise ValueError("invalid application launch identity")
+                    row = connection.execute(
+                        "SELECT value FROM runtime_metadata "
+                        "WHERE key='conversation_launch_instance'"
+                    ).fetchone()
+                    if (not row or row[0] != application_instance_id) and policy == "new":
+                        current = str(uuid4())
+                        self._metadata_set(connection, "session_id", current)
+                        self._metadata_set(connection, "conversation_revision", str(revision + 1))
+                    self._metadata_set(
+                        connection, "conversation_launch_instance", application_instance_id
+                    )
+                connection.execute(
+                    "INSERT OR IGNORE INTO conversation_sessions VALUES (?,?)",
+                    (current, time.time_ns() // 1_000_000),
+                )
+                return self._conversation_selection(connection, current)
+        except sqlite3.DatabaseError as error:
+            raise RuntimeStateError("conversation state is unavailable") from error
+
+    def change_conversation(
+        self,
+        *,
+        session_id: str,
+        expected_revision: int,
+        action: str,
+        target: str | None = None,
+    ) -> ConversationSelection:
+        """Atomic compare-and-select; no message deletion or inference replay."""
+        try:
+            with self._connect() as connection:
+                connection.execute("BEGIN IMMEDIATE")
+                revision, _ = self._conversation_metadata(connection)
+                current = connection.execute(
+                    "SELECT value FROM runtime_metadata WHERE key='session_id'"
+                ).fetchone()
+                if not current or current[0] != session_id or revision != expected_revision:
+                    raise ValueError("Conversation changed; refresh before trying again")
+                if action == "new":
+                    target = str(uuid4())
+                    connection.execute(
+                        "INSERT INTO conversation_sessions VALUES (?,?)",
+                        (target, time.time_ns() // 1_000_000),
+                    )
+                elif action == "resume":
+                    if not connection.execute(
+                        "SELECT 1 FROM conversation_sessions WHERE session_id=?", (target,)
+                    ).fetchone():
+                        raise ValueError("Retained conversation is unavailable")
+                elif action == "policy" and target in {"resume", "new"}:
+                    self._metadata_set(connection, "conversation_launch_policy", target)
+                    target = session_id
+                else:
+                    raise ValueError("Unsupported conversation operation")
+                assert target is not None
+                self._metadata_set(connection, "session_id", target)
+                self._metadata_set(connection, "conversation_revision", str(revision + 1))
+                # Bound empty descriptors; never delete committed text to start a session.
+                connection.execute(
+                    """DELETE FROM conversation_sessions WHERE session_id != ?
+                       AND session_id NOT IN (SELECT session_id FROM committed_messages)
+                       AND rowid NOT IN (SELECT rowid FROM conversation_sessions
+                                         ORDER BY rowid DESC LIMIT 64)""",
+                    (target,),
+                )
+                return self._conversation_selection(connection, target)
+        except sqlite3.DatabaseError as error:
+            raise RuntimeStateError("conversation change could not be saved") from error

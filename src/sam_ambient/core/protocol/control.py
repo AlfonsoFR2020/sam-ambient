@@ -64,6 +64,9 @@ class CoreControlBindings:
     push_to_talk: (
         Callable[[ControlCommand, OwnerConnection], Awaitable[Mapping[str, object]]] | None
     ) = None
+    conversation_control: (
+        Callable[[ControlCommand, OwnerConnection], Awaitable[Mapping[str, object]]] | None
+    ) = None
 
 
 class ControlDispatcher:
@@ -167,6 +170,15 @@ class ControlDispatcher:
                 payload["cancel_requested"] = await self._bindings.cancel_capability(
                     command, owner_connection
                 )
+        elif command_type in {
+            ControlCommandType.CONVERSATION_SELECT,
+            ControlCommandType.CONVERSATION_LAUNCH_POLICY_SET,
+        }:
+            if owner_connection is None or not owner_connection.active:
+                raise ValueError("authenticated owner connection required")
+            if self._bindings.conversation_control is None:
+                raise ValueError("conversation controls unavailable")
+            payload.update(await self._bindings.conversation_control(command, owner_connection))
         elif command_type in {
             ControlCommandType.VOICE_INPUT_MODE_SET,
             ControlCommandType.PUSH_TO_TALK,
