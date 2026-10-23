@@ -22,7 +22,9 @@ concurrency:
 jobs:
   proof:
     if: github.repository == 'AlfonsoFR2020/sam-ambient'
-    runs-on: ubuntu-latest
+    # Newer Ubuntu AppArmor policy blocks the bundled Chromium user-namespace sandbox.
+    # Keep browser sandboxing enabled; use the compatible hosted image, no sysctl edits.
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
