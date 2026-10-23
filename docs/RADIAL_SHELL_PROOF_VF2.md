@@ -17,7 +17,7 @@ V-F1 modification was established. Fresh compatibility/radial checks: 21 passes.
 The 73-input build verifies at source commit
 `7f5101eab088d680b0e8379a64f7e4d3de7a3885`, clean at build, LF digest
 `e95e1edc6e5f68b3d1b99b142ba5fabab153c7ba09f355d655c1cb52dd33c73b`.
-`index-BoytXu27.js` / `index-Brem5iPs.css` remain the ordinary launcher's assets.
+At that starting checkpoint `index-BoytXu27.js` / `index-Brem5iPs.css` were the ordinary launcher's assets.
 The source/asset checker, not the branch name or bundle filename alone, establishes
 coherence. [V-F1](ORB_APPEARANCE_VF1.md) retains the numerical/resource baseline.
 
@@ -114,6 +114,15 @@ This avoids inverse-sine amplification and a redundant trigonometric round trip.
 A CPU equivalence/seam/polar regression and all adjacent selected geometry,
 material, resource and recovery checks pass: 73 distinct cases in ten files.
 The strict GPU limits remain unchanged; the corrected hosted proof is pending.
+
+One low-priority canonical frontend build (`tsc -b && vite build`) then completed
+in 3.77 seconds without warnings at clean source commit
+`1d03eacd77269f75539c12e704e97e401ab23b1b`. The replacement production bundle is
+`index-DZgAZCHC.js`; CSS remains `index-Brem5iPs.css`. All 73 inputs and artifact
+hashes match [the current build record](evidence/orb-vf2/frontend-assets.json), LF
+digest `ab27f92db63cbb8fdba91e33cd46fcd89a14e77e0a896b2b96928111d25f9139`.
+No production input is edited after this build. The old bundle is superseded,
+and default appearance remains `living-connected`.
 
 Hosted ordinary CI then passed all 380 frontend cases but exposed 17 existing
 format/import-order findings in eleven visual files. Only those files were

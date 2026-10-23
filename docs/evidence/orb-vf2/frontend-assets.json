@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "sourceCommit": "1d03eacd77269f75539c12e704e97e401ab23b1b",
+  "sourceDirtyAtBuild": false,
+  "sourceDigestSha256Lf": "ab27f92db63cbb8fdba91e33cd46fcd89a14e77e0a896b2b96928111d25f9139",
+  "sourceFileCount": 73,
+  "visualIdentity": "connected-skin-ivd-experimental",
+  "entryAssets": [
+    "/assets/index-Brem5iPs.css",
+    "/assets/index-DZgAZCHC.js"
+  ],
+  "artifactSha256": {
+    "src/sam_ambient/static/.vite/manifest.json": "5ef97031e8791111a6628b2781c40f9e7db9320847d87c55afe89e62b6e7b486",
+    "src/sam_ambient/static/assets/index-Brem5iPs.css": "ef69e6477c39f48e87e5ae7e8cf8749dbe520f8923a7af50a6b5538aea55ff56",
+    "src/sam_ambient/static/assets/index-DZgAZCHC.js": "49b3b0d5b4719f9d548c16b465c53074f652d855abf399c290b9999a4bdf56ed",
+    "src/sam_ambient/static/assets/sam-build.json": "0609a54c2cc9efcfedf5b0a491d9907af83f444f293969f09d94b108b53a74f5",
+    "src/sam_ambient/static/index.html": "0a593f1baef82fe20a1357e0a6183d2774ff919d3cfd73c77be3d699fb7b1042"
+  },
+  "graphicalExecution": false
+}
