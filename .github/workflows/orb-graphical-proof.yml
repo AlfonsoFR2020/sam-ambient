@@ -38,6 +38,9 @@ jobs:
           node-version: 22
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install existing locked frontend dependencies
         working-directory: ui
         run: pnpm install --frozen-lockfile

@@ -84,6 +84,12 @@ verified source/assets and installed the locked browser, but Chromium exited bef
 page creation: `No usable sandbox` on the current Ubuntu/AppArmor image. No WebGL
 context or screenshot exists from that attempt. One bounded retry uses the hosted
 Ubuntu 22.04 image; browser sandboxing and OS security settings remain intact.
+Its [first preflight](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39983452379)
+then exposed Ubuntu 22.04's default Python 3.10, below Sam's existing Python 3.12
+requirement (`Path.is_junction` unavailable). The workflow now explicitly selects
+Python 3.12; the source checker and its filesystem protections remain unchanged.
+Ordinary CI separately found three pre-existing line-length errors in
+`prepare_visual_iv_baseline.py`; a formatter-only correction preserves its logic.
 
 Hosted rendering results remain pending. No local browser,
 GPU fixture, app, provider or audio was launched. Source verification of the new
