@@ -4,8 +4,6 @@ import {
   createSphereGeometry,
   particleParameters,
 } from "../src/visual-engine/geometry";
-import { createSkinOpenings, SKIN_VERTEX_STRIDE } from "../src/visual-engine/skin-domain";
-import { createSkinGeometry } from "../src/visual-engine/skin-geometry";
 import {
   PARTICLE_GOLD,
   PARTICLE_POINT_SIZE_RANGE,
@@ -19,6 +17,8 @@ import {
   resolveRenderBudget,
 } from "../src/visual-engine/quality";
 import { resolveVisualEngineSettings } from "../src/visual-engine/settings";
+import { createSkinOpenings, SKIN_VERTEX_STRIDE } from "../src/visual-engine/skin-domain";
+import { createSkinGeometry } from "../src/visual-engine/skin-geometry";
 import { HALO_OPACITY_SCALE, haloOpacity } from "../src/visual-engine/tuning";
 
 describe("visual quality and geometry", () => {
@@ -100,15 +100,31 @@ describe("visual quality and geometry", () => {
   });
 
   it("accounts actual connected-skin arrays and preserves draw/particle envelopes", () => {
-    const expected = { low: [1136, 2040, 32988], medium: [5004, 9504, 150252], high: [17600, 34272, 519500] };
+    const expected = {
+      low: [1136, 2040, 32988],
+      medium: [5004, 9504, 150252],
+      high: [17600, 34272, 519500],
+    };
     for (const budget of Object.values(RENDER_BUDGETS)) {
-      const body = createSphereGeometry(budget.sphereLongitude, budget.sphereLatitude), skin = createSkinGeometry(budget);
+      const body = createSphereGeometry(budget.sphereLongitude, budget.sphereLatitude),
+        skin = createSkinGeometry(budget);
       const particles = createParticleGeometry(budget.particles);
-      const bytes = body.vertices.byteLength + body.indices.byteLength + skin.vertices.byteLength + skin.indices.byteLength + particles.vertices.byteLength;
-      expect([body.vertices.length / 6 + skin.vertices.length / 3, (body.indices.length + skin.indices.length) / 3, bytes]).toEqual(expected[budget.quality]);
+      const bytes =
+        body.vertices.byteLength +
+        body.indices.byteLength +
+        skin.vertices.byteLength +
+        skin.indices.byteLength +
+        particles.vertices.byteLength;
+      expect([
+        body.vertices.length / 6 + skin.vertices.length / 3,
+        (body.indices.length + skin.indices.length) / 3,
+        bytes,
+      ]).toEqual(expected[budget.quality]);
       expect(bytes + 44 + (budget.quality === "high" ? 448 : 224)).toBeLessThan(1.5 * 1024 * 1024);
       expect(skin.ranges).toHaveLength(6);
-      expect(3 + skin.ranges.length + Number(budget.membraneDepthPass)).toBe(budget.quality === "high" ? 10 : 9);
+      expect(3 + skin.ranges.length + Number(budget.membraneDepthPass)).toBe(
+        budget.quality === "high" ? 10 : 9,
+      );
     }
   });
 

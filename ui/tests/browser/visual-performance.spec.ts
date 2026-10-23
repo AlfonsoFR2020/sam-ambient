@@ -28,7 +28,10 @@ test("isolated visual tier and synthetic audio cost sample", async ({ page }) =>
       { name: "low", budget: RENDER_BUDGETS.low },
       { name: "medium", budget: RENDER_BUDGETS.medium },
       { name: "high", budget: RENDER_BUDGETS.high },
-      { name: "high-coarse-skin", budget: { ...RENDER_BUDGETS.high, skinSegments: 12, skinRows: 8 } },
+      {
+        name: "high-coarse-skin",
+        budget: { ...RENDER_BUDGETS.high, skinSegments: 12, skinRows: 8 },
+      },
       { name: "high-no-membrane", budget: { ...RENDER_BUDGETS.high, peels: 0 } },
       { name: "high-output", budget: RENDER_BUDGETS.high, audio: "output" },
       { name: "high-input", budget: RENDER_BUDGETS.high, audio: "input" },

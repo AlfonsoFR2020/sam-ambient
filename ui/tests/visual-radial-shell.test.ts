@@ -180,6 +180,33 @@ describe("experimental connected radial sectors (CPU, no shader execution)", () 
         );
       }
   });
+  it("keeps the stable angular map equivalent to the spherical domain, including seam and polar guards", () => {
+    for (const p of windows)
+      for (const latitude of [-1.55, -0.7, 0, 0.7, 1.55])
+        for (const azimuth of [
+          -Math.PI,
+          -Math.PI + 1e-7,
+          p.azimuth - 0.6,
+          p.azimuth + 0.4,
+          Math.PI - 1e-7,
+          Math.PI,
+        ]) {
+          const n = radialShellDirection(p, azimuth, latitude);
+          const oldLatitude = Math.asin(Math.max(-1, Math.min(1, skinDot(n, p.axis))));
+          const a = Math.atan2(skinDot(n, p.side), skinDot(n, p.equator)) - p.azimuth;
+          const x = Math.atan2(Math.sin(a), Math.cos(a)),
+            y = oldLatitude - p.latitude;
+          const theta = Math.atan2(y, x),
+            r = Math.hypot(x, y);
+          const expected =
+            Math.cos(oldLatitude) < 0.1
+              ? 0
+              : Math.max(0, Math.min(1.1, (radialShellRim(p, theta)[0] + p.collar - r) / p.collar));
+          const actual = radialShellRegion(n, p);
+          expect(actual.q).toBeCloseTo(expected, 11);
+          expect(actual.inward.every(Number.isFinite)).toBe(true);
+        }
+  });
   it("has C1 resting hinges, smooth free-edge extensions, correct angular derivatives and outward finite rim normals", () => {
     const h = 1e-5;
     for (const p of windows)

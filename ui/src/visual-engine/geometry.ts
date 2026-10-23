@@ -4,7 +4,6 @@ import {
   type ParticleParameters,
 } from "./particles";
 
-
 export interface IndexedGeometry {
   readonly vertices: Float32Array;
   readonly indices: Uint16Array;

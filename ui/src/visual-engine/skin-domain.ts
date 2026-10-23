@@ -34,11 +34,18 @@ export function createSkinFaces(seed = 0x5a17): readonly SkinFace[] {
   // One rigid, seed-dependent layout rotation; never a running material clock.
   const angle = ((seed >>> 0) / 0x1_0000_0000) * Math.PI * 2 + 0.27;
   const rotate = (n: SkinVector): SkinVector => [
-    Math.cos(angle) * n[0] + Math.sin(angle) * n[2], n[1],
+    Math.cos(angle) * n[0] + Math.sin(angle) * n[2],
+    n[1],
     -Math.sin(angle) * n[0] + Math.cos(angle) * n[2],
   ];
-  const axes: readonly SkinVector[] = [[0, 0, 1], [1, 0, 0], [0, -1, 0],
-    [0, 0, -1], [-1, 0, 0], [0, 1, 0]];
+  const axes: readonly SkinVector[] = [
+    [0, 0, 1],
+    [1, 0, 0],
+    [0, -1, 0],
+    [0, 0, -1],
+    [-1, 0, 0],
+    [0, 1, 0],
+  ];
   return axes.map((n) => {
     const a = skinNormalize(skinCross(Math.abs(n[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0], n));
     return { center: rotate(n), tangent: rotate(a), side: rotate(skinCross(n, a)) };
@@ -53,10 +60,14 @@ export function createSkinOpenings(seed = 0x5a17): readonly SkinOpening[] {
     return state / 0x1_0000_0000;
   };
   return Array.from({ length: SKIN_OPENING_COUNT }, (_, face) => ({
-    ...faces[face], face,
-    x: [0.09, -0.12, 0.04][face], y: [-0.12, 0.08, 0.15][face],
-    radius: [0.43, 0.34, 0.29][face], collar: [0.30, 0.34, 0.31][face],
-    height: [0.051, 0.043, 0.037][face], curl: [0.047, 0.043, 0.039][face],
+    ...faces[face],
+    face,
+    x: [0.09, -0.12, 0.04][face],
+    y: [-0.12, 0.08, 0.15][face],
+    radius: [0.43, 0.34, 0.29][face],
+    collar: [0.3, 0.34, 0.31][face],
+    height: [0.051, 0.043, 0.037][face],
+    curl: [0.047, 0.043, 0.039][face],
     phase: random() * Math.PI * 2,
   }));
 }
@@ -94,8 +105,9 @@ export function skinRegion(n: SkinVector, p: SkinOpening): SkinRegion {
   const gy = -Math.sin(theta) + slope * Math.cos(theta);
   // Spherical gradient of R(theta)-r in the gnomonic chart. A radial ray
   // alone is not perpendicular to an irregular rim and would shear the curl.
-  const gradient = p.center.map((c, i) =>
-    gx * (p.tangent[i] - (x + p.x) * c) + gy * (p.side[i] - (y + p.y) * c)) as unknown as SkinVector;
+  const gradient = p.center.map(
+    (c, i) => gx * (p.tangent[i] - (x + p.x) * c) + gy * (p.side[i] - (y + p.y) * c),
+  ) as unknown as SkinVector;
   return {
     // Extend through the free boundary for symmetric derivative samples.
     q: Math.min(1.1, Math.max(0, (skinRimRadius(p, theta) + p.collar - distance) / p.collar)),

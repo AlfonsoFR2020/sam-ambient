@@ -106,6 +106,23 @@ finite/bound/unit checks retains every vertex, triangle and existing sampled
 normal while avoiding per-vertex assertion allocation. The same 23 focused cases
 pass locally in a 2.12-second run; this is test efficiency, not renderer timing.
 
+The [worst-sample rerun](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39984683127)
+reproduces radial q error 0.0005810748 at the free collar, with 23-bit vertex highp
+and finite outputs. The prototype now computes latitude from `atan(axis, length(equator,side))`
+and wraps longitude arithmetically; the CPU reference uses the equivalent map.
+This avoids inverse-sine amplification and a redundant trigonometric round trip.
+A CPU equivalence/seam/polar regression and all adjacent selected geometry,
+material, resource and recovery checks pass: 73 distinct cases in ten files.
+The strict GPU limits remain unchanged; the corrected hosted proof is pending.
+
+Hosted ordinary CI then passed all 380 frontend cases but exposed 17 existing
+format/import-order findings in eleven visual files. Only those files were
+formatted; the frozen default shader/geometry snapshots still pass. A local
+whole-directory lint attempt additionally scanned ignored historical baseline
+copies and CRLF-normalized unrelated files; it failed and made no edits. Focused
+changed-file lint and TypeScript pass; fresh hosted LF-checkout lint is authoritative
+for the complete tracked tree. No gate is disabled or weakened.
+
 No local browser,
 GPU fixture, app, provider or audio was launched. Source verification of the new
 comparison plan passes 23 focused CPU tests (including the 21 closure cases),

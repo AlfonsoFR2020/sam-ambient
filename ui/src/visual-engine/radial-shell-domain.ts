@@ -73,11 +73,17 @@ export function radialShellRim(p: RadialShellWindow, theta: number): readonly [n
   return [base * shape, base * (slope - (0.25 * shape * derivative) / sum)];
 }
 export function radialShellRegion(n: SkinVector, p: RadialShellWindow): SkinRegion {
-  const latitude = Math.asin(Math.min(1, Math.max(-1, skinDot(n, p.axis))));
+  const along = skinDot(n, p.axis),
+    across = skinDot(n, p.equator),
+    side = skinDot(n, p.side);
+  // atan2 with both projected components avoids inverse-sine amplification and
+  // matches the stable GPU map. No transcendental round trip is needed to wrap.
+  const latitude = Math.atan2(along, Math.hypot(across, side));
   const cosine = Math.cos(latitude);
   if (cosine < 0.1) return { q: 0, theta: 0, inward: p.equator };
-  const azimuth = Math.atan2(skinDot(n, p.side), skinDot(n, p.equator));
-  const x = Math.atan2(Math.sin(azimuth - p.azimuth), Math.cos(azimuth - p.azimuth));
+  const azimuth = Math.atan2(side, across);
+  const delta = azimuth - p.azimuth;
+  const x = delta - 2 * Math.PI * Math.floor((delta + Math.PI) / (2 * Math.PI));
   const y = latitude - p.latitude,
     r = Math.hypot(x, y);
   const theta = r < 1e-8 ? 0 : Math.atan2(y, x);
@@ -127,9 +133,11 @@ vec2 radialShellRim(int i,float theta) {
   return vec2(base*shape,base*(slope-.25*shape*derivative/sum));
 }
 vec2 radialShellCoordinates(vec3 n,int i) {
-  float azimuth=atan(dot(n,u_contact_sides[i].xyz),dot(n,u_contact_tangents[i].xyz));
+  vec3 projected=vec3(dot(n,u_contact_tangents[i].xyz),dot(n,u_contact_centers[i].xyz),dot(n,u_contact_sides[i].xyz));
+  float azimuth=atan(projected.z,projected.x);
   float delta=azimuth-u_contact_tangents[i].w;
-  return vec2(atan(sin(delta),cos(delta)),asin(clamp(dot(n,u_contact_centers[i].xyz),-1.,1.))-u_contact_sides[i].w);
+  delta-=6.283185307179586*floor((delta+3.141592653589793)/6.283185307179586);
+  return vec2(delta,atan(projected.y,length(projected.xz))-u_contact_sides[i].w);
 }
 vec2 skinRegion(vec3 n,int i) {
   if(abs(dot(n,u_contact_centers[i].xyz))>sqrt(.99))return vec2(0.);

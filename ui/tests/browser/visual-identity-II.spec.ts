@@ -34,11 +34,17 @@ test("same-identity fidelity comparisons and bounded multi-resolution GPU cost",
       qualityPath
     )) as typeof import("../../src/visual-engine/quality");
     const geometryPath = "/src/visual-engine/geometry.ts";
-    const { createSphereGeometry, createParticleGeometry } =
-      (await import(geometryPath)) as typeof import("../../src/visual-engine/geometry");
-    const skinPath = "/src/visual-engine/skin-geometry.ts", domainPath = "/src/visual-engine/skin-domain.ts";
-    const { createSkinGeometry } = (await import(skinPath)) as typeof import("../../src/visual-engine/skin-geometry");
-    const { SKIN_VERTEX_STRIDE } = (await import(domainPath)) as typeof import("../../src/visual-engine/skin-domain");
+    const { createSphereGeometry, createParticleGeometry } = (await import(
+      geometryPath
+    )) as typeof import("../../src/visual-engine/geometry");
+    const skinPath = "/src/visual-engine/skin-geometry.ts",
+      domainPath = "/src/visual-engine/skin-domain.ts";
+    const { createSkinGeometry } = (await import(
+      skinPath
+    )) as typeof import("../../src/visual-engine/skin-geometry");
+    const { SKIN_VERTEX_STRIDE } = (await import(
+      domainPath
+    )) as typeof import("../../src/visual-engine/skin-domain");
     const shots: { name: string; image: string }[] = [],
       resources = [],
       measurements = [];

@@ -678,7 +678,8 @@ describe("living field substrate", () => {
 
   it("records shader-build and missing-WebGL fallback causes without suppressing them", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    let retiredShaders = 0, retiredPrograms = 0;
+    let retiredShaders = 0,
+      retiredPrograms = 0;
     try {
       const failingGL = {
         VERTEX_SHADER: 1,
@@ -688,8 +689,12 @@ describe("living field substrate", () => {
         compileShader() {},
         getShaderParameter: () => false,
         getShaderInfoLog: () => "undeclared uniform",
-        deleteShader() { retiredShaders++; },
-        deleteProgram() { retiredPrograms++; },
+        deleteShader() {
+          retiredShaders++;
+        },
+        deleteProgram() {
+          retiredPrograms++;
+        },
         getExtension: () => null,
       } as unknown as WebGL2RenderingContext;
       const shaderCanvas = {
