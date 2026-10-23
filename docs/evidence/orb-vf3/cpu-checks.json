@@ -1,0 +1,565 @@
+{
+  "checkpoint": "V-F3 final source plus metadata audit",
+  "renderedHead": "8d837278ebdb00bc1f038ace99b18e12da1a1034",
+  "passed": 118,
+  "failed": 0,
+  "files": [
+    {
+      "path": "ui/tests/agency.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "owner console projection marks display truncation even when JSON expansion exceeds the text budget",
+          "status": "passed"
+        },
+        {
+          "name": "owner console projection keeps untrusted content as data and rejects late or foreign action events",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/memory.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "owner memory projection retains source/review and inert text independently from conversation",
+          "status": "passed"
+        },
+        {
+          "name": "owner memory projection bounds overview and rejects malformed or overlong records",
+          "status": "passed"
+        },
+        {
+          "name": "correction/deletion releases prior memory content without touching console data",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/presence.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "authoritative responsive presence distinguishes typed sending, commitment, inference and actual response production",
+          "status": "passed"
+        },
+        {
+          "name": "authoritative responsive presence clears rejected, failed, superseded and disconnected pending requests",
+          "status": "passed"
+        },
+        {
+          "name": "authoritative responsive presence keeps loading indefinite and unloaded explicit, with no invented progress or acoustic energy",
+          "status": "passed"
+        },
+        {
+          "name": "authoritative responsive presence forms compactly and retires without expanding speech gains or changing clocks",
+          "status": "passed"
+        },
+        {
+          "name": "authoritative responsive presence uses settled poses with reduced motion and expires suspended audio",
+          "status": "passed"
+        },
+        {
+          "name": "quiet operational surfaces collapses ordinary startup facts but exposes genuine model choices",
+          "status": "passed"
+        },
+        {
+          "name": "quiet operational surfaces retains functional Console argument bounds, results, cancellation and Memory controls",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/status.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "plain-language runtime status describes truthful startup and reconnect states",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status explains precisely what remains usable when local services degrade",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status keeps a useful, actionable state for No supported local provider is installed",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status keeps a useful, actionable state for LM Studio startup failed",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status keeps a useful, actionable state for No conversational model is installed",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status keeps a useful, actionable state for local service startup timed out",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status keeps a useful, actionable state for local provider ready",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status keeps a useful, actionable state for local provider ready",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status does not show degradation when all local conversation paths are ready",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status keeps protocol wording out of the primary startup notice",
+          "status": "passed"
+        },
+        {
+          "name": "plain-language runtime status reports actual model loading without claiming unknown speech components failed",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-appearance.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "V-F1 default appearance compatibility retains the verified dev shader, geometry and descriptor baseline",
+          "status": "passed"
+        },
+        {
+          "name": "V-F1 default appearance compatibility delegates the default strategy without changing seed, arrays or reference equations",
+          "status": "passed"
+        },
+        {
+          "name": "V-F1 default appearance compatibility keeps internal selection explicit and outside owner persistence",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-membrane-optics.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "connected skin optical footprint curls perpendicular to the actual irregular rim in spherical space",
+          "status": "passed"
+        },
+        {
+          "name": "connected skin optical footprint recovers each real opening/collar rather than six obsolete carrier shadows",
+          "status": "passed"
+        },
+        {
+          "name": "connected skin optical footprint bounds ambient contact and excludes the opposite hemisphere and exposed centers",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-membrane.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "body-attached connected skin keeps compact formation and departure skin samples finite",
+          "status": "passed"
+        },
+        {
+          "name": "body-attached connected skin has C1 hinges, periodic rim/clock derivatives and real free-edge flex",
+          "status": "passed"
+        },
+        {
+          "name": "body-attached connected skin keeps full-surface points and normals finite through extreme existing cues",
+          "status": "passed"
+        },
+        {
+          "name": "body-attached connected skin owns a geometry clock independent of Surface Flow and freezes it under Reduced Motion",
+          "status": "passed"
+        },
+        {
+          "name": "body-attached connected skin keeps zero Audio Reactivity neutral at the actual skin map, retaining autonomous life",
+          "status": "passed"
+        },
+        {
+          "name": "body-attached connected skin keeps deformed triangles nondegenerate at rim, hinge and permitted extremes",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-motion.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "continuous Visual Engine motion Surface Flow pauses material transport independently from body motion and light",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion defines distinct state targets without separate clips",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion smooths target changes while oscillator phases continue",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion keeps zero-audio idle alive and deterministic",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion wires motion intensity to autonomous rotation speed",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion keeps the established default speed and expands the upper range smoothly",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion audio reactivity changes live response but not silent idle motion",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion perturbs particles without coupling surface, palette, or orientation clocks",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion drops stale visual energy across suspension without advancing autonomous phases",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion advects broad field phases visibly over ten seconds without requiring audio",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion slows material transport under a pointer and eases back without a phase jump",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion integrates pointer flow by elapsed time across 20 and 60 FPS schedules",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion evolves palette balance on its own slow clock while keeping it bounded",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion caps integration at 50 ms after a stall",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion keeps seeded field phases bounded and deterministic across long running wraps",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion freezes field phase during hidden and reduced-motion intervals",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion holds startup, reconnecting, and stopped inputs as dim stationary idle forms",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion bounds maximum audio response and uses output as the strongest channel",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion makes measured output pulse the strong expansion and input a receptive tension",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion combines simultaneous input/output by maximum rather than summing",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion keeps orthogonal cognition cues secondary to the foreground",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion fires interruption once and decays without replay",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion baselines a historical interrupt serial when a renderer attaches",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion expires stale output and cannot retain its excitation",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion freezes continuous motion in reduced mode while retaining state identity",
+          "status": "passed"
+        },
+        {
+          "name": "continuous Visual Engine motion reuses one bounded frame without per-frame allocation",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-organic-peel.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) requires the actual reused hosted-workflow run identity instead of silently omitting it",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) holds comparison clocks and bounds the actual hosted matrix",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) calculates source resource counts without GPU cost claims",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) low: three oriented disks, six ranges, deterministic bounded setup",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) low: actual deformed triangles and differential normals stay finite and consistently oriented",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) medium: three oriented disks, six ranges, deterministic bounded setup",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) medium: actual deformed triangles and differential normals stay finite and consistently oriented",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) high: three oriented disks, six ranges, deterministic bounded setup",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) high: actual deformed triangles and differential normals stay finite and consistently oriented",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) has a broad C1 hinge, elongated curved boundary and genuine moving lift",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) preserves material coordinates, phase wrap, seed identity and default/fallback authority",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) bounds near-field particle alternatives without changing released arrays",
+          "status": "passed"
+        },
+        {
+          "name": "V-F3 positive organic peel geometry (CPU) matches an independently integrated circular arc, with scale-invariant compact peels and bounded series error",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-quality.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "visual quality and geometry starts auto conservatively and honors device profile caps",
+          "status": "passed"
+        },
+        {
+          "name": "visual quality and geometry enforces the formal mobile budget and DPR cap",
+          "status": "passed"
+        },
+        {
+          "name": "visual quality and geometry uses one deterministic connected domain with bounded tier sampling",
+          "status": "passed"
+        },
+        {
+          "name": "visual quality and geometry keeps the restrained halo opacity bounded",
+          "status": "passed"
+        },
+        {
+          "name": "visual quality and geometry accounts actual connected-skin arrays and preserves draw/particle envelopes",
+          "status": "passed"
+        },
+        {
+          "name": "visual quality and geometry creates bounded deterministic sparse particle parameters",
+          "status": "passed"
+        },
+        {
+          "name": "visual quality and geometry maps density to a deterministic visible share of actual gold particles",
+          "status": "passed"
+        },
+        {
+          "name": "visual quality and geometry bounds sphere topology and validates session settings",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-radial-shell.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) removes the measured atan/trig reconstruction error without changing the mathematical rim",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) low: exhaustively validates connected topology, outward rest winding and welded polar seams",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) low: all deformed triangles stay nondegenerate; sampled differential normals agree through compact/active poses",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) low: exact free rims and broad attached sectors share object-space pigment coordinates",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) medium: exhaustively validates connected topology, outward rest winding and welded polar seams",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) medium: all deformed triangles stay nondegenerate; sampled differential normals agree through compact/active poses",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) medium: exact free rims and broad attached sectors share object-space pigment coordinates",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) high: exhaustively validates connected topology, outward rest winding and welded polar seams",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) high: all deformed triangles stay nondegenerate; sampled differential normals agree through compact/active poses",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) high: exact free rims and broad attached sectors share object-space pigment coordinates",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) is deterministic, continuous at longitude seams and bounded before allocation",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) keeps sector/collar supports disjoint and inside their connected chart backbone",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) keeps the stable angular map equivalent to the spherical domain, including seam and polar guards",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) has C1 resting hinges, smooth free-edge extensions, correct angular derivatives and outward finite rim normals",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) preserves periodic position/time derivatives and actual nonuniform flex",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) keeps sampled compact free-rim normals outward across seeds and the full wrapped clock",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) packs only 192 descriptor bytes and bounds float32 position/normal differences",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) bounds actual geometry arrays, draw counts, particles and contact without expanding tier identities",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) keeps zero audio reactivity neutral while autonomous membrane motion remains real",
+          "status": "passed"
+        },
+        {
+          "name": "experimental connected radial sectors (CPU, no shader execution) uses the existing independent membrane clock and freezes it under Reduced Motion",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-resource-recovery.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "partially initialized renderer recovery (mock GL only) living-connected/low/second-program: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) living-connected/low/missing-uniform: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) living-connected/low/partial-buffer: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) living-connected/low/none: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) living-connected/medium/none: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) living-connected/high/none: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) radial-shell-experimental/low/second-program: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) radial-shell-experimental/low/missing-uniform: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) radial-shell-experimental/low/partial-buffer: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) radial-shell-experimental/low/none: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) radial-shell-experimental/medium/none: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        },
+        {
+          "name": "partially initialized renderer recovery (mock GL only) radial-shell-experimental/high/none: retires every owned resource without depending on lose-context support",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/visual-skin-integration.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "integrated skin source and CPU geometry proof (no GPU) keeps sampled triangle orientation consistent with the surface differential in compact and active poses",
+          "status": "passed"
+        },
+        {
+          "name": "integrated skin source and CPU geometry proof (no GPU) bounds descriptor float32 quantization for points and full-surface normals",
+          "status": "passed"
+        },
+        {
+          "name": "integrated skin source and CPU geometry proof (no GPU) shares the same coat equations and descriptor interface in vertex and High contact sources",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "ui/tests/workspace-tool.test.ts",
+      "status": "passed",
+      "cases": [
+        {
+          "name": "keeps accessible action names, controlled expansion, explicit non-submit buttons and a labelled heading",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "counting": "Distinct tests in one final run; earlier overlapping batches and repetitions are not added. No local graphical execution."
+}

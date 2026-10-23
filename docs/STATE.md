@@ -4,11 +4,9 @@ Updated: 2026-10-23. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
-- V-F3 source work: [positive organic peel experiment](ORGANIC_PEEL_VF3.md), bounded particle comparisons and shared tool presentation are in progress on the isolated feature. Hosted comparison/numerical trace pending; parent default retained. V-F2 morphology is owner-rejected, pigment preserved.
-
-- V-F2 feature: [hosted radial/parent evidence](RADIAL_SHELL_PROOF_VF2.md) captures matched WebGL2 views; 73 focused CPU passes and matching 73-input build. Strict radial GPU parity remains open; default unchanged, no dev merge or owner acceptance.
+- V-F3 feature: [organic peel/evidence](ORGANIC_PEEL_VF3.md), 118 distinct focused CPU passes, 75-input build and green hosted WebGL/UI proof. Strict radial error repaired from actual intermediate trace; analytic peel stays internal. Parent default, pigment and 12/24/64 caps retained; front contours still round/leaf-like, no dev merge or owner acceptance.
+- [V-F2 radial/parent evidence](RADIAL_SHELL_PROOF_VF2.md) is historical. Its morphology is owner-rejected; its failed strict guard is superseded by V-F3's unchanged-threshold proof, not erased.
 - V-E [sessions/audit](SESSION_CONTINUITY_VE.md): New/Resume/rehydration has 176 scoped Python / 182 frontend passes at its checkpoint; its 68-input assets are historical.
-  V-E recorded docs PR #7 draft / test-maintenance PR #8 green and unmerged; no remote check in V-F1. V-D [assets](KEYBOARD_PTT_VD.md) are historical.
 - [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
   late/foreign results and bounds pre-roll. Explicit en/es and safe metadata remain.
   Its 256 scoped Python / 71 frontend passes are historical; generated WER is unchanged.
@@ -199,4 +197,4 @@ Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Composable launch](DIAGNOSTIC_LAUNCH.md) adds independent flags; 152 focused checks pass.
 Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded. UI shutdown retires idle/partial HTTP clients; 30 focused checks pass. Native acceptance stays separate.
-Expansion/AEC parked. [Visual IV](VISUAL_IDENTITY_IV.md) remains experimental; [V-F2](RADIAL_SHELL_PROOF_VF2.md) adds selected software WebGL evidence. Whole lifecycle, supported-hardware performance and human acceptance remain open.
+Expansion/AEC parked. [Visual IV](VISUAL_IDENTITY_IV.md) and [V-F3](ORGANIC_PEEL_VF3.md) remain experimental. Whole lifecycle, supported-hardware performance and human acceptance remain open.

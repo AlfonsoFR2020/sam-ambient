@@ -1,5 +1,10 @@
 # Radial-shell graphical evidence — V-F2
 
+**Superseding V-F3 evidence:** [measured numerical repair and positive peels](ORGANIC_PEEL_VF3.md)
+close the strict radial gap without tolerance changes. The owner rejects the V-F2
+panel/island/casing character; successful rendering below is historical execution
+evidence, not artistic acceptance. Original failures and images remain intact.
+
 2026-10-23. Isolated `feature/orb-appearance-foundation`, starting at
 `15db3adaa30e29103d556a7354dd9440af957f72`. Integration dev remains
 `cc69bc2b90eac4068c929af4beb1bb95705b14af`; published v0.2.5 remains

@@ -1,5 +1,12 @@
 # V-C closure, requirements recovery and public-docs handoff
 
+**V-F3 remote refresh, 2026-10-23:** #8 remains an open draft at `14c706f`, with
+all reported quality/CodeQL/package checks green. #7 remains a separate open draft
+at `5047050`, with its known released Ubuntu assertion failure. Main is still
+`dc64c5d`. Owner review/merge of #8 must precede reconciliation and required checks
+for #7, then an owner-authorized docs merge. V-F3 changes neither public branch,
+About/topics nor released capability claims; the historical V-C report follows.
+
 2026-10-22. Local development coordination, starting clean `dev` at
 `2527ee278c0b12d4f05927495d4a9260d16b2b94`, matching the owner-pushed remote.
 Published `main` remains `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` (v0.2.5).

@@ -2,7 +2,7 @@
 
 <a id="current-execution-index--v-c-reconciliation-2026-10-22"></a>
 <a id="current-execution-index--v-d-closure-2026-10-23"></a>
-## Current execution index — V-F2 hosted radial/parent proof, 2026-10-23
+## Current execution index — V-F3 organic peeling and focused experience, 2026-10-23
 
 [Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
 IDs; this file remains the retained action backlog. [ROADMAP](ROADMAP.md) orders
@@ -23,6 +23,17 @@ parallel queues. No row grants execution permission.
 | P1 · GOV-01/02/04/06 | Meaningful experimental releases, scarce beta, durable source truth and isolated public-docs branch | Do not freeze safe work or merge unreleased implementation to publish docs |
 
 ### Recovery and supersession notes
+
+- [V-F3](ORGANIC_PEEL_VF3.md) records explicit owner rejection of the V-F2 panel/
+  casing morphology. A separately selectable three-lobe positive peel uses the
+  shared living body and material; analytic outward bending replaces a mostly
+  inflated coating. Parent remains default. The strict radial discrepancy is
+  repaired from measured shader intermediates, without tolerance changes. Final
+  visual disposition and hardware/owner gates are in that evidence record.
+- V-F3's near-field particle 64/128/256 images do not justify increasing ordinary
+  caps. QUAL-03 remains open. Shared Console/Memory presentation, compact loading
+  and a source-reproduced Ready-during-loading label are corrected with focused
+  CPU and synthetic hosted UI evidence; UX-01/02 still require owner-window acceptance.
 
 - All 66 register entries retain origin/status/gap/priority/dependency/track. Older
   unmet requirements get explicit consideration; severity, integrity and core

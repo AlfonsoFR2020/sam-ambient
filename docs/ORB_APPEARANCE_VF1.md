@@ -1,5 +1,9 @@
 # Orb appearance foundation — V-F1
 
+Current follow-up: [V-F3](ORGANIC_PEEL_VF3.md) closes the strict radial numerical
+gap and adds a separately selectable positive-peel experiment after owner rejection
+of V-F2 morphology. This V-F1 record remains historical; parent remains default.
+
 Follow-up: [V-F2 hosted graphical evidence and numerical investigation](RADIAL_SHELL_PROOF_VF2.md)
 supersedes this checkpoint's unexecuted-shader/build disposition on the isolated
 feature branch. The V-F1 baseline evidence below remains historical and intact.

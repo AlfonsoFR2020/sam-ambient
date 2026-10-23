@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  hostedRunURL,
   VF3_APPEARANCES,
   VF3_CASES,
   VF3_PARTICLES,
@@ -33,7 +34,7 @@ test("hosted matched skin smoke, equations and representative views", async ({
   const metadata = {
     ...VF3_PLAN,
     head: cp.execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
-    run: environment.SAM_VF3_RUN_URL,
+    run: hostedRunURL(environment),
     browserVersion: browser.version(),
     source,
     views: [] as unknown[],

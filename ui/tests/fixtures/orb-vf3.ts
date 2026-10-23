@@ -2,6 +2,16 @@ import type { OrbAppearanceId } from "../../src/visual-engine/appearance";
 import { VF2_SMOKE, type VF2Case } from "./orb-vf2";
 
 export { renderVF2, vf2Frame } from "./orb-vf2";
+/** The reused isolated workflow retains its existing env contract. Fail closed if absent. */
+export function hostedRunURL(environment: Record<string, string | undefined>): string {
+  const value = environment.SAM_VF2_RUN_URL;
+  if (
+    !value ||
+    !/^https:\/\/github\.com\/AlfonsoFR2020\/sam-ambient\/actions\/runs\/\d+$/.test(value)
+  )
+    throw new Error("Missing or invalid hosted run identity");
+  return value;
+}
 export const VF3_APPEARANCES: readonly OrbAppearanceId[] = [
   "living-connected",
   "radial-shell-experimental",

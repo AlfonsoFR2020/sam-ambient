@@ -21,6 +21,17 @@ import {
   skinRimRadius,
 } from "../../src/visual-engine/skin-domain";
 
+/** Domain rows reach both actual free side boundaries, not only the centerline. */
+export function organicGPUProofDirections(): readonly SkinVector[] {
+  return createOrganicPeels().flatMap((p) =>
+    [-0.7, -0.3, 0.4, 0.99].flatMap((u) =>
+      [-1, -0.35, 0.35, 1].map((fraction) =>
+        organicPeelDirection(p, u, fraction * Math.sqrt(1 - u * u)),
+      ),
+    ),
+  );
+}
+
 /** Transform feedback of the production coat map/normals against the CPU reference.
  * A controlled body callback isolates coating equations; real pigment/body shaders
  * are covered by the separate actual-renderer views, not claimed by this proof.
@@ -150,10 +161,7 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
             );
           }
     else if (strategy.id === "organic-peels")
-      for (const p of createOrganicPeels())
-        for (const u of [-0.7, -0.3, 0.4, 0.99])
-          for (const v of [-0.08, -0.03, 0.03, 0.08])
-            directions.push(...organicPeelDirection(p, u, v));
+      for (const n of organicGPUProofDirections()) directions.push(...n);
     else
       for (const p of createRadialShellWindows())
         for (const theta of [0, 1.7, 3.4, 5.1])

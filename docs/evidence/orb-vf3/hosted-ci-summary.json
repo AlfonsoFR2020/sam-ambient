@@ -1,0 +1,12 @@
+{
+  "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40012878645",
+  "head": "8d837278ebdb00bc1f038ace99b18e12da1a1034",
+  "conclusion": "success",
+  "summaryLines": [
+    "Quality (windows-latest)\tPython tests\t2026-10-23T19:41:26.4746815Z ================= 856 passed, 5 skipped in 207.15s (0:03:27) ==================",
+    "Quality (windows-latest)\tFrontend quality and build\t2026-10-23T19:42:04.9742962Z Checked 168 files in 430ms. No fixes applied.",
+    "Quality (ubuntu-latest)\tPython tests\t2026-10-23T19:39:51.5302839Z ================= 817 passed, 44 skipped in 119.41s (0:01:59) ==================",
+    "Quality (ubuntu-latest)\tFrontend quality and build\t2026-10-23T19:40:10.2557201Z Checked 168 files in 307ms. No fixes applied."
+  ],
+  "counting": "Platforms overlap; do not sum. Last local metadata-only helper test is outside this hosted source checkpoint."
+}

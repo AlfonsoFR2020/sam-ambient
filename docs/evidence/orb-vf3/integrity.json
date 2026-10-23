@@ -1,0 +1,1307 @@
+{
+  "schema": 1,
+  "scope": "File integrity and matched hosted inputs; no local rendering or visual-acceptance inference",
+  "runs": [
+    {
+      "id": "40010281390",
+      "head": "45db02a426851a125540767acc5c82d10fb3611c",
+      "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40010281390",
+      "rawMetadataRunURLPresent": false,
+      "source": {
+        "schema": 1,
+        "sourceCommit": "685c8520675cc11a627b24057f65689a48c170d9",
+        "sourceDirtyAtBuild": false,
+        "sourceDigestSha256Lf": "4c8c2aa6764b210b1b5de657e7c65ea6d17243c30a670f957c2fc39f40c97d3d",
+        "sourceFileCount": 75,
+        "visualIdentity": "connected-skin-ivd-experimental",
+        "entryAssets": [
+          "/assets/index-BYyUpUVr.css",
+          "/assets/index-C9X9wOvX.js"
+        ],
+        "artifactSha256": {
+          "src/sam_ambient/static/.vite/manifest.json": "ea93f837064f5dc17639c34272f8cf863b1a512e66cba0f2c30e8f0cee2a6dca",
+          "src/sam_ambient/static/assets/index-BYyUpUVr.css": "447341eb41e574de898274b18acbedc0940628b3b8ed7d7975421bb88a35d095",
+          "src/sam_ambient/static/assets/index-C9X9wOvX.js": "bb9c6e123e9c8522df55135b7e5aff5ee224867fd284de0944058c6bff19e5ac",
+          "src/sam_ambient/static/assets/sam-build.json": "ca8f5a37d38c7b17a5153032d146d02a67562ff45df2ff5e55075693c43d6378",
+          "src/sam_ambient/static/index.html": "912f655efac3b86c458d1dc0760de73b5f23c54a1c4bc5157679cda4a44f5707"
+        },
+        "graphicalExecution": false
+      },
+      "matchedTriples": 9,
+      "geometryViews": 27,
+      "particleViews": 4,
+      "strictProofPassed": false,
+      "proofs": [
+        {
+          "appearance": "living-connected",
+          "maxPositionError": 2.3163976519136042e-05,
+          "maxNormalError": 0.0005040752515296232,
+          "maxRegionError": 1.5076469026098493e-05,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        },
+        {
+          "appearance": "radial-shell-experimental",
+          "maxPositionError": 0.00010608920274735034,
+          "maxNormalError": 0.0010813669632977474,
+          "maxRegionError": 0.0005810747569621189,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        },
+        {
+          "appearance": "organic-peel-experimental",
+          "maxPositionError": 6.937392805106413e-06,
+          "maxNormalError": 0.00013040028141975135,
+          "maxRegionError": 1.3071494942007433e-07,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "id": "40011677649",
+      "head": "5aaf004e2054916fc541b18be2529a370adedec2",
+      "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40011677649",
+      "rawMetadataRunURLPresent": false,
+      "source": {
+        "schema": 1,
+        "sourceCommit": "ae48a4328e03ec471f434d080a9559032cdd3636",
+        "sourceDirtyAtBuild": false,
+        "sourceDigestSha256Lf": "d3676c479ed28575d54542e9cec43657f4707eef3c13260e5360a2b4c81ba2ad",
+        "sourceFileCount": 75,
+        "visualIdentity": "connected-skin-ivd-experimental",
+        "entryAssets": [
+          "/assets/index-CqHi6Ngz.js",
+          "/assets/index-D-dPdcI6.css"
+        ],
+        "artifactSha256": {
+          "src/sam_ambient/static/.vite/manifest.json": "5cf21bfbd0ef1db2d2c8d2fe672d23075a5183bb90c6ea6a4f2054a0d3f35fa9",
+          "src/sam_ambient/static/assets/index-CqHi6Ngz.js": "967b9fbc4ea1d9f3e1a864ba6df3fde6849b78bd340e64812fdbae172c45e760",
+          "src/sam_ambient/static/assets/index-D-dPdcI6.css": "a7a5e3803276dabc68d0a88cdf03ca1e58731d0da30e368e6b6841abd41ecff6",
+          "src/sam_ambient/static/assets/sam-build.json": "78f45e4ead4d5e98b9c84f5901580997235b7ceaa7e7b711de74356c8ece93fa",
+          "src/sam_ambient/static/index.html": "5fdc3c2c2661a3cfd2c9a02e4dece4b9fb4021b874c71309ec50af86dac2b579"
+        },
+        "graphicalExecution": false
+      },
+      "matchedTriples": 10,
+      "geometryViews": 30,
+      "particleViews": 4,
+      "strictProofPassed": true,
+      "proofs": [
+        {
+          "appearance": "living-connected",
+          "maxPositionError": 2.3163976519136042e-05,
+          "maxNormalError": 0.0005040752515296232,
+          "maxRegionError": 1.5076469026098493e-05,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        },
+        {
+          "appearance": "radial-shell-experimental",
+          "maxPositionError": 5.2274658473017155e-06,
+          "maxNormalError": 0.0002453279228540328,
+          "maxRegionError": 2.6329428770482943e-05,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        },
+        {
+          "appearance": "organic-peel-experimental",
+          "maxPositionError": 6.5136376448116096e-06,
+          "maxNormalError": 0.0002221789922356998,
+          "maxRegionError": 1.556502005062299e-07,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "id": "40012878687",
+      "head": "8d837278ebdb00bc1f038ace99b18e12da1a1034",
+      "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40012878687",
+      "rawMetadataRunURLPresent": false,
+      "source": {
+        "schema": 1,
+        "sourceCommit": "0b6567d955d2ab311b698188a21099922caba195",
+        "sourceDirtyAtBuild": false,
+        "sourceDigestSha256Lf": "6c828203dd385bdd934b3502872001bb1ed52aec84586918c6272b1c3cb073cc",
+        "sourceFileCount": 75,
+        "visualIdentity": "connected-skin-ivd-experimental",
+        "entryAssets": [
+          "/assets/index-BeAiAcMw.js",
+          "/assets/index-D-dPdcI6.css"
+        ],
+        "artifactSha256": {
+          "src/sam_ambient/static/.vite/manifest.json": "7932c2f015180630e4d0cff3487e369d608489305744d37afa5d986635657218",
+          "src/sam_ambient/static/assets/index-BeAiAcMw.js": "ca60314a767f0c175786295d80b16fd68f17ea4a8dc5482a576e792229dc7b23",
+          "src/sam_ambient/static/assets/index-D-dPdcI6.css": "a7a5e3803276dabc68d0a88cdf03ca1e58731d0da30e368e6b6841abd41ecff6",
+          "src/sam_ambient/static/assets/sam-build.json": "83af99c32129ca8334f8f8fd6d462c8a06023325c59fc3fcd6f4370995e40aee",
+          "src/sam_ambient/static/index.html": "e363fbc051f0522bebeda457410a370990069520737836eac1c6fc78ddc18331"
+        },
+        "graphicalExecution": false
+      },
+      "matchedTriples": 10,
+      "geometryViews": 30,
+      "particleViews": 4,
+      "strictProofPassed": true,
+      "proofs": [
+        {
+          "appearance": "living-connected",
+          "maxPositionError": 2.3163976519136042e-05,
+          "maxNormalError": 0.0005040752515296232,
+          "maxRegionError": 1.5076469026098493e-05,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        },
+        {
+          "appearance": "radial-shell-experimental",
+          "maxPositionError": 5.2274658473017155e-06,
+          "maxNormalError": 0.0002453279228540328,
+          "maxRegionError": 2.6329428770482943e-05,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        },
+        {
+          "appearance": "organic-peel-experimental",
+          "maxPositionError": 9.059544062051117e-06,
+          "maxNormalError": 0.0002755588754442817,
+          "maxRegionError": 1.556502005062299e-07,
+          "samples": 192,
+          "finite": true,
+          "error": 0
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/attachment-living-connected.png",
+      "bytes": 57834,
+      "sha256": "1bbebf38f455f7940ecb13b2430e60790207dfabc8706bc637586050e7b55995",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/attachment-organic-peel-experimental.png",
+      "bytes": 52235,
+      "sha256": "6d327154cf44ee14b583b53c4c721191a747e8d14804a00fb7b8a7fbdb096d4a",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/attachment-radial-shell-experimental.png",
+      "bytes": 59584,
+      "sha256": "6091bca5030215168be28a7a2bfc97d126aaec466bf019819d28a6385794d234",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/colour-yaw0-curl0-living-connected.png",
+      "bytes": 230230,
+      "sha256": "6a7d8f0b47953df7a10488a07c240508857e64b136b5191cf85e3f1f299262de",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/colour-yaw0-curl0-organic-peel-experimental.png",
+      "bytes": 225436,
+      "sha256": "25ee04c7dd14332e90d5335da0a96563c9382e67618c8501ac8cfbcdab90fb8b",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/colour-yaw0-curl0-radial-shell-experimental.png",
+      "bytes": 223776,
+      "sha256": "4b0152c6742380f7606eed267d38efce51f23ffa86d9fa9fc42c098974b36e63",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/colour-yaw1.6-curl12-living-connected.png",
+      "bytes": 203862,
+      "sha256": "d27132074d179ebe594d04a5e911cc158197c49a820e76355d58b44ddc0fd7db",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/colour-yaw1.6-curl12-organic-peel-experimental.png",
+      "bytes": 205447,
+      "sha256": "56853a9dfd4c2b56aa59c232a7ed07de88525173851f909dff8b2cd8e5d636c8",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/colour-yaw1.6-curl12-radial-shell-experimental.png",
+      "bytes": 207544,
+      "sha256": "966509936471713c59c7501a45618413d38429f3ee9886ef27858352e6d1b231",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/compact-low-living-connected.png",
+      "bytes": 88436,
+      "sha256": "0607bd92e6527d6ca2f25b131e5bc95ab443c1746336630481acbc26ed5fc6ce",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/compact-low-organic-peel-experimental.png",
+      "bytes": 77484,
+      "sha256": "4ef1e034f7016b6479198a580091b9c0aa5b6d7c75b55a2522884789a75c9f03",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/compact-low-radial-shell-experimental.png",
+      "bytes": 80596,
+      "sha256": "c5adbf9cc00358ba78c2735b91fd8a6207aec5767d0f5dc30fcbe83185f45c33",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/comparison.png",
+      "bytes": 633650,
+      "sha256": "3aaa48a45ff90a00b1059b7c3d2b2b2d02e8d667a69b8e3c53c032c2af4d7b53",
+      "dimensions": [
+        1140,
+        1680
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/depth-living-connected.png",
+      "bytes": 68827,
+      "sha256": "e1099b1a2e39d2b5b99b8340450b89e1f42889e0df17192734a62b93bec3b3fe",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/depth-organic-peel-experimental.png",
+      "bytes": 61729,
+      "sha256": "7c71c6239124a45b1a4728fae93c85f8be72cf7296a424b06b37a1fdf946cc4a",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/depth-radial-shell-experimental.png",
+      "bytes": 63942,
+      "sha256": "d2fdc8b2d519a096cb42b3ac762a468b80a44af81c8f018d393386367f8bda46",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/error-context.md",
+      "bytes": 7041,
+      "sha256": "2e9c51a8dca5c69089e491b74442505ab7f8dabc2b12c8036e521309e72a49dc"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/evidence.json",
+      "bytes": 85981,
+      "sha256": "f4da60afb5b031b7371748563cafb0245f98aa1c688182101bedd879c5687f1f"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/neutral-living-connected.png",
+      "bytes": 172643,
+      "sha256": "d56af2981b5357f5fa60a0bccb0963d8b11333a468f92dd472c58a2b58619500",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/neutral-organic-peel-experimental.png",
+      "bytes": 177365,
+      "sha256": "3138d44f6150015b001bb85f28e30546d8269d2b3189457238fb9ae521fde0b3",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/neutral-radial-shell-experimental.png",
+      "bytes": 164637,
+      "sha256": "6ab8cb1d59bf504e17f6f297bb0437dd01655ecc7482a230150ddd67ecf2add6",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/normals-living-connected.png",
+      "bytes": 148891,
+      "sha256": "6b39921ad1261ee0b5df00cebaf9a46c6624899c5ff83718309b5155977d723d",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/normals-organic-peel-experimental.png",
+      "bytes": 128806,
+      "sha256": "ba5802257d062d92ce8ae95588f836064512be371c1dbc6a7c05709efa89ec41",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/normals-radial-shell-experimental.png",
+      "bytes": 139181,
+      "sha256": "be8b9c72eab4f101674d42c7dc2f20a705c40ec884029398eb010dc9bce45383",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/particles-near128-organic-peel-experimental.png",
+      "bytes": 209508,
+      "sha256": "07c5303045347c8794abe34389db0b21ff66617897baa1d5b2b0fbdde75f01bf",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/particles-near256-organic-peel-experimental.png",
+      "bytes": 211156,
+      "sha256": "bdac4dd01c869f603f7694ff833fd317b269bb76806017fa988bca0c6e5fa7f0",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/particles-near64-organic-peel-experimental.png",
+      "bytes": 208816,
+      "sha256": "73f7f331ec82d2dc893295f7910b05afc8780c2de54a68bf7942224ff55188c4",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/particles-released64-organic-peel-experimental.png",
+      "bytes": 209861,
+      "sha256": "c5b70c5cd015c3a1c57d22eed08a7a0f3c32e62a1a7a852b3fd4ff099f4d4dc5",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/silhouette-living-connected.png",
+      "bytes": 155093,
+      "sha256": "33a4dfb132d464df8ddf7210c0935f2e340db615563dbeb510f9fb69a48c9e3a",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/silhouette-organic-peel-experimental.png",
+      "bytes": 174301,
+      "sha256": "25ba0633e8206c6c8e5a03691de79b520849453d442ab8bd032b34783c8fba0d",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/silhouette-radial-shell-experimental.png",
+      "bytes": 163950,
+      "sha256": "503556ce8fda7aff0038d0b18cd897d7ceb9db0f9d3bf363e681f1fbf742b25e",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/smoke-colour-living-connected.png",
+      "bytes": 217033,
+      "sha256": "d2c83a2a187d8c51b08a3ea4c1c162e65283e4ba0f73bd1f8674cec479d03aba",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/smoke-colour-organic-peel-experimental.png",
+      "bytes": 209861,
+      "sha256": "c5b70c5cd015c3a1c57d22eed08a7a0f3c32e62a1a7a852b3fd4ff099f4d4dc5",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/smoke-colour-radial-shell-experimental.png",
+      "bytes": 207805,
+      "sha256": "b8fda9d7a2585e24b2eb65c288627038a2ad1e2280c6148b44bf5a7c8ddfc47d",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/source-assets.json",
+      "bytes": 1026,
+      "sha256": "e2d31a1935f4d3111991734e58faa602224a38a11b62f023968f2bf62b0df350"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/test-failed-1.png",
+      "bytes": 3074,
+      "sha256": "dc4ea5b78022b9dbcb751b44f31934b2e1cbec8d1aad42ae82d802fd2748db17",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/ui-console.png",
+      "bytes": 392506,
+      "sha256": "dcce393c88ee7bfc1ca61be7d921c19defdbf9a288ddae7e04af0603281803fd",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/ui-loading.png",
+      "bytes": 330471,
+      "sha256": "ca89889006ff5cfa87fb61afb09ba44d10376a4ee7f07c55a3c8f7a0b9a1e5d5",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/ui-memory-narrow.png",
+      "bytes": 131946,
+      "sha256": "56c5b259cb215cc54898e7d743ab1632a49549c1bf4f2decf8468b8c2986d894",
+      "dimensions": [
+        390,
+        760
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/ui-memory.png",
+      "bytes": 455672,
+      "sha256": "c02295f90236045bad09d80daa89c1848a3af412d47b31bdc0c7b230a2ab4ad0",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40010281390/vf2-results.json",
+      "bytes": 13815,
+      "sha256": "30d99c5890d7da7224f142b8b977a7fcc9ef9fd83df8ab8ad5e96e0116f748cc"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/attachment-living-connected.png",
+      "bytes": 57834,
+      "sha256": "1bbebf38f455f7940ecb13b2430e60790207dfabc8706bc637586050e7b55995",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/attachment-organic-peel-experimental.png",
+      "bytes": 60597,
+      "sha256": "5929c7e6977412d560c1e9edef8e17e7a829312a6b0bcbaf5914ea9ac307f3a3",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/attachment-radial-shell-experimental.png",
+      "bytes": 59459,
+      "sha256": "cc5d2fea682cedf2efd6da01f41e7293caefdaf52f5c62fcbef2e13e2de903cf",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/colour-yaw0-curl0-living-connected.png",
+      "bytes": 230230,
+      "sha256": "6a7d8f0b47953df7a10488a07c240508857e64b136b5191cf85e3f1f299262de",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/colour-yaw0-curl0-organic-peel-experimental.png",
+      "bytes": 224333,
+      "sha256": "4b75463765712e3d40e747fe3f475752184a42a026540071de1811e1f75377bb",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/colour-yaw0-curl0-radial-shell-experimental.png",
+      "bytes": 223789,
+      "sha256": "91f3141f08df1e2a63bb56a437384736059ff40b1f407445b76f76150514ce1c",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/colour-yaw1.6-curl12-living-connected.png",
+      "bytes": 203862,
+      "sha256": "d27132074d179ebe594d04a5e911cc158197c49a820e76355d58b44ddc0fd7db",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/colour-yaw1.6-curl12-organic-peel-experimental.png",
+      "bytes": 206604,
+      "sha256": "5dd8f639ad67c8e0f8c0ebdc3dbf27fe2d85c387e167db4190689372b92639c3",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/colour-yaw1.6-curl12-radial-shell-experimental.png",
+      "bytes": 207642,
+      "sha256": "e6d13464423cf2b6ae502f2dd6271b8a3955d0a7db53a0875a5269060a5057ce",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/compact-low-living-connected.png",
+      "bytes": 88436,
+      "sha256": "0607bd92e6527d6ca2f25b131e5bc95ab443c1746336630481acbc26ed5fc6ce",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/compact-low-organic-peel-experimental.png",
+      "bytes": 80322,
+      "sha256": "6c6d44ca6084020b63bc5a7e7d016d760ba940275fa75c705ffc9c60bdbec4b5",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/compact-low-radial-shell-experimental.png",
+      "bytes": 80613,
+      "sha256": "6b657c19984ad7a287e747281b9b93f608da75a6b42afe07b323ea77f7cff421",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/comparison.png",
+      "bytes": 632740,
+      "sha256": "2b944559ccf48e9e57d0d0fa5233f3037566592b050713fb5dcb359241e0df9f",
+      "dimensions": [
+        1140,
+        1680
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/depth-living-connected.png",
+      "bytes": 68827,
+      "sha256": "e1099b1a2e39d2b5b99b8340450b89e1f42889e0df17192734a62b93bec3b3fe",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/depth-organic-peel-experimental.png",
+      "bytes": 64772,
+      "sha256": "567ac425383a07016b221438f881187916b15d7dcdcb8100445292b0b9280630",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/depth-radial-shell-experimental.png",
+      "bytes": 64226,
+      "sha256": "acc4944e7217bff46e052b12fc8376fb2399c40f381041ecc096ab712d74b43a",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/evidence.json",
+      "bytes": 94962,
+      "sha256": "c59b6351d910af099db3871f25d0edfc1597fe8a8d01aae4049386e2b762022c"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/neutral-living-connected.png",
+      "bytes": 172643,
+      "sha256": "d56af2981b5357f5fa60a0bccb0963d8b11333a468f92dd472c58a2b58619500",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/neutral-organic-peel-experimental.png",
+      "bytes": 180841,
+      "sha256": "23bce727d7deb41b13e967e72053ca9eb43041037b43ed89e304caba65fb7860",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/neutral-radial-shell-experimental.png",
+      "bytes": 164579,
+      "sha256": "227725f15556b9395c8377fc20b392acd1358c07a65a8160af3bc72fe5784fd0",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/normals-living-connected.png",
+      "bytes": 148891,
+      "sha256": "6b39921ad1261ee0b5df00cebaf9a46c6624899c5ff83718309b5155977d723d",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/normals-organic-peel-experimental.png",
+      "bytes": 136402,
+      "sha256": "4daa504e7e0d9f4ebbadb2af94c21e48f12b45b038e2a4cc1d5049ed9b4b9738",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/normals-radial-shell-experimental.png",
+      "bytes": 139056,
+      "sha256": "be75cc83b41a6a22666334e2e09a66140b2c57623cc20ef92f263939e8db5f42",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/particles-near128-organic-peel-experimental.png",
+      "bytes": 214128,
+      "sha256": "e7bbac9b616b8ede02824273eca0834c5cea20368b7f72b7b0aafcf29afeebc8",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/particles-near256-organic-peel-experimental.png",
+      "bytes": 215670,
+      "sha256": "68dcb692befe41f9827db38127ef51c6582880a018639590493a0bee35a77601",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/particles-near64-organic-peel-experimental.png",
+      "bytes": 213372,
+      "sha256": "836303cd73595ef076c889ad99da788b9069e558246f67b41662b531990294a6",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/particles-released64-organic-peel-experimental.png",
+      "bytes": 214627,
+      "sha256": "f0497a5be5f6acdee8acc1b574cd4bb9ad87c7c500da34f14420b0729f9d1308",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/phase0-living-connected.png",
+      "bytes": 216534,
+      "sha256": "64399224526b4d00ace2c481bb38a9f3462df443d8548cb6c48725b4248b0d61",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/phase0-organic-peel-experimental.png",
+      "bytes": 214164,
+      "sha256": "0a4b41ef576633fd16b867ce3788b8b64c44d32e13b9065e05b39c1306c00cb8",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/phase0-radial-shell-experimental.png",
+      "bytes": 207998,
+      "sha256": "ff4fcc6c9295e049ccb33a12cdd69692b34d9ca3308f1df4fe617d332c75cd65",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/silhouette-living-connected.png",
+      "bytes": 155093,
+      "sha256": "33a4dfb132d464df8ddf7210c0935f2e340db615563dbeb510f9fb69a48c9e3a",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/silhouette-organic-peel-experimental.png",
+      "bytes": 167678,
+      "sha256": "e4c018f6cb475654d5676342a1a36a4d47c1f415c20a6d86a2feadfa7b590ca6",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/silhouette-radial-shell-experimental.png",
+      "bytes": 163809,
+      "sha256": "58aebb1a12f3ef5bd6223a232b89f400e68f9895456400a72631e4d205e44b9f",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/smoke-colour-living-connected.png",
+      "bytes": 217033,
+      "sha256": "d2c83a2a187d8c51b08a3ea4c1c162e65283e4ba0f73bd1f8674cec479d03aba",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/smoke-colour-organic-peel-experimental.png",
+      "bytes": 214627,
+      "sha256": "f0497a5be5f6acdee8acc1b574cd4bb9ad87c7c500da34f14420b0729f9d1308",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/smoke-colour-radial-shell-experimental.png",
+      "bytes": 207977,
+      "sha256": "6f05377c4c05670ab5bfa60bd1cdbea813b669039e2551646735aac7c9a39396",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/source-assets.json",
+      "bytes": 1026,
+      "sha256": "479f61b5bbe8cf4cd74df827720d5d60ccb8fadf7d5bba8a207febc1665eea3c"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/ui-console.png",
+      "bytes": 391874,
+      "sha256": "ad13ac2cabd5c84ee37e3d68da87b6dab27a1fb6bde2ea5c0ed0a15d1828735a",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/ui-loading.png",
+      "bytes": 329981,
+      "sha256": "1992b7370be742d3ce50dfb1a63f7bb622903eef005eb24ec3c221dc274346bb",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/ui-memory-narrow.png",
+      "bytes": 133248,
+      "sha256": "6a4e7d59129b24fdfb2fcf7bff9e0cdb385b5fe1d8912e918c1cf6a16a40238e",
+      "dimensions": [
+        390,
+        760
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/ui-memory.png",
+      "bytes": 458108,
+      "sha256": "91572021d068bdf94751a8d02467d7968e730da503358984093556e155cb7048",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40011677649/vf2-results.json",
+      "bytes": 9727,
+      "sha256": "b2d084b189b05272f16ae8238f2135cc646430ffe60560624c6190b078aef93f"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/attachment-living-connected.png",
+      "bytes": 57834,
+      "sha256": "1bbebf38f455f7940ecb13b2430e60790207dfabc8706bc637586050e7b55995",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/attachment-organic-peel-experimental.png",
+      "bytes": 57696,
+      "sha256": "c871a38f831557c0e94a6128cc412f02e3a0f8c887bcecc800c8283ae40a4770",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/attachment-radial-shell-experimental.png",
+      "bytes": 59459,
+      "sha256": "cc5d2fea682cedf2efd6da01f41e7293caefdaf52f5c62fcbef2e13e2de903cf",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/colour-yaw0-curl0-living-connected.png",
+      "bytes": 230230,
+      "sha256": "6a7d8f0b47953df7a10488a07c240508857e64b136b5191cf85e3f1f299262de",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/colour-yaw0-curl0-organic-peel-experimental.png",
+      "bytes": 223775,
+      "sha256": "48cc1cae7b442304008b77fb06824cd13dfb351c980a7a3e69d1f7174e3534b7",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/colour-yaw0-curl0-radial-shell-experimental.png",
+      "bytes": 223789,
+      "sha256": "91f3141f08df1e2a63bb56a437384736059ff40b1f407445b76f76150514ce1c",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/colour-yaw1.6-curl12-living-connected.png",
+      "bytes": 203862,
+      "sha256": "d27132074d179ebe594d04a5e911cc158197c49a820e76355d58b44ddc0fd7db",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/colour-yaw1.6-curl12-organic-peel-experimental.png",
+      "bytes": 205295,
+      "sha256": "b9c3ccafe254c4c42f363c7514b006a25ac837994bea62ad1c47795ebc5bd921",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/colour-yaw1.6-curl12-radial-shell-experimental.png",
+      "bytes": 207642,
+      "sha256": "e6d13464423cf2b6ae502f2dd6271b8a3955d0a7db53a0875a5269060a5057ce",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/compact-low-living-connected.png",
+      "bytes": 88436,
+      "sha256": "0607bd92e6527d6ca2f25b131e5bc95ab443c1746336630481acbc26ed5fc6ce",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/compact-low-organic-peel-experimental.png",
+      "bytes": 77172,
+      "sha256": "223c014b932a9af7a0389374173e1d4b9d86cb12cebf3ecdd10b515e61221a93",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/compact-low-radial-shell-experimental.png",
+      "bytes": 80613,
+      "sha256": "6b657c19984ad7a287e747281b9b93f608da75a6b42afe07b323ea77f7cff421",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/comparison.png",
+      "bytes": 628110,
+      "sha256": "614115563a3753ab6ca503f499793dd8b8f96981b35331d7c789c823cb2068ab",
+      "dimensions": [
+        1140,
+        1680
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/depth-living-connected.png",
+      "bytes": 68827,
+      "sha256": "e1099b1a2e39d2b5b99b8340450b89e1f42889e0df17192734a62b93bec3b3fe",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/depth-organic-peel-experimental.png",
+      "bytes": 62250,
+      "sha256": "8299807b21002efeeb8d609049f0c041281e8d9a58dfbb573103c589a0b67bc0",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/depth-radial-shell-experimental.png",
+      "bytes": 64226,
+      "sha256": "acc4944e7217bff46e052b12fc8376fb2399c40f381041ecc096ab712d74b43a",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/evidence.json",
+      "bytes": 94961,
+      "sha256": "91478c11b7335f32d613f9a9be1c6f3018f3b70bd45e0d32faf70f3d3cf676c9"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/neutral-living-connected.png",
+      "bytes": 172643,
+      "sha256": "d56af2981b5357f5fa60a0bccb0963d8b11333a468f92dd472c58a2b58619500",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/neutral-organic-peel-experimental.png",
+      "bytes": 178214,
+      "sha256": "2d0db2bc6198cbe2c17c31238e2b2cd40e49d57d095039b577c80b306b3acfad",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/neutral-radial-shell-experimental.png",
+      "bytes": 164579,
+      "sha256": "227725f15556b9395c8377fc20b392acd1358c07a65a8160af3bc72fe5784fd0",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/normals-living-connected.png",
+      "bytes": 148891,
+      "sha256": "6b39921ad1261ee0b5df00cebaf9a46c6624899c5ff83718309b5155977d723d",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/normals-organic-peel-experimental.png",
+      "bytes": 129855,
+      "sha256": "11e332b3ba80a1a5dec6dc31d84404a6de4073d3b04069a98b79cdc5519b939e",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/normals-radial-shell-experimental.png",
+      "bytes": 139056,
+      "sha256": "be75cc83b41a6a22666334e2e09a66140b2c57623cc20ef92f263939e8db5f42",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/particles-near128-organic-peel-experimental.png",
+      "bytes": 211697,
+      "sha256": "f95c94d6101d1aa81dee653788b3d0377914ea0838bd9618c4d341b10fcc63b5",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/particles-near256-organic-peel-experimental.png",
+      "bytes": 213328,
+      "sha256": "ef5f660f2888a250f54e3df4e4a0e6e10bff05f6a2110f8f0bcb67f5af634a9a",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/particles-near64-organic-peel-experimental.png",
+      "bytes": 211021,
+      "sha256": "4515692bafc04c7445ff7383ced2380d67b5c4aaf5ba11b77e7323cb0022437c",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/particles-released64-organic-peel-experimental.png",
+      "bytes": 212099,
+      "sha256": "a288b667ee0c753ee3c5b4160e0bb032c5a902ff3545747fb3750e36baceefd7",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/phase0-living-connected.png",
+      "bytes": 216534,
+      "sha256": "64399224526b4d00ace2c481bb38a9f3462df443d8548cb6c48725b4248b0d61",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/phase0-organic-peel-experimental.png",
+      "bytes": 211762,
+      "sha256": "a4b39cfeb2040b5145939fdfa21bbb57cd7b1a6414c3b8c92022ee3b3457c261",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/phase0-radial-shell-experimental.png",
+      "bytes": 207998,
+      "sha256": "ff4fcc6c9295e049ccb33a12cdd69692b34d9ca3308f1df4fe617d332c75cd65",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/silhouette-living-connected.png",
+      "bytes": 155093,
+      "sha256": "33a4dfb132d464df8ddf7210c0935f2e340db615563dbeb510f9fb69a48c9e3a",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/silhouette-organic-peel-experimental.png",
+      "bytes": 168531,
+      "sha256": "b8b3b45735da341b042c4605476715234a89245324cb2e878a9af9f90e25e4b1",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/silhouette-radial-shell-experimental.png",
+      "bytes": 163809,
+      "sha256": "58aebb1a12f3ef5bd6223a232b89f400e68f9895456400a72631e4d205e44b9f",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/smoke-colour-living-connected.png",
+      "bytes": 217033,
+      "sha256": "d2c83a2a187d8c51b08a3ea4c1c162e65283e4ba0f73bd1f8674cec479d03aba",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/smoke-colour-organic-peel-experimental.png",
+      "bytes": 212099,
+      "sha256": "a288b667ee0c753ee3c5b4160e0bb032c5a902ff3545747fb3750e36baceefd7",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/smoke-colour-radial-shell-experimental.png",
+      "bytes": 207977,
+      "sha256": "6f05377c4c05670ab5bfa60bd1cdbea813b669039e2551646735aac7c9a39396",
+      "dimensions": [
+        720,
+        720
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/source-assets.json",
+      "bytes": 1026,
+      "sha256": "427852a9c30d1bf9c032beff72018f08a70451e56d7758ac2f405d9264854136"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/ui-console.png",
+      "bytes": 394487,
+      "sha256": "5182da60af743ba20856fd9f9de03dd20a2411bd9735249b1f64b7f229d43ed6",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/ui-loading.png",
+      "bytes": 347676,
+      "sha256": "eba6f63937b8b7bbf814128cdfdc5d2a5ddea35bf30705b11a9ae09c24539c69",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/ui-memory-narrow.png",
+      "bytes": 133304,
+      "sha256": "3d78b90ab9fbc497ac98bf787485b3dcbab9e799995f76ee7c6581412f96b965",
+      "dimensions": [
+        390,
+        760
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/ui-memory.png",
+      "bytes": 457249,
+      "sha256": "77be3ea50b3a119c1c632e5af8524d2b639cb472ec5dc7657f3a3af57fd73c69",
+      "dimensions": [
+        1280,
+        900
+      ]
+    },
+    {
+      "path": "docs/evidence/orb-vf3/40012878687/vf2-results.json",
+      "bytes": 9696,
+      "sha256": "7744e4c600cba8809171009d0382436dfab3ed6dd1af1008c4a508586a4513fd"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/cpu-checks.json",
+      "bytes": 24838,
+      "sha256": "3a69de90665d808e66ade85c032147cc188e022b3f095c53dc44cf4005285120"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/frontend-assets-first.json",
+      "bytes": 1046,
+      "sha256": "abafc9663529edc4c4b65c133b6f4817ebf6e9976e14633a67552acfed483c03"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/frontend-assets.json",
+      "bytes": 1046,
+      "sha256": "33915e5a70edef8c4cc095f5d59dba97c4eae64c2ef310d5bacf5ee9cb517e49"
+    },
+    {
+      "path": "docs/evidence/orb-vf3/radial-precision-diagnosis.json",
+      "bytes": 2309,
+      "sha256": "3ff022062cb5baf1b2dbc628f3164b34eceb21f782302065dd76b857c149a287"
+    }
+  ],
+  "runIdentityAudit": "Original V-F3 raw JSON omitted run URL due to env-key mismatch. Run IDs and heads independently verified with gh; raw downloads remain unchanged. Harness now requires actual SAM_VF2_RUN_URL; locally regression-tested, no production/render equation change.",
+  "unchangedParentByteIdenticalViews": [
+    "attachment-living-connected.png",
+    "colour-yaw0-curl0-living-connected.png",
+    "colour-yaw1.6-curl12-living-connected.png",
+    "compact-low-living-connected.png",
+    "depth-living-connected.png",
+    "neutral-living-connected.png",
+    "normals-living-connected.png",
+    "silhouette-living-connected.png",
+    "smoke-colour-living-connected.png"
+  ],
+  "phasePairUnrelatedClocksIdentical": true,
+  "phasePairImageBytesDiffer": true,
+  "localGraphicsRun": false,
+  "hardwarePerformanceMeasured": false,
+  "ownerAcceptance": false
+}

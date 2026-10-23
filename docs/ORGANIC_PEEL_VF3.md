@@ -4,7 +4,7 @@ Starting feature HEAD `653ca9261a79bc7308c93fc0fa262e87b1133733`; integration
 dev remains `cc69bc2b90eac4068c929af4beb1bb95705b14af`. Published v0.2.5 is
 `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709`. No default promotion or merge.
 
-## Source checkpoint (graphical results pending)
+## Initial source checkpoint (historical; superseded by the evidence below)
 
 The owner rejects V-F2's parent/radial morphology as flat, panel/island/casing-like.
 That new artistic evidence does not reject the successful evolving pigment. The
@@ -107,3 +107,24 @@ against integrated trigonometric arcs within 3e-7 world units. These fixed analy
 coefficients are not visual tuning or a cloth solver. Surface normals still sample
 the complete deformed map. A malformed raw row count is now rejected before the
 Low minimum-detail adjustment. Final source/graphical proof follows this correction.
+
+
+## Proof-harness audit
+
+The third hosted run, [40012878687](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40012878687),
+passes all five browser tests with the final analytic-arc production source. It
+retains all 30 geometry, four particle and four UI captures. Parent/radial strict
+results stay green; organic max position is .0000090595 and normal .0002755589.
+The compact fixed-height ears are reduced; front contours still look rounded or
+leaf-like. This is a structural advance, not demonstrated final artistic acceptance.
+
+Final audit found two fixture limitations. Raw V-F3 metadata used a renamed env
+key and omitted its run URL. Raw downloads remain unchanged; the integrity sidecar
+uses independently verified GitHub run/head identities. The fixture now requires
+its reused workflow's actual SAM_VF2_RUN_URL and fails closed when absent. A new
+CPU regression protects that contract. Also, the initial positive-peel GPU sample
+rows stayed near the centerline. The final proof now reaches both actual transverse
+free boundaries as well as broad attachment and near-tip rows, still 48 directions
+at four phases. A CPU coverage assertion protects those boundary samples. These
+fixture-only corrections leave all 75 production build inputs unchanged; one final
+hosted proof validates the expanded boundary coverage and actual URL emission.

@@ -13,13 +13,35 @@ import {
 } from "../src/visual-engine/organic-peel";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
 import { type SkinVector, skinCross, skinDot } from "../src/visual-engine/skin-domain";
-import { VF3_APPEARANCES, VF3_CASES, VF3_PARTICLES, VF3_SMOKE, vf2Frame } from "./fixtures/orb-vf3";
+import {
+  hostedRunURL,
+  VF3_APPEARANCES,
+  VF3_CASES,
+  VF3_PARTICLES,
+  VF3_SMOKE,
+  vf2Frame,
+} from "./fixtures/orb-vf3";
 import { analyzeSkin, meshDirection, subtract } from "./fixtures/skin-analysis";
+import { organicGPUProofDirections } from "./fixtures/skin-gpu-proof";
 import { frameAt } from "./fixtures/visual-identity-II";
 
 const pose = skinPoseFromFrame(frameAt(0));
 describe("V-F3 positive organic peel geometry (CPU)", () => {
+  it("requires the actual reused hosted-workflow run identity instead of silently omitting it", () => {
+    const url = "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40012878687";
+    expect(hostedRunURL({ SAM_VF2_RUN_URL: url })).toBe(url);
+    expect(() => hostedRunURL({ SAM_VF3_RUN_URL: url })).toThrow("hosted run identity");
+    expect(() => hostedRunURL({})).toThrow();
+  });
   it("holds comparison clocks and bounds the actual hosted matrix", () => {
+    const samples = organicGPUProofDirections();
+    expect(samples).toHaveLength(48);
+    const p = createOrganicPeels()[0];
+    for (const index of [8, 11]) {
+      const [q, v] = organicPeelRegion(samples[index], p);
+      const u = q * 1.3 - 0.3;
+      expect(u * u + v * v).toBeCloseTo(1, 12);
+    }
     expect(VF3_APPEARANCES).toHaveLength(3);
     expect(VF3_CASES).toHaveLength(9);
     expect(VF3_PARTICLES).toHaveLength(4);
