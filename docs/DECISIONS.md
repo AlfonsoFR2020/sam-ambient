@@ -1,5 +1,16 @@
 # Decision log
 
+## 2026-10-23 — V-F1 explicit appearance and skin boundaries
+
+Keep one visual engine and its authoritative presentation-only MotionFrame. A closed
+internal appearance ID selects a typed material and setup-only skin strategy whose
+geometry, packed descriptors, CPU reference and vertex/contact equations stay paired.
+Preserve `living-connected` as default, including numerical shader/array snapshots;
+Canvas/static keep shared recovery. Experimental radial sectors must be opt-in via
+an internal constructor/fixture argument, without settings migration or owner theme UI.
+No runtime shader loading, plugin registry or claim of universal geometry/material
+compatibility. See [implementation and limits](ORB_APPEARANCE_VF1.md).
+
 ## 2026-10-23 — V-E retained conversations and launch identity
 
 UX-08 keeps resume as the default. New/Resume are core operations, not local UI

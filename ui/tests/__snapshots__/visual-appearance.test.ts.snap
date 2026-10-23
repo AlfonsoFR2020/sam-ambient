@@ -1,0 +1,39 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`V-F1 default appearance compatibility > retains the verified dev shader, geometry and descriptor baseline 1`] = `
+{
+  "descriptors": {
+    "centers": "87dfb0e4ab609495c7013d026f13c117b8ed9576f08ba0fb3efa313fe1e2d729",
+    "shapes": "1f85c30fd3eff641351f3f06030c87ace6f470ed02a2f49a9bd73596bdffb832",
+    "sides": "facf78367753ea368c3e8e29769fce1d5f7485afbf380691015ad544ebe02133",
+    "tangents": "2356a3bfcd47d8a1ffa6b52f4e5e67fdadcc9a88133844f28738b1bb6b3d49b3",
+  },
+  "geometry": [
+    [
+      "low",
+      "858527930d3a0d2feb97f2583c04172d3dbd02da9a79e143003f95f11f807c98",
+      "c2bdbd5d06abc8cee4cee14b1ead6a72382a53c738ce58b42c10fa8f11e243c5",
+      "a077370288d3dccf6281f49552fcee9f91b4b8883b67b57b47fb6c94798f9888",
+    ],
+    [
+      "medium",
+      "72799f194ee3a1d6f2b90e3c7ab5980f916dbd2fa56b7e1db8135ca1b434df40",
+      "cda2b7e14c160faa718ea077366c611e5f1deefb711faac0e895a4f8cde505ff",
+      "5dbcfcf5f7bdd57178f9759fc8962d6eff46672db3b5b4f54af8ecede279c842",
+    ],
+    [
+      "high",
+      "57c14689b1da2239abe810140163ac2512b59e47dc205f4ed8ad6f9816d1f28b",
+      "8ffe376764a8578b0bb1853207429cabe5fb4499e06d1a3a2f945b96c6f06bb1",
+      "b5228d683a8e5c5d6ab07be44e52dd6f8fdf9d3101c0c8f0b7d7e200352592ff",
+    ],
+  ],
+  "shaders": [
+    "8ecc313400c8e27f2f842eff387ab9312e81307454becbe5744cf16fa8a56c95",
+    "b4a1c723c991bc39aabde3791d02a6edc7a6af54ab0d926f1182b4864faf09fe",
+    "525b5872bbd02c807985950175f20199dbd3c398188a17d1eccb3dbcf7700acb",
+    "3db2103a7ab0698fd3eb458a81967c50ff3f6414fce95398110214b7298af3ca",
+    "3dbc619518740e0d8b545d14e3917ba2597b7a1512d84ff76ca7b6fce2ef97c9",
+  ],
+}
+`;

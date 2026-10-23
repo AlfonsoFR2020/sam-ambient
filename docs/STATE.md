@@ -1,5 +1,5 @@
 # Sam implementation state
-
+- V-F1 feature work: [appearance foundation](ORB_APPEARANCE_VF1.md) preserves the default; radial-sector strategy is in progress, with graphics unavailable.
 Updated: 2026-10-23. This is current development truth, not a release acceptance claim.
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary

@@ -1,10 +1,9 @@
+import { type OrbAppearanceId, resolveOrbAppearance } from "./appearance";
 import type { RendererBackend } from "./backend";
 import { DISCOURSE_CREST_GLSL } from "./discourse-crest";
 import { createParticleGeometry, createSphereGeometry, type IndexedGeometry } from "./geometry";
 import { createFieldOffsets, LIVING_FIELD_GLSL } from "./living-field";
-import { LIVING_MATERIAL_GLSL, LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
-import { MEMBRANE_SHAPE_GLSL, SKIN_SURFACE_GLSL } from "./membrane";
-import { MEMBRANE_CONTACT_GLSL } from "./membrane-optics";
+import { LIVING_SURFACE_VERTEX_GLSL } from "./living-material";
 import type { MotionEvaluator, MotionFrame } from "./motion";
 import { LIVING_PALETTE_GLSL } from "./palette";
 import {
@@ -13,13 +12,8 @@ import {
   PARTICLE_VISIBILITY_HASH,
 } from "./particles";
 import type { RenderBudget } from "./quality";
-import {
-  createSkinOpenings,
-  packSkinOpenings,
-  SKIN_VERTEX_STRIDE,
-  type SkinOpening,
-} from "./skin-domain";
-import { createSkinGeometry } from "./skin-geometry";
+import { SKIN_VERTEX_STRIDE } from "./skin-domain";
+import type { SkinSetup } from "./skin-strategy";
 import { HALO_OPACITY_SCALE } from "./tuning";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
 
@@ -54,7 +48,7 @@ void main(){
   gl_Position=vec4(v_position.xy*u_scale,-v_position.z*.25,1.);
 }`;
 
-export const ORB_FRAGMENT = `#version 300 es
+const orbFragment = (contactGLSL: string, materialGLSL: string) => `#version 300 es
 precision highp float;
 in vec3 v_normal;
 in vec3 v_position;
@@ -65,8 +59,8 @@ uniform float u_highlight;
 uniform float u_radius;
 out vec4 color;
 ${LIVING_FIELD_GLSL}
-${LIVING_MATERIAL_GLSL}
-${MEMBRANE_CONTACT_GLSL}
+${materialGLSL}
+${contactGLSL}
 void main(){
   LivingField field=sampleLivingField(normalize(v_object_direction));
   LivingPigment pigment=livingPigment(field);
@@ -86,7 +80,7 @@ void main(){
   color=vec4(pow(linear,vec3(1./2.2)),1.);
 }`;
 
-export const PEEL_VERTEX = `#version 300 es
+const peelVertex = (shapeGLSL: string, surfaceGLSL: string) => `#version 300 es
 precision highp float;
 invariant gl_Position;
 layout(location=0) in vec3 a_direction;
@@ -112,8 +106,8 @@ mat3 rotateY(float a){float c=cos(a),s=sin(a);return mat3(c,0.,-s,0.,1.,0.,s,0.,
 mat3 rotateZ(float a){float c=cos(a),s=sin(a);return mat3(c,s,0.,-s,c,0.,0.,0.,1.);}
 ${LIVING_FIELD_GLSL}
 ${LIVING_SURFACE_VERTEX_GLSL}
-${MEMBRANE_SHAPE_GLSL}
-${SKIN_SURFACE_GLSL}
+${shapeGLSL}
+${surfaceGLSL}
 void main(){
   vec3 direction=normalize(a_direction);
   vec3 position=livingSkinPoint(direction);
@@ -136,7 +130,7 @@ void main(){
   gl_Position=vec4(v_position.xy*u_scale,-v_position.z*.25,1.);
 }`;
 
-export const PEEL_FRAGMENT = `#version 300 es
+const peelFragment = (materialGLSL: string) => `#version 300 es
 precision highp float;
 in float v_alpha;
 in float v_radial;
@@ -151,7 +145,7 @@ uniform bool u_depth_only;
 in float v_highlight;
 out vec4 color;
 ${LIVING_FIELD_GLSL}
-${LIVING_MATERIAL_GLSL}
+${materialGLSL}
 void main(){
   float alpha=clamp(v_alpha*(1.-.025*v_radial*(1.-clamp(u_emission,0.,1.))),0.,1.);
   if(alpha<.04) discard;
@@ -203,6 +197,21 @@ void main(){
   linear=linear/(1.0+linear);
   color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);
 }`;
+
+/** Trusted static composition; no external source, dynamic loading or frame rebuild. */
+export function appearanceShaderSources(id?: OrbAppearanceId) {
+  const { skin, material } = resolveOrbAppearance(id);
+  return {
+    orbVertex: ORB_VERTEX,
+    orbFragment: orbFragment(skin.contactGLSL, material.fragmentGLSL),
+    skinVertex: peelVertex(skin.shapeGLSL, skin.surfaceGLSL),
+    skinFragment: peelFragment(material.fragmentGLSL),
+  };
+}
+const baselineSources = appearanceShaderSources();
+export const ORB_FRAGMENT = baselineSources.orbFragment;
+export const PEEL_VERTEX = baselineSources.skinVertex;
+export const PEEL_FRAGMENT = baselineSources.skinFragment;
 
 export const PARTICLE_VERTEX = `#version 300 es
 precision highp float;
@@ -514,22 +523,26 @@ export class WebGLBackend implements RendererBackend {
     private settings: VisualEngineSettings,
     seed: number,
     motion: MotionEvaluator,
+    appearance?: OrbAppearanceId,
   ) {
     this.reducedMotionMedia =
       typeof matchMedia === "undefined"
         ? undefined
         : matchMedia("(prefers-reduced-motion: reduce)");
     try {
+      const definition = resolveOrbAppearance(appearance);
+      const skin = definition.skin.create(budget, seed);
+      const sources = appearanceShaderSources(definition.id);
       this.orbProgram = program(
         gl,
-        ORB_VERTEX,
-        withFineDetail(ORB_FRAGMENT, budget.fineOctaves),
+        sources.orbVertex,
+        withFineDetail(sources.orbFragment, budget.fineOctaves),
         this.resources,
       );
       this.peelProgram = program(
         gl,
-        PEEL_VERTEX,
-        withFineDetail(PEEL_FRAGMENT, budget.fineOctaves),
+        sources.skinVertex,
+        withFineDetail(sources.skinFragment, budget.fineOctaves),
         this.resources,
       );
       this.haloProgram = program(gl, HALO_VERTEX, HALO_FRAGMENT, this.resources);
@@ -549,10 +562,9 @@ export class WebGLBackend implements RendererBackend {
         highlight: location(gl, this.orbProgram, "u_highlight"),
         orientation: location(gl, this.orbProgram, "u_object_orientation"),
       };
-      const openings = budget.peels ? createSkinOpenings(seed) : [];
       if (budget.fineOctaves >= 2)
-        this.contactUniforms = this.createSkinUniforms(this.orbProgram, openings);
-      this.skinUniforms = this.createSkinUniforms(this.peelProgram, openings);
+        this.contactUniforms = this.createSkinUniforms(this.orbProgram, skin);
+      this.skinUniforms = this.createSkinUniforms(this.peelProgram, skin);
       this.peelUniforms = {
         ...this.commonUniformLocations(this.peelProgram),
         ...this.fieldUniformLocations(this.peelProgram),
@@ -605,15 +617,14 @@ export class WebGLBackend implements RendererBackend {
         ],
         this.resources,
       );
-      const skin = createSkinGeometry(budget, seed);
       this.peels = indexedResource(
         gl,
-        skin,
+        skin.geometry,
         SKIN_VERTEX_STRIDE * 4,
         [{ location: 0, size: 3, offset: 0 }],
         this.resources,
       );
-      this.peelOrder = skin.ranges.map((range) => ({ ...range, z: 0 }));
+      this.peelOrder = skin.geometry.ranges.map((range) => ({ ...range, z: 0 }));
       this.halo = indexedResource(
         gl,
         {
@@ -640,7 +651,7 @@ export class WebGLBackend implements RendererBackend {
     }
   }
 
-  private createSkinUniforms(shader: WebGLProgram, openings: readonly SkinOpening[]): SkinUniforms {
+  private createSkinUniforms(shader: WebGLProgram, skin: SkinSetup): SkinUniforms {
     const gl = this.gl;
     bindProgram(gl, shader);
     const uniforms = {
@@ -648,10 +659,10 @@ export class WebGLBackend implements RendererBackend {
       pose: location(gl, shader, "u_contact_pose"),
       phase: location(gl, shader, "u_contact_phase"),
     };
-    gl.uniform1i(uniforms.count, openings.length);
+    gl.uniform1i(uniforms.count, skin.count);
     gl.uniform1f(location(gl, shader, "u_skin_clearance"), this.budget.skinClearance);
-    if (openings.length) {
-      const packed = packSkinOpenings(openings);
+    if (skin.count) {
+      const packed = skin.descriptors;
       for (const name of ["centers", "tangents", "sides", "shapes"] as const)
         gl.uniform4fv(location(gl, shader, `u_contact_${name}[0]`), packed[name]);
     }
@@ -928,7 +939,9 @@ export function createWebGLBackend(
   settings: VisualEngineSettings,
   seed: number,
   motion: MotionEvaluator,
+  appearance?: OrbAppearanceId,
 ): WebGLBackend | null {
+  resolveOrbAppearance(appearance);
   let gl: WebGL2RenderingContext | null;
   try {
     gl = canvas.getContext("webgl2", {
@@ -948,7 +961,7 @@ export function createWebGLBackend(
     return null;
   }
   try {
-    return new WebGLBackend(canvas, gl, budget, settings, seed, motion);
+    return new WebGLBackend(canvas, gl, budget, settings, seed, motion, appearance);
   } catch (error) {
     if (canvas.dataset)
       canvas.dataset.samWebglFailure =

@@ -1,3 +1,4 @@
+import type { OrbAppearanceId } from "./appearance";
 import type { MotionEvaluator } from "./motion";
 import type { RenderBudget } from "./quality";
 import type { VisualEngineSettings, VisualInputV1 } from "./types";
@@ -21,6 +22,7 @@ export type BackendFactory = (
   settings: VisualEngineSettings,
   seed: number,
   motion: MotionEvaluator,
+  appearance?: OrbAppearanceId,
 ) => RendererBackend | null;
 
 export function chooseRendererKind(

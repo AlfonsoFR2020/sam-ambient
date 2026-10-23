@@ -1,3 +1,4 @@
+import { type OrbAppearanceId, resolveOrbAppearance } from "./appearance";
 import type { BackendFactory, RendererBackend, RendererKind } from "./backend";
 import { CanvasBackend } from "./canvas";
 import { AdaptiveQualityGovernor } from "./governor";
@@ -17,6 +18,8 @@ const circularDistance = (a: number, b: number): number => {
 export interface VisualEngineOptions {
   readonly settings?: Partial<VisualEngineSettings>;
   readonly seed?: number;
+  /** Internal fixture/engineering selection only; never a saved owner preference. */
+  readonly appearance?: OrbAppearanceId;
   readonly clock?: () => number;
   readonly requestFrame?: (callback: FrameRequestCallback) => number;
   readonly cancelFrame?: (handle: number) => void;
@@ -32,6 +35,8 @@ export interface VisualDiagnosticEvent {
 
 export interface VisualDiagnosticSnapshot {
   readonly renderer: RendererKind;
+  readonly appearance: OrbAppearanceId;
+  readonly appearancePath: "surface-webgl" | "shared-recovery";
   readonly fallbackReason?: string;
   readonly quality: RenderBudget["quality"];
   readonly qualityPolicy: VisualEngineSettings["quality"];
@@ -61,8 +66,17 @@ export interface VisualDiagnosticSnapshot {
   readonly events: readonly VisualDiagnosticEvent[];
 }
 
-const defaultFactory: BackendFactory = (canvas, kind, budget, settings, seed, motion) => {
-  if (kind === "webgl2") return createWebGLBackend(canvas, budget, settings, seed, motion);
+const defaultFactory: BackendFactory = (
+  canvas,
+  kind,
+  budget,
+  settings,
+  seed,
+  motion,
+  appearance,
+) => {
+  if (kind === "webgl2")
+    return createWebGLBackend(canvas, budget, settings, seed, motion, appearance);
   const context = canvas.getContext("2d", { alpha: true });
   return context ? new CanvasBackend(canvas, context, budget, settings, seed, motion) : null;
 };
@@ -103,6 +117,7 @@ export class VisualEngine {
   private resizeObserver?: ResizeObserver;
   private intersectionObserver?: IntersectionObserver;
   private readonly seed: number;
+  private readonly appearance: OrbAppearanceId;
   private readonly clock: () => number;
   private readonly requestFrame: (callback: FrameRequestCallback) => number;
   private readonly cancelFrame: (handle: number) => void;
@@ -115,6 +130,7 @@ export class VisualEngine {
     this.budget = resolveRenderBudget(this.settings);
     this.governor = new AdaptiveQualityGovernor(this.budget.quality);
     this.seed = options.seed ?? 0x5a17;
+    this.appearance = resolveOrbAppearance(options.appearance).id;
     this.motion = new MotionEvaluator(this.seed);
     this.clock = options.clock ?? (() => performance.now());
     this.requestFrame = options.requestFrame ?? ((callback) => requestAnimationFrame(callback));
@@ -309,6 +325,8 @@ export class VisualEngine {
     const orientation = this.interaction.snapshot();
     return {
       renderer: this.rendererKind,
+      appearance: this.appearance,
+      appearancePath: this.rendererKind === "webgl2" ? "surface-webgl" : "shared-recovery",
       fallbackReason: this.host?.dataset.samFallbackReason,
       quality: this.budget.quality,
       qualityPolicy: this.settings.quality,
@@ -551,6 +569,7 @@ export class VisualEngine {
         this.settings,
         this.seed,
         this.motion,
+        this.appearance,
       );
       if (!backend) {
         if (kind === "webgl2")
