@@ -12,7 +12,7 @@ This plan grants no version bump, runtime permission, remote action or automatic
 ## Reconciled near-term programme
 
 [Owner requirements](OWNER_REQUIREMENTS.md) records intent/provenance/acceptance;
-[BACKLOG's current index](BACKLOG.md#current-execution-index--v-d-closure-2026-10-23)
+[BACKLOG's current index](BACKLOG.md#current-execution-index--v-f3-organic-peeling-and-focused-experience-2026-10-23)
 retains actions. This is the current ordering; dated proposals below are history.
 Severity, privacy/data integrity, core usability and dependencies lead; recurrence,
 owner emphasis, age/deferral, benefit, feasibility and cost follow. Cheap new work

@@ -1,12 +1,57 @@
 {
-  "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40012878645",
-  "head": "8d837278ebdb00bc1f038ace99b18e12da1a1034",
-  "conclusion": "success",
-  "summaryLines": [
-    "Quality (windows-latest)\tPython tests\t2026-10-23T19:41:26.4746815Z ================= 856 passed, 5 skipped in 207.15s (0:03:27) ==================",
-    "Quality (windows-latest)\tFrontend quality and build\t2026-10-23T19:42:04.9742962Z Checked 168 files in 430ms. No fixes applied.",
-    "Quality (ubuntu-latest)\tPython tests\t2026-10-23T19:39:51.5302839Z ================= 817 passed, 44 skipped in 119.41s (0:01:59) ==================",
-    "Quality (ubuntu-latest)\tFrontend quality and build\t2026-10-23T19:40:10.2557201Z Checked 168 files in 307ms. No fixes applied."
+  "counting": "Platform/full/focused counts overlap; do not sum. Failed first attempt is retained separately from the one successful retry.",
+  "runs": [
+    {
+      "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40012878645",
+      "head": "8d837278ebdb00bc1f038ace99b18e12da1a1034",
+      "attempt": 1,
+      "conclusion": "success",
+      "summaryLines": [
+        "Quality (windows-latest)\tPython tests\t2026-10-23T19:41:26.4746815Z ================= 856 passed, 5 skipped in 207.15s (0:03:27) ==================",
+        "Quality (windows-latest)\tFrontend quality and build\t2026-10-23T19:42:03.4107832Z  Test Files  47 passed (47)",
+        "Quality (windows-latest)\tFrontend quality and build\t2026-10-23T19:42:03.4110518Z       Tests  395 passed (395)",
+        "Quality (windows-latest)\tFrontend quality and build\t2026-10-23T19:42:04.9742962Z Checked 168 files in 430ms. No fixes applied.",
+        "Quality (ubuntu-latest)\tPython tests\t2026-10-23T19:39:51.5302839Z ================= 817 passed, 44 skipped in 119.41s (0:01:59) ==================",
+        "Quality (ubuntu-latest)\tFrontend quality and build\t2026-10-23T19:40:09.4630341Z  Test Files  47 passed (47)",
+        "Quality (ubuntu-latest)\tFrontend quality and build\t2026-10-23T19:40:09.4631067Z       Tests  395 passed (395)",
+        "Quality (ubuntu-latest)\tFrontend quality and build\t2026-10-23T19:40:10.2557201Z Checked 168 files in 307ms. No fixes applied."
+      ]
+    },
+    {
+      "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40014803792",
+      "head": "7bb75fb95da53a537fdb38fa672b8ee2904bf05d",
+      "attempt": 1,
+      "conclusion": "failure",
+      "windows": {
+        "passed": 854,
+        "failed": 2,
+        "skipped": 5,
+        "failures": [
+          "test_real_diagnostic_supervisor_owner_ui_and_shutdown: TimeoutError",
+          "test_real_core_quit_stops_supervisor_without_restart[False]: TimeoutError"
+        ]
+      },
+      "ubuntu": "success",
+      "native": "success",
+      "packageSmoke": "skipped"
+    },
+    {
+      "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40014803792",
+      "head": "7bb75fb95da53a537fdb38fa672b8ee2904bf05d",
+      "attempt": 2,
+      "conclusion": "success",
+      "summaryLines": [
+        "Quality (windows-latest)\tPython tests\t2026-10-23T20:06:11.5176186Z ================= 856 passed, 5 skipped in 212.32s (0:03:32) ==================",
+        "Quality (windows-latest)\tFrontend quality and build\t2026-10-23T20:06:48.2960712Z  Test Files  47 passed (47)",
+        "Quality (windows-latest)\tFrontend quality and build\t2026-10-23T20:06:48.2963268Z       Tests  396 passed (396)",
+        "Quality (windows-latest)\tFrontend quality and build\t2026-10-23T20:06:49.8869731Z Checked 168 files in 445ms. No fixes applied.",
+        "Quality (ubuntu-latest)\tUNKNOWN STEP\t2026-10-23T19:54:11.9916786Z ================= 817 passed, 44 skipped in 102.70s (0:01:42) ==================",
+        "Quality (ubuntu-latest)\tUNKNOWN STEP\t2026-10-23T19:54:23.8472910Z  Test Files  47 passed (47)",
+        "Quality (ubuntu-latest)\tUNKNOWN STEP\t2026-10-23T19:54:23.8474014Z       Tests  396 passed (396)",
+        "Quality (ubuntu-latest)\tUNKNOWN STEP\t2026-10-23T19:54:24.5001402Z Checked 168 files in 257ms. No fixes applied."
+      ],
+      "allJobs": "success; Windows retry, existing Ubuntu and Native passes, dependent Package smoke pass"
+    }
   ],
-  "counting": "Platforms overlap; do not sum. Last local metadata-only helper test is outside this hosted source checkpoint."
+  "interpretation": "No Python/runtime/timeout changes. Same production source and assets as earlier green run. One failed-job retry passes; timing causes remain unattributed and are not marked fixed."
 }

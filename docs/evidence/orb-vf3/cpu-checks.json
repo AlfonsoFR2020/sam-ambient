@@ -1,6 +1,6 @@
 {
   "checkpoint": "V-F3 final source plus metadata audit",
-  "renderedHead": "8d837278ebdb00bc1f038ace99b18e12da1a1034",
+  "renderedHead": "7bb75fb95da53a537fdb38fa672b8ee2904bf05d",
   "passed": 118,
   "failed": 0,
   "files": [
@@ -561,5 +561,11 @@
       ]
     }
   ],
-  "counting": "Distinct tests in one final run; earlier overlapping batches and repetitions are not added. No local graphical execution."
+  "counting": "Distinct tests in one final run; earlier overlapping batches and repetitions are not added. No local graphical execution.",
+  "subsequentAffectedFixtureRun": {
+    "files": 2,
+    "passed": 16,
+    "failed": 0,
+    "scope": "After final transverse-free-boundary and run-identity audit; not added to distinct total"
+  }
 }

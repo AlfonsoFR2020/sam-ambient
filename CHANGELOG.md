@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- V-F3 isolated positive organic peels with broad roots and local analytic outward
+  bending; shared pigment/clocks and connected parent default retained. Measured
+  radial CPU/GPU discrepancy is fixed without relaxing the strict guard. Shared
+  Console/Memory presentation and truthful primary loading labels are refined.
+  [Evidence and remaining artistic/hardware gates](docs/ORGANIC_PEEL_VF3.md).
+  Internal experiment only; no ordinary particle-cap increase or merge into dev.
+
 - V-F1 isolated appearance foundation and connected radial-sector prototype, with
   unchanged default shader/mesh fingerprints and shared material/clocks/resources.
   Internal selection only; no theme UI, settings migration or graphical acceptance.

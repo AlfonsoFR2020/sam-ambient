@@ -34,6 +34,11 @@ parallel queues. No row grants execution permission.
   caps. QUAL-03 remains open. Shared Console/Memory presentation, compact loading
   and a source-reproduced Ready-during-loading label are corrected with focused
   CPU and synthetic hosted UI evidence; UX-01/02 still require owner-window acceptance.
+- Preserve V-F3's Windows CI shutdown observations: diagnostic supervisor and
+  UI-disabled first-run retirement probes timed out on a head with unchanged
+  production source from a green preceding run. One failed-job retry is recorded
+  separately in [V-F3](ORGANIC_PEEL_VF3.md). Do not infer a renderer cause or mark
+  these observations repaired merely because a repetition passes.
 
 - All 66 register entries retain origin/status/gap/priority/dependency/track. Older
   unmet requirements get explicit consideration; severity, integrity and core
