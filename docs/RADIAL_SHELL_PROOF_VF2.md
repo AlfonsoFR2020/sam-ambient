@@ -4,6 +4,10 @@
 remains `cc69bc2b90eac4068c929af4beb1bb95705b14af`. Published v0.2.5 is unchanged.
 This record distinguishes source/numerical checks, hosted rendering and owner acceptance.
 
+Current disposition: both skins render through actual software WebGL2; strict
+radial point parity remains red. Keep the parent default. Source/CPU evidence is
+sound, but neither numerical closure nor broad-shell artistic acceptance is claimed.
+
 ## Closure audit
 
 Starting HEAD `15db3adaa30e29103d556a7354dd9440af957f72` is clean, following

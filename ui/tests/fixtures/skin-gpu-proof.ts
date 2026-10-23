@@ -10,6 +10,7 @@ import {
 import {
   createSkinOpenings,
   type SkinVector,
+  skinDot,
   skinNormalize,
   skinRegion,
   skinRimRadius,
@@ -66,8 +67,11 @@ ${strategy.surfaceGLSL}
 out vec3 proof_position;
 out vec3 proof_normal;
 out vec3 proof_regions;
+out vec3 proof_domain;
 void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_normal=livingSkinNormal(n);
-proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);gl_Position=vec4(0.,0.,0.,1.);}`,
+proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);
+${strategy.id === "radial-sectors" ? "vec2 xy=radialShellCoordinates(n,0);proof_domain=vec3(xy,atan(xy.y,xy.x));" : "proof_domain=vec3(0.);"}
+gl_Position=vec4(0.,0.,0.,1.);}`,
     );
     const fragment = compile(
       gl.FRAGMENT_SHADER,
@@ -79,7 +83,7 @@ proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);gl_Pos
     gl.attachShader(program, fragment);
     gl.transformFeedbackVaryings(
       program,
-      ["proof_position", "proof_normal", "proof_regions"],
+      ["proof_position", "proof_normal", "proof_regions", "proof_domain"],
       gl.INTERLEAVED_ATTRIBS,
     );
     gl.linkProgram(program);
@@ -132,7 +136,7 @@ proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);gl_Pos
               ),
             );
           }
-    const stride = 9;
+    const stride = 12;
     const input = new Float32Array(directions),
       output = new Float32Array((input.length / 3) * stride);
     vao = gl.createVertexArray();
@@ -163,6 +167,17 @@ proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);gl_Pos
       return [n[0] * r, n[1] * r * 1.06, n[2] * r];
     };
     const reference = strategy.reference(0x5a17);
+    const radialWindow = createRadialShellWindows()[0];
+    const domainReference = (n: SkinVector) => {
+      const p = radialWindow;
+      const a = Math.atan2(skinDot(n, p.side), skinDot(n, p.equator)) - p.azimuth;
+      const x = a - 2 * Math.PI * Math.floor((a + Math.PI) / (2 * Math.PI));
+      const y =
+        Math.atan2(skinDot(n, p.axis), Math.hypot(skinDot(n, p.equator), skinDot(n, p.side))) -
+        p.latitude;
+      const theta = Math.atan2(y, x);
+      return { coordinates: [x, y, theta], rim: radialShellRim(p, theta)[0], collar: p.collar };
+    };
     let maxPositionError = 0,
       maxNormalError = 0,
       maxRegionError = 0,
@@ -214,6 +229,11 @@ proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);gl_Pos
               gpu: Array.from(output.slice(i * stride, i * stride + 3)),
               qCPU: q,
               qGPU: Array.from(output.slice(i * stride + 6, i * stride + 9)),
+              domainCPU: strategy.id === "radial-sectors" ? domainReference(n) : null,
+              domainGPU:
+                strategy.id === "radial-sectors"
+                  ? Array.from(output.slice(i * stride + 9, i * stride + 12))
+                  : null,
             };
           }
           maxNormalError = Math.max(

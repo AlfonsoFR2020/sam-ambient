@@ -2,7 +2,7 @@
 
 <a id="current-execution-index--v-c-reconciliation-2026-10-22"></a>
 <a id="current-execution-index--v-d-closure-2026-10-23"></a>
-## Current execution index — V-F1 appearance foundation, 2026-10-23
+## Current execution index — V-F2 hosted radial/parent proof, 2026-10-23
 
 [Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
 IDs; this file remains the retained action backlog. [ROADMAP](ROADMAP.md) orders
@@ -30,8 +30,10 @@ parallel queues. No row grants execution permission.
 - V-F1's `feature/orb-appearance-foundation` implements [internal strategy boundaries
   and a radial-sector prototype](ORB_APPEARANCE_VF1.md), preserving IV-B as default
   and dev `cc69bc2` as a baseline. The earlier `feature/organic-radial-shells` name
-  remains a historical proposal, not an additional active branch. Comparison needs
-  separately authorized graphics; all STYLE requests remain future capabilities.
+  remains a historical proposal, not an additional active branch. [V-F2 hosted
+  comparison](RADIAL_SHELL_PROOF_VF2.md) supplies actual matched images; strict
+  radial parity and whole-motion/artistic/hardware acceptance remain open.
+  All STYLE requests remain future capabilities.
 - Particle population multipliers, centre wandering and a particular renderer/theme
   framework are proposals, not recovered owner obligations. Do not promote them
   above dirty-particle/whole-presence feedback without evidence.
@@ -43,6 +45,14 @@ parallel queues. No row grants execution permission.
   docs. Neither branch receives dev runtime. Main/About/topics remain unchanged.
 
 ## Dated implementation evidence
+
+**2026-10-23 V-F2:** [hosted proof and retained failures](RADIAL_SHELL_PROOF_VF2.md)
+compares the actual parent/radial production shaders under matched material and
+clocks, with full-colour, diagnostic and compact/Low views. A radial coordinate
+discrepancy is reproduced; the equivalent angular rewrite does not close it. The default,
+pigment and budgets are preserved; selected renders do not close SHELL-01, QUAL or
+EXP acceptance. Less rolled rims still read as a coated/open casing in some views;
+Low corners remain visible. No speculative topology or default promotion follows.
 
 **2026-10-23 V-F1:** [appearance/geometry contract](ORB_APPEARANCE_VF1.md) records
 one engine, a frozen default material, paired setup geometry/equations/contact,

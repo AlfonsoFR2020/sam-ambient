@@ -1,5 +1,9 @@
 # Orb appearance foundation — V-F1
 
+Follow-up: [V-F2 hosted graphical evidence and numerical investigation](RADIAL_SHELL_PROOF_VF2.md)
+supersedes this checkpoint's unexecuted-shader/build disposition on the isolated
+feature branch. The V-F1 baseline evidence below remains historical and intact.
+
 2026-10-23. Isolated `feature/orb-appearance-foundation`, based on clean dev
 `cc69bc2b90eac4068c929af4beb1bb95705b14af`. CPU/source engineering only; no
 shader execution, rendering, performance or owner acceptance.

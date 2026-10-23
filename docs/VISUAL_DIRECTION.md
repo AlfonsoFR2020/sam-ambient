@@ -1,5 +1,13 @@
 # Sam Orb visual direction
 
+**2026-10-23 V-F2 evidence:** [matched hosted parent/radial views](RADIAL_SHELL_PROOF_VF2.md)
+execute the actual shaders and preserve the unchanged living pigment. The radial
+rim looks shallower/less inward-rolled in sampled views; several still read as a
+coated sphere with casing-like openings, and compact Low has visible corners.
+These are provisional engineering interpretations, not owner acceptance. Keep
+the parent default. Broad radial shells, whole-Orb embodiment and convincing
+optical continuity remain P1; do not use palette changes to conceal geometry.
+
 **2026-10-23 V-F1 feature prototype:** [appearance foundation](ORB_APPEARANCE_VF1.md)
 adds explicit internal material/skin boundaries and one connected radial-sector
 alternative, with outward compact-rim and topology checks. The connected parent

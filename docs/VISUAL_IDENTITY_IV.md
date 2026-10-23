@@ -1,5 +1,12 @@
 # Visual Identity IV — connected living skin
 
+**V-F2 feature-branch evidence (2026-10-23):** [matched software WebGL2 proof](RADIAL_SHELL_PROOF_VF2.md)
+executes the actual parent/radial shaders in selected full-colour/diagnostic poses.
+It preserves this parent as default and the released living pigment. Less rolled
+experimental rims are visible, but casing character/Low corners and whole-motion,
+hardware and owner acceptance remain open. The historical unexecuted checkpoints
+below are not current blanket claims that no shader has ever run.
+
 **V-F1 feature-branch amendment (2026-10-23):** [appearance foundation](ORB_APPEARANCE_VF1.md)
 retains this parent skin as the default and numerical compatibility baseline, while
 adding an internally selected connected radial-sector prototype. This does not reject

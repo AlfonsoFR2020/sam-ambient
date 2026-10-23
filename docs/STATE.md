@@ -4,7 +4,7 @@ Updated: 2026-10-23. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
-- V-F1 feature: [appearance/radial prototype](ORB_APPEARANCE_VF1.md), unchanged default; 174 Node / 38 Python passes and matching 73-input build. Graphics open; not merged into dev.
+- V-F2 feature: [hosted radial/parent evidence](RADIAL_SHELL_PROOF_VF2.md) captures matched WebGL2 views; 73 focused CPU passes and matching 73-input build. Strict radial GPU parity remains open; default unchanged, no dev merge or owner acceptance.
 - V-E [sessions/audit](SESSION_CONTINUITY_VE.md): New/Resume/rehydration has 176 scoped Python / 182 frontend passes at its checkpoint; its 68-input assets are historical.
   V-E recorded docs PR #7 draft / test-maintenance PR #8 green and unmerged; no remote check in V-F1. V-D [assets](KEYBOARD_PTT_VD.md) are historical.
 - [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
@@ -197,4 +197,4 @@ Python checks, 77 frontend tests and two Chrome cases for bounded repairs.
 [Composable launch](DIAGNOSTIC_LAUNCH.md) adds independent flags; 152 focused checks pass.
 Earlier diagnostic/auth/runtime evidence remains historical; no beta stall is claimed solved.
 Same-store memory writes serialize; external-lock/schema/privacy recovery stays bounded. UI shutdown retires idle/partial HTTP clients; 30 focused checks pass. Native acceptance stays separate.
-Expansion/AEC parked. [Visual IV](VISUAL_IDENTITY_IV.md) remains experimental; [IV-D](INTEGRATION_VALIDATION_IVD.md) integrates assets and deterministic proof. Shaders, graphical comparison, performance and human acceptance are unverified.
+Expansion/AEC parked. [Visual IV](VISUAL_IDENTITY_IV.md) remains experimental; [V-F2](RADIAL_SHELL_PROOF_VF2.md) adds selected software WebGL evidence. Whole lifecycle, supported-hardware performance and human acceptance remain open.

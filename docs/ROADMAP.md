@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 checkpoint (2026-10-23): V-F1 isolated appearance foundation / radial-sector prototype.**
+**Current HQ4 checkpoint (2026-10-23): V-F2 isolated radial/parent graphical evidence and bounded numerical investigation.**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -23,7 +23,7 @@ does not displace older substantial art or conversation needs.
 | 0 · maintain P0 | Act on demonstrated authority/data-loss/ownership regression; preserve AUTH-01–05 | No general redesign or invented incident diagnosis |
 | 1 · occupied-PC conversation/usability | UX-08 New/Resume, launch choice and snapshot recovery are implemented with bounded deterministic evidence; UX-11 remains source verified. Next independent candidate: UX-09 interruption-retention preference semantics and tests | UI/owner acceptance remains separate; historical symptoms stay unattributed. Preserve completed text and truthful delivery; CONV-07/08 stay separate |
 | 2 · occupied-PC reliability | Reconstruct representative waiting/retirement/recognition traces with existing content-free diagnostics; repair only reproduced gaps in CONV-01–04. Assess CONV-07 whole-WAV latency separately | Real-session causes require provider/audio evidence; do not add another telemetry system or replace STT speculatively |
-| 3 · visual priority, conditional execution | Prove IV-B/IV-C shaders, rich-colour radial-shell continuity, compact poses, lifecycle/whole-Orb speech and High value; retain VIS/SHELL/EXP/QUAL P1 standing | RENDER/REAL/OWNER gates; useful CPU/reference preparation may be separately assigned while graphical sessions remain unavailable |
+| 3 · visual priority, conditional execution | [V-F2](RADIAL_SHELL_PROOF_VF2.md) adds matched parent/radial software renders; strict radial parity remains open. Review broad-shell character, then lifecycle/whole-Orb speech and High value; retain VIS/SHELL/EXP/QUAL P1 standing | Selected hosted frames do not accept casing character, Low corners, dynamic optics, hardware cost or owner preference; default remains parent and dev stays isolated |
 | 4 · usability/platform follow-on | Resolve remaining controls/history/persona scope, then clean-host Windows distribution and Linux acceptance; preserve functioning Console/Memory | Separate source bugs, graphical acceptance, new preferences and installer/signing decisions |
 | Later · explicit retained product directions | STYLE-01–11 and CAP-03–08: variants, broader OS/delegation, generative interfaces, semantic/multi-person context, controlled self-modification | New scope, actual benefit and authority/resource evidence; no theme engine chosen in advance |
 
