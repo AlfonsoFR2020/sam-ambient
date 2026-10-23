@@ -1,0 +1,123 @@
+{
+  "verifiedDate": "2026-10-23",
+  "baselineCommit": "cc69bc2b90eac4068c929af4beb1bb95705b14af",
+  "sourceCommit": "7f5101eab088d680b0e8379a64f7e4d3de7a3885",
+  "featureBranch": "feature/orb-appearance-foundation",
+  "defaultAppearance": "living-connected",
+  "experimentalAppearance": "radial-shell-experimental",
+  "ownerSelectorOrPersistenceChange": false,
+  "frontend": {
+    "distinctPassed": 174,
+    "files": 23,
+    "byFile": {
+      "ui/tests/playback-presence-integration.test.ts": 3,
+      "ui/tests/presence-fixture.test.ts": 1,
+      "ui/tests/provider-embodiment.test.ts": 7,
+      "ui/tests/visual-ambient-reactivity.test.ts": 6,
+      "ui/tests/visual-appearance.test.ts": 3,
+      "ui/tests/visual-behavior.test.ts": 4,
+      "ui/tests/visual-continuity.test.ts": 1,
+      "ui/tests/visual-discourse-crest.test.ts": 2,
+      "ui/tests/visual-engine.test.ts": 20,
+      "ui/tests/visual-governor.test.ts": 7,
+      "ui/tests/visual-input.test.ts": 12,
+      "ui/tests/visual-interaction.test.ts": 7,
+      "ui/tests/visual-living-field.test.ts": 13,
+      "ui/tests/visual-membrane-optics.test.ts": 3,
+      "ui/tests/visual-membrane.test.ts": 6,
+      "ui/tests/visual-model.test.ts": 4,
+      "ui/tests/visual-motion.test.ts": 26,
+      "ui/tests/visual-palette.test.ts": 4,
+      "ui/tests/visual-quality.test.ts": 8,
+      "ui/tests/visual-radial-shell.test.ts": 18,
+      "ui/tests/visual-resource-recovery.test.ts": 12,
+      "ui/tests/visual-skin-integration.test.ts": 3,
+      "ui/tests/visual-skin-topology.test.ts": 4
+    },
+    "workers": 1,
+    "environment": "node"
+  },
+  "python": {
+    "distinctPassed": 38,
+    "files": 4,
+    "byModule": {
+      "tests.unit.test_orb_appearance_diagram": 2,
+      "tests.unit.test_owner_requirements": 7,
+      "tests.unit.test_public_docs_checker": 14,
+      "tests.unit.test_public_documentation": 15
+    }
+  },
+  "earlierOverlappingBatchesAdded": false,
+  "static": {
+    "typescript": "passes",
+    "biome": "16 changed TS/test files pass",
+    "ruff": "2 changed Python files lint/format pass"
+  },
+  "defaultCompatibility": {
+    "snapshot": "ui/tests/__snapshots__/visual-appearance.test.ts.snap",
+    "sha256Lf": "63f10e0b02d9d4092090cc7d997ed8fdeed542d939b4b4fbc65734fb70aca11d",
+    "baselineNumericalModulesUnchanged": [
+      "membrane.ts",
+      "membrane-optics.ts",
+      "skin-domain.ts",
+      "skin-geometry.ts",
+      "motion.ts",
+      "living-field.ts",
+      "living-material.ts",
+      "palette.ts",
+      "particles.ts",
+      "interaction.ts",
+      "input.ts",
+      "ambient-reactivity.ts",
+      "governor.ts",
+      "settings.ts",
+      "canvas.ts",
+      "types.ts"
+    ],
+    "frozenDefaultShadersReused": true
+  },
+  "repairedPrototypeDefect": {
+    "compactRadius": 0.46,
+    "initialRimRadialNormalDot": -0.03386319634577428,
+    "repair": "Outward arc maximum 1.03 radians and return radius proportional to 0.45 lift height; CPU/GLSL agree in source, positive normal assertion retained"
+  },
+  "assetsMatchFinalSource": true,
+  "canonicalBuilds": 1,
+  "newDiagram": {
+    "path": "docs/diagrams/sam-orb-appearance.svg",
+    "sha256Lf": "7764864d26be026bac4cf7959561fb0a5ae69d6018e96244120557f08271ccdb",
+    "reproducible": true,
+    "rendered": false
+  },
+  "graphicalExecution": false,
+  "realAppProviderOrAudioExecution": false,
+  "remoteOperations": false,
+  "scope": "Numerical/structural/source proof only; no shader, optical, performance or human acceptance",
+  "documents": {
+    "profile": "development",
+    "pages": 21,
+    "local_links": 259,
+    "svg_sha256_lf": {
+      "sam-system-architecture.svg": "eda3e1c07475a02fdd4ad73c55bf3647687716e188ae1c3aa268b5b2c3e4f9e5",
+      "sam-conversation-lifecycle.svg": "78e457014acdf512d4377cebff8eefe3cebd5a95a9983154035a63341c20d6ca"
+    },
+    "minimum_palette_text_contrast": 6.64,
+    "rendered": false,
+    "external_urls_checked": false,
+    "additionalPages": 6,
+    "additionalLocalLinks": 83
+  },
+  "requirements": {
+    "requirements": 66,
+    "styles": 11,
+    "priority_bands": {
+      "P0": 7,
+      "P1": 33,
+      "P2": 9,
+      "P3": 17
+    },
+    "dependencies_resolve": true,
+    "prerequisite_cycles": false,
+    "acceptance_inferred": false
+  }
+}

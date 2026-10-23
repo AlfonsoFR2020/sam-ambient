@@ -4,9 +4,9 @@ Updated: 2026-10-23. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
-- V-F1 feature: [appearance/radial prototype](ORB_APPEARANCE_VF1.md), unchanged default; 174 Node / 38 scoped Python cases pass. Graphics open; not merged into dev.
-- V-E [sessions/audit](SESSION_CONTINUITY_VE.md): New/Resume/rehydration passes 176 scoped Python / 182 frontend cases; final production assets match all 68 source inputs.
-  Public docs PR #7 stays draft; isolated released-test maintenance PR #8 is green and unmerged. V-D [assets](KEYBOARD_PTT_VD.md) are historical.
+- V-F1 feature: [appearance/radial prototype](ORB_APPEARANCE_VF1.md), unchanged default; 174 Node / 38 Python passes and matching 73-input build. Graphics open; not merged into dev.
+- V-E [sessions/audit](SESSION_CONTINUITY_VE.md): New/Resume/rehydration has 176 scoped Python / 182 frontend passes at its checkpoint; its 68-input assets are historical.
+  V-E recorded docs PR #7 draft / test-maintenance PR #8 green and unmerged; no remote check in V-F1. V-D [assets](KEYBOARD_PTT_VD.md) are historical.
 - [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects
   late/foreign results and bounds pre-roll. Explicit en/es and safe metadata remain.
   Its 256 scoped Python / 71 frontend passes are historical; generated WER is unchanged.

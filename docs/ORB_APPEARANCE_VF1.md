@@ -169,3 +169,30 @@ derivatives, arc coefficients, contact collar lookup, differential normals and s
 composition. It does not replace GPU compilation/transform feedback. The single
 production build and final input/artifact fingerprints follow after committing this
 source checkpoint, so its source identity is recoverable and clean.
+
+## Build and closure
+
+The source checkpoint is `7f5101eab088d680b0e8379a64f7e4d3de7a3885`, following
+foundation commit `f408918`. One low-priority canonical `tsc -b && vite build`
+passes without warnings or installs (3.99 seconds total; Vite 827 ms/91 modules).
+All **73 inputs** match the clean build, LF digest
+`e95e1edc6e5f68b3d1b99b142ba5fabab153c7ba09f355d655c1cb52dd33c73b`.
+The entry is `index-BoytXu27.js` (415.63 kB / 124.72 kB gzip) with unchanged
+`index-Brem5iPs.css` (20.44 kB / 5.37 kB gzip). Against the V-E integration bundle,
+this is about +10.75 kB JS / +3.39 kB gzip; default equations remain byte-identical.
+No implementation input changes after this build. Both internal IDs and the radial
+equations exist in the bundle, but ordinary construction still selects the parent skin.
+
+Evidence: [checks and boundaries](evidence/orb-appearance-vf1/validation.json),
+[resource comparison](evidence/orb-appearance-vf1/geometry-comparison.json) and
+[input/artifact hashes](evidence/orb-appearance-vf1/frontend-assets.json).
+The closure checks re-read final source/assets, distinct-test reports, requirements,
+documentation links and the generated SVG. They do not launch or render anything.
+Existing V-E, public SVG and historical visual evidence stay intact. No runtime,
+model/provider, speech device, browser, GPU, packaging, network or human beta runs.
+
+The feature branch remains local and separate from dev `cc69bc2`; its default-path
+architecture is suitable for integration review after authorized shader/regression
+gates. The radial prototype is suitable for controlled comparison, not default
+promotion or artistic acceptance. Keep this feature branch for that later work and
+retain dev as the recoverable integration baseline. No V-F2 is begun here.

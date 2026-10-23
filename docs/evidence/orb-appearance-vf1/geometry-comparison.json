@@ -1,0 +1,95 @@
+{
+  "sourceCommit": "7f5101eab088d680b0e8379a64f7e4d3de7a3885",
+  "seed": "0x5a17",
+  "method": "Source layout arithmetic, cross-checked against actual typed arrays by visual-quality and visual-radial-shell CPU tests",
+  "sharedTopology": {
+    "components": 1,
+    "boundaryLoops": 3,
+    "eulerCharacteristic": -1,
+    "ranges": 6
+  },
+  "tiers": [
+    {
+      "tier": "low",
+      "bodyVertices": 561,
+      "bodyTriangles": 960,
+      "particles": 12,
+      "draws": 9,
+      "haloBytes": 44,
+      "skinUniformBytes": 224,
+      "connectedParent": {
+        "skinVertices": 575,
+        "skinTriangles": 1080,
+        "bodySkinVertices": 1136,
+        "bodySkinTriangles": 2040,
+        "geometryBytesIncludingParticles": 32988
+      },
+      "radialSectors": {
+        "skinVertices": 479,
+        "skinTriangles": 888,
+        "bodySkinVertices": 1040,
+        "bodySkinTriangles": 1848,
+        "geometryBytesIncludingParticles": 30684
+      }
+    },
+    {
+      "tier": "medium",
+      "bodyVertices": 2701,
+      "bodyTriangles": 5040,
+      "particles": 24,
+      "draws": 9,
+      "haloBytes": 44,
+      "skinUniformBytes": 224,
+      "connectedParent": {
+        "skinVertices": 2303,
+        "skinTriangles": 4464,
+        "bodySkinVertices": 5004,
+        "bodySkinTriangles": 9504,
+        "geometryBytesIncludingParticles": 150252
+      },
+      "radialSectors": {
+        "skinVertices": 1919,
+        "skinTriangles": 3696,
+        "bodySkinVertices": 4620,
+        "bodySkinTriangles": 8736,
+        "geometryBytesIncludingParticles": 141036
+      }
+    },
+    {
+      "tier": "high",
+      "bodyVertices": 8385,
+      "bodyTriangles": 16128,
+      "particles": 64,
+      "draws": 10,
+      "haloBytes": 44,
+      "skinUniformBytes": 448,
+      "connectedParent": {
+        "skinVertices": 9215,
+        "skinTriangles": 18144,
+        "bodySkinVertices": 17600,
+        "bodySkinTriangles": 34272,
+        "geometryBytesIncludingParticles": 519500
+      },
+      "radialSectors": {
+        "skinVertices": 7679,
+        "skinTriangles": 15072,
+        "bodySkinVertices": 16064,
+        "bodySkinTriangles": 31200,
+        "geometryBytesIncludingParticles": 482636
+      }
+    }
+  ],
+  "programs": 4,
+  "buffers": 7,
+  "descriptorBytesPerProgram": 192,
+  "gpuCostMeasured": false,
+  "driverOrHeapResidencyMeasured": false,
+  "deferred": [
+    "GLSL execution",
+    "full-colour optical overlap",
+    "radial-shell visual character",
+    "actual body contact",
+    "GPU/full-app cost",
+    "owner acceptance"
+  ]
+}
