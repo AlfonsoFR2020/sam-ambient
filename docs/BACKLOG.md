@@ -1,7 +1,8 @@
 # Post-0.2 engineering backlog
 
 <a id="current-execution-index--v-c-reconciliation-2026-10-22"></a>
-## Current execution index — V-D closure, 2026-10-23
+<a id="current-execution-index--v-d-closure-2026-10-23"></a>
+## Current execution index — V-E session continuity, 2026-10-23
 
 [Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
 IDs; this file remains the retained action backlog. [ROADMAP](ROADMAP.md) orders
@@ -34,11 +35,21 @@ parallel queues. No row grants execution permission.
   above dirty-particle/whole-presence feedback without evidence.
 - Public docs branch `docs/public-v025-refresh` (`5047050`) is pushed in
   [draft PR #7](https://github.com/AlfonsoFR2020/sam-ambient/pull/7), preserving the
-  release runtime. Hosted Ubuntu quality has an unchanged release lifecycle-test
-  assertion failure; dev's event-based assertion is not ported into this docs-only
-  branch. Main, About and topics remain unchanged; [V-C](PUBLIC_DOCUMENTATION_VC.md) is history.
+  release runtime. Its Ubuntu assertion blocker has a separate test-only, green,
+  unmerged [maintenance PR #8](https://github.com/AlfonsoFR2020/sam-ambient/pull/8).
+  Owner merge of maintenance must precede reconciliation/checks and owner merge of
+  docs. Neither branch receives dev runtime. Main/About/topics remain unchanged.
 
 ## Dated implementation evidence
+
+**2026-10-23 V-E:** [session contract](CONVERSATION_SESSIONS.md) and
+[audit/implementation](SESSION_CONTINUITY_VE.md) cover UX-08 New/Resume, launch policy,
+private rehydration and retained context. Missing snapshot presentation was reproduced;
+historical owner reload/data-loss attribution is still open. Source/deterministic
+implementation advances UX-08, with real UI/owner acceptance and broader browsing
+deferred. V-D survives its cutoff/reboot audit. Maintenance PR #8 is green/unmerged;
+PR #7 remains separate. Future safe scope may examine UX-09's explicit interruption
+retention preference without implementing CONV-07/08 or another feature here.
 
 **2026-10-23 V-D:** [closure/evidence](KEYBOARD_PTT_VD.md). UX-11 opt-in F8 capture,
 release/focus/cancellation ownership and typed recovery pass deterministic checks:

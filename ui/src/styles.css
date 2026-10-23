@@ -1375,3 +1375,17 @@ select {
     width: auto;
   }
 }
+.controls__sessions {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0 0 0.8rem;
+  min-width: 0;
+  border: 1px solid #52606e;
+  border-radius: 0.65rem;
+  padding: 0.7rem;
+}
+.controls__sessions p,
+.controls__sessions small {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

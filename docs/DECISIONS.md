@@ -1,5 +1,19 @@
 # Decision log
 
+## 2026-10-23 — V-E retained conversations and launch identity
+
+UX-08 keeps resume as the default. New/Resume are core operations, not local UI
+clears; additive registry/revision metadata preserves old committed rows and limits.
+Launch policy uses the supervisor's existing application ID once, while core/UI
+recovery reattaches. Standalone cores conservatively resume. Switching blocks active
+generation/delivery, tools and input cleanup; ordinary microphone must be muted.
+An accepted durable operation retains cleanup ownership through disconnect so live
+and stored selection cannot diverge. Private snapshots restore bounded text/drafts,
+never replay requests or speech; Memory and exact route selection remain separate.
+Windowed history/catalog is explicit, with no transcript titles/search framework.
+The public v0.2.5 maintenance correction is test-only and remains a separate draft PR.
+See [contracts/limits](CONVERSATION_SESSIONS.md) and [evidence](SESSION_CONTINUITY_VE.md).
+
 ## 2026-10-22 — V-D deliberate keyboard input
 
 UX-11 uses a persisted core input-mode preference and additive protocol-v1 controls,

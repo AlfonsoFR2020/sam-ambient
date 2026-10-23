@@ -1,5 +1,12 @@
 # Core Experience evidence — I through V and Visual Identity III
 
+**2026-10-23 V-E delta:** [session authority/recovery](CONVERSATION_SESSIONS.md)
+and [execution evidence](SESSION_CONTINUITY_VE.md) distinguish a reproduced missing
+rehydration snapshot from the older unattributed owner observation. New/Resume,
+launch preference, context isolation and interrupted-delivery preservation have
+deterministic coverage; UI/device/owner acceptance remains open. Public maintenance
+draft PR #8 is test-only, green and unmerged; documentation PR #7 remains separate.
+
 **2026-10-22 V-B delta:** [recognition integrity](SPEECH_RECOGNITION_VB.md) adds
 sealed utterances, cancellation/context/final-evidence gates, duration-bounded
 pre-roll, explicit locale normalization and safe metadata/errors. 256 distinct

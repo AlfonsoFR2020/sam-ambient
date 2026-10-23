@@ -13,6 +13,7 @@ import {
 import { AgencyConsole } from "./agency/Console";
 import { AmbientScene } from "./ambient/AmbientScene";
 import { toAmbientVisualModel } from "./ambient/model";
+import { ConversationControls } from "./ConversationControls";
 import { exitCleanupSummary } from "./controls/exit";
 import {
   applyLocalPreference,
@@ -87,8 +88,12 @@ function Transcript({ state }: { state: UiState }) {
           <div className="transcript__meta">
             <span>{entry.role === "assistant" ? "Sam" : "You"}</span>
             {entry.role === "assistant" && entry.interrupted && (
-              <small className="transcript__delivery">Speech stopped</small>
+              <small className="transcript__delivery">Response or delivery interrupted</small>
             )}
+            {entry.recovered && (
+              <small className="transcript__delivery">Saved text · delivery not restored</small>
+            )}
+            {entry.truncated && <small className="transcript__delivery">Display excerpt</small>}
           </div>
           {entry.role === "assistant" ? (
             <MessageContent text={entry.text} />
@@ -943,6 +948,7 @@ export default function App() {
           {controlsTab === "conversation" && (
             <section className="controls__group" aria-labelledby={`${controlsId}-conversation`}>
               <h2 id={`${controlsId}-conversation`}>Conversation &amp; voice</h2>
+              <ConversationControls state={state} act={applyAction} />
               <dl className="controls__speech-status" aria-label="Current speech status">
                 <SpeechStatusFields state={state} />
               </dl>

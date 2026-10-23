@@ -1,5 +1,12 @@
 # Architecture
 
+Unreleased V-E [conversation sessions](CONVERSATION_SESSIONS.md) use runtime-owned
+authenticated New/Resume/launch-policy operations, an additive operational registry
+and transactional persisted revisions. Private ready/change snapshots restore saved
+history and current drafts; UI/socket/runtime/session/generation identities remain
+separate. Switching blocks active work and retains old committed text. Existing
+per-turn model routing, context/cloud limits and reviewed Memory authority remain.
+
 Unreleased V-D [keyboard PTT](KEYBOARD_PTT.md) adds an explicit persisted input
 mode and authenticated, session/gesture-correlated hold/release/cancel controls.
 It reuses the single capture/STT path and TurnManager; presentation cannot commit

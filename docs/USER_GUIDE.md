@@ -5,6 +5,17 @@ and explicitly labelled unreleased changes on `dev`. Start with typed interactio
 on Windows, the principal validated runtime path. Hosted Linux checks do not
 establish Linux desktop/physical voice acceptance. No public installer is available.
 
+## Unreleased development: conversation sessions
+
+On `dev`, Controls → Conversation offers **New conversation**, **Resume selected
+conversation** and **On a new Sam launch**. Resume is the default. New separates
+model context while retaining prior saved text; Resume keeps the currently selected
+model. UI reload/reconnect and core recovery reattach. Mute ordinary input and finish
+or stop current work before switching; busy operations explain why they are blocked.
+Saved text is restored without replaying inference or speech. The recent-session
+window and existing storage retention are explicit. This is separate from reviewed
+Memory below. [Session behavior and limits](CONVERSATION_SESSIONS.md).
+
 ## Personal memory
 
 Open **Memory** in Sam's authenticated owner window to deliberately store a fact,

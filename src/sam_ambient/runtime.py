@@ -2162,11 +2162,15 @@ class SamRuntime:
                 content=text,
                 committed_at_ms=committed_at_ms,
             )
+            saved = await asyncio.to_thread(self.state.read_conversation, session_id)
         else:
             item = StoredMessage(
                 session_id, turn_id, role, text[:16_384], committed_at_ms, len(text) > 16_384
             )
         self.conversations.remember(item)
+        if self.state is not None and session_id == self.session_id:
+            self.conversations.history = list(saved.history)
+            self.conversations.retained = [dict(entry) for entry in saved.retained]
 
     async def _conversation_control(
         self, command: ControlCommand, owner: OwnerConnection

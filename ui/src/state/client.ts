@@ -9,6 +9,7 @@ import {
   type UiState,
 } from "../protocol/types";
 import type { ProtocolTransport, RuntimeScheduler, TransportSession } from "../transport/transport";
+import { acceptsConversationChange, conversationSnapshot } from "./conversations";
 import { reduceProtocolEvent, withConnection } from "./reducer";
 
 type Listener = () => void;
@@ -45,6 +46,7 @@ export class ProtocolClient {
   private readonly commandTimeouts = new Map<string, () => void>();
   private running = false;
   private epoch = 0;
+  private awaitingReady = true;
   private agency: readonly AgencyAction[] = [];
   private agencySequence = 0;
 
@@ -269,6 +271,7 @@ export class ProtocolClient {
   private connect(): void {
     if (!this.running) return;
     const epoch = ++this.epoch;
+    this.awaitingReady = true;
     this.setState(withConnection(this.state, "connecting"));
     void this.transport
       .connect({
@@ -322,6 +325,54 @@ export class ProtocolClient {
       const message =
         error instanceof ProtocolDecodeError ? error.message : "invalid protocol event";
       this.setState({ ...this.state, protocolError: message });
+      return;
+    }
+    if (event.type === "conversation.changed") {
+      if (!acceptsConversationChange(this.state, event)) return;
+      const reduced = reduceProtocolEvent(this.state, event);
+      if (reduced === this.state) return;
+      this.clearCommandTimeouts();
+      this.coalescer.flush();
+      this.setState({
+        ...reduced,
+        pendingCommandIds: [],
+        pendingUserMessageId: undefined,
+        protocolError: undefined,
+      });
+      return;
+    }
+    if (event.type === "system.ready") {
+      const saved = conversationSnapshot(event);
+      if (!saved && (event.payload.conversation !== undefined || this.state.conversation)) {
+        this.setState({
+          ...this.state,
+          protocolError: "Invalid conversation snapshot; reconnect to the current core.",
+        });
+        return;
+      }
+      const changedContext =
+        saved &&
+        this.state.conversation &&
+        (saved.conversation.runtimeId !== this.state.conversation.runtimeId ||
+          event.session_id !== this.state.sessionId);
+      if (changedContext && !this.awaitingReady) return;
+      const reduced = reduceProtocolEvent(this.state, event);
+      if (reduced === this.state) return;
+      this.awaitingReady = false;
+      if (changedContext) {
+        this.clearCommandTimeouts();
+        this.coalescer.flush();
+      }
+      this.setState(
+        changedContext
+          ? {
+              ...reduced,
+              pendingCommandIds: [],
+              pendingUserMessageId: undefined,
+              protocolError: undefined,
+            }
+          : reduced,
+      );
       return;
     }
     // A rejected session must not cancel current command timers before the

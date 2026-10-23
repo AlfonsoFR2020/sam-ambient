@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- V-E retained conversation controls, persisted resume/new-on-launch policy and
+  authenticated saved-history/live-draft snapshots. Transactional session revisions
+  reject stale work; new contexts preserve prior records and exact route policy.
+  Reconnect/recovery never reissues interrupted requests or speech. Windowed history,
+  Unicode limits and retention are explicit; real UI/owner acceptance remains open.
+  [Contract](docs/CONVERSATION_SESSIONS.md). Separate test-only v0.2.5 maintenance
+  draft PR #8 addresses the Ubuntu timing-sensitive assertion; no release merge.
+
 - V-D keyboard push-to-talk: explicit core-persisted input mode, hold F8/release
   to finish, authenticated gesture/session ownership and final-only commitment.
   Focus/mute/disconnect/cancellation discard unfinished input; generation/playback

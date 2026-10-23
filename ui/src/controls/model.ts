@@ -28,6 +28,9 @@ export function shouldOfferSpeechInputRetry(state: UiState): boolean {
 export type ControlAction =
   | { type: "microphone.set"; enabled: boolean }
   | { type: "voice_input_mode.set"; mode: "ordinary" | "push_to_talk" }
+  | { type: "conversation.new" }
+  | { type: "conversation.resume"; sessionId: string }
+  | { type: "conversation.launch_policy.set"; policy: "resume" | "new" }
   | { type: "tts_output.set"; enabled: boolean }
   | { type: "stop_speaking" }
   | { type: "emergency_stop" }
@@ -57,6 +60,29 @@ export function commandForAction(
   state: UiState,
   runtime?: CommandRuntime,
 ): ControlCommand | null {
+  if (
+    action.type === "conversation.new" ||
+    action.type === "conversation.resume" ||
+    action.type === "conversation.launch_policy.set"
+  ) {
+    if (!state.conversation?.persistent) return null;
+    const revision = { expected_revision: state.conversation.revision };
+    return action.type === "conversation.launch_policy.set"
+      ? createControlCommand(
+          "control.conversation.launch_policy.set",
+          { ...revision, policy: action.policy },
+          state,
+          runtime,
+        )
+      : createControlCommand(
+          "control.conversation.select",
+          action.type === "conversation.new"
+            ? { ...revision, action: "new" }
+            : { ...revision, action: "resume", target_session_id: action.sessionId },
+          state,
+          runtime,
+        );
+  }
   if (action.type === "voice_input_mode.set") {
     return createControlCommand(
       "control.voice_input_mode.set",

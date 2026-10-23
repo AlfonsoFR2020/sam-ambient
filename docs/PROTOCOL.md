@@ -1,5 +1,15 @@
 # Local protocol
 
+Unreleased V-E adds authenticated `control.conversation.select`: exact `action`
+(`new`, or `resume` with `target_session_id`) plus `expected_revision`; and
+`control.conversation.launch_policy.set`: exact `policy` (`resume`/`new`) plus
+`expected_revision`. Both bind the current `session_id`; the core rejects busy or
+stale operations. `system.ready` includes the private bounded `conversation` object.
+`conversation.changed` carries a full ready snapshot, `previous_session_id` and
+originating `command_id` after durable selection. ACK is not context authority.
+See [session identity, limits and recovery](CONVERSATION_SESSIONS.md). These are
+additive v1 fields/events, not released v0.2.5 functionality.
+
 Unreleased V-D adds `control.voice_input_mode.set` (`mode`: `ordinary` or
 `push_to_talk`) and `control.push_to_talk` (exact `action`: `start`/`finish`/`cancel`,
 canonical UUID `gesture_id`). These are additive v1 commands, require a live

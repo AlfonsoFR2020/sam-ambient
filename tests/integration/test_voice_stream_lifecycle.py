@@ -732,7 +732,10 @@ def test_committed_voice_turn_replaces_generation_during_active_playback(tmp_pat
     asyncio.run(asyncio.wait_for(scenario(), 3))
 
 
-def test_committed_voice_turn_replaces_generation_waiting_for_first_output(tmp_path):
+@pytest.mark.parametrize("settled_before_return", [False, True])
+def test_committed_voice_turn_replaces_generation_waiting_for_first_output(
+    tmp_path, settled_before_return
+):
     async def scenario():
         provider = HandoffProvider(gate_first=True)
         events = EventBus()
@@ -752,9 +755,11 @@ def test_committed_voice_turn_replaces_generation_waiting_for_first_output(tmp_p
             assert first_generation is not None
             await provider.first_started.wait()
 
-            second = await runtime._start_voice_turn(
-                *committed_voice_turn(runtime, "replacement voice turn")
-            )
+            second_input = committed_voice_turn(runtime, "replacement voice turn")
+            second_turn = runtime.voice_turns.turn_id
+            second = await runtime._start_voice_turn(*second_input)
+            if settled_before_return:
+                await second  # Exercise an already completed/retired replacement explicitly.
             provider.release_first.set()
             await asyncio.gather(first, second)
 
@@ -768,10 +773,30 @@ def test_committed_voice_turn_replaces_generation_waiting_for_first_output(tmp_p
                 for event in observed
                 if event.type == EventType.MODEL_COMPLETED
                 and event.generation_id != first_generation
+                and event.turn_id == second_turn
+                and event.cancellation_id == second_input[1].cancellation_id
             ]
             assert len(second_completed) == 1
             second_generation = second_completed[0].generation_id
             assert second_generation not in {None, first_generation}
+            assert runtime.active_generation_id is None
+            assert provider.requests == 2
+            assert (
+                "".join(
+                    event.payload["text"]
+                    for event in observed
+                    if event.type == EventType.MODEL_DELTA
+                    and event.generation_id == second_generation
+                )
+                == provider.second_answer
+            )
+            assert [
+                event.type
+                for event in observed
+                if event.generation_id == second_generation
+                and event.type
+                in {EventType.MODEL_COMPLETED, EventType.MODEL_CANCELLED, EventType.COMPONENT_ERROR}
+            ] == [EventType.MODEL_COMPLETED]
             first_terminals = [
                 event
                 for event in observed

@@ -35,6 +35,8 @@ export const CONTROL_COMMAND_TYPES = [
   "control.microphone.set",
   "control.voice_input_mode.set",
   "control.push_to_talk",
+  "control.conversation.select",
+  "control.conversation.launch_policy.set",
   "control.tts_output.set",
   "control.stop_speaking",
   "control.emergency_stop",
@@ -117,6 +119,18 @@ export interface TranscriptEntry {
   monotonicMs: number;
   turnId?: string;
   generationId?: string;
+  recovered?: boolean;
+  truncated?: boolean;
+}
+
+export interface ConversationState {
+  runtimeId: string;
+  revision: number;
+  persistent: boolean;
+  launchPolicy: "resume" | "new";
+  retained: readonly { id: string; messageCount: number }[];
+  incompleteTurns: number;
+  historyLimited: boolean;
 }
 
 export interface VoiceMetrics {
@@ -211,6 +225,8 @@ export interface UiState {
   provisionalTranscript: Omit<TranscriptEntry, "id" | "interrupted"> | null;
   transcript: readonly TranscriptEntry[];
   sessionId?: string;
+  conversation?: ConversationState;
+  conversationSnapshotMs?: number;
   turnId?: string;
   generationId?: string;
   candidateTurnId?: string;

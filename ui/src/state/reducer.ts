@@ -13,6 +13,7 @@ import {
   type UiState,
   type UpdateActivity,
 } from "../protocol/types";
+import { acceptsConversationChange, conversationSnapshot } from "./conversations";
 
 const clamp = (value: unknown): number =>
   typeof value === "number" && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
@@ -45,7 +46,7 @@ const withCommittedTranscript = (
     (item) =>
       item.role === role &&
       ((entry.generationId && item.generationId === entry.generationId) ||
-        (!entry.generationId && entry.turnId && item.turnId === entry.turnId)),
+        (entry.turnId && item.turnId === entry.turnId)),
   );
   const transcript = [...state.transcript];
   if (duplicateIndex >= 0) {
@@ -96,6 +97,13 @@ const startsTurn = (event: ProtocolEvent): boolean =>
 
 const isStaleConversationEvent = (state: UiState, event: ProtocolEvent): boolean => {
   if (!isConversationEvent(event.type)) return false;
+  if (
+    state.conversation &&
+    event.generation_id &&
+    (event.type.startsWith("model.") || event.type.startsWith("tts.")) &&
+    event.generation_id !== state.generationId
+  )
+    return true;
   // Delivery telemetry cannot establish a generation. An old level remains
   // ineligible after its ID ages out of the bounded retired-ID cache.
   if (
@@ -380,7 +388,37 @@ export function withConnection(state: UiState, connection: ConnectionState): UiS
   return { ...state, connection };
 }
 
-export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiState {
+export function reduceProtocolEvent(state: UiState, incoming: ProtocolEvent): UiState {
+  if (incoming.type === "conversation.changed" && !acceptsConversationChange(state, incoming))
+    return state;
+  const event =
+    incoming.type === "conversation.changed" ? { ...incoming, type: "system.ready" } : incoming;
+  const saved = event.type === "system.ready" ? conversationSnapshot(event) : undefined;
+  if (
+    event.type === "system.ready" &&
+    !saved &&
+    (event.payload.conversation !== undefined || state.conversation !== undefined)
+  )
+    return state;
+  const startsNewRuntime = Boolean(
+    saved && state.conversation && saved.conversation.runtimeId !== state.conversation.runtimeId,
+  );
+  if (
+    saved &&
+    state.conversation &&
+    !startsNewRuntime &&
+    (saved.conversation.revision < state.conversation.revision ||
+      (event.session_id !== state.sessionId &&
+        saved.conversation.revision === state.conversation.revision))
+  )
+    return state;
+  if (
+    event.type !== "system.ready" &&
+    isConversationEvent(event.type) &&
+    state.conversationSnapshotMs !== undefined &&
+    event.monotonic_ms <= state.conversationSnapshotMs
+  )
+    return state;
   const startsNewSession = Boolean(
     event.type === "system.ready" &&
       event.session_id &&
@@ -388,7 +426,12 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       event.session_id !== state.sessionId,
   );
   const previousMs = state.lastMonotonicByType[event.type];
-  if (!startsNewSession && previousMs !== undefined && event.monotonic_ms <= previousMs)
+  if (
+    !startsNewRuntime &&
+    !startsNewSession &&
+    previousMs !== undefined &&
+    event.monotonic_ms <= previousMs
+  )
     return state;
   if (
     !startsNewSession &&
@@ -479,7 +522,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       ...next,
       voiceInput: voiceInputProjection(
         event.payload.voice_input,
-        startsNewSession ? undefined : next.voiceInput,
+        startsNewSession || startsNewRuntime ? undefined : next.voiceInput,
       ),
     };
     const readyActive = !["IDLE", "ERROR", "OFFLINE"].includes(readyState);
@@ -505,20 +548,21 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       0,
     );
     const readyAuthorityEpoch = authorityEpoch(event.payload.capability_authority_epoch);
-    const readyAuthority = startsNewSession
-      ? {
-          active:
-            typeof event.payload.capability_authority_active === "boolean"
-              ? event.payload.capability_authority_active
-              : next.capabilityAuthorityActive,
-          epoch: readyAuthorityEpoch ?? next.capabilityAuthorityEpoch,
-        }
-      : authoritativeCapabilityState(
-          next.capabilityAuthorityActive,
-          next.capabilityAuthorityEpoch,
-          event.payload.capability_authority_active,
-          readyAuthorityEpoch,
-        );
+    const readyAuthority =
+      startsNewSession || startsNewRuntime
+        ? {
+            active:
+              typeof event.payload.capability_authority_active === "boolean"
+                ? event.payload.capability_authority_active
+                : next.capabilityAuthorityActive,
+            epoch: readyAuthorityEpoch ?? next.capabilityAuthorityEpoch,
+          }
+        : authoritativeCapabilityState(
+            next.capabilityAuthorityActive,
+            next.capabilityAuthorityEpoch,
+            event.payload.capability_authority_active,
+            readyAuthorityEpoch,
+          );
     return {
       ...next,
       connection: "connected",
@@ -589,14 +633,14 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
         ? boundedText(event.payload.playback_generation_id, 120)
         : undefined,
       candidateTurnId: undefined,
-      retiredTurnIds: (startsNewSession
+      retiredTurnIds: (startsNewSession || startsNewRuntime
         ? []
         : retireId(
             state.retiredTurnIds,
             state.turnId && state.turnId !== readyTurnId ? state.turnId : undefined,
           )
       ).filter((id) => id !== readyTurnId),
-      retiredGenerationIds: (startsNewSession
+      retiredGenerationIds: (startsNewSession || startsNewRuntime
         ? []
         : retireId(
             state.retiredGenerationIds,
@@ -618,7 +662,7 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
       capabilityAuthorityEpoch: readyAuthority.epoch,
       latestToolActivity: readyAuthority.active ? next.latestToolActivity : null,
       pendingToolApproval: readyAuthority.active ? next.pendingToolApproval : null,
-      ...(startsNewSession
+      ...(startsNewSession || startsNewRuntime
         ? {
             sessionId: event.session_id,
             lastMonotonicByType: { [event.type]: event.monotonic_ms },
@@ -629,8 +673,10 @@ export function reduceProtocolEvent(state: UiState, event: ProtocolEvent): UiSta
             latestToolActivity: null,
             pendingToolApproval: null,
             capabilityAuthorityReason: undefined,
+            pendingCommandIds: [],
           }
         : {}),
+      ...(saved ? { ...saved, conversationSnapshotMs: event.monotonic_ms } : {}),
     };
   }
   if (event.type === "local.control") {

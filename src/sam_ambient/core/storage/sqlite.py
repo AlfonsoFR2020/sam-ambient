@@ -299,6 +299,10 @@ class SQLiteSessionStore:
                     )""",
                     (self.maximum_messages,),
                 )
+                current = connection.execute(
+                    "SELECT value FROM runtime_metadata WHERE key='session_id'"
+                ).fetchone()
+                self._trim_empty_conversations(connection, current[0] if current else session_id)
         except sqlite3.DatabaseError as error:
             raise RuntimeStateError("failed to persist committed message") from error
         return StoredMessage(session_id, turn_id, role, bounded, committed_at_ms, truncated)
@@ -343,6 +347,18 @@ class SQLiteSessionStore:
     def _metadata_set(connection, key: str, value: str) -> None:
         connection.execute(
             "INSERT OR REPLACE INTO runtime_metadata(key,value) VALUES (?,?)", (key, value)
+        )
+
+    @staticmethod
+    def _trim_empty_conversations(connection, active_session: str) -> None:
+        # Message retention owns saved-text deletion. Only empty inactive descriptors
+        # can be removed here, including those emptied by the existing message bound.
+        connection.execute(
+            """DELETE FROM conversation_sessions WHERE session_id != ?
+               AND session_id NOT IN (SELECT session_id FROM committed_messages)
+               AND rowid NOT IN (SELECT rowid FROM conversation_sessions
+                                 ORDER BY rowid DESC LIMIT 64)""",
+            (active_session,),
         )
 
     def _conversation_selection(self, connection, session_id: str) -> ConversationSelection:
@@ -407,9 +423,19 @@ class SQLiteSessionStore:
                     "INSERT OR IGNORE INTO conversation_sessions VALUES (?,?)",
                     (current, time.time_ns() // 1_000_000),
                 )
+                self._trim_empty_conversations(connection, current)
                 return self._conversation_selection(connection, current)
         except sqlite3.DatabaseError as error:
             raise RuntimeStateError("conversation state is unavailable") from error
+
+    def read_conversation(self, session_id: str) -> ConversationSelection:
+        """Consistent bounded history/catalog after normal message retention."""
+        try:
+            with self._connect() as connection:
+                connection.execute("BEGIN")
+                return self._conversation_selection(connection, session_id)
+        except sqlite3.DatabaseError as error:
+            raise RuntimeStateError("saved conversation is unavailable") from error
 
     def change_conversation(
         self,
@@ -448,14 +474,7 @@ class SQLiteSessionStore:
                 assert target is not None
                 self._metadata_set(connection, "session_id", target)
                 self._metadata_set(connection, "conversation_revision", str(revision + 1))
-                # Bound empty descriptors; never delete committed text to start a session.
-                connection.execute(
-                    """DELETE FROM conversation_sessions WHERE session_id != ?
-                       AND session_id NOT IN (SELECT session_id FROM committed_messages)
-                       AND rowid NOT IN (SELECT rowid FROM conversation_sessions
-                                         ORDER BY rowid DESC LIMIT 64)""",
-                    (target,),
-                )
+                self._trim_empty_conversations(connection, target)
                 return self._conversation_selection(connection, target)
         except sqlite3.DatabaseError as error:
             raise RuntimeStateError("conversation change could not be saved") from error

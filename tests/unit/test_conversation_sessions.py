@@ -1,6 +1,7 @@
 """Authoritative conversation isolation/recovery with temporary stores and fake models."""
 
 import asyncio
+import json
 import sqlite3
 import threading
 from contextlib import contextmanager
@@ -8,12 +9,15 @@ from uuid import uuid4
 
 import pytest
 
+from sam_ambient.conversation_diagnostics import ConversationTrace
 from sam_ambient.core.owner import OwnerConnection, OwnerSession
 from sam_ambient.core.protocol import ControlCommand, EventType
 from sam_ambient.core.storage.sqlite import RuntimeStateError, SQLiteSessionStore
 from sam_ambient.runtime import RuntimeConfig, SamRuntime
+from tests.integration.test_voice_stream_lifecycle import BlockingFirstOutput
 from tests.unit.test_conversation_context import ConversationProvider
 from tests.unit.test_local_controls import RecordingProvider
+from tests.unit.test_phase9_packaging import _FakeTts
 from tests.unit.test_push_to_talk import arm, fixture, gesture, until
 
 
@@ -37,6 +41,9 @@ def test_ready_rehydrates_committed_history_without_reissuing_generation(tmp_pat
             assert ready.session_id == session
             assert snapshot["history"][0]["text"] == "Saved question"
             assert snapshot["incomplete_turns"] == ["saved"]
+            again = runtime._ready_event()
+            assert again.session_id == ready.session_id
+            assert again.payload["conversation"]["revision"] == snapshot["revision"]
             assert not provider.contexts and runtime.active_generation_id is None
         finally:
             await runtime.close()
@@ -352,3 +359,269 @@ def test_corrupt_or_future_state_is_not_replaced_with_empty_history(tmp_path):
     with pytest.raises(RuntimeStateError, match="schema"):
         store.open_conversation()
     assert store.session_id() == initial.session_id
+
+
+def test_partial_generation_recovers_as_incomplete_without_reissuing_or_saving_draft(tmp_path):
+    class PartialProvider(ConversationProvider):
+        def __init__(self):
+            super().__init__()
+            self.gate = asyncio.Event()
+
+        async def stream_chat(self, messages, tools, *, model, cancellation):
+            from sam_ambient.core.providers import ModelEvent, ModelEventKind
+
+            self.contexts.append(list(messages))
+            yield ModelEvent(ModelEventKind.TEXT_DELTA, "Unfinished draft")
+            await self.gate.wait()
+            cancellation.raise_if_cancelled()
+            yield ModelEvent(ModelEventKind.COMPLETED)
+
+    async def scenario():
+        config = RuntimeConfig(
+            tmp_path, state_db=tmp_path / "state.db", application_instance_id="same-launch"
+        )
+        runtime = SamRuntime(PartialProvider(), config)
+        session = runtime.session_id
+        try:
+            runtime.submit_user_message("Committed before interruption")
+            await until(lambda: runtime.conversations.draft is not None)
+            live = runtime._ready_event().payload["conversation"]
+            assert live["draft"]["text"] == "Unfinished draft"
+            assert live["incomplete_turns"] == []
+        finally:
+            await runtime.close()
+        provider = ConversationProvider()
+        recovered = SamRuntime(provider, config)
+        try:
+            snapshot = recovered._ready_event().payload["conversation"]
+            assert recovered.session_id == session
+            assert snapshot["draft"] is None and len(snapshot["incomplete_turns"]) == 1
+            assert [(item["role"], item["text"]) for item in snapshot["history"]] == [
+                ("user", "Committed before interruption")
+            ]
+            assert not provider.contexts and recovered.active_generation_id is None
+        finally:
+            await recovered.close()
+
+    asyncio.run(scenario())
+
+
+def test_speech_delivery_blocks_switch_and_stopped_committed_answer_survives_restart(tmp_path):
+    async def scenario():
+        output = BlockingFirstOutput()
+        config = RuntimeConfig(tmp_path, state_db=tmp_path / "state.db")
+        runtime = SamRuntime(ConversationProvider(), config, tts=_FakeTts(), audio_output=output)
+        owner = OwnerConnection(OwnerSession(), "owner")
+        original = runtime.session_id
+        try:
+            runtime.submit_user_message("A spoken request")
+            await asyncio.wait_for(output.first_started.wait(), 2)
+            assert (await select(runtime, owner, "new")).type == EventType.CONTROL_REJECTED
+            stored = runtime.state.recent(session_id=original)
+            assert [item.role for item in stored] == ["user", "assistant"]
+            await runtime._cancel_active_playback("stop_speaking")
+            output.release_first.set()
+            await asyncio.wait_for(runtime._active_done.wait(), 2)
+            assert (await select(runtime, owner, "new")).type == EventType.CONTROL_ACKNOWLEDGED
+            assert (
+                await select(runtime, owner, "resume", original)
+            ).type == EventType.CONTROL_ACKNOWLEDGED
+            assert (
+                runtime._ready_event().payload["conversation"]["history"][-1]["text"]
+                == "Your color is green."
+            )
+        finally:
+            output.release_first.set()
+            await runtime.close()
+        recovered = SamRuntime(ConversationProvider(), config)
+        try:
+            assert recovered._ready_event().generation_id is None
+            assert len(recovered.conversations.history) == 2
+            assert recovered.delivery.snapshot("unknown-old-generation") is None
+        finally:
+            await recovered.close()
+
+    asyncio.run(scenario())
+
+
+def test_reloaded_history_does_not_restore_or_substitute_an_unavailable_model(tmp_path):
+    store = SQLiteSessionStore(tmp_path / "state.db")
+    original = store.open_conversation()
+    store.append(
+        session_id=original.session_id,
+        turn_id="saved",
+        role="user",
+        content="Retained",
+        committed_at_ms=1,
+    )
+
+    async def scenario():
+        provider = ConversationProvider()
+        runtime = SamRuntime(
+            provider,
+            RuntimeConfig(
+                tmp_path,
+                state_db=store.path,
+                model="owner-exact-model",
+                model_unavailable_reason="selected_model_unavailable",
+            ),
+        )
+        try:
+            ready = runtime._ready_event()
+            assert ready.payload["provider"] is None and ready.payload["model"] is None
+            assert ready.payload["conversation"]["history"][0]["text"] == "Retained"
+            assert runtime._model == "owner-exact-model" and not provider.contexts
+            runtime.submit_user_message("No silent route substitution")
+            await asyncio.wait_for(runtime._active_done.wait(), 2)
+            assert not provider.contexts
+            assert runtime.state.recent(session_id=runtime.session_id)[-1].role == "user"
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_application_launch_and_storage_retention_are_bounded_without_deleting_saved_sessions(
+    tmp_path,
+):
+    store = SQLiteSessionStore(tmp_path / "state.db", maximum_messages=5)
+    first = store.open_conversation("app-0")
+    store.append(
+        session_id=first.session_id,
+        turn_id="retained",
+        role="user",
+        content="Retained",
+        committed_at_ms=1,
+    )
+    store.change_conversation(
+        session_id=first.session_id, expected_revision=0, action="policy", target="new"
+    )
+    for index in range(1, 70):
+        current = store.open_conversation(f"app-{index}")
+    with store._connect() as connection:
+        assert connection.execute("SELECT COUNT(*) FROM conversation_sessions").fetchone()[0] <= 65
+    assert store.recent(limit=5, session_id=first.session_id)[0].content == "Retained"
+    assert len(current.retained) <= 32
+    for index in range(8):
+        store.append(
+            session_id=current.session_id,
+            turn_id=str(index),
+            role="user",
+            content="Bounded",
+            committed_at_ms=index + 2,
+        )
+    assert len(store.recent(limit=5)) == 5
+
+
+def test_snapshot_bounds_and_launch_preference_preserve_uncommitted_draft(tmp_path):
+    async def scenario():
+        runtime = SamRuntime(
+            ConversationProvider(), RuntimeConfig(tmp_path, state_db=tmp_path / "state.db")
+        )
+        owner = OwnerConnection(OwnerSession(), "owner")
+        try:
+            runtime.conversations.draft = {
+                "turn_id": "cancelled",
+                "generation_id": "g",
+                "text": "Interrupted draft",
+                "interrupted": True,
+                "complete": False,
+            }
+            command = ControlCommand(
+                type="control.conversation.launch_policy.set",
+                command_id=str(uuid4()),
+                monotonic_ms=1,
+                session_id=runtime.session_id,
+                payload={"policy": "new", "expected_revision": 0},
+            )
+            assert (
+                await runtime.controls.dispatch(command, owner_connection=owner)
+            ).type == EventType.CONTROL_ACKNOWLEDGED
+            assert runtime.conversations.draft["text"] == "Interrupted draft"
+            from sam_ambient.core.storage.sqlite import StoredMessage
+
+            for index in range(55):
+                runtime.conversations.remember(
+                    StoredMessage(runtime.session_id, str(index), "user", "x" * 16_384, 1, False)
+                )
+            snapshot = runtime._ready_event().payload["conversation"]
+            assert len(runtime.conversations.history) == 50
+            assert sum(len(item["text"]) for item in snapshot["history"]) <= 48_000
+            assert snapshot["history_limited"] and snapshot["history"][0]["truncated"]
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_live_history_and_retained_counts_follow_actual_message_retention(tmp_path):
+    async def scenario():
+        runtime = SamRuntime(
+            ConversationProvider(), RuntimeConfig(tmp_path, state_db=tmp_path / "state.db")
+        )
+        runtime.state.maximum_messages = 12
+        try:
+            for index in range(7):
+                runtime.submit_user_message(f"Request {index}")
+                await asyncio.wait_for(runtime._active_done.wait(), 2)
+            snapshot = runtime._ready_event().payload["conversation"]
+            saved = runtime.state.recent(limit=12, session_id=runtime.session_id)
+            assert [(item["role"], item["text"]) for item in snapshot["history"]] == [
+                (item.role, item.content) for item in saved
+            ]
+            active = next(
+                item for item in snapshot["retained"] if item["session_id"] == runtime.session_id
+            )
+            assert active["message_count"] == len(saved) == 12
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
+
+
+def test_private_ready_history_and_session_ids_never_enter_conversation_diagnostics(tmp_path):
+    runtime = SamRuntime(
+        ConversationProvider(), RuntimeConfig(tmp_path, state_db=tmp_path / "state.db")
+    )
+    trace = ConversationTrace()
+    event = runtime._ready_event()
+    event.payload["conversation"]["history"] = [{"text": "Private retained fixture text"}]
+    trace.event(event)
+    encoded = json.dumps(list(trace.history))
+    assert "Private retained fixture text" not in encoded and runtime.session_id not in encoded
+    asyncio.run(runtime.close())
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"action": "new", "expected_revision": True},
+        {"action": "new", "expected_revision": 0, "erase_history": True},
+        {"action": "resume", "expected_revision": 0, "target_session_id": "not-retained"},
+    ],
+)
+def test_invalid_session_commands_do_not_change_context_or_delete_history(tmp_path, payload):
+    async def scenario():
+        runtime = SamRuntime(
+            ConversationProvider(), RuntimeConfig(tmp_path, state_db=tmp_path / "state.db")
+        )
+        owner = OwnerConnection(OwnerSession(), "owner")
+        original = runtime.session_id
+        try:
+            response = await runtime.controls.dispatch(
+                ControlCommand(
+                    type="control.conversation.select",
+                    command_id=str(uuid4()),
+                    monotonic_ms=1,
+                    session_id=original,
+                    payload=payload,
+                ),
+                owner_connection=owner,
+            )
+            assert response.type == EventType.CONTROL_REJECTED
+            assert runtime.session_id == runtime.state.session_id() == original
+            assert runtime.conversations.revision == 0
+        finally:
+            await runtime.close()
+
+    asyncio.run(scenario())
