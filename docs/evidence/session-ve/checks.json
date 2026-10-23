@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "verifiedDate": "2026-10-23",
+  "sourceCommit": "d8c376ef6f6b42493b3d5bfa433e0a49f8326a1a",
+  "python": {
+    "distinctPassed": 176,
+    "files": 17,
+    "failed": 0,
+    "skipped": 0,
+    "byModule": {
+      "tests.integration.test_voice_stream_lifecycle": 25,
+      "tests.unit.test_cancellation": 5,
+      "tests.unit.test_cli": 1,
+      "tests.unit.test_control_commands": 10,
+      "tests.unit.test_conversation_context": 3,
+      "tests.unit.test_conversation_diagnostics": 6,
+      "tests.unit.test_conversation_sessions": 23,
+      "tests.unit.test_memory_policy": 2,
+      "tests.unit.test_owner_actions": 3,
+      "tests.unit.test_owner_authority": 15,
+      "tests.unit.test_owner_requirements": 7,
+      "tests.unit.test_protocol": 7,
+      "tests.unit.test_public_docs_checker": 14,
+      "tests.unit.test_public_documentation": 15,
+      "tests.unit.test_push_to_talk": 23,
+      "tests.unit.test_session_store_lifetime": 2,
+      "tests.unit.test_sounddevice_audio": 15
+    },
+    "batches": [
+      55,
+      70,
+      51
+    ]
+  },
+  "frontend": {
+    "distinctPassed": 182,
+    "files": 15,
+    "failed": 0,
+    "skipped": 0,
+    "byFile": {
+      "ui/tests/client.test.ts": 13,
+      "ui/tests/commands.test.ts": 14,
+      "ui/tests/conversation-faults.test.ts": 10,
+      "ui/tests/conversation_history.test.ts": 2,
+      "ui/tests/conversation_lifecycle.test.ts": 17,
+      "ui/tests/demo.test.ts": 1,
+      "ui/tests/native-runtime.test.ts": 1,
+      "ui/tests/presence.test.ts": 7,
+      "ui/tests/protocol.test.ts": 3,
+      "ui/tests/provider-reliability.test.ts": 14,
+      "ui/tests/push-to-talk.test.ts": 33,
+      "ui/tests/reducer.test.ts": 37,
+      "ui/tests/session-continuity.test.ts": 15,
+      "ui/tests/status.test.ts": 11,
+      "ui/tests/websocket-transport.test.ts": 4
+    },
+    "workers": 1,
+    "environment": "node"
+  },
+  "repetitions": {
+    "pythonCases": 4,
+    "frontendCases": 15,
+    "iterations": 3,
+    "allPassed": true,
+    "addedToDistinctTotals": false
+  },
+  "static": {
+    "ruff": "8 changed Python files lint/format pass",
+    "biome": "9 changed UI/test files pass",
+    "typescript": "tsc -b passes"
+  },
+  "limits": [
+    "Focused CPU-only fake-service/transport checks; no full local suite",
+    "No graphics, real provider/model, physical speech, native packaging or owner acceptance"
+  ]
+}
