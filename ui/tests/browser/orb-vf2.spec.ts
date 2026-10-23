@@ -32,6 +32,7 @@ test("hosted matched skin smoke, equations and representative views", async ({
     source,
     views: [] as unknown[],
     equationProofs: [] as unknown[],
+    hypotheses: [] as unknown[],
     failures,
     consoleErrors,
     limitation:
@@ -105,6 +106,17 @@ test("hosted matched skin smoke, equations and representative views", async ({
       expect.soft(result.finite).toBe(true);
       expect.soft(result.maxPositionError).toBeLessThan(0.0001);
       expect.soft(result.maxNormalError).toBeLessThan(0.005);
+      if (appearance === "radial-shell-experimental") {
+        const hypothesis = await page.evaluate(async (appearance) => {
+          const path = "/tests/fixtures/skin-gpu-proof.ts";
+          return ((await import(path)) as typeof import("../fixtures/skin-gpu-proof")).proveSkinGPU(
+            appearance,
+            "sqrt-rim",
+          );
+        }, appearance);
+        metadata.hypotheses.push(hypothesis);
+        saveMetadata();
+      }
     }
     for (const sample of VF2_CASES) await capturePair(sample);
     const sheet = await page.evaluate(async (shots) => {

@@ -115,6 +115,13 @@ A CPU equivalence/seam/polar regression and all adjacent selected geometry,
 material, resource and recovery checks pass: 73 distinct cases in ten files.
 The strict GPU limits remain unchanged; the corrected hosted proof is pending.
 
+Correction to the angular-map diagnosis: [run 39986894338](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39986894338)
+rendered all views, but the equivalent map left the strict radial failure essentially
+unchanged (position 0.0001060892, q 0.0005810748). It did not repair that discrepancy.
+A separately labelled test-only shader hypothesis replaces the rim quarter-power
+with two square-root operations; it is never reported as production proof. Further
+production edits wait for that actual measurement. The original strict gate remains red.
+
 The corrected-source run `39985734501` stalled over seven minutes in the optional
 browser system-dependency installation before rendering. The next attempt retains
 the hosted image's OS libraries, installs only the locked browser, and bounds that

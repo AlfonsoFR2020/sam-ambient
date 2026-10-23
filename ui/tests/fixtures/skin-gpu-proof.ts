@@ -19,9 +19,18 @@ import {
  * A controlled body callback isolates coating equations; real pigment/body shaders
  * are covered by the separate actual-renderer views, not claimed by this proof.
  */
-export function proveSkinGPU(appearance?: OrbAppearanceId) {
+export function proveSkinGPU(
+  appearance?: OrbAppearanceId,
+  variant: "production" | "sqrt-rim" = "production",
+) {
   const definition = resolveOrbAppearance(appearance),
     strategy = definition.skin;
+  let shapeGLSL = strategy.shapeGLSL;
+  if (variant === "sqrt-rim") {
+    if (strategy.id !== "radial-sectors" || !shapeGLSL.includes("base=pow(sum,-.25)"))
+      throw new Error("Rim hypothesis must replace exactly the radial quarter-power");
+    shapeGLSL = shapeGLSL.replace("base=pow(sum,-.25)", "base=inversesqrt(sqrt(sum))");
+  }
   const canvas = document.createElement("canvas"),
     gl = canvas.getContext("webgl2");
   if (!gl) throw new Error("WebGL2 required for skin equation proof");
@@ -49,7 +58,7 @@ precision highp float;
 layout(location=0) in vec3 direction;
 uniform float u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple;
 uniform vec4 u_behavior;
-${strategy.shapeGLSL}
+${shapeGLSL}
 vec3 livingBodyPoint(vec3 n,float r,float b,float p,float d,float w) {
   return vec3(1.,1.06,1.)*n*(r+.006*sin(b)+.007*d*n.z+.003*w*sin(p+3.*n.x));
 }
@@ -221,6 +230,7 @@ proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);gl_Pos
     }
     return {
       appearance: definition.id,
+      variant,
       maxPositionError,
       maxNormalError,
       maxRegionError,
@@ -230,7 +240,9 @@ proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);gl_Pos
       samples,
       error: gl.getError(),
       scope:
-        "Production coat/normal GLSL with controlled spheroid body callback; full material/body rendering is a separate gate",
+        variant === "production"
+          ? "Production coat/normal GLSL with controlled spheroid body callback; full material/body rendering is a separate gate"
+          : "Test-only quarter-root hypothesis, not production source or rendered candidate",
     };
   } finally {
     if (active) gl.endTransformFeedback();
