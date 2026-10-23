@@ -74,7 +74,12 @@ views remain evidence. Current default selection is preserved regardless of resu
 
 ## Results and remaining gates
 
-Hosted run and rendered results are pending at this checkpoint. No local browser,
+The [first attempt](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39983022662)
+was rejected before job creation: `runner.temp` is unavailable in the job-level
+environment expression. The temporary browser path is now exported from a runner
+step instead. This is workflow configuration evidence, not a shader failure.
+
+Hosted rendering results remain pending. No local browser,
 GPU fixture, app, provider or audio was launched. Source verification of the new
 comparison plan passes 23 focused CPU tests (including the 21 closure cases),
 TypeScript project checks and focused Biome checks. Repetitions are not distinct

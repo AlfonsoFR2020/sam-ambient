@@ -24,8 +24,6 @@ jobs:
     if: github.repository == 'AlfonsoFR2020/sam-ambient'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/vf2-browsers
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,6 +39,9 @@ jobs:
       - name: Install existing locked frontend dependencies
         working-directory: ui
         run: pnpm install --frozen-lockfile
+      - name: Select ephemeral browser installation directory
+        shell: bash
+        run: echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/vf2-browsers" >> "$GITHUB_ENV"
       - name: Verify committed source and production-asset provenance
         run: |
           mkdir -p vf2-evidence
