@@ -85,12 +85,16 @@ describe("experimental connected radial sectors (CPU, no shader execution)", () 
           const points = Array.from({ length: mesh.vertices.length / 3 }, (_, i) =>
             point(meshDirection(mesh, i)),
           );
-          for (const p of points) {
-            expect(p.every(Number.isFinite)).toBe(true);
-            expect(Math.hypot(...p)).toBeLessThan(MEMBRANE_RADIUS_BOUND);
-          }
+          // Exhaustive data checks, aggregated to avoid hundreds of thousands of
+          // assertion allocations (the original High case timed out in hosted CI).
+          expect(points.every((p) => p.every(Number.isFinite))).toBe(true);
+          expect(
+            points.reduce((maximum, p) => Math.max(maximum, Math.hypot(...p)), 0),
+          ).toBeLessThan(MEMBRANE_RADIUS_BOUND);
           let area = Infinity,
-            agreement = Infinity;
+            agreement = Infinity,
+            finiteNormals = true,
+            unitError = 0;
           for (let i = 0; i < mesh.indices.length; i += 3) {
             const ids = [mesh.indices[i], mesh.indices[i + 1], mesh.indices[i + 2]];
             const [a, b, c] = ids.map((id) => points[id]);
@@ -103,13 +107,15 @@ describe("experimental connected radial sectors (CPU, no shader execution)", () 
                 ) as unknown as SkinVector,
               );
               const differential = skinNormal(n, point);
-              expect(differential.every(Number.isFinite)).toBe(true);
-              expect(Math.hypot(...differential)).toBeCloseTo(1, 6);
+              finiteNormals &&= differential.every(Number.isFinite);
+              unitError = Math.max(unitError, Math.abs(Math.hypot(...differential) - 1));
               agreement = Math.min(agreement, skinDot(skinNormalize(normal), differential));
             }
           }
           expect(area, `${budget.quality} radius ${radius}`).toBeGreaterThan(1e-8);
           expect(agreement, `${budget.quality} radius ${radius}`).toBeGreaterThan(0);
+          expect(finiteNormals).toBe(true);
+          expect(unitError).toBeLessThan(0.5e-6);
         }
     });
     it(`${budget.quality}: exact free rims and broad attached sectors share object-space pigment coordinates`, () => {

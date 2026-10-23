@@ -91,7 +91,22 @@ Python 3.12; the source checker and its filesystem protections remain unchanged.
 Ordinary CI separately found three pre-existing line-length errors in
 `prepare_visual_iv_baseline.py`; a formatter-only correction preserves its logic.
 
-Hosted rendering results remain pending. No local browser,
+The [first rendered run](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/39983691610)
+compiled both actual renderer strategies, captured all 28 matched views and the
+contact sheet, with WebGL2/ANGLE Vulkan SwiftShader and no GL errors. Its strict
+equation test failed: radial position maximum 0.0001062084 exceeds 0.0001;
+normal error 0.001102637 is below 0.005. Parent position/normal errors are
+0.0000231640 / 0.0005040753. The failing run remains evidence; no tolerance was
+relaxed. The proof now records the worst sample and domain coordinates to isolate
+the discrepancy. This fixture diagnostic is not a production geometry change.
+
+Ordinary hosted CI also exposed assertion overhead: the exhaustive High CPU
+deformation test exceeded five seconds under parallel suite load. Aggregating
+finite/bound/unit checks retains every vertex, triangle and existing sampled
+normal while avoiding per-vertex assertion allocation. The same 23 focused cases
+pass locally in a 2.12-second run; this is test efficiency, not renderer timing.
+
+No local browser,
 GPU fixture, app, provider or audio was launched. Source verification of the new
 comparison plan passes 23 focused CPU tests (including the 21 closure cases),
 TypeScript project checks and focused Biome checks. Repetitions are not distinct

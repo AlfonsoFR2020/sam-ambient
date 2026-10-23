@@ -4,12 +4,14 @@ import { RENDER_BUDGETS } from "../../src/visual-engine/quality";
 import {
   createRadialShellWindows,
   radialShellDirection,
+  radialShellRegion,
   radialShellRim,
 } from "../../src/visual-engine/radial-shell-domain";
 import {
   createSkinOpenings,
   type SkinVector,
   skinNormalize,
+  skinRegion,
   skinRimRadius,
 } from "../../src/visual-engine/skin-domain";
 
@@ -54,7 +56,9 @@ vec3 livingBodyPoint(vec3 n,float r,float b,float p,float d,float w) {
 ${strategy.surfaceGLSL}
 out vec3 proof_position;
 out vec3 proof_normal;
-void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_normal=livingSkinNormal(n);gl_Position=vec4(0.,0.,0.,1.);}`,
+out vec3 proof_regions;
+void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_normal=livingSkinNormal(n);
+proof_regions=vec3(skinRegion(n,0).x,skinRegion(n,1).x,skinRegion(n,2).x);gl_Position=vec4(0.,0.,0.,1.);}`,
     );
     const fragment = compile(
       gl.FRAGMENT_SHADER,
@@ -66,7 +70,7 @@ void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_
     gl.attachShader(program, fragment);
     gl.transformFeedbackVaryings(
       program,
-      ["proof_position", "proof_normal"],
+      ["proof_position", "proof_normal", "proof_regions"],
       gl.INTERLEAVED_ATTRIBS,
     );
     gl.linkProgram(program);
@@ -119,8 +123,9 @@ void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_
               ),
             );
           }
+    const stride = 9;
     const input = new Float32Array(directions),
-      output = new Float32Array(input.length * 2);
+      output = new Float32Array((input.length / 3) * stride);
     vao = gl.createVertexArray();
     feedback = gl.createTransformFeedback();
     if (!vao || !feedback) throw new Error("Proof feedback allocation");
@@ -151,7 +156,10 @@ void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_
     const reference = strategy.reference(0x5a17);
     let maxPositionError = 0,
       maxNormalError = 0,
+      maxRegionError = 0,
+      finite = true,
       samples = 0;
+    let worstPosition: unknown = null;
     for (const travel of [0, 1.7, 2 * Math.PI - 1e-5, 2 * Math.PI + 1e-5]) {
       const pose: SkinPose = {
         travel,
@@ -175,16 +183,37 @@ void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_
       active = false;
       gl.disable(gl.RASTERIZER_DISCARD);
       gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, output);
+      finite &&= output.every(Number.isFinite);
       const point = (n: SkinVector) => reference.point(n, pose, body, 0.004);
       for (let i = 0; i < input.length / 3; i++) {
         const n = skinNormalize([input[i * 3], input[i * 3 + 1], input[i * 3 + 2]]);
         const p = point(n),
           normal = skinNormal(n, point);
+        const q =
+          strategy.id === "connected-parent"
+            ? createSkinOpenings().map((opening) => skinRegion(n, opening).q)
+            : createRadialShellWindows().map((window) => radialShellRegion(n, window).q);
         for (let axis = 0; axis < 3; axis++) {
-          maxPositionError = Math.max(maxPositionError, Math.abs(p[axis] - output[i * 6 + axis]));
+          const error = Math.abs(p[axis] - output[i * stride + axis]);
+          if (error > maxPositionError) {
+            maxPositionError = error;
+            worstPosition = {
+              travel,
+              n,
+              axis,
+              cpu: p,
+              gpu: Array.from(output.slice(i * stride, i * stride + 3)),
+              qCPU: q,
+              qGPU: Array.from(output.slice(i * stride + 6, i * stride + 9)),
+            };
+          }
           maxNormalError = Math.max(
             maxNormalError,
-            Math.abs(normal[axis] - output[i * 6 + 3 + axis]),
+            Math.abs(normal[axis] - output[i * stride + 3 + axis]),
+          );
+          maxRegionError = Math.max(
+            maxRegionError,
+            Math.abs(q[axis] - output[i * stride + 6 + axis]),
           );
         }
         samples++;
@@ -194,6 +223,10 @@ void main(){vec3 n=normalize(direction);proof_position=livingSkinPoint(n);proof_
       appearance: definition.id,
       maxPositionError,
       maxNormalError,
+      maxRegionError,
+      finite,
+      worstPosition,
+      highFloatPrecision: gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT)?.precision,
       samples,
       error: gl.getError(),
       scope:

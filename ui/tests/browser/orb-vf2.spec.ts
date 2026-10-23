@@ -91,9 +91,18 @@ test("hosted matched skin smoke, equations and representative views", async ({
         );
       }, appearance);
       metadata.equationProofs.push(result);
+      if (
+        !result.finite ||
+        result.error !== 0 ||
+        result.samples !== 192 ||
+        result.maxPositionError >= 0.0001 ||
+        result.maxNormalError >= 0.005
+      )
+        failures.push(`Equation proof outside contract: ${appearance}`);
       saveMetadata();
       expect.soft(result.error).toBe(0);
       expect.soft(result.samples).toBe(192);
+      expect.soft(result.finite).toBe(true);
       expect.soft(result.maxPositionError).toBeLessThan(0.0001);
       expect.soft(result.maxNormalError).toBeLessThan(0.005);
     }
