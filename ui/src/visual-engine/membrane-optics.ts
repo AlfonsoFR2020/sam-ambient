@@ -3,6 +3,7 @@ import type { MotionFrame } from "./motion";
 import { type SkinOpening, type SkinVector, skinRegion } from "./skin-domain";
 
 export const skinPoseFromFrame = (f: MotionFrame): SkinPose => ({
+  bodyRadius: f.radius,
   travel: f.peelTravel,
   opening: f.opening,
   lift: f.peelLift,

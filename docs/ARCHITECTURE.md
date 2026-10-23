@@ -1,5 +1,13 @@
 # Architecture
 
+Isolated V-F3 [organic peels](ORGANIC_PEEL_VF3.md) extend the closed appearance/skin
+strategy seam with three positive lobes attached to the existing displaced body.
+They share original direction-space pigment, paired CPU/GLSL/reference/contact
+equations and immutable setup buffers. Six range partitions and existing resource
+ownership remain; the ordinary connected parent stays default. The experiment
+has three film components, not a silently redefined connected parent. It adds no
+input, turn, provider or capability authority and no persisted theme setting.
+
 Unreleased V-E [conversation sessions](CONVERSATION_SESSIONS.md) use runtime-owned
 authenticated New/Resume/launch-policy operations, an additive operational registry
 and transactional persisted revisions. Private ready/change snapshots restore saved

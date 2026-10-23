@@ -80,3 +80,30 @@ could display primary **Ready** while the secondary status said Loading. A focus
 test first reproduces its missing primary label, then passes after existing lifecycle
 labels are retained by the status projection. No readiness authority or state machine
 changes. Narrow footer alignment is also corrected from the actual screenshot.
+
+## Second proof and final bounded morphology correction
+
+[Run 40011677649](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40011677649)
+passes all five browser tests. Its [30 matched views, particle and UI evidence](evidence/orb-vf3/40011677649)
+retain the strict radial correction: maximum position error .0000052275, normal
+.0002453279. The old fixed sample's q changes from 1.0005810261 to .9999954700
+against CPU .9999999513. The parent proof is unchanged; positive peels also pass.
+Tolerance, normals, seed and test body callback are unchanged.
+
+The second images still show rounded front overlays and some projecting tips.
+One final bounded correction replaces mainly radial inflation with a local
+integrated peel arc. At the broad hinge, position and first derivative match the
+spherical body. Beyond it, curvature becomes k/R (k approximately .68–.86), so
+the surface bends outward while retaining longitudinal extent. It scales with the
+existing nominal body radius, preventing disproportionate fixed-height compact ears.
+No body radius gain or body deformation equation changes.
+
+`SkinPose` gains an optional reference-only nominal `bodyRadius`, populated from
+MotionFrame; the already-existing GPU `u_radius` supplies the same scale. Parent
+and radial equations ignore the field and retain default snapshots. The body still
+supplies all shared displacement. The arc uses cancellation-safe short-arc series
+over |angle|<1.4: degree-10 cosine loss / degree-11 sine, independently checked
+against integrated trigonometric arcs within 3e-7 world units. These fixed analytic
+coefficients are not visual tuning or a cloth solver. Surface normals still sample
+the complete deformed map. A malformed raw row count is now rejected before the
+Low minimum-detail adjustment. Final source/graphical proof follows this correction.

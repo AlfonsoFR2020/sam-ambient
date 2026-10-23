@@ -5,6 +5,14 @@ and explicitly labelled unreleased changes on `dev`. Start with typed interactio
 on Windows, the principal validated runtime path. Hosted Linux checks do not
 establish Linux desktop/physical voice acceptance. No public installer is available.
 
+## Feature-branch preview (unreleased)
+
+On the isolated `feature/orb-appearance-foundation` branch, [V-F3](ORGANIC_PEEL_VF3.md)
+also refines the compact loading summary and existing Console/Memory panels. Close
+returns focus to its tool button; Memory remains reviewed personal context, separate
+from history. This feature work is not in the published v0.2.5 artifacts or merged
+into `dev`, and synthetic hosted checks do not establish owner-window acceptance.
+
 ## Unreleased development: conversation sessions
 
 On `dev`, Controls → Conversation offers **New conversation**, **Resume selected

@@ -1,5 +1,12 @@
 # Visual Identity IV — connected living skin
 
+**V-F3 feature-branch correction (2026-10-23):** the owner rejects the panel/island/
+casing reading in V-F2's images. [Positive organic peeling](ORGANIC_PEEL_VF3.md)
+is a separately selectable experiment in the same engine, with three broad-rooted
+lobes rather than another complete coat containing windows. This IV parent remains
+the numerical/default baseline, not an artistically accepted final shape. Historical
+IV evidence remains intact; successful pigmentation is preserved.
+
 **V-F2 feature-branch evidence (2026-10-23):** [matched software WebGL2 proof](RADIAL_SHELL_PROOF_VF2.md)
 executes the actual parent/radial shaders in selected full-colour/diagnostic poses.
 It preserves this parent as default and the released living pigment. Less rolled

@@ -11,7 +11,7 @@ export interface OrganicPeel {
   readonly length: number;
   readonly width: number;
   readonly bend: number;
-  readonly height: number;
+  readonly bendAmount: number;
   readonly phase: number;
 }
 
@@ -46,7 +46,7 @@ export function createOrganicPeels(seed = 0x5a17): readonly OrganicPeel[] {
       length: [1.4, 1.24, 1.33][i],
       width: [0.46, 0.42, 0.48][i],
       bend: [0.32, -0.28, 0.25][i],
-      height: [0.235, 0.205, 0.25][i],
+      bendAmount: [0.235, 0.205, 0.25][i],
       phase: angle + i * 0.7,
     };
   });
@@ -77,10 +77,40 @@ export function organicPeelOffsets(
   f: SkinPose,
 ): readonly [number, number] {
   const wave = Math.sin(f.travel + p.phase + 1.2 * v);
-  const height = (p.height + 0.3 * f.lift) * (1 + 0.16 * wave * (0.6 + 0.4 * f.coherence));
+  const curvature = 1 - p.bendAmount + 0.05 * wave * (0.6 + 0.4 * f.coherence) - 0.18 * f.lift;
   const shoulder = 1 - 0.18 * v * v;
-  // Outward growing bend, no circular rolled lip. Both derivatives vanish at hinge.
-  return [height * q * q * shoulder, -0.065 * q * q * q * (1 + 0.12 * wave)];
+  const angle = Math.atan(p.length * (1.3 * q - 0.3)) - Math.atan(-0.3 * p.length);
+  return peelArcOffsets(angle, curvature, f.bodyRadius ?? 1.18).map(
+    (x) => x * shoulder,
+  ) as unknown as readonly [number, number];
+}
+/** Integrate an arc with curvature k/R from the body's tangent at the hinge.
+ * Relative to the spherical arc (curvature 1/R), position and first derivative
+ * match exactly at angle=0. Short-arc series avoid cancellation near the hinge
+ * and the measured nonunit GPU trig reconstruction. |angle|<1.4; independent
+ * analytic-trig regression bounds truncation below 3e-7 world units.
+ */
+export function peelArcOffsets(
+  angle: number,
+  k: number,
+  radius: number,
+): readonly [number, number] {
+  const loss = (x: number) => {
+    const x2 = x * x;
+    return x2 * (0.5 + x2 * (-1 / 24 + x2 * (1 / 720 + x2 * (-1 / 40320 + x2 / 3628800))));
+  };
+  const sine = (x: number) => {
+    const x2 = x * x;
+    return (
+      x *
+      (1 + x2 * (-1 / 6 + x2 * (1 / 120 + x2 * (-1 / 5040 + x2 * (1 / 362880 - x2 / 39916800)))))
+    );
+  };
+  const normal = loss(angle) - loss(k * angle) / k,
+    tangent = sine(k * angle) / k - sine(angle);
+  const c = 1 - loss(angle),
+    s = sine(angle);
+  return [radius * (c * normal + s * tangent), radius * (-s * normal + c * tangent)];
 }
 export function organicPeelPoint(
   n: SkinVector,
@@ -112,9 +142,9 @@ export function createOrganicPeelGeometry(budget: RenderBudget, seed = 0x5a17): 
     !Number.isInteger(n) ||
     n < 24 ||
     n > 128 ||
-    !Number.isInteger(rows) ||
-    rows < 4 ||
-    rows > 24
+    !Number.isInteger(budget.skinRows) ||
+    budget.skinRows < 4 ||
+    budget.skinRows > 24
   )
     throw new RangeError("organic peel sampling outside setup bounds");
   const total = 3 * (1 + n * rows);
@@ -167,7 +197,7 @@ export function packOrganicPeels(peels: readonly OrganicPeel[]): SkinDescriptors
     centers: new Float32Array(peels.flatMap((p) => [...p.center, p.length])),
     tangents: new Float32Array(peels.flatMap((p) => [...p.tangent, p.width])),
     sides: new Float32Array(peels.flatMap((p) => [...p.side, p.bend])),
-    shapes: new Float32Array(peels.flatMap((p) => [p.height, 0, 0, p.phase])),
+    shapes: new Float32Array(peels.flatMap((p) => [p.bendAmount, 0, 0, p.phase])),
   };
 }
 export const ORGANIC_PEEL_SHAPE_GLSL = `
@@ -188,11 +218,18 @@ vec3 skinInward(vec3 n,int i,float v) {
   vec3 t=u_contact_tangents[i].xyz;
   return normalize(t-n*dot(n,t));
 }
+float peelCosLoss(float x) {float x2=x*x;return x2*(.5+x2*(-1./24.+x2*(1./720.+x2*(-1./40320.+x2/3628800.))));}
+float peelSin(float x) {float x2=x*x;return x*(1.+x2*(-1./6.+x2*(1./120.+x2*(-1./5040.+x2*(1./362880.-x2/39916800.)))));}
 vec2 skinOffsets(vec2 region,int i) {
   float q=region.x,v=region.y;
   float wave=sin(u_contact_phase.x+u_contact_shapes[i].w+1.2*v);
-  float height=(u_contact_shapes[i].x+.3*u_contact_pose.y)*(1.+.16*wave*(.6+.4*u_contact_pose.w));
-  return vec2(height*q*q*(1.-.18*v*v),-.065*q*q*q*(1.+.12*wave));
+  float k=1.-u_contact_shapes[i].x+.05*wave*(.6+.4*u_contact_pose.w)-.18*u_contact_pose.y;
+  float len=u_contact_centers[i].w;
+  float angle=atan(len*(1.3*q-.3))-atan(-.3*len);
+  float dn=peelCosLoss(angle)-peelCosLoss(k*angle)/k;
+  float dt=peelSin(k*angle)/k-peelSin(angle);
+  float c=1.-peelCosLoss(angle),s=peelSin(angle);
+  return u_radius*vec2(c*dn+s*dt,-s*dn+c*dt)*(1.-.18*v*v);
 }
 `;
 export const ORGANIC_PEEL_CONTACT_GLSL = `

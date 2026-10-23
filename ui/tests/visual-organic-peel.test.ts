@@ -9,6 +9,7 @@ import {
   organicPeelDirection,
   organicPeelPoint,
   organicPeelRegion,
+  peelArcOffsets,
 } from "../src/visual-engine/organic-peel";
 import { RENDER_BUDGETS } from "../src/visual-engine/quality";
 import { type SkinVector, skinCross, skinDot } from "../src/visual-engine/skin-domain";
@@ -77,7 +78,7 @@ describe("V-F3 positive organic peel geometry (CPU)", () => {
             organicPeelPoint(
               n,
               peels,
-              { ...pose, travel, lift: 0.075, coherence: 1 },
+              { ...pose, bodyRadius: radius, travel, lift: 0.075, coherence: 1 },
               body,
               budget.skinClearance,
             );
@@ -117,7 +118,7 @@ describe("V-F3 positive organic peel geometry (CPU)", () => {
         };
         expect(Math.hypot(...at(-0.3))).toBeLessThan(1e-12);
         expect(Math.hypot(...at(-0.3 + 1e-5))).toBeLessThan(1e-9);
-        expect(Math.hypot(...at(0.8))).toBeGreaterThan(0.1);
+        expect(Math.hypot(...at(0.8))).toBeGreaterThan(0.08);
         expect(Math.hypot(...subtract(at(0.8), at(0.8, 1.8)))).toBeGreaterThan(0.001);
       }
     }
@@ -153,5 +154,22 @@ describe("V-F3 positive organic peel geometry (CPU)", () => {
     }
     expect(createParticleGeometry(64)).toEqual(createParticleGeometry(64, 0x5a17, "released"));
     expect(() => createParticleGeometry(257)).toThrow();
+  });
+  it("matches an independently integrated circular arc, with scale-invariant compact peels and bounded series error", () => {
+    for (const angle of [0, 1e-6, 0.003, 0.4, 0.9, 1.4])
+      for (const k of [0.68, 0.75, 0.86]) {
+        const dn = (Math.cos(k * angle) - 1) / k + 1 - Math.cos(angle),
+          dt = Math.sin(k * angle) / k - Math.sin(angle);
+        const exact = [
+          1.18 * (Math.cos(angle) * dn + Math.sin(angle) * dt),
+          1.18 * (-Math.sin(angle) * dn + Math.cos(angle) * dt),
+        ];
+        const actual = peelArcOffsets(angle, k, 1.18);
+        expect(Math.max(...actual.map((v, i) => Math.abs(v - exact[i])))).toBeLessThan(3e-7);
+        const compact = peelArcOffsets(angle, k, 0.46);
+        expect(compact[0]).toBeCloseTo((actual[0] * 0.46) / 1.18, 14);
+        expect(compact[1]).toBeCloseTo((actual[1] * 0.46) / 1.18, 14);
+      }
+    expect(() => createOrganicPeelGeometry({ ...RENDER_BUDGETS.low, skinRows: -1 })).toThrow();
   });
 });

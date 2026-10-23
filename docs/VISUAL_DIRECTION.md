@@ -1,5 +1,14 @@
 # Sam Orb visual direction
 
+**2026-10-23 V-F3 owner correction:** V-F2's flat/rounded/island/casing morphology
+is explicitly rejected. Favor elongated, organic positive portions of shell lifting
+from broad curved attachments, closer to orange peels and the actual Sam logo.
+Do not turn that direction into six diagonal straps or circular inward-rolled lips.
+[The reversible positive-peel experiment](ORGANIC_PEEL_VF3.md) tests this distinction;
+its common living body connects material, while its film mesh has three lobes.
+Neither formal connectedness nor numerical correctness establishes artistic success.
+Preserve evolving pigment and independent clocks; no automatic default promotion.
+
 **2026-10-23 V-F2 evidence:** [matched hosted parent/radial views](RADIAL_SHELL_PROOF_VF2.md)
 execute the actual shaders and preserve the unchanged living pigment. The radial
 rim looks shallower/less inward-rolled in sampled views; several still read as a
