@@ -1,0 +1,391 @@
+{
+  "schema": 1,
+  "runs": [
+    {
+      "run": 40075746509,
+      "head": "71081b615ca6cded1c06e391cc20dbcb6bb8ce2d",
+      "url": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40075746509",
+      "views": 78,
+      "retainedFiles": 6,
+      "proofs": 5
+    },
+    {
+      "run": 40076807654,
+      "head": "1acedb073c73d3400a0503e4f8db0907ba52b285",
+      "url": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40076807654",
+      "views": 78,
+      "retainedFiles": 51,
+      "proofs": 5
+    }
+  ],
+  "files": [
+    {
+      "path": "docs/evidence/orb-vf4/40075746509/colour-yaw1.6-phase12-bipolar-peel-experimental.png",
+      "bytes": 213959,
+      "mode": "binary",
+      "sha256": "7c7e6d2841cdf34ebe96c75c2726b87cc3775f3fb935385f97d978545a8809c2"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40075746509/comparison.png",
+      "bytes": 924283,
+      "mode": "binary",
+      "sha256": "7bd4328c21416bda26e66e74a8ac58241e8a2bc71ff04ff7b72847e9004d34f0"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40075746509/evidence.json",
+      "bytes": 219037,
+      "mode": "text-lf",
+      "sha256": "422fafd1b2cf905447f1492a349357cb13a491096b9f565ed481053d4a6ce18b"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40075746509/expression-sequence.png",
+      "bytes": 1433446,
+      "mode": "binary",
+      "sha256": "2f26b151973eda9a490cdc777dd86581400816700f59525e9a758a0b57d56a5e"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40075746509/neutral-bipolar-peel-experimental.png",
+      "bytes": 185487,
+      "mode": "binary",
+      "sha256": "335a90aef9eb751b595fcfbc3934710a8d40f1df2c731951f434e08c5c925df5"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40075746509/polar-south-bipolar-peel-experimental.png",
+      "bytes": 175167,
+      "mode": "binary",
+      "sha256": "a45d0a43ccdc0bae4515e3962312d31e3a855722eb2b5fc0ecd1ad62defe060a"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/attachment-bipolar-peel-experimental.png",
+      "bytes": 72783,
+      "mode": "binary",
+      "sha256": "80ce54391e15308b5fed0c7df0d66fbd251b0df358dc4fe493f4c3294a63a39e"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/attachment-living-connected.png",
+      "bytes": 57834,
+      "mode": "binary",
+      "sha256": "1bbebf38f455f7940ecb13b2430e60790207dfabc8706bc637586050e7b55995"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/attachment-organic-peel-experimental.png",
+      "bytes": 57696,
+      "mode": "binary",
+      "sha256": "c871a38f831557c0e94a6128cc412f02e3a0f8c887bcecc800c8283ae40a4770"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/colour-yaw0-phase0-bipolar-peel-experimental.png",
+      "bytes": 215957,
+      "mode": "binary",
+      "sha256": "55837322bba21be8a8ca11e4fdf44442213cc39f0bbb2bfddc76d2fe19f966b0"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/colour-yaw0-phase0-living-connected.png",
+      "bytes": 230230,
+      "mode": "binary",
+      "sha256": "6a7d8f0b47953df7a10488a07c240508857e64b136b5191cf85e3f1f299262de"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/colour-yaw0-phase0-organic-peel-experimental.png",
+      "bytes": 223775,
+      "mode": "binary",
+      "sha256": "48cc1cae7b442304008b77fb06824cd13dfb351c980a7a3e69d1f7174e3534b7"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/colour-yaw1.6-phase12-bipolar-peel-experimental.png",
+      "bytes": 224383,
+      "mode": "binary",
+      "sha256": "8373ba692f80bff2346e3de835f969cf5624566e4c22f2fc233be48680c001ff"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/colour-yaw1.6-phase12-living-connected.png",
+      "bytes": 203862,
+      "mode": "binary",
+      "sha256": "d27132074d179ebe594d04a5e911cc158197c49a820e76355d58b44ddc0fd7db"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/colour-yaw1.6-phase12-organic-peel-experimental.png",
+      "bytes": 205295,
+      "mode": "binary",
+      "sha256": "b9c3ccafe254c4c42f363c7514b006a25ac837994bea62ad1c47795ebc5bd921"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/compact-low-bipolar-peel-experimental.png",
+      "bytes": 77824,
+      "mode": "binary",
+      "sha256": "41f6d13db048dd5bd64b4aaf8cf542e82e2f468072c8bf559065cd3c85d08480"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/compact-low-living-connected.png",
+      "bytes": 88436,
+      "mode": "binary",
+      "sha256": "0607bd92e6527d6ca2f25b131e5bc95ab443c1746336630481acbc26ed5fc6ce"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/compact-low-organic-peel-experimental.png",
+      "bytes": 77172,
+      "mode": "binary",
+      "sha256": "223c014b932a9af7a0389374173e1d4b9d86cb12cebf3ecdd10b515e61221a93"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/comparison.png",
+      "bytes": 915609,
+      "mode": "binary",
+      "sha256": "21924e211743226c5e4317c836e870d2b5d2c3a74a6d945de9fd0cb46f8d7f73"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/depth-bipolar-peel-experimental.png",
+      "bytes": 65244,
+      "mode": "binary",
+      "sha256": "4aee143a284fed0e8e8c565b5330228d6a96367859b930a80925f3602dfb0c1e"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/depth-living-connected.png",
+      "bytes": 68827,
+      "mode": "binary",
+      "sha256": "e1099b1a2e39d2b5b99b8340450b89e1f42889e0df17192734a62b93bec3b3fe"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/depth-organic-peel-experimental.png",
+      "bytes": 62250,
+      "mode": "binary",
+      "sha256": "8299807b21002efeeb8d609049f0c041281e8d9a58dfbb573103c589a0b67bc0"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/evidence.json",
+      "bytes": 219071,
+      "mode": "text-lf",
+      "sha256": "1c16f3e16ee456cbe501c0c42b2d654329a8e7750084381b41abf68c004a9b61"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/expression-sequence.png",
+      "bytes": 1414227,
+      "mode": "binary",
+      "sha256": "c72b1bf9893be7726983580d19e725e5972efe043f806dba0c4672fe6944ba35"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/neutral-bipolar-peel-experimental.png",
+      "bytes": 185746,
+      "mode": "binary",
+      "sha256": "bdd6fbd79c64818c8bd3849689218f210262af598c941e6e600da36904a21b41"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/neutral-living-connected.png",
+      "bytes": 172643,
+      "mode": "binary",
+      "sha256": "d56af2981b5357f5fa60a0bccb0963d8b11333a468f92dd472c58a2b58619500"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/neutral-organic-peel-experimental.png",
+      "bytes": 178214,
+      "mode": "binary",
+      "sha256": "2d0db2bc6198cbe2c17c31238e2b2cd40e49d57d095039b577c80b306b3acfad"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/normals-bipolar-peel-experimental.png",
+      "bytes": 138719,
+      "mode": "binary",
+      "sha256": "991c47fa242766c7d896c34bda665a16906e660eb67077e34c19cff40c536e9b"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/normals-living-connected.png",
+      "bytes": 148891,
+      "mode": "binary",
+      "sha256": "6b39921ad1261ee0b5df00cebaf9a46c6624899c5ff83718309b5155977d723d"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/normals-organic-peel-experimental.png",
+      "bytes": 129855,
+      "mode": "binary",
+      "sha256": "11e332b3ba80a1a5dec6dc31d84404a6de4073d3b04069a98b79cdc5519b939e"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/polar-north-bipolar-peel-experimental.png",
+      "bytes": 191128,
+      "mode": "binary",
+      "sha256": "4925caeb9fadc44e483370c084e1c928497513098c03d00d2d48bb74c8aaaa8d"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/polar-north-living-connected.png",
+      "bytes": 161454,
+      "mode": "binary",
+      "sha256": "926844973f25090542b457573d342ec5bbb349973b82a3978490dbac596106f8"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/polar-north-organic-peel-experimental.png",
+      "bytes": 177646,
+      "mode": "binary",
+      "sha256": "f295fe504087807a8d9353e2d85723cc5fb982ed30dcd43ceaf7db4e5a2f1d19"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/polar-south-bipolar-peel-experimental.png",
+      "bytes": 190699,
+      "mode": "binary",
+      "sha256": "fab7e83a78810c6ddb09508e2d171b3edeba47ae92a08339390f2be981855685"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/polar-south-living-connected.png",
+      "bytes": 182080,
+      "mode": "binary",
+      "sha256": "e8f9cce4625985a8e85e237abfe0db57d06c9d3fbec72954f3eb8e064e287c1f"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/polar-south-organic-peel-experimental.png",
+      "bytes": 181375,
+      "mode": "binary",
+      "sha256": "0f45994238fb0feeaa78e418fb06381bff6605eb9119b219f785c6f8770bcbe3"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-departure-bipolar-peel-experimental.png",
+      "bytes": 98317,
+      "mode": "binary",
+      "sha256": "8efda472d89ece99293343c3ea4ea27de1aff160863b3b0bf96241db51365c78"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-formation-bipolar-peel-experimental.png",
+      "bytes": 141988,
+      "mode": "binary",
+      "sha256": "b012120723f9309f4dda497d9915cdc07a421057fc223ff7131bfea47cf97674"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-interrupt-onset-bipolar-peel-experimental.png",
+      "bytes": 221352,
+      "mode": "binary",
+      "sha256": "9dbe680e32fecfbf3e32e28d932375deffe15694e54ad09c9a8a956511956d68"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-interrupted-bipolar-peel-experimental.png",
+      "bytes": 211738,
+      "mode": "binary",
+      "sha256": "e976bc3e0e6fe16b1b48d6e1ed02f177237d8e8ea1b2397ceaa24b2333df6dda"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-listening-bipolar-peel-experimental.png",
+      "bytes": 225772,
+      "mode": "binary",
+      "sha256": "6d8e73d3ec6e4f793c91e777a8b3682dbf4555945c125b8e0b9acc33475aba08"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-loading-bipolar-peel-experimental.png",
+      "bytes": 201672,
+      "mode": "binary",
+      "sha256": "f8c0b1ab3361fe7853561bb3698998355043d4a5a7d122cd49a402521b29d4da"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-recovered-bipolar-peel-experimental.png",
+      "bytes": 226169,
+      "mode": "binary",
+      "sha256": "df67847489adb2db9bc3aa4a2e5bf4a13c78722e9ab10514e2369de81127ba59"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-speech-late-bipolar-peel-experimental.png",
+      "bytes": 271636,
+      "mode": "binary",
+      "sha256": "680a1a111d9e3bdf8fcce23111a1f1b7a475f8c3e21d479224701bc17878159f"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-speech-onset-bipolar-peel-experimental.png",
+      "bytes": 236676,
+      "mode": "binary",
+      "sha256": "9f53a5fa32f0638a4e7d6cd83bdb86a3ca22fdbd2bb5036cff541238c3337f06"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-speech-quiet-bipolar-peel-experimental.png",
+      "bytes": 254877,
+      "mode": "binary",
+      "sha256": "252818482ae2f0ace7ea67d99d49737b66c189bd3b1c9492fb447366bb4a102e"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-speech-return-bipolar-peel-experimental.png",
+      "bytes": 251789,
+      "mode": "binary",
+      "sha256": "bcc06843e533687ec3b664a612e2b0593c13b4dfbe0267612336bce35f4908ce"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-speech-silence-bipolar-peel-experimental.png",
+      "bytes": 245850,
+      "mode": "binary",
+      "sha256": "85d77b6136b4d991f33449aa7fd6a9d6d82819472e43cd34f8a67105b856281d"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-speech-sustained-bipolar-peel-experimental.png",
+      "bytes": 254294,
+      "mode": "binary",
+      "sha256": "5de4a7269bd488e877bf3a1f665b3affd8095ce8321be52206257d53f12707b8"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-thinking-bipolar-peel-experimental.png",
+      "bytes": 223851,
+      "mode": "binary",
+      "sha256": "e522b47a7e31406987e7675732ac3b6dfab7ae113e78e77ec5a4bc19000dc090"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/sequence-unloading-bipolar-peel-experimental.png",
+      "bytes": 199280,
+      "mode": "binary",
+      "sha256": "1398880b60f6fcb2e45ca375c514e30000e2d7b65567bf976ca32c1fc4945f10"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/silhouette-bipolar-peel-experimental.png",
+      "bytes": 178404,
+      "mode": "binary",
+      "sha256": "957531dfcdb07e5d63a7cdd672a466a1dda4d204ad7cc131757c52b8e234ada1"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/silhouette-living-connected.png",
+      "bytes": 155093,
+      "mode": "binary",
+      "sha256": "33a4dfb132d464df8ddf7210c0935f2e340db615563dbeb510f9fb69a48c9e3a"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/silhouette-organic-peel-experimental.png",
+      "bytes": 168531,
+      "mode": "binary",
+      "sha256": "b8b3b45735da341b042c4605476715234a89245324cb2e878a9af9f90e25e4b1"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/smoke-colour-bipolar-peel-experimental.png",
+      "bytes": 217611,
+      "mode": "binary",
+      "sha256": "c4b106ad80fc18b5142cc0685c055103836163ab373b4684b2dc168a700d0c3c"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/smoke-colour-living-connected.png",
+      "bytes": 217033,
+      "mode": "binary",
+      "sha256": "d2c83a2a187d8c51b08a3ea4c1c162e65283e4ba0f73bd1f8674cec479d03aba"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/40076807654/smoke-colour-organic-peel-experimental.png",
+      "bytes": 212099,
+      "mode": "binary",
+      "sha256": "a288b667ee0c753ee3c5b4160e0bb032c5a902ff3545747fb3750e36baceefd7"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/baseline-identity.json",
+      "bytes": 3657,
+      "mode": "text-lf",
+      "sha256": "cd1019933afca3fea6a700dbffec040e20bbce5aa8107e3392e3c50349c5c40d"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/frontend-assets.json",
+      "bytes": 1026,
+      "mode": "text-lf",
+      "sha256": "9c465cbef52aa890f0db88faf47a58488707020dcf049a7398abcd394a284954"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/hosted-ci-summary.json",
+      "bytes": 1031,
+      "mode": "text-lf",
+      "sha256": "07d28e220cfa9da7e17c65db96491dc9aa134510a3a2cc13a9deb2600d4bfae5"
+    },
+    {
+      "path": "docs/evidence/orb-vf4/verification.json",
+      "bytes": 21586,
+      "mode": "text-lf",
+      "sha256": "82272a98db0e9a9fa375d1fd74f05c281f605123d8d80ae7fa4b2a02ec4af389"
+    }
+  ],
+  "normalization": "PNG binary; JSON/Markdown CRLF normalized to LF to match Git across hosts. Manifest excludes itself.",
+  "interpretation": "Observed renderer and sample evidence, not artistic/hardware acceptance"
+}

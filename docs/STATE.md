@@ -4,7 +4,7 @@ Updated: 2026-10-24. This is current development truth, not a release acceptance
 [ROADMAP](ROADMAP.md) owns order; [BACKLOG](BACKLOG.md) owns actions; [requirements](OWNER_REQUIREMENTS.md) owns intent/provenance. [HQ4](HANDOFF_SAM_HQ4.md) / [Visual Core](HANDOFF_CODEX_VISUAL_CORE.md) preserve history, not execution permission.
 ## Release and evidence boundary
 
-- V-F4 feature: [bipolar trajectories](BIPOLAR_PEEL_VF4.md) tests three unequal north/south anchored paths, persistent lift and measured-speech deformation. CPU/adjacent proof is green; hosted appearance remains pending. [V-F3](ORGANIC_PEEL_VF3.md) precision repair is preserved, but its leaf/patch morphology is owner-rejected. Parent, pigment and 12/24/64 caps remain; no dev merge.
+- V-F4 feature: [bipolar trajectories/evidence](BIPOLAR_PEEL_VF4.md) has 123 distinct local frontend / 27 file-only Python passes, a matched 76-input build and green hosted strict WebGL proof. Polar paths stay lifted and react throughout synthetic speech; one structural correction fixes transverse reversal. Interwoven reading/polar caps/thin ends remain inadequate for default promotion. Parent, pigment, 12/24/64 caps and dev remain unchanged.
 - [V-F2 radial/parent evidence](RADIAL_SHELL_PROOF_VF2.md) is historical. Its morphology is owner-rejected; its failed strict guard is superseded by V-F3's unchanged-threshold proof, not erased.
 - V-E [sessions/audit](SESSION_CONTINUITY_VE.md): New/Resume/rehydration has 176 scoped Python / 182 frontend passes at its checkpoint; its 68-input assets are historical.
 - [V-B recognition](SPEECH_RECOGNITION_VB.md) seals utterances, retires PCM, rejects

@@ -6,7 +6,11 @@ import { createWebGLBackend } from "../src/visual-engine/webgl";
 import { visualInput } from "./fixtures/visual-identity-II";
 
 describe("partially initialized renderer recovery (mock GL only)", () => {
-  for (const appearance of ["living-connected", "radial-shell-experimental"] as const)
+  for (const appearance of [
+    "living-connected",
+    "radial-shell-experimental",
+    "bipolar-peel-experimental",
+  ] as const)
     for (const { failure, budget } of [
       ...(["second-program", "missing-uniform", "partial-buffer", "none"] as const).map(
         (failure) => ({ failure, budget: RENDER_BUDGETS.low }),

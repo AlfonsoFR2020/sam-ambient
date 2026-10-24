@@ -7,6 +7,9 @@ The [bipolar experiment](BIPOLAR_PEEL_VF4.md) preserves the actual logo's long
 counter-sweeping direction, shared living pigment and measured whole-delivery
 expression. Avoid floral/propeller symmetry, casing and six decorative straps.
 Earlier candidates stay recoverable; numerical validity is not artistic acceptance.
+V-F4's two hosted comparisons establish elongated geometry and sustained synthetic
+response, but its one-sided layering, cut-panel polar views and thin ends leave
+the principal interwoven reading unresolved. Keep the default and negative evidence.
 
 **2026-10-23 V-F3 owner correction:** V-F2's flat/rounded/island/casing morphology
 is explicitly rejected. Favor elongated, organic positive portions of shell lifting

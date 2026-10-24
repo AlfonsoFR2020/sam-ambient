@@ -27,8 +27,10 @@ parallel queues. No row grants execution permission.
 
 - [V-F4](BIPOLAR_PEEL_VF4.md) preserves explicit owner rejection of V-F3's leaves/
   patches/ears and tests unequal bipolar trajectories, persistent lift and real
-  delivery-level expression. SHELL-01 and EXP-01–04 remain P1; CPU proof alone
-  does not close morphology, dynamic overlap, hardware or owner acceptance.
+  delivery-level expression. Strict hosted proof and synthetic late-speech frames
+  pass; one-sided composition, cut-panel polar edges and blade-like ends persist.
+  SHELL-01 and EXP-01–04 remain P1; do not promote this experiment or close artistic,
+  dynamic-overlap, hardware or owner acceptance on the technical checks.
 
 - [V-F3](ORGANIC_PEEL_VF3.md) records explicit owner rejection of the V-F2 panel/
   casing morphology. A separately selectable three-lobe positive peel uses the

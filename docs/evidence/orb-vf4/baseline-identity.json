@@ -1,0 +1,97 @@
+{
+  "firstRun": 40075746509,
+  "finalRun": 40076807654,
+  "matchedStaticImages": [
+    {
+      "name": "attachment-living-connected.png",
+      "sha256": "1bbebf38f455f7940ecb13b2430e60790207dfabc8706bc637586050e7b55995"
+    },
+    {
+      "name": "attachment-organic-peel-experimental.png",
+      "sha256": "c871a38f831557c0e94a6128cc412f02e3a0f8c887bcecc800c8283ae40a4770"
+    },
+    {
+      "name": "colour-yaw0-phase0-living-connected.png",
+      "sha256": "6a7d8f0b47953df7a10488a07c240508857e64b136b5191cf85e3f1f299262de"
+    },
+    {
+      "name": "colour-yaw0-phase0-organic-peel-experimental.png",
+      "sha256": "48cc1cae7b442304008b77fb06824cd13dfb351c980a7a3e69d1f7174e3534b7"
+    },
+    {
+      "name": "colour-yaw1.6-phase12-living-connected.png",
+      "sha256": "d27132074d179ebe594d04a5e911cc158197c49a820e76355d58b44ddc0fd7db"
+    },
+    {
+      "name": "colour-yaw1.6-phase12-organic-peel-experimental.png",
+      "sha256": "b9c3ccafe254c4c42f363c7514b006a25ac837994bea62ad1c47795ebc5bd921"
+    },
+    {
+      "name": "compact-low-living-connected.png",
+      "sha256": "0607bd92e6527d6ca2f25b131e5bc95ab443c1746336630481acbc26ed5fc6ce"
+    },
+    {
+      "name": "compact-low-organic-peel-experimental.png",
+      "sha256": "223c014b932a9af7a0389374173e1d4b9d86cb12cebf3ecdd10b515e61221a93"
+    },
+    {
+      "name": "depth-living-connected.png",
+      "sha256": "e1099b1a2e39d2b5b99b8340450b89e1f42889e0df17192734a62b93bec3b3fe"
+    },
+    {
+      "name": "depth-organic-peel-experimental.png",
+      "sha256": "8299807b21002efeeb8d609049f0c041281e8d9a58dfbb573103c589a0b67bc0"
+    },
+    {
+      "name": "neutral-living-connected.png",
+      "sha256": "d56af2981b5357f5fa60a0bccb0963d8b11333a468f92dd472c58a2b58619500"
+    },
+    {
+      "name": "neutral-organic-peel-experimental.png",
+      "sha256": "2d0db2bc6198cbe2c17c31238e2b2cd40e49d57d095039b577c80b306b3acfad"
+    },
+    {
+      "name": "normals-living-connected.png",
+      "sha256": "6b39921ad1261ee0b5df00cebaf9a46c6624899c5ff83718309b5155977d723d"
+    },
+    {
+      "name": "normals-organic-peel-experimental.png",
+      "sha256": "11e332b3ba80a1a5dec6dc31d84404a6de4073d3b04069a98b79cdc5519b939e"
+    },
+    {
+      "name": "polar-north-living-connected.png",
+      "sha256": "926844973f25090542b457573d342ec5bbb349973b82a3978490dbac596106f8"
+    },
+    {
+      "name": "polar-north-organic-peel-experimental.png",
+      "sha256": "f295fe504087807a8d9353e2d85723cc5fb982ed30dcd43ceaf7db4e5a2f1d19"
+    },
+    {
+      "name": "polar-south-living-connected.png",
+      "sha256": "e8f9cce4625985a8e85e237abfe0db57d06c9d3fbec72954f3eb8e064e287c1f"
+    },
+    {
+      "name": "polar-south-organic-peel-experimental.png",
+      "sha256": "0f45994238fb0feeaa78e418fb06381bff6605eb9119b219f785c6f8770bcbe3"
+    },
+    {
+      "name": "silhouette-living-connected.png",
+      "sha256": "33a4dfb132d464df8ddf7210c0935f2e340db615563dbeb510f9fb69a48c9e3a"
+    },
+    {
+      "name": "silhouette-organic-peel-experimental.png",
+      "sha256": "b8b3b45735da341b042c4605476715234a89245324cb2e878a9af9f90e25e4b1"
+    },
+    {
+      "name": "smoke-colour-living-connected.png",
+      "sha256": "d2c83a2a187d8c51b08a3ea4c1c162e65283e4ba0f73bd1f8674cec479d03aba"
+    },
+    {
+      "name": "smoke-colour-organic-peel-experimental.png",
+      "sha256": "a288b667ee0c753ee3c5b4160e0bb032c5a902ff3545747fb3750e36baceefd7"
+    }
+  ],
+  "vf3ParentSmokeByteIdentical": true,
+  "vf3Path": "docs/evidence/orb-vf3/40014803644/smoke-colour-living-connected.png",
+  "meaning": "Exact retained PNG identity for unchanged parent/V-F3 under matching inputs; no global visual equivalence inferred"
+}

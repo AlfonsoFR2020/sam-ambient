@@ -1,0 +1,37 @@
+{
+  "initial": {
+    "run": 40075746505,
+    "head": "71081b615ca6cded1c06e391cc20dbcb6bb8ce2d",
+    "conclusion": "failure",
+    "cause": "Renamed BACKLOG heading invalidated ROADMAP anchor; repaired explicitly",
+    "ubuntuPython": {
+      "passed": 816,
+      "failed": 1,
+      "skipped": 44
+    },
+    "windowsPython": {
+      "passed": 855,
+      "failed": 1,
+      "skipped": 5
+    },
+    "failedTest": "test_current_checkout_prominent_links_resolve"
+  },
+  "final": {
+    "run": 40076807632,
+    "head": "1acedb073c73d3400a0503e4f8db0907ba52b285",
+    "attempt": 1,
+    "conclusion": "success",
+    "ubuntuPython": {
+      "passed": 817,
+      "skipped": 44
+    },
+    "windowsPython": {
+      "passed": 856,
+      "skipped": 5
+    },
+    "frontendPerPlatform": 416,
+    "nativePackage": "success",
+    "packageSmoke": "success"
+  },
+  "limitation": "Counts overlap across platforms/batches. Six closing cleanup cases only executed locally. V-F3 shutdown timeouts remain unattributed, not repaired by a green retry/run."
+}
