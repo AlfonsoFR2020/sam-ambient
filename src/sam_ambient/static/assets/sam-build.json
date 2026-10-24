@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "visualIdentity": "connected-skin-ivd-experimental",
-  "sourceCommit": "37bd468fc47a22d78038fa91006d2949f9be4e56",
+  "sourceCommit": "62758e9d95800841ae689290c9086acf14dcb6fa",
   "sourceDirty": false,
-  "sourceDigestSha256Lf": "05bcbe27d5a157e93e8ded79b40f2e57654cc04292be1054155aa24fbc83efd6",
+  "sourceDigestSha256Lf": "ecb2dd9b055bd9730a9c146bb8e6ccb0ed0f9139c31ade6dc2930fc10ee6150a",
   "sourceFiles": {
     "ui/build-provenance.d.mts": "060d47110fc5d168514a6c2b7d0b920a0892c3588d6caec18f497e417fdcd2c1",
     "ui/build-provenance.mjs": "2550b371717a26e5b9ed1429d58dc56633adee107a64a8cd3f60a1f2c9e98e7d",
@@ -50,7 +50,7 @@
     "ui/src/visual-engine/ambient-reactivity.ts": "5126c9f663456ac60df77ba1e29f97e380c7c0b4b0836ae5037b99ee4c91f4df",
     "ui/src/visual-engine/appearance.ts": "3b7fe0da5cba96641ff8f54a793ad3d46ca645b8cd029477940e4d3123b9ec54",
     "ui/src/visual-engine/backend.ts": "6d65ffd3e93dae992c3f63303fd566ba865728ba5ef4fa3aae65517a098f36ed",
-    "ui/src/visual-engine/bipolar-peel.ts": "2ca29708dfd0087cb8dc7ecbf84b408c881df235a2dd6058040adc3fd71d79ff",
+    "ui/src/visual-engine/bipolar-peel.ts": "82bd7d8ee6c74953e5bf319a4d44285bea2403b0635fb937041ec2dab305f989",
     "ui/src/visual-engine/canvas.ts": "0ee8900f1309d0eafdd5df15350bcffad725cbd90373e0518733d05ff8712809",
     "ui/src/visual-engine/discourse-crest.ts": "9d91f6ad576a926ef70bbec54af8347dd87a40a8db618c618ae461fd04eb1c6a",
     "ui/src/visual-engine/engine.ts": "3fdea20d6028072d3f4ab5c6c514c464154e5fd7d5c01b9fca2795b35915c6cb",
