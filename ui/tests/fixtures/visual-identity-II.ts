@@ -67,6 +67,7 @@ export function fixture(
     particleCount?: 64 | 128 | 256;
     particlePresentation?: ParticlePresentation;
     dpr?: number;
+    pitch?: number;
     bodyOnly?: boolean;
     membraneOnly?: boolean;
     gray?: boolean;
@@ -224,12 +225,12 @@ export function fixture(
         Math.cos(yaw),
         0,
         -Math.sin(yaw),
-        0,
-        1,
-        0,
-        Math.sin(yaw),
-        0,
-        Math.cos(yaw),
+        Math.sin(yaw) * Math.sin(options.pitch ?? 0),
+        Math.cos(options.pitch ?? 0),
+        Math.cos(yaw) * Math.sin(options.pitch ?? 0),
+        Math.sin(yaw) * Math.cos(options.pitch ?? 0),
+        -Math.sin(options.pitch ?? 0),
+        Math.cos(yaw) * Math.cos(options.pitch ?? 0),
       ]),
     );
     backend.render(0);

@@ -4,7 +4,11 @@ import type { RenderBudget } from "./quality";
 import { createSkinOpenings, packSkinOpenings, type SkinVector } from "./skin-domain";
 import { createSkinGeometry, type SkinGeometry } from "./skin-geometry";
 
-export type SkinStrategyId = "connected-parent" | "radial-sectors" | "organic-peels";
+export type SkinStrategyId =
+  | "connected-parent"
+  | "radial-sectors"
+  | "organic-peels"
+  | "bipolar-peels";
 export type BodyPoint = (direction: SkinVector) => SkinVector;
 export interface SkinDescriptors {
   readonly centers: Float32Array;
@@ -22,12 +26,14 @@ export interface SkinReference {
   point(n: SkinVector, pose: SkinPose, body: BodyPoint, clearance: number): SkinVector;
 }
 /** Static trusted source only. Geometry, equations and contact must travel together.
- * Setup owns immutable unit-object directions and Uint16 indices. Frame updates
+ * Setup owns immutable directions (body or explicit atlas) and Uint16 indices. Frame updates
  * consume MotionFrame uniforms only; no strategy callback runs in the draw loop.
  */
 export interface SkinStrategy {
   readonly id: SkinStrategyId;
   readonly materialSpace: "unit-object-direction";
+  /** Only this closed atlas strategy maps setup parameters back to body pigment. */
+  readonly materialDirection?: "bipolarMaterialDirection";
   readonly shapeGLSL: string;
   readonly surfaceGLSL: string;
   readonly contactGLSL: string;

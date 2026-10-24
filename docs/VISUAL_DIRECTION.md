@@ -1,5 +1,13 @@
 # Sam Orb visual direction
 
+**2026-10-24 V-F4 owner correction:** V-F3's leaves/patches/ears are rejected.
+Test elongated asymmetric peels from both poles, with partial helical sweep,
+interwoven spatial relationships and permanent idle lift beyond attachment.
+The [bipolar experiment](BIPOLAR_PEEL_VF4.md) preserves the actual logo's long
+counter-sweeping direction, shared living pigment and measured whole-delivery
+expression. Avoid floral/propeller symmetry, casing and six decorative straps.
+Earlier candidates stay recoverable; numerical validity is not artistic acceptance.
+
 **2026-10-23 V-F3 owner correction:** V-F2's flat/rounded/island/casing morphology
 is explicitly rejected. Favor elongated, organic positive portions of shell lifting
 from broad curved attachments, closer to orange peels and the actual Sam logo.

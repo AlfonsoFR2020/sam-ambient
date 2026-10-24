@@ -1,5 +1,19 @@
 # Decision log
 
+## 2026-10-24 — V-F4 bipolar parameter atlas, internal only
+
+The owner rejects V-F3's local leaf/patch morphology and requests polar-origin,
+interwoven elongated surfaces with permanent lift. [V-F4](BIPOLAR_PEEL_VF4.md)
+tests three unequal north/south trajectories. Disjoint immutable parameter charts
+reuse the existing vec3 buffers but explicitly map to body directions for pigment
+and living displacement. This prevents ambiguous deformation when paths overlap.
+The closed strategy gains one optional trusted material-direction function name;
+no plugin framework, persisted selector, new engine or default equation change.
+Three film components share the body rather than claiming global mesh connection.
+Existing clocks, measured output pulse and lifecycle uniforms own deformation;
+optional CPU preparation/settling fields match those uniforms. Graphical and owner
+acceptance remain separate. Parent default, prior candidates and particles survive.
+
 ## 2026-10-23 — V-F3 positive peel experiment, default preserved
 
 Following owner rejection of V-F2's panel/casing morphology, test three broad-rooted

@@ -8,8 +8,10 @@ on:
       - ui/playwright.orb-vf2.config.ts
       - ui/tests/browser/orb-vf2.spec.ts
       - ui/tests/browser/orb-vf3*.spec.ts
+      - ui/tests/browser/orb-vf4.spec.ts
       - ui/tests/fixtures/orb-vf2.ts
       - ui/tests/fixtures/orb-vf3.ts
+      - ui/tests/fixtures/orb-vf4.ts
       - ui/tests/fixtures/visual-identity-II.ts
       - ui/tests/fixtures/skin-gpu-proof.ts
       - ui/src/visual-engine/**

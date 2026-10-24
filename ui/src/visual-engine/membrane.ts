@@ -13,6 +13,8 @@ export const MEMBRANE_RADIUS_BOUND = 1.56;
 export const SKIN_NORMAL_STEP = 0.003;
 
 export interface SkinPose {
+  preparation?: number;
+  settling?: number;
   /** Nominal body scale for curvature-based strategies; existing collars ignore it. */
   readonly bodyRadius?: number;
   readonly travel: number;

@@ -1,4 +1,10 @@
 import { type OrbAppearanceId, resolveOrbAppearance } from "../../src/visual-engine/appearance";
+import {
+  bipolarCoordinates,
+  bipolarIndex,
+  bipolarParameter,
+  createBipolarPeels,
+} from "../../src/visual-engine/bipolar-peel";
 import { type SkinPose, skinNormal } from "../../src/visual-engine/membrane";
 import {
   createOrganicPeels,
@@ -31,6 +37,11 @@ export function organicGPUProofDirections(): readonly SkinVector[] {
     ),
   );
 }
+export function bipolarGPUProofDirections(): readonly SkinVector[] {
+  return createBipolarPeels().flatMap((p) =>
+    [0, 0.08, 0.5, 1].flatMap((t) => [-1, -0.35, 0.35, 1].map((v) => bipolarParameter(p, t, v))),
+  );
+}
 
 /** Transform feedback of the production coat map/normals against the CPU reference.
  * A controlled body callback isolates coating equations; real pigment/body shaders
@@ -39,7 +50,9 @@ export function organicGPUProofDirections(): readonly SkinVector[] {
 export function proveSkinGPU(
   appearance?: OrbAppearanceId,
   variant: "production" | "sqrt-rim" = "production",
+  options: { radius?: number; speech?: number; preparation?: number; settling?: number } = {},
 ) {
+  const radius = options.radius ?? 1.18;
   const definition = resolveOrbAppearance(appearance),
     strategy = definition.skin;
   let shapeGLSL = strategy.shapeGLSL;
@@ -75,6 +88,7 @@ precision highp float;
 layout(location=0) in vec3 direction;
 uniform float u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple;
 uniform vec4 u_behavior;
+uniform vec4 u_provider;
 ${shapeGLSL}
 vec3 livingBodyPoint(vec3 n,float r,float b,float p,float d,float w) {
   return vec3(1.,1.06,1.)*n*(r+.006*sin(b)+.007*d*n.z+.003*w*sin(p+3.*n.x));
@@ -135,7 +149,7 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
       gl.uniform4fv(location(`u_contact_${key}[0]`), packed[key]);
     gl.uniform1i(location("u_contact_count"), setup.count);
     for (const [name, value] of [
-      ["u_radius", 1.18],
+      ["u_radius", radius],
       ["u_breath_phase", 0.7],
       ["u_ripple_phase", 1.1],
       ["u_deformation", 0.04],
@@ -162,6 +176,8 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
           }
     else if (strategy.id === "organic-peels")
       for (const n of organicGPUProofDirections()) directions.push(...n);
+    else if (strategy.id === "bipolar-peels")
+      for (const n of bipolarGPUProofDirections()) directions.push(...n);
     else
       for (const p of createRadialShellWindows())
         for (const theta of [0, 1.7, 3.4, 5.1])
@@ -199,7 +215,7 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
     gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, resultBuffer);
     const body = (n: SkinVector): SkinVector => {
       const r =
-        1.18 +
+        radius +
         0.006 * Math.sin(0.7) +
         0.007 * 0.04 * n[2] +
         0.003 * 0.02 * Math.sin(1.1 + 3 * n[0]);
@@ -226,6 +242,9 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
     let fixedRadialSample: unknown = null;
     for (const travel of [0, 1.7, 2 * Math.PI - 1e-5, 2 * Math.PI + 1e-5]) {
       const pose: SkinPose = {
+        bodyRadius: radius,
+        preparation: options.preparation ?? 0,
+        settling: options.settling ?? 0,
         travel,
         opening: 0.1,
         lift: 0.075,
@@ -234,11 +253,12 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
         rephase: 0.12,
         work: 1,
         receptive: 0.3,
-        speech: 0.8,
+        speech: options.speech ?? 0.8,
       };
       gl.uniform4f(location("u_contact_pose"), pose.opening, pose.lift, pose.width, pose.coherence);
       gl.uniform2f(location("u_contact_phase"), pose.travel, pose.rephase);
       gl.uniform4f(location("u_behavior"), 0, pose.speech, pose.work, pose.receptive);
+      gl.uniform4f(location("u_provider"), 0, pose.preparation ?? 0, pose.settling ?? 0, 0);
       gl.enable(gl.RASTERIZER_DISCARD);
       gl.beginTransformFeedback(gl.POINTS);
       active = true;
@@ -256,9 +276,13 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
         const q =
           strategy.id === "connected-parent"
             ? createSkinOpenings().map((opening) => skinRegion(n, opening).q)
-            : strategy.id === "organic-peels"
-              ? createOrganicPeels().map((p) => organicPeelRegion(n, p)[0])
-              : createRadialShellWindows().map((window) => radialShellRegion(n, window).q);
+            : strategy.id === "bipolar-peels"
+              ? createBipolarPeels().map((p, i, all) =>
+                  bipolarIndex(n, all) === i ? bipolarCoordinates(n, p)[0] : 0,
+                )
+              : strategy.id === "organic-peels"
+                ? createOrganicPeels().map((p) => organicPeelRegion(n, p)[0])
+                : createRadialShellWindows().map((window) => radialShellRegion(n, window).q);
         if (
           strategy.id === "radial-sectors" &&
           travel === 1.7 &&

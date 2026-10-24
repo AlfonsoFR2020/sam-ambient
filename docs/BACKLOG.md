@@ -2,7 +2,7 @@
 
 <a id="current-execution-index--v-c-reconciliation-2026-10-22"></a>
 <a id="current-execution-index--v-d-closure-2026-10-23"></a>
-## Current execution index — V-F3 organic peeling and focused experience, 2026-10-23
+## Current execution index — V-F4 bipolar morphology and expression, 2026-10-24
 
 [Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
 IDs; this file remains the retained action backlog. [ROADMAP](ROADMAP.md) orders
@@ -23,6 +23,11 @@ parallel queues. No row grants execution permission.
 | P1 · GOV-01/02/04/06 | Meaningful experimental releases, scarce beta, durable source truth and isolated public-docs branch | Do not freeze safe work or merge unreleased implementation to publish docs |
 
 ### Recovery and supersession notes
+
+- [V-F4](BIPOLAR_PEEL_VF4.md) preserves explicit owner rejection of V-F3's leaves/
+  patches/ears and tests unequal bipolar trajectories, persistent lift and real
+  delivery-level expression. SHELL-01 and EXP-01–04 remain P1; CPU proof alone
+  does not close morphology, dynamic overlap, hardware or owner acceptance.
 
 - [V-F3](ORGANIC_PEEL_VF3.md) records explicit owner rejection of the V-F2 panel/
   casing morphology. A separately selectable three-lobe positive peel uses the

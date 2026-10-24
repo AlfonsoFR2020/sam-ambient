@@ -85,7 +85,11 @@ void main(){
   color=vec4(pow(linear,vec3(1./2.2)),1.);
 }`;
 
-const peelVertex = (shapeGLSL: string, surfaceGLSL: string) => `#version 300 es
+const peelVertex = (
+  shapeGLSL: string,
+  surfaceGLSL: string,
+  materialDirection = "direction",
+) => `#version 300 es
 precision highp float;
 invariant gl_Position;
 layout(location=0) in vec3 a_direction;
@@ -127,7 +131,7 @@ void main(){
   mat3 rotation=rotateY(u_precession)*rotateX(.22+.018*sin(u_breath_phase))*rotateZ(.08*sin(u_breath_phase+1.4))*rotateY(u_spin)*u_object_orientation;
   v_position=rotation*position;
   v_normal=normalize(rotation*localNormal);
-  v_object_direction=direction;
+  v_object_direction=${materialDirection};
   v_alpha=1.-.30*smoothstep(.70,1.,q);
   v_radial=clamp(q,0.,1.);
   v_lift=clamp(lift/.17,0.,1.);
@@ -209,7 +213,11 @@ function composeAppearanceShaders(id?: OrbAppearanceId) {
   return Object.freeze({
     orbVertex: ORB_VERTEX,
     orbFragment: orbFragment(skin.contactGLSL, material.fragmentGLSL),
-    skinVertex: peelVertex(skin.shapeGLSL, skin.surfaceGLSL),
+    skinVertex: peelVertex(
+      skin.shapeGLSL,
+      skin.surfaceGLSL,
+      skin.materialDirection ? `${skin.materialDirection}(direction)` : "direction",
+    ),
     skinFragment: peelFragment(material.fragmentGLSL),
   });
 }

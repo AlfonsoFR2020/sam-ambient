@@ -1,3 +1,4 @@
+import { BIPOLAR_PEEL_SKIN } from "./bipolar-peel";
 import { LIVING_MATERIAL_GLSL } from "./living-material";
 import { ORGANIC_PEEL_SKIN } from "./organic-peel";
 import { RADIAL_SECTOR_SKIN } from "./radial-shell";
@@ -6,7 +7,8 @@ import { CONNECTED_PARENT_SKIN, type SkinStrategy } from "./skin-strategy";
 export type OrbAppearanceId =
   | "living-connected"
   | "radial-shell-experimental"
-  | "organic-peel-experimental";
+  | "organic-peel-experimental"
+  | "bipolar-peel-experimental";
 export type OrbMaterialId = "living-pigment";
 /** A material is independent of skin topology but not of its coordinate contract.
  * Future palette variants must also coordinate particle colour; this is no promise
@@ -62,5 +64,14 @@ export function resolveOrbAppearance(id: OrbAppearanceId = "living-connected"): 
   if (id === "living-connected") return DEFAULT_ORB_APPEARANCE;
   if (id === "radial-shell-experimental") return RADIAL_SHELL_APPEARANCE;
   if (id === "organic-peel-experimental") return ORGANIC_PEEL_APPEARANCE;
+  if (id === "bipolar-peel-experimental") return BIPOLAR_PEEL_APPEARANCE;
   throw new RangeError(`Unsupported Orb appearance: ${String(id)}`);
 }
+export const BIPOLAR_PEEL_APPEARANCE: OrbAppearance = Object.freeze({
+  id: "bipolar-peel-experimental",
+  status: "experimental",
+  body: "living-displaced-sphere",
+  material: LIVING_PIGMENT_MATERIAL,
+  skin: BIPOLAR_PEEL_SKIN,
+  fallback: "shared-recovery",
+});
