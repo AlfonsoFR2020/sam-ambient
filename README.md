@@ -54,7 +54,7 @@ shows recognition, committed turns and separate speech delivery.*
 | Line | What it means |
 | --- | --- |
 | **Released · v0.2.5** | The published Python/source alpha: living pigment and six swept film sheets, authenticated owner window, local-provider management, conversation/cancellation foundations, reviewed Memory, bounded Agency and diagnostics. Voice input is experimental; typed use is the safest starting point. |
-| **Development · v0.2.6+ on `dev`** | A connected parent skin, lifecycle expression, playback-boundary visual metering, conversation reliability repairs and recognition-integrity improvements. Deterministic tests and asset integration do not establish graphical, physical-audio or owner acceptance. |
+| **Development · v0.2.6+ on `dev`** | A connected parent skin, lifecycle expression, playback-boundary visual metering, conversation reliability repairs, recognition-integrity improvements, opt-in keyboard push-to-talk and explicit New/Resume conversation controls. Deterministic tests and asset integration do not establish graphical, physical-audio or owner acceptance. |
 | **Future** | Broader desktop agency, generative interfaces, expanded OS integration and controlled self-modification are roadmap ambitions, not completed product capabilities. |
 
 The owner's positive assessment of the evolving swirls concerns the released

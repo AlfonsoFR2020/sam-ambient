@@ -52,7 +52,9 @@ check node bounds/overlap and conservative text-width estimates, verify contrast
 and compare outputs to their source. They also check prominent documentation links.
 Text estimates are **not measured font layout**. No browser, SVG rendering or visual
 inspection was authorized in V-B; actual layout/readability at GitHub width remains
-a later visual-review gate. Do not equate structural checks with rendered approval.
+a separate visual-review gate. The owner subsequently reviewed supplied renders
+and V-D corrected their semantic connectors; final generator reproduction is
+verified without claiming a new render or final layout acceptance.
 
 For module contracts and the exact implementation, see
 [Architecture](../ARCHITECTURE.md), [development recognition](../DEVELOPMENT_STATUS.md#recognition)

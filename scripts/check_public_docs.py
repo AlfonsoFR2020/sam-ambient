@@ -221,7 +221,9 @@ def check_release_diff(root, base):
         git(root, "merge-base", base, "HEAD") == base, "Release base is not the branch ancestor"
     )
     history = git(root, "rev-list", "--reverse", "--parents", f"{base}..HEAD").splitlines()
-    require(len(history) <= 3, "Public docs branch has unexpected implementation history")
+    # V-G1 adds a fourth authorized docs-only fast-forward. Check EVERY commit
+    # below, including intermediate changes that were subsequently reverted.
+    require(len(history) <= 4, "Public docs branch has unexpected implementation history")
     parent = base
     for row in history:
         fields = row.split()

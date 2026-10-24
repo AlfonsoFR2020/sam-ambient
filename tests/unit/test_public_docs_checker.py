@@ -103,3 +103,35 @@ def test_release_guard_rejects_runtime_or_mixed_history_even_if_later_reverted(m
     monkeypatch.setattr(checker, "git", fake_git)
     with pytest.raises(ValueError, match=r"Non-documentation|not linear"):
         checker.check_release_diff(Path("."), "release")
+
+
+@pytest.mark.parametrize("intermediate_runtime", [False, True])
+def test_four_documentation_commits_keep_every_intermediate_scope_check(
+    monkeypatch, intermediate_runtime
+):
+    from scripts import check_public_docs as checker
+
+    inspected = []
+
+    def fake_git(_root, *args):
+        if args[0] == "merge-base":
+            return "release"
+        if args[0] == "rev-list":
+            return "first release\nsecond first\nthird second\nfourth third"
+        if args[0] == "diff-tree":
+            inspected.append(args[-1])
+            return "src/runtime.py" if intermediate_runtime and args[-1] == "third" else "README.md"
+        if args[0] == "diff":
+            return "README.md"
+        if args[0] == "ls-files":
+            return ""
+        return "same-unchanged-license-or-logo-blob"
+
+    monkeypatch.setattr(checker, "git", fake_git)
+    if intermediate_runtime:
+        with pytest.raises(ValueError, match="Non-documentation commit"):
+            checker.check_release_diff(Path("."), "release")
+        assert inspected == ["first", "second", "third"]
+    else:
+        assert checker.check_release_diff(Path("."), "release")["commits"] == 4
+        assert inspected == ["first", "second", "third", "fourth"]
