@@ -1,5 +1,10 @@
 # Orb appearance foundation — V-F1
 
+Current follow-up: [V-F4](BIPOLAR_PEEL_VF4.md) adds internal polar trajectories and
+an explicit parameter-atlas/material-direction mapping after owner rejection of
+V-F3's leaves/patches. The V-F1 diagram and numerical tables below describe their
+historical checkpoint, not an exhaustive current strategy list. Default is unchanged.
+
 Current follow-up: [V-F3](ORGANIC_PEEL_VF3.md) closes the strict radial numerical
 gap and adds a separately selectable positive-peel experiment after owner rejection
 of V-F2 morphology. This V-F1 record remains historical; parent remains default.

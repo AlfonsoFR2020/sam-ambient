@@ -20,9 +20,9 @@ geodesic cross-section has angular half-width .035 + width*4*t*(1-t)*(1-.25*t).
 Finite tapered ends avoid collapsed triangles. These are three topological disks
 attached to the same living body, not a globally connected film or six old straps.
 
-A squared shoulder q², q=max(0,(t-.08)/.92), gives C1 attachment and persistent
+A shoulder q²/(.18+.82*q²)*(1-.15*q), q=max(0,(t-.08)/.92), gives C1 attachment and persistent
 positive radial lift beyond the root. Radius-scaled backward longitudinal bend
-opens the path; unequal lift, traveling lateral torsion and opposing sweep allow
+opens the path; unequal lift, bounded transverse-section rotation and opposing sweep allow
 over/under composition. No collision or exact inter-surface ordering is claimed.
 The geometry is not an inextensible physical orange peel or a cloth simulation.
 
@@ -95,3 +95,43 @@ from topology or a single view. The bounded comparison reuses the existing sandb
 one browser worker and matched frames: parent / V-F3 / bipolar, polar/side views,
 Low/High, root/normal/depth diagnostics and a 33-second sampled synthetic lifecycle.
 Final run identities, evidence, failures and disposition must be appended here.
+
+## First hosted proof and one structural correction
+
+[Run 40075746509](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40075746509)
+at `71081b615ca6cded1c06e391cc20dbcb6bb8ce2d` passes the isolated browser test.
+Its [comparison](evidence/orb-vf4/40075746509/comparison.png),
+[expression samples](evidence/orb-vf4/40075746509/expression-sequence.png) and
+[raw metadata](evidence/orb-vf4/40075746509/evidence.json) retain the first hypothesis.
+All 78 views use WebGL2; software renderer/browser identity is in the metadata.
+Three bipolar poses pass 192 samples each: maximum position 5.64374e-7, normal
+.000253007. Parent and V-F3 are unchanged. No tolerance was relaxed.
+
+Inspection: longitudinal sweeping surfaces are a clear structural difference from
+the local patches, but lift concentrates at their tips, southern views show blunt
+caps/panel-like ends, and much of the arrangement looks parallel rather than woven.
+The retained rich-colour and south-polar images expose these weaknesses. Sampled
+late speech still moves the geometry; this is not continuous-motion owner acceptance.
+
+One bounded correction redirects the southern trajectory to cross the northern
+paths and brings the second northern origin closer to a projected crossing. A
+rational C1 shoulder spreads lift across the longitudinal surface instead of only
+the tip. Actual transverse rotation replaces an absolute lateral v² offset.
+An attempted v-dependent curved distal cut is **rejected**: exhaustive triangle
+normal checks expose reversal near narrow ends (alignment down to -.98), while
+the earlier sparse checks missed it. A smaller warp and simply adding Low columns
+do not establish correctness; neither is retained. The final map keeps a finite
+geodesic distal section and cosine-spaced longitudinal rows, adding no vertices.
+Every triangle is now checked at its centroid across all tiers, compact/ordinary
+radii and four phases, retaining the .8 face/differential-normal alignment guard.
+Projected centerline crossings have distinct lifted positions at the tested pose;
+that is not a collision-free global-surface proof. Free-end aesthetics remain open.
+
+The second GPU proof expands bipolar coverage to 240 samples per pose, adding
+t=.98 near the actual free end. Parent/V-F3 remain at 192; the strict error limits
+remain .0001/.005. No fake screenshots or local browser/GPU work is used.
+
+Standard CI 40075746505 fails on both platforms at the first push because a renamed
+BACKLOG heading invalidated ROADMAP's link (816/855 Python passes, one failure each).
+The current link is corrected and the old anchor retained. This is a concrete
+documentation repair, separate from V-F3's unattributed Windows shutdown timeouts.

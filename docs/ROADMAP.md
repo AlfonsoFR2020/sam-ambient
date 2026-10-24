@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 checkpoint (2026-10-23): V-F3 isolated positive-peel geometry, strict numerical repair and focused control refinement.**
+**Current HQ4 checkpoint (2026-10-24): V-F4 isolated bipolar morphology and measured expressive dynamics.**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -12,7 +12,7 @@ This plan grants no version bump, runtime permission, remote action or automatic
 ## Reconciled near-term programme
 
 [Owner requirements](OWNER_REQUIREMENTS.md) records intent/provenance/acceptance;
-[BACKLOG's current index](BACKLOG.md#current-execution-index--v-f3-organic-peeling-and-focused-experience-2026-10-23)
+[BACKLOG's current index](BACKLOG.md#current-execution-index--v-f4-bipolar-morphology-and-expression-2026-10-24)
 retains actions. This is the current ordering; dated proposals below are history.
 Severity, privacy/data integrity, core usability and dependencies lead; recurrence,
 owner emphasis, age/deferral, benefit, feasibility and cost follow. Cheap new work

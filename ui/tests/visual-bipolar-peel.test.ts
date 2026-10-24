@@ -32,11 +32,11 @@ const peels = createBipolarPeels();
 describe("V-F4 bipolar trajectory geometry", () => {
   it("covers actual roots and free boundaries and matched long-sequence conditions", () => {
     const directions = bipolarGPUProofDirections();
-    expect(directions).toHaveLength(48);
+    expect(directions).toHaveLength(60);
     for (let i = 0; i < 3; i++)
-      for (const k of [0, 3, 12, 15]) {
-        const [t, v] = bipolarCoordinates(directions[i * 16 + k], peels[i]);
-        expect(t).toBeCloseTo(k < 12 ? 0 : 1, 10);
+      for (const k of [0, 3, 16, 19]) {
+        const [t, v] = bipolarCoordinates(directions[i * 20 + k], peels[i]);
+        expect(t).toBeCloseTo(k < 16 ? 0 : 1, 10);
         expect(Math.abs(v)).toBeCloseTo(1, 10);
       }
     expect(VF4_APPEARANCES).toEqual([
@@ -84,6 +84,40 @@ describe("V-F4 bipolar trajectory geometry", () => {
       "v_object_direction=bipolarMaterialDirection(direction)",
     );
     expect(a.fallback).toBe("shared-recovery");
+  });
+  it("has projected crossings between opposing polar paths rather than three parallel strips", () => {
+    const points = peels.map((p) =>
+      Array.from({ length: 121 }, (_, j) => {
+        const t = 0.2 + (0.8 * j) / 120;
+        return { t, n: bipolarBasis(p, t, 0).material };
+      }),
+    );
+    for (const i of [1, 2]) {
+      let closest = { dot: -1, t: 0, u: 0 };
+      for (const a of points[0])
+        for (const b of points[i]) {
+          const dot = skinDot(a.n, b.n);
+          if (dot > closest.dot) closest = { dot, t: a.t, u: b.t };
+        }
+      expect(closest.dot).toBeGreaterThan(0.9998);
+      const a = bipolarPeelPoint(
+        bipolarParameter(peels[0], closest.t, 0),
+        peels,
+        pose,
+        (n) => n,
+        0,
+      );
+      const b = bipolarPeelPoint(
+        bipolarParameter(peels[i], closest.u, 0),
+        peels,
+        pose,
+        (n) => n,
+        0,
+      );
+      expect(Math.hypot(...subtract(a, b))).toBeGreaterThan(0.001);
+    }
+    // This proves local projected crossings with distinct lifted positions at
+    // this pose, not collision-free surfaces or correct translucent sorting.
   });
   it("bounds the independent trigonometric series without replacing the strict GPU guard", () => {
     let error = 0;
@@ -170,7 +204,7 @@ describe("V-F4 bipolar trajectory geometry", () => {
               [a, b, c] = ids.map((k) => points[k]);
             const normal = skinCross(subtract(b, a), subtract(c, a));
             area = Math.min(area, Math.hypot(...normal));
-            if (i % 189 === 0) {
+            {
               const n = skinNormalize(
                 ids
                   .map((k) => meshDirection(mesh, k))
@@ -178,10 +212,21 @@ describe("V-F4 bipolar trajectory geometry", () => {
                     0, 0, 0,
                   ] as SkinVector),
               );
-              agreement = Math.min(
-                agreement,
-                skinDot(normal, skinNormal(n, point)) / Math.hypot(...normal),
-              );
+              const alignment = skinDot(normal, skinNormal(n, point)) / Math.hypot(...normal);
+              if (alignment < 0.8)
+                throw new Error(
+                  JSON.stringify({
+                    radius,
+                    travel,
+                    triangle: i / 3,
+                    alignment,
+                    uv: ids.map((id) => {
+                      const p = peels[bipolarIndex(meshDirection(mesh, id), peels)];
+                      return bipolarCoordinates(meshDirection(mesh, id), p);
+                    }),
+                  }),
+                );
+              agreement = Math.min(agreement, alignment);
             }
           }
           expect(area).toBeGreaterThan(1e-8);
@@ -191,7 +236,7 @@ describe("V-F4 bipolar trajectory geometry", () => {
   }
   it("rejects malformed sampling before allocation and retains zero-peel recovery", () => {
     expect(createBipolarGeometry({ ...RENDER_BUDGETS.high, peels: 0 }).vertices.length).toBe(0);
-    for (const skinSegments of [NaN, 7, 100])
+    for (const skinSegments of [NaN, 7, 20 / 3, 100])
       expect(() => createBipolarGeometry({ ...RENDER_BUDGETS.high, skinSegments })).toThrow();
     expect(() => createBipolarGeometry({ ...RENDER_BUDGETS.high, skinRows: 2.5 })).toThrow();
   });

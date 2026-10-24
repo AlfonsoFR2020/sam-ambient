@@ -1,5 +1,11 @@
 # Architecture
 
+Isolated [V-F4 bipolar peels](BIPOLAR_PEEL_VF4.md) add a closed parameter-atlas
+strategy. Setup directions are mapped explicitly to body/material directions before
+living displacement and pigment sampling. Existing renderer resources, strict
+uniform bindings, lifecycle clocks and trusted measured output remain owners;
+no theme setting, new authority or default replacement is introduced.
+
 Isolated V-F3 [organic peels](ORGANIC_PEEL_VF3.md) extend the closed appearance/skin
 strategy seam with three positive lobes attached to the existing displaced body.
 They share original direction-space pigment, paired CPU/GLSL/reference/contact

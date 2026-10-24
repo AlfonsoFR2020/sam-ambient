@@ -107,17 +107,18 @@ test("hosted bipolar morphology, strict equations and sustained expression", asy
       );
       metadata.equationProofs.push({ options, ...proof });
       save();
+      const expectedSamples = appearance === "bipolar-peel-experimental" ? 240 : 192;
       if (
         !proof.finite ||
         proof.error !== 0 ||
-        proof.samples !== 192 ||
+        proof.samples !== expectedSamples ||
         proof.maxPositionError >= 0.0001 ||
         proof.maxNormalError >= 0.005
       )
         failures.push(`Strict equation proof failed: ${appearance} ${JSON.stringify(options)}`);
       expect.soft(proof.finite).toBe(true);
       expect.soft(proof.error).toBe(0);
-      expect.soft(proof.samples).toBe(192);
+      expect.soft(proof.samples).toBe(expectedSamples);
       expect.soft(proof.maxPositionError).toBeLessThan(0.0001);
       expect.soft(proof.maxNormalError).toBeLessThan(0.005);
     }

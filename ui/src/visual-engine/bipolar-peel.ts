@@ -33,8 +33,8 @@ export function createBipolarPeels(seed = 0x5a17): readonly BipolarPeel[] {
       across: skinCross(chart, along),
       pole: [1, -1, 1][i],
       length: [2.42, 2.65, 2.18][i],
-      azimuth: [-0.5, 1.2, 3.0][i] + turn,
-      sweep: [1.8, -2.2, -1.35][i],
+      azimuth: [-0.5, -0.3, 2.4][i] + turn,
+      sweep: [1.8, 2.5, -1.35][i],
       curve: [0.3, -0.25, 0.6][i],
       width: [0.31, 0.27, 0.34][i],
       phase: [0.2, 2.6, 4.4][i],
@@ -98,10 +98,11 @@ export function bipolarSinCos(angle: number): readonly [number, number] {
   ];
 }
 export function bipolarBasis(p: BipolarPeel, t: number, v: number) {
-  const [s, c] = bipolarSinCos(0.17 + p.length * t);
-  const [a, b] = bipolarSinCos(p.azimuth + p.sweep * t + p.curve * t * (1 - t));
+  const path = t;
+  const [s, c] = bipolarSinCos(0.17 + p.length * path);
+  const [a, b] = bipolarSinCos(p.azimuth + p.sweep * path + p.curve * path * (1 - path));
   const center: SkinVector = [s * b, p.pole * c, s * a];
-  const dl = p.sweep + p.curve * (1 - 2 * t);
+  const dl = p.sweep + p.curve * (1 - 2 * path);
   const tangent = skinNormalize([
     p.length * c * b - dl * s * a,
     -p.pole * p.length * s,
@@ -113,11 +114,11 @@ export function bipolarBasis(p: BipolarPeel, t: number, v: number) {
   const material = skinNormalize(
     center.map((x, k) => x * cw + side[k] * sw) as unknown as SkinVector,
   );
-  return { material, tangent, side };
+  return { material, tangent, side, center, width };
 }
-export function bipolarLift(t: number, v: number, i: number, p: BipolarPeel, f: SkinPose) {
+export function bipolarLift(t: number, _v: number, i: number, p: BipolarPeel, f: SkinPose) {
   const q = Math.max(0, (t - 0.08) / 0.92),
-    root = q * q;
+    root = ((q * q) / (0.18 + 0.82 * q * q)) * (1 - 0.15 * q);
   const wave = bipolarSinCos(f.travel + p.phase + 2 * t)[0] * (0.6 + 0.4 * f.coherence);
   const emphasis = 0.75 + 0.25 * bipolarSinCos(2 * f.travel + p.phase + 2 * t)[0];
   const activity =
@@ -127,8 +128,11 @@ export function bipolarLift(t: number, v: number, i: number, p: BipolarPeel, f: 
     0.04 * (f.preparation ?? 0) -
     0.04 * (f.settling ?? 0) -
     0.1 * f.rephase;
-  const height = root * ([0.23, 0.32, 0.27][i] + 0.045 * wave + activity + 0.055 * v * wave);
-  return [height, -0.12 * root * (1 + 0.2 * wave), 0.04 * root * (v * v - 0.33) * wave] as const;
+  const height = root * ([0.23, 0.32, 0.27][i] + 0.045 * wave + activity);
+  // Rotate the actual transverse section. An absolute lateral v² offset can
+  // reverse its derivative where the free end becomes narrower than that offset.
+  const roll = root * (0.35 * wave + 0.15 * f.speech * emphasis);
+  return [height, -0.12 * root * (1 + 0.2 * wave), roll] as const;
 }
 export function bipolarPeelPoint(
   n: SkinVector,
@@ -140,15 +144,17 @@ export function bipolarPeelPoint(
   const i = bipolarIndex(n, peels),
     p = peels[i],
     [t, v] = bipolarCoordinates(n, p);
-  const { material, tangent, side } = bipolarBasis(p, t, v);
-  const [height, bend, twist] = bipolarLift(t, v, i, p, f),
+  const { material, tangent, side, center, width } = bipolarBasis(p, t, v);
+  const [height, bend, roll] = bipolarLift(t, v, i, p, f),
     radius = f.bodyRadius ?? 1.18;
+  const [s, c] = bipolarSinCos(roll),
+    transverse = bipolarSinCos(v * width)[0];
   return body(material).map(
     (x, k) =>
       x +
       (k === 1 ? 1.06 : 1) *
         (material[k] * (clearance + radius * height) +
-          radius * (tangent[k] * bend + side[k] * twist)),
+          radius * (tangent[k] * bend + transverse * (side[k] * (c - 1) + center[k] * s))),
   ) as unknown as SkinVector;
 }
 
@@ -159,6 +165,7 @@ export function createBipolarGeometry(budget: RenderBudget, seed = 0x5a17): Skin
     columns = Math.max(6, budget.skinRows);
   if (
     budget.peels !== 6 ||
+    !Number.isInteger(budget.skinSegments) ||
     !Number.isInteger(rows) ||
     rows % 2 !== 0 ||
     rows < 18 ||
@@ -182,7 +189,9 @@ export function createBipolarGeometry(budget: RenderBudget, seed = 0x5a17): Skin
     const at = (r: number, c: number) => start + r * (columns + 1) + c;
     for (let r = 0; r <= rows; r++)
       for (let c = 0; c <= columns; c++)
-        vertices.push(...bipolarParameter(p, r / rows, (2 * c) / columns - 1));
+        vertices.push(
+          ...bipolarParameter(p, (1 - Math.cos((Math.PI * r) / rows)) * 0.5, (2 * c) / columns - 1),
+        );
     boundaries.push([
       ...Array.from({ length: columns }, (_, c) => at(0, c)),
       ...Array.from({ length: rows }, (_, r) => at(r, columns)),
@@ -232,35 +241,39 @@ vec2 bipolarUV(vec3 n,int i) {
   float d=dot(n,u_contact_centers[i].xyz);
   return vec2((dot(n,u_contact_tangents[i].xyz)/d/.4+1.)*.5,dot(n,u_contact_sides[i].xyz)/d/.35);
 }
-void bipolarBasis(int i,vec2 uv,out vec3 material,out vec3 tangent,out vec3 side) {
+void bipolarBasis(int i,vec2 uv,out vec3 material,out vec3 tangent,out vec3 side,out vec3 center) {
   float t=uv.x,v=uv.y,len=u_contact_tangents[i].w;
+  float path=t;
   vec4 shape=u_contact_shapes[i];
-  vec2 sc=bipolarSC(.17+len*t),ab=bipolarSC(u_contact_sides[i].w+shape.x*t+shape.y*t*(1.-t));
-  float s=sc.x,c=sc.y,a=ab.x,b=ab.y,pole=u_contact_centers[i].w,dl=shape.x+shape.y*(1.-2.*t);
-  vec3 center=vec3(s*b,pole*c,s*a);
+  vec2 sc=bipolarSC(.17+len*path),ab=bipolarSC(u_contact_sides[i].w+shape.x*path+shape.y*path*(1.-path));
+  float s=sc.x,c=sc.y,a=ab.x,b=ab.y,pole=u_contact_centers[i].w,dl=shape.x+shape.y*(1.-2.*path);
+  center=vec3(s*b,pole*c,s*a);
   tangent=normalize(vec3(len*c*b-dl*s*a,-pole*len*s,len*c*a+dl*s*b));
   side=cross(center,tangent);
   vec2 w=bipolarSC(v*(.035+shape.z*4.*t*(1.-t)*(1.-.25*t)));
   material=normalize(center*w.y+side*w.x);
 }
-vec3 bipolarMaterialDirection(vec3 n) {vec3 m,t,s;int i=bipolarIndex(n);bipolarBasis(i,bipolarUV(n,i),m,t,s);return m;}
+vec3 bipolarMaterialDirection(vec3 n) {vec3 m,t,s,c;int i=bipolarIndex(n);bipolarBasis(i,bipolarUV(n,i),m,t,s,c);return m;}
 vec3 bipolarLift(vec2 uv,int i) {
-  float t=uv.x,v=uv.y,q=max(0.,(t-.08)/.92),root=q*q,phase=u_contact_shapes[i].w;
+  float t=uv.x,v=uv.y,q=max(0.,(t-.08)/.92),root=q*q/(.18+.82*q*q)*(1.-.15*q),phase=u_contact_shapes[i].w;
   float wave=bipolarSC(u_contact_phase.x+phase+2.*t).x*(.6+.4*u_contact_pose.w);
   float emphasis=.75+.25*bipolarSC(2.*u_contact_phase.x+phase+2.*t).x;
   float activity=.11*u_behavior.y*emphasis+.045*u_behavior.z+.025*u_behavior.w+.04*u_provider.y-.04*u_provider.z-.1*u_contact_phase.y;
   float base=i==0 ? .23 : (i==1 ? .32 : .27);
-  return vec3(root*(base+.045*wave+activity+.055*v*wave),-.12*root*(1.+.2*wave),.04*root*(v*v-.33)*wave);
+  return vec3(root*(base+.045*wave+activity),-.12*root*(1.+.2*wave),root*(.35*wave+.15*u_behavior.y*emphasis));
 }
 vec2 skinRegion(vec3 n,int i) {return i==bipolarIndex(n) ? bipolarUV(n,i) : vec2(0.);}
 vec2 skinOffsets(vec2 uv,int i) {return vec2(u_radius*bipolarLift(uv,i).x,0.);}
 `;
 export const BIPOLAR_SURFACE_GLSL = `
 vec3 livingSkinPoint(vec3 n) {
-  int i=bipolarIndex(n);vec2 uv=bipolarUV(n,i);vec3 m,t,s;bipolarBasis(i,uv,m,t,s);
+  int i=bipolarIndex(n);vec2 uv=bipolarUV(n,i);vec3 m,t,s,c;bipolarBasis(i,uv,m,t,s,c);
   vec3 delta=bipolarLift(uv,i);
+  vec2 roll=bipolarSC(delta.z);
+  float width=.035+u_contact_shapes[i].z*4.*uv.x*(1.-uv.x)*(1.-.25*uv.x);
+  float transverse=bipolarSC(uv.y*width).x;
   return livingBodyPoint(m,u_radius,u_breath_phase,u_ripple_phase,u_deformation,u_ripple)
-    +vec3(1.,1.06,1.)*(m*(u_skin_clearance+u_radius*delta.x)+u_radius*(t*delta.y+s*delta.z));
+    +vec3(1.,1.06,1.)*(m*(u_skin_clearance+u_radius*delta.x)+u_radius*(t*delta.y+transverse*(s*(roll.y-1.)+c*roll.x)));
 }
 vec3 livingSkinNormal(vec3 n) {
   vec3 a=normalize(cross(abs(n.y)<.9 ? vec3(0.,1.,0.) : vec3(1.,0.,0.),n)),b=cross(n,a);
@@ -281,7 +294,7 @@ float livingContactOcclusion(vec3 n) {
 #if SAM_FINE_OCTAVES >= 2
   for(int i=0;i<3;i++) {
     if(i>=u_contact_count)break;
-    vec2 uv=vec2(.18,0.);vec3 m,t,s;bipolarBasis(i,uv,m,t,s);
+    vec2 uv=vec2(.18,0.);vec3 m,t,s,c;bipolarBasis(i,uv,m,t,s,c);
     float gap=u_skin_clearance+u_radius*bipolarLift(uv,i).x;
     contact=max(contact,.16*exp(-80.*max(0.,1.-dot(n,m)))*exp(-14.*gap));
   }

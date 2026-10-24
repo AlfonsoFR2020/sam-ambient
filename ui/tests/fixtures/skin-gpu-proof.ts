@@ -39,7 +39,9 @@ export function organicGPUProofDirections(): readonly SkinVector[] {
 }
 export function bipolarGPUProofDirections(): readonly SkinVector[] {
   return createBipolarPeels().flatMap((p) =>
-    [0, 0.08, 0.5, 1].flatMap((t) => [-1, -0.35, 0.35, 1].map((v) => bipolarParameter(p, t, v))),
+    [0, 0.08, 0.5, 0.98, 1].flatMap((t) =>
+      [-1, -0.35, 0.35, 1].map((v) => bipolarParameter(p, t, v)),
+    ),
   );
 }
 

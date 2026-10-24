@@ -2,6 +2,7 @@
 
 <a id="current-execution-index--v-c-reconciliation-2026-10-22"></a>
 <a id="current-execution-index--v-d-closure-2026-10-23"></a>
+<a id="current-execution-index--v-f3-organic-peeling-and-focused-experience-2026-10-23"></a>
 ## Current execution index — V-F4 bipolar morphology and expression, 2026-10-24
 
 [Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
