@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="980" viewBox="0 0 1200 980" role="img" aria-labelledby="title desc" lang="en">
+<title id="title">Sam system architecture and trust boundaries</title>
+<desc id="desc">The authenticated owner interface projects state from trusted Python authority. The supervisor owns lifecycle and staged updates; TurnManager owns committed turns and immutable model routes. Capability policy mediates approved OS access. Local voice and separate private operational and reviewed-memory stores remain bounded. Runtime mediates reviewed local recall; stored claims confer no instructions or permissions. Capture and recognition return to runtime; synthesized delivery travels to local output. Models receive no direct OS, update or owner authority. Cloud use requires explicit policy.</desc>
+<defs>
+<marker id="arrow-control" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#e2b27f"/></marker>
+<marker id="arrow-data" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#83b8e3"/></marker>
+<marker id="arrow-delivery" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#76cbbb"/></marker>
+<marker id="arrow-warning" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4.5 L0,9 Z" fill="#edaaa2"/></marker>
+</defs>
+<style>
+text { font-family: "Segoe UI", Inter, Arial, sans-serif; }
+.title { fill: #f4eee5; font-size: 36px; font-weight: 650; }
+.body { fill: #bbc9d5; font-size: 18px; }
+.card-title { fill: #f4eee5; font-size: 22px; font-weight: 600; }
+</style>
+<rect width="1200" height="980" fill="#10161c"/>
+<text x="40" y="51" class="title" data-estimated-width="561.24">Sam / system &amp; trust boundaries</text>
+<text x="40" y="83" class="body" data-estimated-width="748.08">Shared architecture • owner intent becomes bounded authority through trusted code.</text>
+<path data-kind="control" d="M40,116 L66,116" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<text x="76" y="122" class="body" data-estimated-width="171.18">Control / authority</text>
+<path data-kind="data" d="M330,116 L356,116" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<text x="366" y="122" class="body" data-estimated-width="156.06">Data / projection</text>
+<path data-kind="delivery" d="M630,116 L656,116" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
+<text x="666" y="122" class="body" data-estimated-width="186.84">Local voice / delivery</text>
+<g id="presentation" data-kind="boundary"><rect x="40" y="150" width="260" height="550" rx="18" fill="#17212b" stroke="#415568" stroke-width="1.3" stroke-dasharray="7 6"/>
+<text x="60" y="179" class="body" style="fill: #83b8e3" data-estimated-width="133.92">PRESENTATION</text>
+</g>
+<g id="authority" data-kind="boundary"><rect x="340" y="150" width="480" height="550" rx="18" fill="#17212b" stroke="#415568" stroke-width="1.3" stroke-dasharray="7 6"/>
+<text x="360" y="179" class="body" style="fill: #e2b27f" data-estimated-width="150.84">CORE AUTHORITY</text>
+</g>
+<g id="external" data-kind="boundary"><rect x="860" y="150" width="300" height="755" rx="18" fill="#17212b" stroke="#415568" stroke-width="1.3" stroke-dasharray="7 6"/>
+<text x="880" y="179" class="body" style="fill: #83b8e3" data-estimated-width="212.76">SERVICES / RESOURCES</text>
+</g>
+<g id="persistence" data-kind="boundary"><rect x="40" y="745" width="780" height="160" rx="18" fill="#17212b" stroke="#415568" stroke-width="1.3" stroke-dasharray="7 6"/>
+<text x="60" y="774" class="body" style="fill: #76cbbb" data-estimated-width="202.86">PRIVATE PERSISTENCE</text>
+</g>
+<path data-kind="control" d="M170,300 L170,330" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="control" d="M170,480 L170,535" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="control" d="M280,595 L320,595 L320,425 L360,425" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="data" d="M360,375 L280,375" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="control" d="M580,300 L580,330" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="control" d="M800,380 L880,380" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="data" d="M880,425 L800,425" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="control" d="M460,480 L460,535" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="control" id="runtime-delivery" data-source="runtime" data-target="voice" d="M725,480 L725,535" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="data" id="recognized-input" data-source="voice" data-target="runtime" d="M665,535 L665,480" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="delivery" id="local-output" data-source="voice" data-target="speech-services" d="M800,575 L880,575" fill="none" stroke="#76cbbb" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-delivery)"/>
+<path data-kind="data" id="local-input" data-source="speech-services" data-target="voice" d="M880,630 L800,630" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-data)"/>
+<path data-kind="control" d="M460,660 L460,720 L1010,720 L1010,760" fill="none" stroke="#e2b27f" stroke-width="2.3" stroke-linejoin="round" marker-end="url(#arrow-control)"/>
+<path data-kind="data" id="durable-history" data-source="runtime" data-target="operational-store" d="M580,480 L580,690 L420,690 L420,790 L230,790 L230,805" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-data)"/>
+<path data-kind="data" id="reviewed-recall" data-source="runtime" data-target="reviewed-memory" d="M780,480 L780,505 L810,505 L810,775 L740,775 L740,805" fill="none" stroke="#83b8e3" stroke-width="2.3" stroke-linejoin="round" stroke-dasharray="7 6" marker-end="url(#arrow-data)" marker-start="url(#arrow-data)"/>
+<g id="owner" data-kind="node" data-bounds="60 195 220 105"><rect x="60" y="195" width="220" height="105" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M75,196 H265" stroke="#e2b27f" stroke-width="2"/>
+<text x="78" y="227" class="card-title" data-estimated-width="62.7">Owner</text>
+<text x="78" y="257" class="body" data-estimated-width="171.18">Choices + approvals</text>
+<text x="78" y="281" class="body" data-estimated-width="153.18">Revocation + Quit</text>
+</g>
+<g id="react-ui" data-kind="node" data-bounds="60 330 220 150"><rect x="60" y="330" width="220" height="150" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M75,331 H265" stroke="#83b8e3" stroke-width="2"/>
+<text x="78" y="362" class="card-title" data-estimated-width="89.76">React UI</text>
+<text x="78" y="392" class="body" data-estimated-width="170.64">Living Visual Engine</text>
+<text x="78" y="416" class="body" data-estimated-width="138.06">Chat / Controls</text>
+<text x="78" y="440" class="body" data-estimated-width="131.04">State + meters</text>
+</g>
+<g id="owner-proof" data-kind="node" data-bounds="60 535 220 125"><rect x="60" y="535" width="220" height="125" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M75,536 H265" stroke="#e2b27f" stroke-width="2"/>
+<text x="78" y="567" class="card-title" data-estimated-width="160.82">Private binding</text>
+<text x="78" y="597" class="body" data-estimated-width="165.96">Fresh mutual proof</text>
+<text x="78" y="621" class="body" data-estimated-width="175.86">Trusted assets only</text>
+<text x="78" y="645" class="body" data-estimated-width="160.74">Commands / events</text>
+</g>
+<g id="supervisor" data-kind="node" data-bounds="360 195 440 105"><rect x="360" y="195" width="440" height="105" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M375,196 H785" stroke="#e2b27f" stroke-width="2"/>
+<text x="378" y="227" class="card-title" data-estimated-width="239.14">Supervisor &amp; recovery</text>
+<text x="378" y="257" class="body" data-estimated-width="394.2">Managed lifecycle, crash recovery, safe mode</text>
+<text x="378" y="281" class="body" data-estimated-width="327.78">Independent staged-update authority</text>
+</g>
+<g id="runtime" data-kind="node" data-bounds="360 330 440 150"><rect x="360" y="330" width="440" height="150" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M375,331 H785" stroke="#e2b27f" stroke-width="2"/>
+<text x="378" y="362" class="card-title" data-estimated-width="326.92">Python runtime / TurnManager</text>
+<text x="378" y="392" class="body" data-estimated-width="356.22">Committed turns + cancellation identities</text>
+<text x="378" y="416" class="body" data-estimated-width="340.56">Frozen provider / model route per turn</text>
+<text x="378" y="440" class="body" data-estimated-width="329.58">Model output is data, never authority</text>
+</g>
+<g id="agency-policy" data-kind="node" data-bounds="360 535 200 125"><rect x="360" y="535" width="200" height="125" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M375,536 H545" stroke="#e2b27f" stroke-width="2"/>
+<text x="378" y="567" class="card-title" data-estimated-width="163.02">Policy / Agency</text>
+<text x="378" y="597" class="body" data-estimated-width="125.82">Typed schemas</text>
+<text x="378" y="621" class="body" data-estimated-width="131.04">Owner approval</text>
+<text x="378" y="645" class="body" data-estimated-width="126.36">Lease + cancel</text>
+</g>
+<g id="voice" data-kind="node" data-bounds="600 535 200 125"><rect x="600" y="535" width="200" height="125" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M615,536 H785" stroke="#76cbbb" stroke-width="2"/>
+<text x="618" y="567" class="card-title" data-estimated-width="143.0">Voice pipeline</text>
+<text x="618" y="597" class="body" data-estimated-width="131.94">Capture → STT</text>
+<text x="618" y="621" class="body" data-estimated-width="135.36">TTS → playback</text>
+<text x="618" y="645" class="body" data-estimated-width="161.28">Separate lifetimes</text>
+</g>
+<g id="providers" data-kind="node" data-bounds="880 330 260 150"><rect x="880" y="330" width="260" height="150" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M895,331 H1125" stroke="#83b8e3" stroke-width="2"/>
+<text x="898" y="362" class="card-title" data-estimated-width="170.94">Model providers</text>
+<text x="898" y="392" class="body" data-estimated-width="190.98">Local-first inference</text>
+<text x="898" y="416" class="body" data-estimated-width="196.2">Exact provider / model</text>
+<text x="898" y="440" class="body" data-estimated-width="182.16">Cloud: explicit opt-in</text>
+</g>
+<g id="speech-services" data-kind="node" data-bounds="880 535 260 125"><rect x="880" y="535" width="260" height="125" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M895,536 H1125" stroke="#76cbbb" stroke-width="2"/>
+<text x="898" y="567" class="card-title" data-estimated-width="135.96">Local speech</text>
+<text x="898" y="597" class="body" data-estimated-width="219.6">whisper.cpp / system TTS</text>
+<text x="898" y="621" class="body" data-estimated-width="198.0">OS audio device access</text>
+<text x="898" y="645" class="body" data-estimated-width="161.28">No model downloads</text>
+</g>
+<g id="os-resources" data-kind="node" data-bounds="880 760 260 125"><rect x="880" y="760" width="260" height="125" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M895,761 H1125" stroke="#e2b27f" stroke-width="2"/>
+<text x="898" y="792" class="card-title" data-estimated-width="162.36">OS / workspace</text>
+<text x="898" y="822" class="body" data-estimated-width="169.56">Bounded OS actions</text>
+<text x="898" y="846" class="body" data-estimated-width="221.22">No model-owned privileges</text>
+<text x="898" y="870" class="body" data-estimated-width="210.78">External ownership kept</text>
+</g>
+<g id="operational-store" data-kind="node" data-bounds="60 805 340 85"><rect x="60" y="805" width="340" height="85" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M75,806 H385" stroke="#83b8e3" stroke-width="2"/>
+<text x="78" y="837" class="card-title" data-estimated-width="190.74">Operational store</text>
+<text x="78" y="867" class="body" data-estimated-width="295.74">Committed history / runtime state</text>
+</g>
+<g id="reviewed-memory" data-kind="node" data-bounds="460 805 340 85"><rect x="460" y="805" width="340" height="85" rx="11" fill="#202d39" stroke="#415568" stroke-width="1.1"/><path d="M475,806 H785" stroke="#76cbbb" stroke-width="2"/>
+<text x="478" y="837" class="card-title" data-estimated-width="276.32">Reviewed personal Memory</text>
+<text x="478" y="867" class="body" data-estimated-width="301.5">Reviewed data / scoped local recall</text>
+</g>
+<text x="540" y="711" class="body" style="fill: #e2b27f" data-estimated-width="289.98">Policy-approved resource access</text>
+<text x="40" y="941" class="body" data-estimated-width="588.6">Models, webpages and stored claims never become owner permissions.</text>
+<text x="40" y="967" class="body" data-estimated-width="773.64">Local-first by default. Cloud routes require explicit policy; reviewed Memory stays local.</text>
+</svg>
