@@ -141,5 +141,18 @@
   "limitations": [
     "No local graphical, provider, application or physical audio execution",
     "CPU controlled-body checks do not establish production optical or universal continuous-time collision freedom"
-  ]
+  ],
+  "afterOpticalFixtureHardening": {
+    "frontendPassed": 26,
+    "overlapsDistinct71": true,
+    "lintFiles": 3,
+    "projectTypeCheck": true
+  },
+  "afterFinalDocs": {
+    "pythonPassed": 27,
+    "overlapsDistinct27": true,
+    "focusedDocPages": 9,
+    "focusedLocalLinks": 269,
+    "stateLines": 200
+  }
 }

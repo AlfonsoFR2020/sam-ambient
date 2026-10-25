@@ -5,7 +5,9 @@ apparent interpenetration, unnatural curvature and unsatisfactory transparency.
 [The bounded separation/optical correction](BIPOLAR_SEPARATION_VF5.md) must diagnose
 full surfaces and preserve polar origins, longitudinal form, living pigments and
 whole-delivery expression. Depth-correct solid peels are an explicit experiment,
-not automatic artistic acceptance or a new morphology family. Keep the default.
+not automatic artistic acceptance or a new morphology family. Selected actual
+production surfaces and solid draw-order proof pass; belt/blade/root-tip reading
+remains open. Keep the default.
 
 **2026-10-24 V-F4 owner correction:** V-F3's leaves/patches/ears are rejected.
 Test elongated asymmetric peels from both poles, with partial helical sweep,

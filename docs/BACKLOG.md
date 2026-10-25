@@ -29,8 +29,8 @@ parallel queues. No row grants execution permission.
 - [V-F5](BIPOLAR_SEPARATION_VF5.md) reproduces unintended V-F4 triangle intersections,
   adjusts the existing polar trajectories/lift lanes and gives the candidate solid
   per-fragment depth across tiers. Controlled mesh/pose checks and first hosted actual
-  production-surface/strict shader/comparison proof pass; final draw-order ablation
-  is pending. Retained south-polar belts and narrow blade tips remain unacceptable
+  production-surface/strict shader/comparison proof pass; final solid draw-order
+  invariance passes at two angles (legacy film exposes an order defect at one). Retained south-polar belts and narrow blade tips remain unacceptable
   as a selected default. Parent remains
   default. SHELL/EXP/QUAL remain P1; global continuous collision freedom, optical
   naturalness, physical GPU cost and owner acceptance are separate open gates.

@@ -1,5 +1,20 @@
 # Decision log
 
+## 2026-10-25 — V-F5 bipolar separation and solid depth
+
+Full indexed-surface diagnostics reproduce V-F4 intersections that its separated
+centerline witnesses did not exclude. Spread the existing polar trajectories and
+use unequal smooth lift lanes, without a new topology or frame collision solver.
+The bipolar strategy explicitly requests `opaque-depth`: six color ranges write
+ordinary nearest-fragment depth with blending disabled, instead of pretending
+that undeformed range centers can sort translucent overlaps. All tiers use the
+same identity; High saves the former extra prepass. Other appearances/default
+retain their shader equations, blend path and resources. Shared pigment, clocks,
+authority and particle caps remain. This is a reversible optical tradeoff rather
+than physically exact film transmission or acceptance of the blade/belt shapes.
+[Evidence and limitations](BIPOLAR_SEPARATION_VF5.md) distinguish controlled CPU,
+production shader surface sampling, optical ablation and owner/hardware gates.
+
 ## 2026-10-24 — V-F4 bipolar parameter atlas, internal only
 
 The owner rejects V-F3's local leaf/patch morphology and requests polar-origin,

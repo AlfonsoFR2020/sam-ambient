@@ -138,3 +138,125 @@ is green without retries: Ubuntu 817 Python / 44 skips, Windows 856 / 5 skips,
 429 frontend cases per platform, lint/types/build and existing package jobs.
 Overlapping platform/local batches are not summed. No local browser, GPU, Sam,
 provider or audio execution; no physical performance or inference-coexistence claim.
+
+## Final optical proof and retained comparison package
+
+[Final hosted run 40226839968](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40226839968)
+at `33b0d89ff7b2a5ab37823f9942b191bd7ee3d4e8` passes on its first attempt.
+It repeats the 73 matched/state/sequence views and strict four equation proofs,
+adds eight optical-ablation renders, and retains two production-body diagnoses of
+frozen V-F4 geometry. All 47 corrected sampled surfaces still pass the full indexed
+triangle/clearance guard. No GL/console errors or test failures. These are sampled
+surfaces/views, not 47 distinct poses or a continuous-time collision theorem.
+
+| Range-order experiment | Yaw 0 | Yaw 1.6 |
+| --- | --- | --- |
+| Corrected solid-depth forward vs reversed ranges | PNG bytes identical | PNG bytes identical |
+| Corrected geometry with legacy blended film, High prepass deliberately off | Different rendered PNGs | Identical; no order defect exposed here |
+
+The exact deterministic PNG equality proves the solid result is independent of
+these two range orders. The yaw-0 legacy difference demonstrates why whole-range
+ordering is insufficient; the yaw-1.6 negative finding is preserved. No claim that
+every angle fails, or that the ablation recreates exact V-F4 High optics. All **76**
+previous PNGs match the first run byte-for-byte. All eleven ordinary parent static
+PNGs also match the old V-F4 captures byte-for-byte, independently of shader hashes.
+The attempted optional local decoded-pixel inspection found no Pillow; nothing
+was installed and no rasterization/graphical tool was launched. The hosted PNG
+comparison is the actual executed optical guard.
+
+Exact final paths under `docs/evidence/orb-vf5/40226839968/`:
+
+- [Compact matched comparison](evidence/orb-vf5/40226839968/comparison.png),
+  [crossing close-ups](evidence/orb-vf5/40226839968/crossing-details.png).
+  Crops use the same 400×480 source-pixel rectangle; no retouching or generated pixels.
+- [Full-colour yaw 0](evidence/orb-vf5/40226839968/colour-yaw0-phase0-bipolar-peel-experimental.png),
+  [yaw 1.6 / phase 12](evidence/orb-vf5/40226839968/colour-yaw1.6-phase12-bipolar-peel-experimental.png).
+- [North](evidence/orb-vf5/40226839968/polar-north-bipolar-peel-experimental.png),
+  [negative south view](evidence/orb-vf5/40226839968/polar-south-bipolar-peel-experimental.png),
+  [silhouette](evidence/orb-vf5/40226839968/silhouette-bipolar-peel-experimental.png),
+  [neutral](evidence/orb-vf5/40226839968/neutral-bipolar-peel-experimental.png),
+  [attachment](evidence/orb-vf5/40226839968/attachment-bipolar-peel-experimental.png),
+  [normals](evidence/orb-vf5/40226839968/normals-bipolar-peel-experimental.png),
+  [depth](evidence/orb-vf5/40226839968/depth-bipolar-peel-experimental.png),
+  [compact Low](evidence/orb-vf5/40226839968/compact-low-bipolar-peel-experimental.png).
+- [Matched expression sheet](evidence/orb-vf5/40226839968/expression-comparison.png),
+  [ordered late-speech/silence/resumption strip](evidence/orb-vf5/40226839968/ordered-motion.png).
+  All 36 corrected lifecycle/ordered-sequence full-resolution PNGs are retained.
+- [Draw-order-sensitive film, yaw 0](evidence/orb-vf5/40226839968/optical-yaw0-film-forward-bipolar-peel-experimental.png),
+  [reversed](evidence/orb-vf5/40226839968/optical-yaw0-film-reverse-bipolar-peel-experimental.png),
+  [solid forward](evidence/orb-vf5/40226839968/optical-yaw0-solid-forward-bipolar-peel-experimental.png),
+  [solid reversed](evidence/orb-vf5/40226839968/optical-yaw0-solid-reverse-bipolar-peel-experimental.png).
+  The corresponding four yaw-1.6 files preserve the negative ordering finding.
+- [Raw final metadata](evidence/orb-vf5/40226839968/evidence.json): every input/frame,
+  renderer, actual-surface witness, proof and optical comparison. The final subset
+  retains 63 files; original V-F4 pixels remain at their existing paths, not relabelled.
+
+Provisional visual assessment after inspecting both sheets and full-resolution
+colour, normals, south-polar, quiet-speech and optical views: separation is clearer,
+transparent crossing artifacts are reduced, and the successful pigment survives.
+The south-polar belts/cut panels, blade-like tall ends and insufficiently organic
+root/tip transition still prevent selecting this design. Reduced translucency is
+an explicit aesthetic tradeoff. Remaining projected overlaps in these *sampled*
+frames are not detected triangle collisions; they may still read poorly. Continued
+late quiet-speech movement is visible, but the strip does not establish pleasing
+natural embodiment or physical speech alignment. **Keep experimental, no dev merge
+or default promotion.** No additional speculative morphology is started.
+
+The remaining structural limitation is the retained spherical centerline/geodesic
+cross-section with a common longitudinal shoulder and finite .035 distal half-width.
+Separating these offset strips removes penetration but does not create independently
+sculpted root/end curvature. As an inference from source and the polar/side views,
+foreshortened sections still read as cut bands, while the larger south lift makes
+the narrow distal region blade-like. Opacity cannot correct that silhouette. This
+is an identified limitation within the existing family, not justification to start
+another morphology, add glow or silently sacrifice the measured clearance.
+
+## Final regression, assets and execution audit
+
+Local final-source checks: **71 distinct frontend cases / nine files**, **27 scoped
+Python file/asset/register cases**, 16-file Biome check and project TypeScript pass.
+A 26-case adjacent rerun follows the final fixture hardening; it overlaps the 71
+and is not added. The last documentation-only changes receive affected file-only
+checks again. [Named checks](evidence/orb-vf5/verification.json),
+[controlled surfaces](evidence/orb-vf5/controlled-clearance.json),
+[frozen-baseline audit](evidence/orb-vf5/baseline-integrity.json) and
+[artifact inventory](evidence/orb-vf5/integrity.json) preserve scope and hashes.
+The frozen copy matches d950292's actual source after relocating imports and
+formatter whitespace/one optional import comma; no equation drift or missing patch.
+
+[Final standard CI 40226840062](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40226840062)
+is green without retries: Ubuntu 817 Python / 44 skips, Windows 856 / 5 skips,
+429 frontend cases each, lint/types/build and the existing hosted package gates.
+Platform/batch overlaps are not summed. Earlier V-F3 Windows shutdown timeouts
+remain unattributed; these green runs are not a causal fix. The initial local
+lint-authoring findings were repaired before the build; the bounded 45-second
+CPU attempt and formatting-only first baseline-audit rejection are not successes.
+Git's restricted index access and the first artifact-download 401 were retried
+using existing authorized access; no abandoned index operation or missing file.
+
+Canonical clean production source `de87e526e0cc3675cb75ecf872b1911fabb33eb8`,
+76 inputs, LF digest `6403c9fbeb376b649a0888712fb32a18450a6df2d1dd89f3ba8dbee7d1fac3c7`,
+JS `index-DnQAp2-a.js`, unchanged CSS `index-D-dPdcI6.css`;
+[exact manifest](evidence/orb-vf5/frontend-assets.json). Build `tsc -b && vite build`
+completed below normal priority in 5.02 seconds; Vite reported 874 ms. These are
+build times, not rendering performance. Later changes are fixtures/docs/evidence,
+not production inputs; the current assets still match. The ordinary private static
+asset path and `living-connected` default remain. No stale earlier bundle remains
+in the current static directory; earlier identity/evidence remains in Git.
+
+Commits: `de87e52` source/diagnostic foundation; `2a088a8` canonical assets;
+`33b0d89` first retained proof and optical fixture hardening; closing local commit
+contains only final evidence/docs. Only the authorized experimental feature was
+pushed, including its reviewed previously local V-F4 closure. No branch merge,
+public-docs/UI/speech/palette/particle/version/dependency change. The current
+feature and other worktrees are checked independently at closure; dev/main stay
+cc69bc2/dc64c5d. All 66 requirement IDs, eleven styles, priorities and STATE's
+200-line bound remain. The closing evidence/docs commit stays local to avoid
+another redundant hosted campaign; tested runtime/fixtures are at pushed 33b0d89.
+
+No GPU timer, CPU-submission timing, physical GPU/inference coexistence, thermal,
+real app/provider/audio or human beta was measured. Technical separation/layering
+is ready for engineering review; the candidate is **not ready as the selected
+visual integration**. A later separately authorized step must address the retained
+belt/blade/root-tip artistic reading and hardware cost without discarding this
+recoverable separation proof or the successful living pigment.

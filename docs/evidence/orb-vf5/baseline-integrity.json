@@ -1,0 +1,10 @@
+{
+  "vF4SourceCommit": "d9502927c4f01f27d3b889c4d37eea580dd4bde5",
+  "sourcePath": "ui/src/visual-engine/bipolar-peel.ts",
+  "originalSourceSha256Lf": "82bd7d8ee6c74953e5bf319a4d44285bea2403b0635fb937041ec2dab305f989",
+  "frozenFixture": "ui/tests/fixtures/bipolar-vf4-baseline.ts",
+  "verified": "identical after removing one provenance comment, restoring relocated imports, whitespace normalization and the single formatter-added optional import trailing comma",
+  "unchangedParentStaticImages": 11,
+  "unchangedFirstRunPNGImages": 76,
+  "finalRetainedFiles": 63
+}
