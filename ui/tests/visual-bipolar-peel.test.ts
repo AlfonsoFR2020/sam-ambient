@@ -85,39 +85,14 @@ describe("V-F4 bipolar trajectory geometry", () => {
     );
     expect(a.fallback).toBe("shared-recovery");
   });
-  it("has projected crossings between opposing polar paths rather than three parallel strips", () => {
-    const points = peels.map((p) =>
-      Array.from({ length: 121 }, (_, j) => {
-        const t = 0.2 + (0.8 * j) / 120;
-        return { t, n: bipolarBasis(p, t, 0).material };
-      }),
-    );
-    for (const i of [1, 2]) {
-      let closest = { dot: -1, t: 0, u: 0 };
-      for (const a of points[0])
-        for (const b of points[i]) {
-          const dot = skinDot(a.n, b.n);
-          if (dot > closest.dot) closest = { dot, t: a.t, u: b.t };
-        }
-      expect(closest.dot).toBeGreaterThan(0.9998);
-      const a = bipolarPeelPoint(
-        bipolarParameter(peels[0], closest.t, 0),
-        peels,
-        pose,
-        (n) => n,
-        0,
-      );
-      const b = bipolarPeelPoint(
-        bipolarParameter(peels[i], closest.u, 0),
-        peels,
-        pose,
-        (n) => n,
-        0,
-      );
-      expect(Math.hypot(...subtract(a, b))).toBeGreaterThan(0.001);
-    }
-    // This proves local projected crossings with distinct lifted positions at
-    // this pose, not collision-free surfaces or correct translucent sorting.
+  it("spreads polar origins and retains unequal analytic lift lanes", () => {
+    expect(peels[2].azimuth - peels[0].azimuth).toBeGreaterThan(Math.PI);
+    expect(peels[1].azimuth - peels[0].azimuth).toBeGreaterThan(2);
+    const heights = peels.map((p, i) => bipolarLift(0.8, 0, i, p, pose)[0]);
+    expect(heights[1] - heights[0]).toBeGreaterThan(0.1);
+    expect(heights[2] - heights[0]).toBeGreaterThan(0.04);
+    // Full triangle separation is enforced separately by visual-bipolar-clearance.
+    // A projected crossing or centerline distance does not prove surface clearance.
   });
   it("bounds the independent trigonometric series without replacing the strict GPU guard", () => {
     let error = 0;

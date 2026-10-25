@@ -1,6 +1,9 @@
 import type { OrbAppearanceId } from "../../src/visual-engine/appearance";
+import { bipolarCoordinates, createBipolarPeels } from "../../src/visual-engine/bipolar-peel";
 import type { MotionFrame } from "../../src/visual-engine/motion";
 import type { ResolvedQuality } from "../../src/visual-engine/quality";
+import { meshDirection } from "./skin-analysis";
+import { type SurfaceTriangle, surfaceClearance } from "./triangle-clearance";
 import { fixture, frameAt } from "./visual-identity-II";
 
 export const VF2_APPEARANCES: readonly OrbAppearanceId[] = [
@@ -82,6 +85,26 @@ export function renderVF2(sample: VF2Case, appearance: OrbAppearanceId, frame: M
     if (!(scene.gl instanceof WebGL2RenderingContext) || scene.backend.kind !== "webgl2")
       throw new Error("V-F2 requires actual WebGL2, no fallback");
     scene.render(frame, sample.yaw);
+    let surface: ReturnType<typeof surfaceClearance> | undefined;
+    if (sample.options.captureSkinVertices) {
+      if (appearance !== "bipolar-peel-experimental")
+        throw new Error("Surface atlas diagnostic is bipolar-only");
+      const { points, geometry } = scene.readSkinVertices(),
+        peels = createBipolarPeels();
+      const triangles: SurfaceTriangle[] = [];
+      for (let k = 0; k < geometry.indices.length; k += 3) {
+        const surface = Math.floor((k / geometry.indices.length) * 3),
+          ids = Array.from(geometry.indices.slice(k, k + 3));
+        triangles.push({
+          id: k / 3,
+          surface,
+          ids,
+          points: ids.map((i) => [points[i * 3], points[i * 3 + 1], points[i * 3 + 2]]),
+          uv: ids.map((i) => bipolarCoordinates(meshDirection(geometry, i), peels[surface])),
+        });
+      }
+      surface = surfaceClearance(triangles, (0.025 * frame.radius) / 1.18);
+    }
     const gl = scene.gl,
       debug = gl.getExtension("WEBGL_debug_renderer_info");
     const pixels = new Uint8Array(scene.canvas.width * scene.canvas.height * 4);
@@ -124,6 +147,7 @@ export function renderVF2(sample: VF2Case, appearance: OrbAppearanceId, frame: M
         colourRange: [minimum, maximum],
         error: gl.getError(),
         gpuTimingMeasured: false,
+        surface,
       },
     };
   } finally {

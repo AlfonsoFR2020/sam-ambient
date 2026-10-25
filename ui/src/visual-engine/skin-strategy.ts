@@ -34,6 +34,9 @@ export interface SkinStrategy {
   readonly materialSpace: "unit-object-direction";
   /** Only this closed atlas strategy maps setup parameters back to body pigment. */
   readonly materialDirection?: "bipolarMaterialDirection";
+  /** Solid positive peels resolve visibility per fragment with the ordinary
+   * depth buffer. Omitted retains the existing sorted translucent film path. */
+  readonly layering?: "opaque-depth";
   readonly shapeGLSL: string;
   readonly surfaceGLSL: string;
   readonly contactGLSL: string;

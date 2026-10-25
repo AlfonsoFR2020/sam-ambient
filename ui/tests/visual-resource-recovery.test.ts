@@ -29,6 +29,9 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
           buffers = 0,
           uploads = 0,
           draws = 0;
+        let blending = false,
+          depthWrite = true;
+        const drawStates: { blending: boolean; depthWrite: boolean }[] = [];
         const allocate = (kind: keyof typeof live) => {
           const value = {};
           live[kind].add(value);
@@ -39,6 +42,7 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
           FRAGMENT_SHADER: 2,
           COMPILE_STATUS: 3,
           LINK_STATUS: 4,
+          BLEND: 5,
           createShader: () => {
             shaders++;
             return allocate("shaders");
@@ -68,8 +72,23 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
           },
           getExtension: () => null,
           bufferData: () => uploads++,
-          drawElements: () => draws++,
-          drawArrays: () => draws++,
+          enable: (cap: number) => {
+            if (cap === 5) blending = true;
+          },
+          disable: (cap: number) => {
+            if (cap === 5) blending = false;
+          },
+          depthMask: (value: boolean) => {
+            depthWrite = value;
+          },
+          drawElements: () => {
+            draws++;
+            drawStates.push({ blending, depthWrite });
+          },
+          drawArrays: () => {
+            draws++;
+            drawStates.push({ blending, depthWrite });
+          },
         };
         const gl = new Proxy(mock, {
           get: (target, key) => (key in target ? target[key as keyof typeof target] : () => {}),
@@ -92,7 +111,17 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
             backend?.update(visualInput(0));
             backend?.render(0);
             backend?.render(100);
-            expect(draws).toBe(2 * (budget.membraneDepthPass ? 10 : 9));
+            expect(draws).toBe(
+              2 * (budget.membraneDepthPass && appearance !== "bipolar-peel-experimental" ? 10 : 9),
+            );
+            if (appearance === "bipolar-peel-experimental") {
+              for (const start of [0, 9]) {
+                expect(drawStates.slice(start + 2, start + 8)).toEqual(
+                  Array.from({ length: 6 }, () => ({ blending: false, depthWrite: true })),
+                );
+                expect(drawStates[start + 8]).toEqual({ blending: true, depthWrite: false });
+              }
+            }
             expect(uploads).toBe(7);
             expect([shaders, buffers]).toEqual(allocationCounts);
             backend?.dispose();

@@ -18,8 +18,9 @@ export interface BipolarPeel {
 }
 
 /** Three unequal polar trajectories, not three local patches. Two north roots
- * counter-sweep; the south root travels between them. Disjoint parameter charts
- * allow physical overlap without one peel accidentally acquiring another's fold.
+ * counter-sweep; the south root reaches the opposite hemisphere. Disjoint charts
+ * prevent one peel accidentally acquiring another's fold. V-F5's unequal lift
+ * lanes and spread origins are checked on full surfaces, not just centerlines.
  */
 export function createBipolarPeels(seed = 0x5a17): readonly BipolarPeel[] {
   const turn = ((seed >>> 0) / 0x1_0000_0000) * Math.PI * 2;
@@ -32,11 +33,11 @@ export function createBipolarPeels(seed = 0x5a17): readonly BipolarPeel[] {
       along,
       across: skinCross(chart, along),
       pole: [1, -1, 1][i],
-      length: [2.42, 2.65, 2.18][i],
-      azimuth: [-0.5, -0.3, 2.4][i] + turn,
-      sweep: [1.8, 2.5, -1.35][i],
+      length: [2.42, 2.6, 2.25][i],
+      azimuth: [-0.7, 2.15, 3.1][i] + turn,
+      sweep: [1.85, 2.15, -1.6][i],
       curve: [0.3, -0.25, 0.6][i],
-      width: [0.31, 0.27, 0.34][i],
+      width: [0.3, 0.29, 0.32][i],
       phase: [0.2, 2.6, 4.4][i],
     };
   });
@@ -122,17 +123,24 @@ export function bipolarLift(t: number, _v: number, i: number, p: BipolarPeel, f:
   const wave = bipolarSinCos(f.travel + p.phase + 2 * t)[0] * (0.6 + 0.4 * f.coherence);
   const emphasis = 0.75 + 0.25 * bipolarSinCos(2 * f.travel + p.phase + 2 * t)[0];
   const activity =
-    0.11 * f.speech * emphasis +
-    0.045 * f.work +
-    0.025 * f.receptive +
-    0.04 * (f.preparation ?? 0) -
-    0.04 * (f.settling ?? 0) -
-    0.1 * f.rephase;
-  const height = root * ([0.23, 0.32, 0.27][i] + 0.045 * wave + activity);
+    0.09 * f.speech * emphasis +
+    0.035 * f.work +
+    0.02 * f.receptive +
+    0.03 * (f.preparation ?? 0) -
+    0.025 * (f.settling ?? 0) -
+    0.06 * f.rephase;
+  const height = root * ([0.2, 0.44, 0.31][i] + 0.045 * wave + activity);
   // Rotate the actual transverse section. An absolute lateral v² offset can
   // reverse its derivative where the free end becomes narrower than that offset.
-  const roll = root * (0.35 * wave + 0.15 * f.speech * emphasis);
-  return [height, -0.12 * root * (1 + 0.2 * wave), roll] as const;
+  const roll =
+    root *
+    (0.24 * wave +
+      0.26 * f.speech * emphasis +
+      0.08 * f.work * bipolarSinCos(f.travel + p.phase)[0]);
+  const bend =
+    -root *
+    (0.1 + 0.025 * wave + 0.035 * f.speech * emphasis + 0.02 * f.work - 0.015 * (f.settling ?? 0));
+  return [height, bend, roll] as const;
 }
 export function bipolarPeelPoint(
   n: SkinVector,
@@ -258,9 +266,11 @@ vec3 bipolarLift(vec2 uv,int i) {
   float t=uv.x,v=uv.y,q=max(0.,(t-.08)/.92),root=q*q/(.18+.82*q*q)*(1.-.15*q),phase=u_contact_shapes[i].w;
   float wave=bipolarSC(u_contact_phase.x+phase+2.*t).x*(.6+.4*u_contact_pose.w);
   float emphasis=.75+.25*bipolarSC(2.*u_contact_phase.x+phase+2.*t).x;
-  float activity=.11*u_behavior.y*emphasis+.045*u_behavior.z+.025*u_behavior.w+.04*u_provider.y-.04*u_provider.z-.1*u_contact_phase.y;
-  float base=i==0 ? .23 : (i==1 ? .32 : .27);
-  return vec3(root*(base+.045*wave+activity),-.12*root*(1.+.2*wave),root*(.35*wave+.15*u_behavior.y*emphasis));
+  float activity=.09*u_behavior.y*emphasis+.035*u_behavior.z+.02*u_behavior.w+.03*u_provider.y-.025*u_provider.z-.06*u_contact_phase.y;
+  float base=i==0 ? .2 : (i==1 ? .44 : .31);
+  float bend=-root*(.1+.025*wave+.035*u_behavior.y*emphasis+.02*u_behavior.z-.015*u_provider.z);
+  float roll=root*(.24*wave+.26*u_behavior.y*emphasis+.08*u_behavior.z*bipolarSC(u_contact_phase.x+phase).x);
+  return vec3(root*(base+.045*wave+activity),bend,roll);
 }
 vec2 skinRegion(vec3 n,int i) {return i==bipolarIndex(n) ? bipolarUV(n,i) : vec2(0.);}
 vec2 skinOffsets(vec2 uv,int i) {return vec2(u_radius*bipolarLift(uv,i).x,0.);}
@@ -304,6 +314,7 @@ float livingContactOcclusion(vec3 n) {
 `;
 export const BIPOLAR_PEEL_SKIN: SkinStrategy = Object.freeze({
   id: "bipolar-peels",
+  layering: "opaque-depth",
   materialSpace: "unit-object-direction",
   materialDirection: "bipolarMaterialDirection",
   shapeGLSL: BIPOLAR_SHAPE_GLSL,

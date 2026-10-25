@@ -139,7 +139,7 @@ void main(){
   gl_Position=vec4(v_position.xy*u_scale,-v_position.z*.25,1.);
 }`;
 
-const peelFragment = (materialGLSL: string) => `#version 300 es
+const peelFragment = (materialGLSL: string, opaque = false) => `#version 300 es
 precision highp float;
 in float v_alpha;
 in float v_radial;
@@ -156,7 +156,7 @@ out vec4 color;
 ${LIVING_FIELD_GLSL}
 ${materialGLSL}
 void main(){
-  float alpha=clamp(v_alpha*(1.-.025*v_radial*(1.-clamp(u_emission,0.,1.))),0.,1.);
+  ${opaque ? "float alpha=.9999+.0001*clamp(v_alpha*(1.-.025*v_radial*(1.-clamp(u_emission,0.,1.))),0.,1.);" : "float alpha=clamp(v_alpha*(1.-.025*v_radial*(1.-clamp(u_emission,0.,1.))),0.,1.);"}
   if(alpha<.04) discard;
   if(u_depth_only) {
     if(alpha<.72) discard;
@@ -218,7 +218,7 @@ function composeAppearanceShaders(id?: OrbAppearanceId) {
       skin.surfaceGLSL,
       skin.materialDirection ? `${skin.materialDirection}(direction)` : "direction",
     ),
-    skinFragment: peelFragment(material.fragmentGLSL),
+    skinFragment: peelFragment(material.fragmentGLSL, skin.layering === "opaque-depth"),
   });
 }
 const baselineSources = composeAppearanceShaders();
@@ -527,6 +527,7 @@ export class WebGLBackend implements RendererBackend {
   }[];
   private readonly objectOrientation = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
   private readonly motion: MotionEvaluator;
+  private readonly opaqueSkin: boolean;
   private input?: VisualInputV1;
   private scaleX = 0.56;
   private scaleY = 0.56;
@@ -550,6 +551,7 @@ export class WebGLBackend implements RendererBackend {
         : matchMedia("(prefers-reduced-motion: reduce)");
     try {
       const definition = resolveOrbAppearance(appearance);
+      this.opaqueSkin = definition.skin.layering === "opaque-depth";
       const skin = definition.skin.create(budget, seed);
       const sources = appearanceShaderSources(definition.id);
       this.orbProgram = program(
@@ -768,17 +770,18 @@ export class WebGLBackend implements RendererBackend {
     gl.bindVertexArray(this.orb.vao);
     gl.drawElements(gl.TRIANGLES, this.orb.count, gl.UNSIGNED_SHORT, 0);
 
-    // Six connected chart ranges are ordered back-to-front. Soft alpha must not
-    // write depth and punch holes through later overlapping layers.
-    gl.depthMask(false);
-    gl.enable(gl.BLEND);
+    // Translucent film retains its existing chart sort. Solid positive peels use
+    // per-fragment depth at every tier: chart centers cannot sort crossing layers.
+    gl.depthMask(this.opaqueSkin);
+    if (this.opaqueSkin) gl.disable(gl.BLEND);
+    else gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     bindProgram(gl, this.peelProgram);
     this.setCommonUniforms(this.peelUniforms, frame);
     gl.uniform1i(this.peelUniforms.lightCount, this.budget.lights);
     this.setPeelUniforms(frame);
     gl.bindVertexArray(this.peels.vao);
-    if (this.budget.membraneDepthPass) {
+    if (this.budget.membraneDepthPass && !this.opaqueSkin) {
       // Only opaque coat interiors compete for nearest depth, including curled
       // self-overlaps. Their soft fringes retain sorted premultiplied blending.
       gl.colorMask(false, false, false, false);
@@ -816,6 +819,7 @@ export class WebGLBackend implements RendererBackend {
     gl.depthFunc(gl.LESS);
 
     gl.depthMask(false);
+    if (this.opaqueSkin) gl.enable(gl.BLEND);
     bindProgram(gl, this.particleProgram);
     gl.uniform2f(
       this.particleUniforms.palettePhase,

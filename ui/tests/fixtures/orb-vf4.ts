@@ -38,7 +38,7 @@ export const VF4_CASES: readonly VF2Case[] = [
  * labelled test inputs, never presented as recorded owner audio or core progress.
  * One integration pass, not a fresh evaluator replay per capture.
  */
-export function vf4SequenceFrames(): {
+export function vf4SequenceFrames(extraSamples: readonly number[] = []): {
   name: string;
   timeMs: number;
   level: number;
@@ -63,6 +63,11 @@ export function vf4SequenceFrames(): {
     [31000, "unloading"],
     [33000, "departure"],
   ]);
+  for (const time of extraSamples) {
+    if (!Number.isInteger(time) || time < 0 || time > 33000 || time % 20)
+      throw new RangeError("Sequence capture must land on the continuous 20ms integration grid");
+    if (!samples.has(time)) samples.set(time, `time-${time}`);
+  }
   for (let time = 0; time <= 33000; time += 20) {
     const speaking = time >= 10000 && time < 26000;
     const level = !speaking
