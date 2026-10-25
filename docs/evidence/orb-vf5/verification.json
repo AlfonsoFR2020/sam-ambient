@@ -1,0 +1,145 @@
+{
+  "frontend": {
+    "passed": 71,
+    "failed": 0,
+    "files": [
+      {
+        "path": "ui/tests/orb-graphical-plan.test.ts",
+        "cases": [
+          "V-F2 bounded hosted comparison inputs (CPU only) keeps one matched material/frame while varying only the selected structure",
+          "V-F2 bounded hosted comparison inputs (CPU only) bounds captures and holds unrelated clocks through material and compact samples"
+        ]
+      },
+      {
+        "path": "ui/tests/visual-appearance.test.ts",
+        "cases": [
+          "V-F1 default appearance compatibility retains the verified dev shader, geometry and descriptor baseline",
+          "V-F1 default appearance compatibility delegates the default strategy without changing seed, arrays or reference equations",
+          "V-F1 default appearance compatibility keeps internal selection explicit and outside owner persistence"
+        ]
+      },
+      {
+        "path": "ui/tests/visual-bipolar-clearance.test.ts",
+        "cases": [
+          "offline full triangle surface diagnostic detects piercing, coplanar containment, separation and edge-nearest contact",
+          "offline full triangle surface diagnostic ignores shared indexed attachment but tests nonadjacent self intersections",
+          "offline full triangle surface diagnostic broad phase agrees with exhaustive triangle pairs on a bounded independent fixture",
+          "offline full triangle surface diagnostic retains full-surface V-F4 diagnosis and bounded candidate witnesses"
+        ]
+      },
+      {
+        "path": "ui/tests/visual-bipolar-expression.test.ts",
+        "cases": [
+          "bipolar geometry consumes trusted presentation evidence ordinary: remains expressive through 24 seconds of measured delivery, quiet intervals and stale retirement",
+          "bipolar geometry consumes trusted presentation evidence zero: remains expressive through 24 seconds of measured delivery, quiet intervals and stale retirement",
+          "bipolar geometry consumes trusted presentation evidence reduced: remains expressive through 24 seconds of measured delivery, quiet intervals and stale retirement",
+          "bipolar geometry consumes trusted presentation evidence maps actual work, preparation and unloading to lifted geometry while preserving attached roots",
+          "bipolar geometry consumes trusted presentation evidence retains autonomous idle movement, resets hidden speech evidence and does not catch up hidden phase",
+          "bipolar geometry consumes trusted presentation evidence keeps attachment and free-edge expression continuous at membrane phase wraps"
+        ]
+      },
+      {
+        "path": "ui/tests/visual-bipolar-motion.test.ts",
+        "cases": [
+          "V-F5 differentiated continuous deformation retains C1 roots and outward body clearance through the continuous sequence",
+          "V-F5 differentiated continuous deformation genuine late speech changes bend and twist, with autonomous motion surviving silence",
+          "V-F5 differentiated continuous deformation clearance survives additional phase/state transitions without a frame collision solver"
+        ]
+      },
+      {
+        "path": "ui/tests/visual-bipolar-peel.test.ts",
+        "cases": [
+          "V-F4 bipolar trajectory geometry covers actual roots and free boundaries and matched long-sequence conditions",
+          "V-F4 bipolar trajectory geometry has unequal opposing polar paths and unambiguous atlas coordinates",
+          "V-F4 bipolar trajectory geometry retains the existing default and maps only the new atlas into shared pigment",
+          "V-F4 bipolar trajectory geometry spreads polar origins and retains unequal analytic lift lanes",
+          "V-F4 bipolar trajectory geometry bounds the independent trigonometric series without replacing the strict GPU guard",
+          "V-F4 bipolar trajectory geometry has a C1 root, positive idle lift, bounded twist and seamless phase wrap",
+          "V-F4 bipolar trajectory geometry low: oriented manifold disks, complete ranges, stable setup and resource envelope",
+          "V-F4 bipolar trajectory geometry low: all deformed triangles remain finite, nondegenerate and agree with sampled normals",
+          "V-F4 bipolar trajectory geometry medium: oriented manifold disks, complete ranges, stable setup and resource envelope",
+          "V-F4 bipolar trajectory geometry medium: all deformed triangles remain finite, nondegenerate and agree with sampled normals",
+          "V-F4 bipolar trajectory geometry high: oriented manifold disks, complete ranges, stable setup and resource envelope",
+          "V-F4 bipolar trajectory geometry high: all deformed triangles remain finite, nondegenerate and agree with sampled normals",
+          "V-F4 bipolar trajectory geometry rejects malformed sampling before allocation and retains zero-peel recovery",
+          "V-F4 bipolar trajectory geometry records exact geometry resources independently of GPU performance"
+        ]
+      },
+      {
+        "path": "ui/tests/visual-living-field.test.ts",
+        "cases": [
+          "living field substrate deforms broad front-facing material relationships instead of only rotating a texture",
+          "living field substrate moves pigment at fixed object directions over human time without boiling frame to frame",
+          "living field substrate changes coarse front-hemisphere pigment boundaries, not only individual pixels",
+          "living field substrate has no longitude seam and remains continuous at both poles",
+          "living field substrate is deterministic at fixed seed and phase, bounded, and continuous across phase wrap",
+          "living field substrate shares one object-space GLSL field in body and peel materials",
+          "living field substrate maps bounded, warm-dominant but non-monochrome pigments over the sphere",
+          "living field substrate evolves local warm and cool boundaries without globally tinting every region",
+          "living field substrate bounds field/breath/audio displacement and keeps tangent normals stable at poles",
+          "living field substrate keeps object-space pigment under drag while world-space illumination changes",
+          "living field substrate keeps seeded identity and bounded draws with High opaque-core depth priming",
+          "living field substrate makes optional fine detail deterministic and unable to move primary pigment",
+          "living field substrate records shader-build and missing-WebGL fallback causes without suppressing them"
+        ]
+      },
+      {
+        "path": "ui/tests/visual-quality.test.ts",
+        "cases": [
+          "visual quality and geometry starts auto conservatively and honors device profile caps",
+          "visual quality and geometry enforces the formal mobile budget and DPR cap",
+          "visual quality and geometry uses one deterministic connected domain with bounded tier sampling",
+          "visual quality and geometry keeps the restrained halo opacity bounded",
+          "visual quality and geometry accounts actual connected-skin arrays and preserves draw/particle envelopes",
+          "visual quality and geometry creates bounded deterministic sparse particle parameters",
+          "visual quality and geometry maps density to a deterministic visible share of actual gold particles",
+          "visual quality and geometry bounds sphere topology and validates session settings"
+        ]
+      },
+      {
+        "path": "ui/tests/visual-resource-recovery.test.ts",
+        "cases": [
+          "partially initialized renderer recovery (mock GL only) living-connected/low/second-program: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) living-connected/low/missing-uniform: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) living-connected/low/partial-buffer: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) living-connected/low/none: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) living-connected/medium/none: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) living-connected/high/none: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) radial-shell-experimental/low/second-program: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) radial-shell-experimental/low/missing-uniform: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) radial-shell-experimental/low/partial-buffer: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) radial-shell-experimental/low/none: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) radial-shell-experimental/medium/none: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) radial-shell-experimental/high/none: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) bipolar-peel-experimental/low/second-program: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) bipolar-peel-experimental/low/missing-uniform: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) bipolar-peel-experimental/low/partial-buffer: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) bipolar-peel-experimental/low/none: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) bipolar-peel-experimental/medium/none: retires every owned resource without depending on lose-context support",
+          "partially initialized renderer recovery (mock GL only) bipolar-peel-experimental/high/none: retires every owned resource without depending on lose-context support"
+        ]
+      }
+    ]
+  },
+  "python": {
+    "passed": 27,
+    "files": [
+      "tests/unit/test_frontend_assets.py",
+      "tests/unit/test_public_docs_checker.py",
+      "tests/unit/test_owner_requirements.py"
+    ]
+  },
+  "lint": {
+    "files": 16,
+    "passed": true
+  },
+  "types": {
+    "project": "ui/tsconfig.json",
+    "passed": true
+  },
+  "sourceBuild": "de87e526e0cc3675cb75ecf872b1911fabb33eb8",
+  "limitations": [
+    "No local graphical, provider, application or physical audio execution",
+    "CPU controlled-body checks do not establish production optical or universal continuous-time collision freedom"
+  ]
+}

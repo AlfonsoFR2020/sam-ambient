@@ -37,6 +37,7 @@ test("hosted V-F5 separation, solid layering and sustained expression", async ({
     archivedComparisons: [] as unknown[],
     proofs: [] as unknown[],
     baselineSurfaces: [] as unknown[],
+    opticalOrder: [] as unknown[],
     errors: [] as string[],
     failures: [] as string[],
     limitation:
@@ -202,6 +203,43 @@ test("hosted V-F5 separation, solid layering and sustained expression", async ({
         s.frame,
         !s.name.startsWith("time-"),
       );
+    let orderSensitiveLegacyViews = 0;
+    for (const yaw of [0, 1.6]) {
+      const captures = [];
+      for (const legacy of [false, true])
+        for (const reverse of [false, true]) {
+          const shot = await page.evaluate(
+            async ({ yaw, legacy, reverse }) => {
+              const path = "/tests/fixtures/orb-vf5.ts",
+                api = (await import(path)) as typeof import("../fixtures/orb-vf5");
+              const sample = {
+                ...api.VF5_CASES[0],
+                name: `optical-yaw${yaw}-${legacy ? "film" : "solid"}-${reverse ? "reverse" : "forward"}`,
+                yaw,
+                options: { depthPass: false, reverseSkinOrder: reverse, legacyBipolarFilm: legacy },
+              };
+              return api.renderVF2(sample, "bipolar-peel-experimental", api.vf2Frame(sample));
+            },
+            { yaw, legacy, reverse },
+          );
+          captures.push(shot);
+          image(shot.name, shot.image);
+        }
+      const solidEqual = captures[0].image === captures[1].image,
+        legacyEqual = captures[2].image === captures[3].image;
+      metadata.opticalOrder.push({
+        yaw,
+        solidPixelIdentical: solidEqual,
+        legacyFilmPixelIdentical: legacyEqual,
+        conditions: captures.map((s) => s.metadata),
+        limitation:
+          "Legacy-film ablation uses corrected geometry and deliberately disables the High prepass; it is not a recreated V-F4 image",
+      });
+      save();
+      expect(solidEqual).toBe(true);
+      if (!legacyEqual) orderSensitiveLegacyViews++;
+    }
+    expect(orderSensitiveLegacyViews).toBeGreaterThan(0);
     for (const motion of [false, true]) {
       const sheet = await page.evaluate(
         async ({ shots, motion }) => {
@@ -220,6 +258,15 @@ test("hosted V-F5 separation, solid layering and sustained expression", async ({
       await page.evaluate(async (shots) => {
         const path = "/tests/fixtures/orb-vf5.ts";
         return ((await import(path)) as typeof import("../fixtures/orb-vf5")).vf5MotionStrip(shots);
+      }, shots),
+    );
+    image(
+      "crossing-details",
+      await page.evaluate(async (shots) => {
+        const path = "/tests/fixtures/orb-vf5.ts";
+        return ((await import(path)) as typeof import("../fixtures/orb-vf5")).vf5CrossingDetails(
+          shots,
+        );
       }, shots),
     );
     expect(metadata.errors).toEqual([]);

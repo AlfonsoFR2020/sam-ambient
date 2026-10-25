@@ -90,3 +90,51 @@ source/build correspondence and closure checks will be recorded below. No
 attractive appearance, physical GPU performance, acoustic timing or owner
 acceptance is inferred from the current CPU results. `living-connected` remains
 the ordinary default; no UI, speech infrastructure, palette or particle change.
+
+## First actual production proof and image inspection
+
+[Hosted run 40225722161](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40225722161)
+at `2a088a8621528d0c20f6bad8068bd08e617bad6f` passes on its first attempt:
+73 new WebGL2 views, 26 archived exact-frame comparisons, no console/GL errors.
+The sandboxed Ubuntu 22.04 runner uses Chromium 153.0.8010.12 / ANGLE Vulkan
+SwiftShader/Subzero, 720×720/DPR 1. The actual production shader's every mesh
+vertex is sampled at 47 candidate poses/views; no unintended intersections or
+inter-peel clearance violations occur. Frozen V-F4 equations/descriptors on the
+same real production body reproduce **45** intersecting High triangle pairs at
+idle (0/1), and **50 + 44** at silent speech (0/1 and 0/2). These counts differ
+from the controlled Medium CPU fixture because tier/body/pose differ.
+
+| Controlled-body strict GPU proof | Samples | Max position | Max normal |
+| --- | --- | --- | --- |
+| Parent | 192 | .0000231639765 | .000504075252 |
+| Corrected bipolar ordinary | 240 | .0000006207471 | .000286957726 |
+| Corrected compact/loading | 240 | .0000003015555 | .000293642792 |
+| Corrected speaking/settling | 240 | .0000006115724 | .000286957726 |
+
+All remain under .0001/.005; the proof is not weakened. Actual production-body
+sampling is distinct from the controlled-body CPU/GPU equation comparison.
+The [first comparison](evidence/orb-vf5/40225722161/comparison.png),
+[negative south view](evidence/orb-vf5/40225722161/polar-south-bipolar-peel-experimental.png)
+and [raw inputs/proofs](evidence/orb-vf5/40225722161/evidence.json) are retained.
+
+Actual image inspection shows clearer separated silhouettes and no blended
+cross-through in the selected corrected views. Spread polar trajectories cover
+more sides. However, the south view still reads as belts/cut panels, and tall
+narrow tips read as blades. The rich pigment persists, but solidity alone does
+not establish graceful orange-peel curvature or convincing Escher-like weaving.
+The ordered 320ms samples show continued movement through late quiet speech,
+silence and resumption; naturalness remains provisional, not an acoustic or owner
+acceptance claim. **No geometry promotion.** One structural correction is retained;
+no fourth morphology or speculative color adjustment follows.
+
+A final fixture-only hardening adds matched crossing pixel crops and a causal
+optical ablation: reverse all six color ranges, require identical solid-depth
+pixels, and compare the old blended treatment with the High prepass explicitly
+disabled. That ablation uses corrected geometry, not recreated V-F4 optics.
+Its final hosted result is pending; production source/assets remain unchanged.
+
+The first standard [CI 40225722164](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40225722164)
+is green without retries: Ubuntu 817 Python / 44 skips, Windows 856 / 5 skips,
+429 frontend cases per platform, lint/types/build and existing package jobs.
+Overlapping platform/local batches are not summed. No local browser, GPU, Sam,
+provider or audio execution; no physical performance or inference-coexistence claim.

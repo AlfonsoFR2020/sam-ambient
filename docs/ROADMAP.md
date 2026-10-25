@@ -1,6 +1,6 @@
 # Sam development plan: post-v0.2.5
 
-**Current HQ4 checkpoint (2026-10-24): V-F4 isolated bipolar morphology and measured expressive dynamics.**
+**Current HQ4 checkpoint (2026-10-25): V-F5 isolated peel separation, optical coherence and sustained expression.**
 v0.2.5 is published at `dc64c5d180fb44cf7a29bf4d0d1ae2f853347709` as a verified
 source/Python experimental pre-release. [HQ4 continuity](HANDOFF_SAM_HQ4.md)
 preserves the release, governance and remaining experience gaps;
@@ -12,7 +12,7 @@ This plan grants no version bump, runtime permission, remote action or automatic
 ## Reconciled near-term programme
 
 [Owner requirements](OWNER_REQUIREMENTS.md) records intent/provenance/acceptance;
-[BACKLOG's current index](BACKLOG.md#current-execution-index--v-f4-bipolar-morphology-and-expression-2026-10-24)
+[BACKLOG's current index](BACKLOG.md#current-execution-index--v-f5-peel-separation-and-optical-coherence-2026-10-25)
 retains actions. This is the current ordering; dated proposals below are history.
 Severity, privacy/data integrity, core usability and dependencies lead; recurrence,
 owner emphasis, age/deferral, benefit, feasibility and cost follow. Cheap new work
@@ -23,13 +23,13 @@ does not displace older substantial art or conversation needs.
 | 0 · maintain P0 | Act on demonstrated authority/data-loss/ownership regression; preserve AUTH-01–05 | No general redesign or invented incident diagnosis |
 | 1 · occupied-PC conversation/usability | UX-08 New/Resume, launch choice and snapshot recovery are implemented with bounded deterministic evidence; UX-11 remains source verified. Next independent candidate: UX-09 interruption-retention preference semantics and tests | UI/owner acceptance remains separate; historical symptoms stay unattributed. Preserve completed text and truthful delivery; CONV-07/08 stay separate |
 | 2 · occupied-PC reliability | Reconstruct representative waiting/retirement/recognition traces with existing content-free diagnostics; repair only reproduced gaps in CONV-01–04. Assess CONV-07 whole-WAV latency separately | Real-session causes require provider/audio evidence; do not add another telemetry system or replace STT speculatively |
-| 3 · visual priority, conditional execution | [V-F4](BIPOLAR_PEEL_VF4.md) delivers strict hosted proof and sustained synthetic expression on unequal polar paths. Retained views still show one-sided composition, cut-panel polar edges and thin ends; constrain trajectory coverage/overlap before another bounded morphology step. VIS/SHELL/EXP/QUAL remain P1 | Technical proof is green; the intended interwoven silhouette is not established. No default promotion, hardware/owner acceptance or dev merge; preserve earlier candidates, pigment and particle caps |
+| 3 · visual priority, conditional execution | [V-F5](BIPOLAR_SEPARATION_VF5.md) corrects source-reproduced V-F4 full-surface collisions using spread polar trajectories/lift lanes and solid per-fragment depth; first hosted strict/production-surface proof passes; south-polar belts/blade tips persist, with final optical-order fixture proof pending. VIS/SHELL/EXP/QUAL remain P1 | Selected CPU and hosted production surfaces pass; optical-order proof and artistic acceptance remain open. No default promotion, hardware/owner acceptance or dev merge; preserve earlier candidates, pigment and particle caps |
 | 4 · usability/platform follow-on | Resolve remaining controls/history/persona scope, then clean-host Windows distribution and Linux acceptance; preserve functioning Console/Memory | Separate source bugs, graphical acceptance, new preferences and installer/signing decisions |
 | Later · explicit retained product directions | STYLE-01–11 and CAP-03–08: variants, broader OS/delegation, generative interfaces, semantic/multi-person context, controlled self-modification | New scope, actual benefit and authority/resource evidence; no theme engine chosen in advance |
 
 Visual art remains a P1 product requirement, not a low-priority polish task. Order 3
 reflects locally restricted execution, not permission to ignore it indefinitely.
-V-F4 has bounded hosted WebGL permission; physical GPU and owner acceptance remain separate.
+V-F5 has bounded hosted WebGL permission; physical GPU and owner acceptance remain separate.
 V-F1 uses `feature/orb-appearance-foundation` from preserved dev `cc69bc2` for
 [typed appearance boundaries and one radial-sector prototype](ORB_APPEARANCE_VF1.md).
 It keeps the connected skin as default; CPU validity does not select the appearance.

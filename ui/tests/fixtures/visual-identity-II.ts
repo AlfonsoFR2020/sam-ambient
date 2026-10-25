@@ -83,6 +83,9 @@ export function fixture(
     captureSkinVertices?: boolean;
     /** Geometry-only historical diagnosis, never used as an optical baseline. */
     vf4Surface?: boolean;
+    /** Optical ablations only; never part of runtime appearance selection. */
+    reverseSkinOrder?: boolean;
+    legacyBipolarFilm?: boolean;
   } = {},
 ) {
   const size = options.size ?? 720,
@@ -107,6 +110,45 @@ export function fixture(
   if (!gl) {
     canvas.remove();
     throw new Error("Headless WebGL2 unavailable");
+  }
+  if (options.reverseSkinOrder || options.legacyBipolarFilm) {
+    if (options.appearance !== "bipolar-peel-experimental" || options.depthPass !== false)
+      throw new Error("Optical ablation requires explicit bipolar/no-prepass fixture");
+    const source = gl.shaderSource.bind(gl),
+      locate = gl.getUniformLocation.bind(gl),
+      bind = gl.useProgram.bind(gl),
+      draw = gl.drawElements.bind(gl);
+    let skin: WebGLProgram | null = null,
+      current: WebGLProgram | null = null;
+    const pending: Parameters<WebGL2RenderingContext["drawElements"]>[] = [];
+    gl.getUniformLocation = (program, name) => {
+      if (name === "u_depth_only") skin = program;
+      return locate(program, name);
+    };
+    gl.shaderSource = (shader, text) =>
+      source(
+        shader,
+        options.legacyBipolarFilm
+          ? text.replace("float alpha=.9999+.0001*clamp(", "float alpha=clamp(")
+          : text,
+      );
+    gl.useProgram = (program) => {
+      bind(program);
+      current = program;
+      if (program === skin && options.legacyBipolarFilm) {
+        gl.depthMask(false);
+        gl.enable(gl.BLEND);
+      }
+    };
+    gl.drawElements = (...args) => {
+      if (options.reverseSkinOrder && current === skin) {
+        pending.push(args);
+        if (pending.length === 6) {
+          for (const call of pending.reverse()) draw(...call);
+          pending.length = 0;
+        }
+      } else draw(...args);
+    };
   }
   if (options.vf4Surface) {
     if (options.appearance !== "bipolar-peel-experimental" || !options.captureSkinVertices)

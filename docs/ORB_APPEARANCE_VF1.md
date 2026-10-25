@@ -1,5 +1,11 @@
 # Orb appearance foundation — V-F1
 
+Isolated [V-F5](BIPOLAR_SEPARATION_VF5.md) adds one closed `opaque-depth`
+strategy flag for the existing bipolar positive peels: six color ranges write
+ordinary per-fragment depth with blending disabled at all tiers; particles restore
+premultiplied blending. Other strategies retain their film shaders/draw behavior.
+No new framebuffer, resource owner, signal authority or appearance selector.
+
 Current follow-up: [V-F4](BIPOLAR_PEEL_VF4.md) adds internal polar trajectories and
 an explicit parameter-atlas/material-direction mapping after owner rejection of
 V-F3's leaves/patches. The V-F1 diagram and numerical tables below describe their

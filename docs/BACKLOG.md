@@ -3,7 +3,8 @@
 <a id="current-execution-index--v-c-reconciliation-2026-10-22"></a>
 <a id="current-execution-index--v-d-closure-2026-10-23"></a>
 <a id="current-execution-index--v-f3-organic-peeling-and-focused-experience-2026-10-23"></a>
-## Current execution index — V-F4 bipolar morphology and expression, 2026-10-24
+<a id="current-execution-index--v-f4-bipolar-morphology-and-expression-2026-10-24"></a>
+## Current execution index — V-F5 peel separation and optical coherence, 2026-10-25
 
 [Owner requirements](OWNER_REQUIREMENTS.md) owns stable intent/provenance/evidence
 IDs; this file remains the retained action backlog. [ROADMAP](ROADMAP.md) orders
@@ -24,6 +25,15 @@ parallel queues. No row grants execution permission.
 | P1 · GOV-01/02/04/06 | Meaningful experimental releases, scarce beta, durable source truth and isolated public-docs branch | Do not freeze safe work or merge unreleased implementation to publish docs |
 
 ### Recovery and supersession notes
+
+- [V-F5](BIPOLAR_SEPARATION_VF5.md) reproduces unintended V-F4 triangle intersections,
+  adjusts the existing polar trajectories/lift lanes and gives the candidate solid
+  per-fragment depth across tiers. Controlled mesh/pose checks and first hosted actual
+  production-surface/strict shader/comparison proof pass; final draw-order ablation
+  is pending. Retained south-polar belts and narrow blade tips remain unacceptable
+  as a selected default. Parent remains
+  default. SHELL/EXP/QUAL remain P1; global continuous collision freedom, optical
+  naturalness, physical GPU cost and owner acceptance are separate open gates.
 
 - [V-F4](BIPOLAR_PEEL_VF4.md) preserves explicit owner rejection of V-F3's leaves/
   patches/ears and tests unequal bipolar trajectories, persistent lift and real

@@ -1,5 +1,11 @@
 # Architecture
 
+Isolated [V-F5](BIPOLAR_SEPARATION_VF5.md) adds one closed `opaque-depth`
+strategy flag for the existing bipolar positive peels: six color ranges write
+ordinary per-fragment depth with blending disabled at all tiers; particles restore
+premultiplied blending. Other strategies retain their film shaders/draw behavior.
+No new framebuffer, resource owner, signal authority or appearance selector.
+
 Isolated [V-F4 bipolar peels](BIPOLAR_PEEL_VF4.md) add a closed parameter-atlas
 strategy. Setup directions are mapped explicitly to body/material directions before
 living displacement and pigment sampling. Existing renderer resources, strict

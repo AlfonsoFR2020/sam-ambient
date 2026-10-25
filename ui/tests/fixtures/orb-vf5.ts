@@ -104,3 +104,37 @@ export async function vf5MotionStrip(shots: { name: string; image: string }[]) {
   }
   return canvas.toDataURL("image/png");
 }
+
+/** Pixel crops of the already captured matched views; no extra geometry/effects. */
+export async function vf5CrossingDetails(shots: { name: string; image: string }[]) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1320;
+  canvas.height = 1110;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Detail context");
+  ctx.fillStyle = "#10161c";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#f4eee5";
+  ctx.font = "18px sans-serif";
+  ["Parent default", "V-F4 archived original", "V-F5 separated solid peels"].forEach((s, i) => {
+    ctx.fillText(s, 20 + i * 440, 32);
+  });
+  ctx.font = "14px sans-serif";
+  ctx.fillText("Identical 400 × 480 pixel crops from actual WebGL frames · no retouching", 20, 60);
+  for (const [r, name] of ["colour-yaw0-phase0", "sequence-speech-silence"].entries())
+    for (const [c, id] of [
+      "living-connected",
+      "bipolar-vf4",
+      "bipolar-peel-experimental",
+    ].entries()) {
+      const shot = shots.find((s) => s.name === `${name}-${id}`);
+      if (!shot) throw new Error("Missing crossing detail");
+      const img = new Image();
+      img.src = shot.image;
+      await img.decode();
+      ctx.fillStyle = "#e2b27f";
+      ctx.fillText(name, 20 + c * 440, 96 + r * 510);
+      ctx.drawImage(img, 190, 120, 400, 480, 20 + c * 440, 110 + r * 510, 400, 480);
+    }
+  return canvas.toDataURL("image/png");
+}
