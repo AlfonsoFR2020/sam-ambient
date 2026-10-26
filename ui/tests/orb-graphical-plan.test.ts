@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { appearanceShaderSources } from "../src/visual-engine/webgl";
 import { VF2_APPEARANCES, VF2_CASES, VF2_PLAN, VF2_SMOKE, vf2Frame } from "./fixtures/orb-vf2";
-import { frameAt } from "./fixtures/visual-identity-II";
+import { VF6_CASES, VF6_REFLECTION } from "./fixtures/orb-vf6";
+import { frameAt, neutralFixtureMaterial, opaqueFilmAblation } from "./fixtures/visual-identity-II";
 
 describe("V-F2 bounded hosted comparison inputs (CPU only)", () => {
   it("keeps one matched material/frame while varying only the selected structure", () => {
@@ -25,4 +27,19 @@ describe("V-F2 bounded hosted comparison inputs (CPU only)", () => {
       VF2_CASES.filter((sample) => sample.materialSeconds).map((sample) => sample.materialSeconds),
     ).toEqual([45, 300]);
   });
+});
+
+it("V-F6 optical ablation preserves neutral material after replacement and holds reflection clocks", () => {
+  const glass = `#define SAM_FINE_OCTAVES 3\n${appearanceShaderSources("bipolar-film-experimental").skinFragment}`;
+  // Match the actual nested shaderSource hooks: the outer hook neutralizes
+  // first, then the inner optical replacement must neutralize its new source.
+  const opaque = opaqueFilmAblation(neutralFixtureMaterial(glass), true);
+  expect(opaque).toContain("#define SAM_FINE_OCTAVES 3");
+  expect(opaque).toContain("pigment.albedo=vec3(.32)+");
+  expect(opaque).toContain("filmPigment.albedo=vec3(.32)+");
+  expect(opaqueFilmAblation(glass, false)).not.toContain("pigment.albedo=vec3(.32)+");
+  expect(() => opaqueFilmAblation("no tier define", true)).toThrow("actual tier detail");
+  expect(vf2Frame(VF6_REFLECTION)).toEqual(vf2Frame(VF6_CASES[0]));
+  expect(VF6_REFLECTION.options).toEqual(VF6_CASES[0].options);
+  expect(VF6_REFLECTION.yaw).not.toBe(VF6_CASES[0].yaw);
 });

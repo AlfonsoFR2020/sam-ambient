@@ -120,3 +120,45 @@ compact Low views, material ablation, enlarged details and the continuous synthe
 quiet/pause/resumption sequence are required. Final run IDs, builds, failures,
 negative views and acceptance limitations follow after execution. No local
 browser, WebGL/GPU, Sam, model/provider or physical audio is authorized or run.
+
+## First hosted proof and comparison correction
+
+[WebGL run 40309741929](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40309741929)
+passes at `fd1714d`: 64 primary captures, 47 full production-mesh checks without
+intersections/clearance failures, all five strict shader proofs, three reversed
+triangle/range comparisons with **zero changed RGBA pixels**, and causal body
+transmission. Fresh parent and selected V-F5 images match their archived pixels.
+[Raw evidence](evidence/orb-vf6/40309741929/evidence.json) is retained.
+
+Full-resolution inspection found rounded ends and clearly transmitted body
+pigment, but also dark/smoky film, angle-dependent weak reflections and remaining
+belt/scythe silhouettes. This is not artistic acceptance or physical-glass proof.
+The fixed-camera matrix remains intact; an extra matched reflection-inspection
+camera is selected through a bounded CPU normal/light diagnostic, changing no
+light, frame or material. It is not a perceptual metric or a replacement for the
+awkward views.
+
+One **fixture defect** affected the south-polar material ablation: the nested
+optical replacement discarded the outer neutral-material override. Its opaque
+control was gold against a grey body. The original
+[material sheet](evidence/orb-vf6/40309741929/comparison-material.png) and
+[mismatched control](evidence/orb-vf6/40309741929/polar-south-vf6-opaque.png)
+remain negative fixture evidence, not a valid neutral optical comparison.
+The replacement now reapplies the same neutral overrides and tier detail, with
+a CPU regression and explicit material-control metadata. Production shaders,
+geometry and the first run's pixel/transmission proofs are unaffected. A final
+hosted rerun of the corrected fixture is pending at this checkpoint.
+
+There are now **96 distinct local frontend cases**; the 42-case affected rerun
+overlaps the earlier 95 and is not added to that total. TypeScript and focused
+Biome checks pass after the fixture correction. The production source and its
+78-input build remain unchanged.
+
+[Standard CI 40309742038](https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40309742038)
+reports API success, but its detailed Windows frontend log contains a pre-existing
+parent High topology test's 5-second timeout (452 pass / 1 fail) and CRLF formatting
+errors. The existing multi-command PowerShell step continues to a successful
+build and masks those exit codes. Ubuntu passes 453 frontend tests. This is a
+qualified result, not a clean Windows frontend gate. No timeout, numerical guard,
+source equation, repository line-ending policy or unrelated CI workflow is altered
+to conceal it. [Bounded log audit](evidence/orb-vf6/hosted-ci-first.json).

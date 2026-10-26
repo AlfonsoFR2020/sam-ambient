@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { OrbAppearanceId } from "../../src/visual-engine/appearance";
 import type { MotionFrame } from "../../src/visual-engine/motion";
-import { hostedRunURL, VF6_CASES, VF6_ID, VF6_PLAN } from "../fixtures/orb-vf6";
+import { hostedRunURL, VF6_CASES, VF6_ID, VF6_PLAN, VF6_REFLECTION } from "../fixtures/orb-vf6";
 
 test("hosted rounded bipolar boundaries, nearest translucency and actual-pixel proof", async ({
   page,
@@ -37,6 +37,8 @@ test("hosted rounded bipolar boundaries, nearest translucency and actual-pixel p
     views: [] as unknown[],
     proofs: [] as unknown[],
     archiveChecks: [] as unknown[],
+    materialAblations: [] as unknown[],
+    reflection: [] as unknown[],
     order: [] as unknown[],
     transmission: null as unknown,
     errors: [] as string[],
@@ -256,6 +258,50 @@ test("hosted rounded bipolar boundaries, nearest translucency and actual-pixel p
       }, sample);
       shots.push({ name: `${sample.name}-vf6-opaque`, image: ablation.image });
       image(`${sample.name}-vf6-opaque`, ablation.image);
+      metadata.materialAblations.push({
+        sample,
+        frame: ablation.metadata.frame,
+        geometry: VF6_ID,
+        filmMaterial: "vf5-opaque",
+        neutralMaterial: sample.options.neutralMaterial === true,
+        held: "same geometry, frame, tier detail, body and neutral-material setting",
+      });
+      expect(ablation.metadata.frame).toEqual(
+        (
+          metadata.views as { sample: { name: string }; appearance: string; frame: MotionFrame }[]
+        ).find((v) => v.sample.name === sample.name && v.appearance === VF6_ID)?.frame,
+      );
+      save();
+    }
+    for (const appearance of ["living-connected", "bipolar-peel-experimental", VF6_ID] as const) {
+      const shot = await page.evaluate(
+        async ({ sample, appearance }) => {
+          const path = "/tests/fixtures/orb-vf6.ts",
+            api = (await import(path)) as typeof import("../fixtures/orb-vf6");
+          return api.renderVF2(
+            {
+              ...sample,
+              options: { ...sample.options, captureSkinVertices: appearance === api.VF6_ID },
+            },
+            appearance,
+            api.vf2Frame(sample),
+          );
+        },
+        { sample: VF6_REFLECTION, appearance },
+      );
+      const name = `${VF6_REFLECTION.name}-${appearance === "bipolar-peel-experimental" ? "bipolar-vf5" : appearance}`;
+      shots.push({ name, image: shot.image });
+      image(name, shot.image);
+      metadata.reflection.push(shot.metadata);
+      expect(shot.metadata.backend).toBe("webgl2");
+      expect(shot.metadata.error).toBe(0);
+      if (appearance === VF6_ID)
+        expect(
+          shot.metadata.surface?.pairs.filter(
+            (p) => p.intersections || (p.surfaces[0] !== p.surfaces[1] && p.near),
+          ),
+        ).toEqual([]);
+      save();
     }
     const transmission = await page.evaluate(async (sample) => {
       const path = "/tests/fixtures/orb-vf6.ts",
@@ -268,7 +314,7 @@ test("hosted rounded bipolar boundaries, nearest translucency and actual-pixel p
     expect(transmission.comparisons[0].coveredPixels).toBeGreaterThan(1000);
     expect(transmission.comparisons[0].meanChannelResponse).toBeGreaterThan(25);
     expect(transmission.comparisons[1].meanChannelResponse).toBeLessThan(1);
-    for (const kind of ["static", "motion", "material", "detail"] as const) {
+    for (const kind of ["static", "motion", "material", "detail", "reflection"] as const) {
       const sheet = await page.evaluate(
         async ({ shots, kind }) => {
           const path = "/tests/fixtures/orb-vf6.ts";

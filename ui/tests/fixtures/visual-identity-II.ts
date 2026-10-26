@@ -12,6 +12,31 @@ import { appearanceShaderSources, WebGLBackend } from "../../src/visual-engine/w
 import * as VF4 from "./bipolar-vf4-baseline";
 import { PALETTE_BEFORE } from "./palette-before";
 
+export function neutralFixtureMaterial(source: string) {
+  return source
+    .replace(
+      "LivingPigment pigment=livingPigment(field);",
+      "LivingPigment pigment=livingPigment(field);pigment.albedo=vec3(.32)+pigment.albedo*.000001;pigment.cool=.25+pigment.cool*.000001;",
+    )
+    .replace(
+      "LivingPigment filmPigment=livingPigment(veil);",
+      "LivingPigment filmPigment=livingPigment(veil);filmPigment.albedo=vec3(.32)+filmPigment.albedo*.000001;",
+    );
+}
+
+/** Replace only optical material, retaining tier detail and the neutral control.
+ * This runs inside shaderSource, after any outer neutral-material hook.
+ */
+export function opaqueFilmAblation(source: string, neutral: boolean) {
+  const detail = source.match(/#define SAM_FINE_OCTAVES (\d)/)?.[1];
+  if (detail === undefined) throw new Error("Ablation must preserve actual tier detail");
+  const text = appearanceShaderSources("bipolar-peel-experimental").skinFragment.replace(
+    "precision highp float;",
+    `precision highp float;\n#define SAM_FINE_OCTAVES ${detail}`,
+  );
+  return neutral ? neutralFixtureMaterial(text) : text;
+}
+
 export function visualInput(
   time: number,
   state: VisualForeground = "idle",
@@ -186,12 +211,7 @@ export function fixture(
     const source = gl.shaderSource.bind(gl);
     gl.shaderSource = (shader, text) => {
       if (options.filmMaterial && text.includes("float fresnel=.04+")) {
-        const detail = text.match(/#define SAM_FINE_OCTAVES (\d)/)?.[1];
-        if (detail === undefined) throw new Error("Ablation must preserve actual tier detail");
-        text = appearanceShaderSources("bipolar-peel-experimental").skinFragment.replace(
-          "precision highp float;",
-          `precision highp float;\n#define SAM_FINE_OCTAVES ${detail}`,
-        );
+        text = opaqueFilmAblation(text, options.neutralMaterial === true);
       }
       if (options.bodyProbe)
         text = text.replace(
@@ -326,19 +346,7 @@ export function fixture(
   if (options.particlesOnly) gl.drawElements = () => {};
   if (options.neutralMaterial) {
     const original = gl.shaderSource.bind(gl);
-    gl.shaderSource = (shader, source) =>
-      original(
-        shader,
-        source
-          .replace(
-            "LivingPigment pigment=livingPigment(field);",
-            "LivingPigment pigment=livingPigment(field);pigment.albedo=vec3(.32)+pigment.albedo*.000001;pigment.cool=.25+pigment.cool*.000001;",
-          )
-          .replace(
-            "LivingPigment filmPigment=livingPigment(veil);",
-            "LivingPigment filmPigment=livingPigment(veil);filmPigment.albedo=vec3(.32)+filmPigment.albedo*.000001;",
-          ),
-      );
+    gl.shaderSource = (shader, source) => original(shader, neutralFixtureMaterial(source));
   }
   if (options.gray) {
     const original = gl.shaderSource.bind(gl);

@@ -1,0 +1,17 @@
+{
+  "run": "https://github.com/AlfonsoFR2020/sam-ambient/actions/runs/40309742038",
+  "head": "fd1714d121695b1ce33bc27cf2371ecb93ef8b39",
+  "apiConclusion": "success",
+  "logQualification": "Windows frontend test timeout and CRLF lint failures are masked by the later successful build in the existing multi-command PowerShell step; no claim of a clean Windows frontend gate. No unrelated CI policy edits in V-F6.",
+  "evidence": [
+    "Quality (ubuntu-latest)\tPython tests\t2026-10-26T10:46:45.5389582Z ================= 817 passed, 44 skipped in 124.95s (0:02:04) ==================",
+    "Quality (ubuntu-latest)\tFrontend quality and build\t2026-10-26T10:47:15.6351653Z ^[[2m Test Files ^[[22m ^[[1m^[[32m53 passed^[[39m^[[22m^[[90m (53)^[[39m",
+    "Quality (ubuntu-latest)\tFrontend quality and build\t2026-10-26T10:47:15.6353402Z ^[[2m      Tests ^[[22m ^[[1m^[[32m453 passed^[[39m^[[22m^[[90m (453)^[[39m",
+    "Quality (windows-latest)\tPython tests\t2026-10-26T10:48:21.7460748Z ============ 856 passed, 5 skipped, 1 warning in 213.36s (0:03:33) ============",
+    "Quality (windows-latest)\tFrontend quality and build\t2026-10-26T10:49:24.1731062Z ^[[31m^[[1mError^[[22m: Test timed out in 5000ms.",
+    "Quality (windows-latest)\tFrontend quality and build\t2026-10-26T10:49:24.1803679Z ^[[2m Test Files ^[[22m ^[[1m^[[31m1 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m52 passed^[[39m^[[22m^[[90m (53)^[[39m",
+    "Quality (windows-latest)\tFrontend quality and build\t2026-10-26T10:49:24.1807494Z ^[[2m      Tests ^[[22m ^[[1m^[[31m1 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m452 passed^[[39m^[[22m^[[90m (453)^[[39m",
+    "Quality (windows-latest)\tFrontend quality and build\t2026-10-26T10:49:24.1860317Z ##[error]Error: Test timed out in 5000ms.",
+    "Quality (windows-latest)\tFrontend quality and build\t2026-10-26T10:49:26.4017718Z [ELIFECYCLE] Command failed with exit code 1."
+  ]
+}

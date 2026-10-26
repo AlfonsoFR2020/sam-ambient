@@ -9,6 +9,14 @@ export { hostedRunURL } from "./orb-vf3";
 
 export const VF6_ID: OrbAppearanceId = "bipolar-film-experimental";
 export const VF6_CASES = VF4_CASES;
+/** One additional matched camera, chosen by a bounded CPU normal/light scan.
+ * No lighting, material or unrelated clocks change. Not an acceptance metric.
+ */
+export const VF6_REFLECTION: VF2Case = {
+  ...VF6_CASES[0],
+  name: "reflection-inspection",
+  yaw: (5 * Math.PI) / 12,
+};
 export const VF6_PLAN = Object.freeze({
   seed: "0x5a17",
   size: 720,
@@ -115,7 +123,7 @@ export async function vf6Transmission(sample: VF2Case, frame: MotionFrame) {
 
 export async function vf6Sheet(
   shots: Shot[],
-  kind: "static" | "motion" | "material" | "detail" = "static",
+  kind: "static" | "motion" | "material" | "detail" | "reflection" = "static",
 ) {
   const rows =
     kind === "motion"
@@ -129,15 +137,21 @@ export async function vf6Sheet(
         ]
       : kind === "material"
         ? ["smoke-colour", "polar-south"]
-        : kind === "detail"
-          ? ["colour-yaw0-phase0", "polar-south"]
-          : ["smoke-colour", "neutral", "silhouette", "polar-south", "compact-low"];
+        : kind === "reflection"
+          ? ["reflection-inspection"]
+          : kind === "detail"
+            ? ["colour-yaw0-phase0", "polar-south"]
+            : ["smoke-colour", "neutral", "silhouette", "polar-south", "compact-low"];
   const ids =
     kind === "material" ? ["vf6-opaque", VF6_ID] : ["living-connected", "bipolar-vf5", VF6_ID];
   const labels =
     kind === "material"
       ? ["Rounded geometry / V-F5 opaque material", "Same geometry / nearest translucent film"]
-      : ["Parent default", "V-F5 opaque bipolar (archived)", "V-F6 rounded translucent film"];
+      : [
+          "Parent default",
+          kind === "reflection" ? "V-F5 opaque bipolar (fresh)" : "V-F5 opaque bipolar (archived)",
+          "V-F6 rounded translucent film",
+        ];
   const canvas = document.createElement("canvas");
   canvas.width = ids.length * 400;
   canvas.height = 80 + rows.length * 420;
