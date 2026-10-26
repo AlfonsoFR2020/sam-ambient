@@ -1,0 +1,2196 @@
+{
+  "guard": ".025 * radius / 1.18, unchanged",
+  "body": "controlled deformed body, not entire production shader",
+  "reports": [
+    {
+      "name": "idle-0",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 0,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "low",
+      "threshold": 0.021186456789901765,
+      "tested": 913,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01749107538753513
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.019300756685782565
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018091988785642055
+        }
+      ]
+    },
+    {
+      "name": "idle-1.7",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 1.7,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "low",
+      "threshold": 0.021186456789901765,
+      "tested": 896,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01749107538753513
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.019300756685782565
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018091988785642055
+        }
+      ]
+    },
+    {
+      "name": "idle-3.4",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 3.4,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "low",
+      "threshold": 0.021186456789901765,
+      "tested": 926,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01749107538753513
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.019300756685782565
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018091988785642055
+        }
+      ]
+    },
+    {
+      "name": "idle-6.2831852",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 6.2831852,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "low",
+      "threshold": 0.021186456789901765,
+      "tested": 913,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01749107538753513
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.019300756685782565
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018091988785642055
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "pose": {
+        "preparation": 0.996701494244061,
+        "settling": 0,
+        "bodyRadius": 0.9259844379605326,
+        "travel": 0.42001383310466095,
+        "opening": 0.11,
+        "lift": 0.006,
+        "width": 1,
+        "coherence": 0.94,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "low",
+      "threshold": 0.01961831436357061,
+      "tested": 898,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.016221869481557034
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.017900145856868915
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.016779063316916545
+        }
+      ]
+    },
+    {
+      "name": "thinking",
+      "pose": {
+        "preparation": 2.4621236286310114e-06,
+        "settling": 0,
+        "bodyRadius": 0.9706637397829749,
+        "travel": 1.4367951385718158,
+        "opening": 0.056658918653809585,
+        "lift": 3.432252326244314e-05,
+        "width": 1.0601830521639677,
+        "coherence": 0.9591304979331451,
+        "rephase": 0,
+        "work": 0.9994995485665593,
+        "receptive": 0.0002150920456347879,
+        "speech": 0
+      },
+      "quality": "low",
+      "threshold": 0.020564909741164726,
+      "tested": 879,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.016988014455058348
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.020564909741164726,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018745612254706757
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.017571599220659782
+        }
+      ]
+    },
+    {
+      "name": "speech-late",
+      "pose": {
+        "preparation": 1.3232259888348866e-20,
+        "settling": 0,
+        "bodyRadius": 1.0812428154965865,
+        "travel": 4.342446948254373,
+        "opening": 0.49999999999999967,
+        "lift": 0.03273417284818874,
+        "width": 1.2508950193066741,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 2.5901139161657263e-20,
+        "receptive": 3.855071617634591e-32,
+        "speech": 0.34062132451252275
+      },
+      "quality": "low",
+      "threshold": 0.02290768676899548,
+      "tested": 931,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018884185650695724
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.02290768676899548,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.020838100090496817
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.019533086660706713
+        }
+      ]
+    },
+    {
+      "name": "speech-quiet",
+      "pose": {
+        "preparation": 4.364668540580055e-23,
+        "settling": 0,
+        "bodyRadius": 1.0288317133082991,
+        "travel": 5.095234400532644,
+        "opening": 0.49999999999999967,
+        "lift": 0.01694782614382882,
+        "width": 1.2154376146608048,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 1.1759098987075936e-24,
+        "receptive": 5.761535036282592e-37,
+        "speech": 0.053596838978706
+      },
+      "quality": "low",
+      "threshold": 0.021797282061616508,
+      "tested": 939,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.017985458450257213
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021797282061616508,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.019846324800517727
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018603401558425308
+        }
+      ]
+    },
+    {
+      "name": "speech-silence",
+      "pose": {
+        "preparation": 1.4396884303869526e-25,
+        "settling": 0,
+        "bodyRadius": 1.0120129747846984,
+        "travel": 5.824787242765834,
+        "opening": 0.49999999999999967,
+        "lift": 0.014000389257105478,
+        "width": 1.2000532055595943,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 5.338622680833577e-29,
+        "receptive": 8.610809153963242e-42,
+        "speech": 7.077401917971969e-06
+      },
+      "quality": "low",
+      "threshold": 0.021440952855608018,
+      "tested": 925,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01769705662295764
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.019528063814007242
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018305065330448227
+        }
+      ]
+    },
+    {
+      "name": "speech-return",
+      "pose": {
+        "preparation": 4.7488205743902615e-28,
+        "settling": 0,
+        "bodyRadius": 1.0459954034656105,
+        "travel": 0.28183090915414993,
+        "opening": 0.49999999999999967,
+        "lift": 0.026964698247227366,
+        "width": 1.2386324289215636,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 2.4237309473825443e-33,
+        "receptive": 1.2869145777826777e-46,
+        "speech": 0.235721786313225
+      },
+      "quality": "low",
+      "threshold": 0.022160919564949377,
+      "tested": 904,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01827977538858928
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.022160919564949377,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.020171113308614024
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01890785665125979
+        }
+      ]
+    },
+    {
+      "name": "interrupt-onset",
+      "pose": {
+        "preparation": 2.2977030534332468e-29,
+        "settling": 0,
+        "bodyRadius": 0.9577480609671034,
+        "travel": 0.6800384647862469,
+        "opening": 0.24118449178310866,
+        "lift": 0.0008255078442597837,
+        "width": 1.015506518376465,
+        "coherence": 0.9273379609939021,
+        "rephase": 0.072783679165516,
+        "work": 1.2098280628944476e-35,
+        "receptive": 3.564821360575308e-49,
+        "speech": 0.06266281728185598
+      },
+      "quality": "low",
+      "threshold": 0.0202912724781166,
+      "tested": 889,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.016766540930233782
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.0202912724781166,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01850120887164506
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.017342496732266958
+        }
+      ]
+    },
+    {
+      "name": "departure",
+      "pose": {
+        "preparation": 5.621532760378951e-38,
+        "settling": 0.9998210799372299,
+        "bodyRadius": 0.4997726366979398,
+        "travel": 1.695860231233742,
+        "opening": 0.04000034031452155,
+        "lift": 1.1343130717338835e-08,
+        "width": 0.9999999999742499,
+        "coherence": 0.9999989791182355,
+        "rephase": 5.563351093191536e-27,
+        "work": 1.0296867683994802e-50,
+        "receptive": 6.420557607740419e-66,
+        "speech": 5.4930574266161344e-45
+      },
+      "quality": "low",
+      "threshold": 0.010588403319871608,
+      "tested": 881,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.0089133404032959
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.010588403319871608,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.009834941760380826
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.009218781475500959
+        }
+      ]
+    },
+    {
+      "name": "extreme-compact",
+      "pose": {
+        "preparation": 1,
+        "settling": 0,
+        "bodyRadius": 0.46,
+        "travel": 2.1,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 1,
+        "receptive": 0,
+        "speech": 1
+      },
+      "quality": "low",
+      "threshold": 0.00974576271186441,
+      "tested": 884,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.008231333534172554
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.009082324616981283
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.008513281843957195
+        }
+      ]
+    },
+    {
+      "name": "extreme-settling",
+      "pose": {
+        "preparation": 0,
+        "settling": 1,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 4.8,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 1,
+        "work": 1,
+        "receptive": 0,
+        "speech": 1
+      },
+      "quality": "low",
+      "threshold": 0.021186456789901765,
+      "tested": 915,
+      "triangles": 738,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.01749107538753513
+        },
+        {
+          "surfaces": [
+            1,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765,
+          "witness": null
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.019300756685782565
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 72,
+          "minimum": 0.018091988785642055
+        }
+      ]
+    },
+    {
+      "name": "idle-0",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 0,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "medium",
+      "threshold": 0.021186456789901765,
+      "tested": 1208,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        }
+      ]
+    },
+    {
+      "name": "idle-1.7",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 1.7,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "medium",
+      "threshold": 0.021186456789901765,
+      "tested": 1160,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        }
+      ]
+    },
+    {
+      "name": "idle-3.4",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 3.4,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "medium",
+      "threshold": 0.021186456789901765,
+      "tested": 1174,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        }
+      ]
+    },
+    {
+      "name": "idle-6.2831852",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 6.2831852,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "medium",
+      "threshold": 0.021186456789901765,
+      "tested": 1208,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "pose": {
+        "preparation": 0.996701494244061,
+        "settling": 0,
+        "bodyRadius": 0.9259844379605326,
+        "travel": 0.42001383310466095,
+        "opening": 0.11,
+        "lift": 0.006,
+        "width": 1,
+        "coherence": 0.94,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "medium",
+      "threshold": 0.01961831436357061,
+      "tested": 1196,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.01961831436357061
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.01961831436357061
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.01961831436357061
+        }
+      ]
+    },
+    {
+      "name": "thinking",
+      "pose": {
+        "preparation": 2.4621236286310114e-06,
+        "settling": 0,
+        "bodyRadius": 0.9706637397829749,
+        "travel": 1.4367951385718158,
+        "opening": 0.056658918653809585,
+        "lift": 3.432252326244314e-05,
+        "width": 1.0601830521639677,
+        "coherence": 0.9591304979331451,
+        "rephase": 0,
+        "work": 0.9994995485665593,
+        "receptive": 0.0002150920456347879,
+        "speech": 0
+      },
+      "quality": "medium",
+      "threshold": 0.020564909741164726,
+      "tested": 1160,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.020564909741164726
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.020564909741164726
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.020564909741164726
+        }
+      ]
+    },
+    {
+      "name": "speech-late",
+      "pose": {
+        "preparation": 1.3232259888348866e-20,
+        "settling": 0,
+        "bodyRadius": 1.0812428154965865,
+        "travel": 4.342446948254373,
+        "opening": 0.49999999999999967,
+        "lift": 0.03273417284818874,
+        "width": 1.2508950193066741,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 2.5901139161657263e-20,
+        "receptive": 3.855071617634591e-32,
+        "speech": 0.34062132451252275
+      },
+      "quality": "medium",
+      "threshold": 0.02290768676899548,
+      "tested": 1188,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.02290768676899548
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.02290768676899548
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.02290768676899548
+        }
+      ]
+    },
+    {
+      "name": "speech-quiet",
+      "pose": {
+        "preparation": 4.364668540580055e-23,
+        "settling": 0,
+        "bodyRadius": 1.0288317133082991,
+        "travel": 5.095234400532644,
+        "opening": 0.49999999999999967,
+        "lift": 0.01694782614382882,
+        "width": 1.2154376146608048,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 1.1759098987075936e-24,
+        "receptive": 5.761535036282592e-37,
+        "speech": 0.053596838978706
+      },
+      "quality": "medium",
+      "threshold": 0.021797282061616508,
+      "tested": 1219,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021797282061616508
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021797282061616508
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021797282061616508
+        }
+      ]
+    },
+    {
+      "name": "speech-silence",
+      "pose": {
+        "preparation": 1.4396884303869526e-25,
+        "settling": 0,
+        "bodyRadius": 1.0120129747846984,
+        "travel": 5.824787242765834,
+        "opening": 0.49999999999999967,
+        "lift": 0.014000389257105478,
+        "width": 1.2000532055595943,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 5.338622680833577e-29,
+        "receptive": 8.610809153963242e-42,
+        "speech": 7.077401917971969e-06
+      },
+      "quality": "medium",
+      "threshold": 0.021440952855608018,
+      "tested": 1214,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021440952855608018
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021440952855608018
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021440952855608018
+        }
+      ]
+    },
+    {
+      "name": "speech-return",
+      "pose": {
+        "preparation": 4.7488205743902615e-28,
+        "settling": 0,
+        "bodyRadius": 1.0459954034656105,
+        "travel": 0.28183090915414993,
+        "opening": 0.49999999999999967,
+        "lift": 0.026964698247227366,
+        "width": 1.2386324289215636,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 2.4237309473825443e-33,
+        "receptive": 1.2869145777826777e-46,
+        "speech": 0.235721786313225
+      },
+      "quality": "medium",
+      "threshold": 0.022160919564949377,
+      "tested": 1182,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.022160919564949377
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.022160919564949377
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.022160919564949377
+        }
+      ]
+    },
+    {
+      "name": "interrupt-onset",
+      "pose": {
+        "preparation": 2.2977030534332468e-29,
+        "settling": 0,
+        "bodyRadius": 0.9577480609671034,
+        "travel": 0.6800384647862469,
+        "opening": 0.24118449178310866,
+        "lift": 0.0008255078442597837,
+        "width": 1.015506518376465,
+        "coherence": 0.9273379609939021,
+        "rephase": 0.072783679165516,
+        "work": 1.2098280628944476e-35,
+        "receptive": 3.564821360575308e-49,
+        "speech": 0.06266281728185598
+      },
+      "quality": "medium",
+      "threshold": 0.0202912724781166,
+      "tested": 1178,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.0202912724781166
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.0202912724781166
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.0202912724781166
+        }
+      ]
+    },
+    {
+      "name": "departure",
+      "pose": {
+        "preparation": 5.621532760378951e-38,
+        "settling": 0.9998210799372299,
+        "bodyRadius": 0.4997726366979398,
+        "travel": 1.695860231233742,
+        "opening": 0.04000034031452155,
+        "lift": 1.1343130717338835e-08,
+        "width": 0.9999999999742499,
+        "coherence": 0.9999989791182355,
+        "rephase": 5.563351093191536e-27,
+        "work": 1.0296867683994802e-50,
+        "receptive": 6.420557607740419e-66,
+        "speech": 5.4930574266161344e-45
+      },
+      "quality": "medium",
+      "threshold": 0.010588403319871608,
+      "tested": 1160,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.010588403319871608
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.010588403319871608
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.010588403319871608
+        }
+      ]
+    },
+    {
+      "name": "extreme-compact",
+      "pose": {
+        "preparation": 1,
+        "settling": 0,
+        "bodyRadius": 0.46,
+        "travel": 2.1,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 1,
+        "receptive": 0,
+        "speech": 1
+      },
+      "quality": "medium",
+      "threshold": 0.00974576271186441,
+      "tested": 1115,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.00974576271186441
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.00974576271186441
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.00974576271186441
+        }
+      ]
+    },
+    {
+      "name": "extreme-settling",
+      "pose": {
+        "preparation": 0,
+        "settling": 1,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 4.8,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 1,
+        "work": 1,
+        "receptive": 0,
+        "speech": 1
+      },
+      "quality": "medium",
+      "threshold": 0.021186456789901765,
+      "tested": 1164,
+      "triangles": 1896,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        }
+      ]
+    },
+    {
+      "name": "idle-0",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 0,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "high",
+      "threshold": 0.021186456789901765,
+      "tested": 9266,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.019448963084792967
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.020117740550691262
+        }
+      ]
+    },
+    {
+      "name": "idle-1.7",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 1.7,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "high",
+      "threshold": 0.021186456789901765,
+      "tested": 9072,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.019448963084792967
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.020117740550691262
+        }
+      ]
+    },
+    {
+      "name": "idle-3.4",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 3.4,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "high",
+      "threshold": 0.021186456789901765,
+      "tested": 9226,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.019448963084792967
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.020117740550691262
+        }
+      ]
+    },
+    {
+      "name": "idle-6.2831852",
+      "pose": {
+        "preparation": 0,
+        "settling": 0,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 6.2831852,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "high",
+      "threshold": 0.021186456789901765,
+      "tested": 9266,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.019448963084792967
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.020117740550691262
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "pose": {
+        "preparation": 0.996701494244061,
+        "settling": 0,
+        "bodyRadius": 0.9259844379605326,
+        "travel": 0.42001383310466095,
+        "opening": 0.11,
+        "lift": 0.006,
+        "width": 1,
+        "coherence": 0.94,
+        "rephase": 0,
+        "work": 0,
+        "receptive": 0,
+        "speech": 0
+      },
+      "quality": "high",
+      "threshold": 0.01961831436357061,
+      "tested": 9209,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1112,
+          "minimum": 0.018020888905478167
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.01961831436357061
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.01864042386877297
+        }
+      ]
+    },
+    {
+      "name": "thinking",
+      "pose": {
+        "preparation": 2.4621236286310114e-06,
+        "settling": 0,
+        "bodyRadius": 0.9706637397829749,
+        "travel": 1.4367951385718158,
+        "opening": 0.056658918653809585,
+        "lift": 3.432252326244314e-05,
+        "width": 1.0601830521639677,
+        "coherence": 0.9591304979331451,
+        "rephase": 0,
+        "work": 0.9994995485665593,
+        "receptive": 0.0002150920456347879,
+        "speech": 0
+      },
+      "quality": "high",
+      "threshold": 0.020564909741164726,
+      "tested": 9043,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.01888293331374426
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.020564909741164726
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.019532193081445316
+        }
+      ]
+    },
+    {
+      "name": "speech-late",
+      "pose": {
+        "preparation": 1.3232259888348866e-20,
+        "settling": 0,
+        "bodyRadius": 1.0812428154965865,
+        "travel": 4.342446948254373,
+        "opening": 0.49999999999999967,
+        "lift": 0.03273417284818874,
+        "width": 1.2508950193066741,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 2.5901139161657263e-20,
+        "receptive": 3.855071617634591e-32,
+        "speech": 0.34062132451252275
+      },
+      "quality": "high",
+      "threshold": 0.02290768676899548,
+      "tested": 9273,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.021016450902994317
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.02290768676899548
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.021739278088376574
+        }
+      ]
+    },
+    {
+      "name": "speech-quiet",
+      "pose": {
+        "preparation": 4.364668540580055e-23,
+        "settling": 0,
+        "bodyRadius": 1.0288317133082991,
+        "travel": 5.095234400532644,
+        "opening": 0.49999999999999967,
+        "lift": 0.01694782614382882,
+        "width": 1.2154376146608048,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 1.1759098987075936e-24,
+        "receptive": 5.761535036282592e-37,
+        "speech": 0.053596838978706
+      },
+      "quality": "high",
+      "threshold": 0.021797282061616508,
+      "tested": 9360,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.020005228765094384
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021797282061616508
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.020693187244911076
+        }
+      ]
+    },
+    {
+      "name": "speech-silence",
+      "pose": {
+        "preparation": 1.4396884303869526e-25,
+        "settling": 0,
+        "bodyRadius": 1.0120129747846984,
+        "travel": 5.824787242765834,
+        "opening": 0.49999999999999967,
+        "lift": 0.014000389257105478,
+        "width": 1.2000532055595943,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 5.338622680833577e-29,
+        "receptive": 8.610809153963242e-42,
+        "speech": 7.077401917971969e-06
+      },
+      "quality": "high",
+      "threshold": 0.021440952855608018,
+      "tested": 9348,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.01968072727877037
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021440952855608018
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.020357496379732543
+        }
+      ]
+    },
+    {
+      "name": "speech-return",
+      "pose": {
+        "preparation": 4.7488205743902615e-28,
+        "settling": 0,
+        "bodyRadius": 1.0459954034656105,
+        "travel": 0.28183090915414993,
+        "opening": 0.49999999999999967,
+        "lift": 0.026964698247227366,
+        "width": 1.2386324289215636,
+        "coherence": 0.6200000000000007,
+        "rephase": 0,
+        "work": 2.4237309473825443e-33,
+        "receptive": 1.2869145777826777e-46,
+        "speech": 0.235721786313225
+      },
+      "quality": "high",
+      "threshold": 0.022160919564949377,
+      "tested": 9181,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.020336385765170193
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.022160919564949377
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.021035763117174876
+        }
+      ]
+    },
+    {
+      "name": "interrupt-onset",
+      "pose": {
+        "preparation": 2.2977030534332468e-29,
+        "settling": 0,
+        "bodyRadius": 0.9577480609671034,
+        "travel": 0.6800384647862469,
+        "opening": 0.24118449178310866,
+        "lift": 0.0008255078442597837,
+        "width": 1.015506518376465,
+        "coherence": 0.9273379609939021,
+        "rephase": 0.072783679165516,
+        "work": 1.2098280628944476e-35,
+        "receptive": 3.564821360575308e-49,
+        "speech": 0.06266281728185598
+      },
+      "quality": "high",
+      "threshold": 0.0202912724781166,
+      "tested": 9132,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.018633737638938417
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.0202912724781166
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.01927440470271588
+        }
+      ]
+    },
+    {
+      "name": "departure",
+      "pose": {
+        "preparation": 5.621532760378951e-38,
+        "settling": 0.9998210799372299,
+        "bodyRadius": 0.4997726366979398,
+        "travel": 1.695860231233742,
+        "opening": 0.04000034031452155,
+        "lift": 1.1343130717338835e-08,
+        "width": 0.9999999999742499,
+        "coherence": 0.9999989791182355,
+        "rephase": 5.563351093191536e-27,
+        "work": 1.0296867683994802e-50,
+        "receptive": 6.420557607740419e-66,
+        "speech": 5.4930574266161344e-45
+      },
+      "quality": "high",
+      "threshold": 0.010588403319871608,
+      "tested": 8913,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1056,
+          "minimum": 0.009797515823903664
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.010588403319871608
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.010133512863370333
+        }
+      ]
+    },
+    {
+      "name": "extreme-compact",
+      "pose": {
+        "preparation": 1,
+        "settling": 0,
+        "bodyRadius": 0.46,
+        "travel": 2.1,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 0,
+        "work": 1,
+        "receptive": 0,
+        "speech": 1
+      },
+      "quality": "high",
+      "threshold": 0.00974576271186441,
+      "tested": 8722,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1052,
+          "minimum": 0.009030138582359546
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.00974576271186441
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.009339674027940932
+        }
+      ]
+    },
+    {
+      "name": "extreme-settling",
+      "pose": {
+        "preparation": 0,
+        "settling": 1,
+        "bodyRadius": 1.0000007604833632,
+        "travel": 4.8,
+        "opening": 0.1,
+        "lift": 0.002,
+        "width": 1,
+        "coherence": 0.82,
+        "rephase": 1,
+        "work": 1,
+        "receptive": 0,
+        "speech": 1
+      },
+      "quality": "high",
+      "threshold": 0.021186456789901765,
+      "tested": 9097,
+      "triangles": 7632,
+      "pairs": [
+        {
+          "surfaces": [
+            1,
+            1
+          ],
+          "intersections": 0,
+          "near": 1116,
+          "minimum": 0.019448963084792967
+        },
+        {
+          "surfaces": [
+            2,
+            2
+          ],
+          "intersections": 0,
+          "near": 0,
+          "minimum": 0.021186456789901765
+        },
+        {
+          "surfaces": [
+            0,
+            0
+          ],
+          "intersections": 0,
+          "near": 936,
+          "minimum": 0.020117740550691262
+        }
+      ]
+    }
+  ]
+}

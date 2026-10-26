@@ -1,5 +1,6 @@
 import { type OrbAppearanceId, resolveOrbAppearance } from "./appearance";
 import type { RendererBackend } from "./backend";
+import { bipolarFilmFragment } from "./bipolar-film-optics";
 import { DISCOURSE_CREST_GLSL } from "./discourse-crest";
 import {
   createParticleGeometry,
@@ -218,7 +219,10 @@ function composeAppearanceShaders(id?: OrbAppearanceId) {
       skin.surfaceGLSL,
       skin.materialDirection ? `${skin.materialDirection}(direction)` : "direction",
     ),
-    skinFragment: peelFragment(material.fragmentGLSL, skin.layering === "opaque-depth"),
+    skinFragment:
+      skin.layering === "nearest-transmission"
+        ? bipolarFilmFragment(material.fragmentGLSL)
+        : peelFragment(material.fragmentGLSL, skin.layering === "opaque-depth"),
   });
 }
 const baselineSources = composeAppearanceShaders();
@@ -528,6 +532,7 @@ export class WebGLBackend implements RendererBackend {
   private readonly objectOrientation = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
   private readonly motion: MotionEvaluator;
   private readonly opaqueSkin: boolean;
+  private readonly nearestSkin: boolean;
   private input?: VisualInputV1;
   private scaleX = 0.56;
   private scaleY = 0.56;
@@ -552,6 +557,7 @@ export class WebGLBackend implements RendererBackend {
     try {
       const definition = resolveOrbAppearance(appearance);
       this.opaqueSkin = definition.skin.layering === "opaque-depth";
+      this.nearestSkin = definition.skin.layering === "nearest-transmission";
       const skin = definition.skin.create(budget, seed);
       const sources = appearanceShaderSources(definition.id);
       this.orbProgram = program(
@@ -781,7 +787,17 @@ export class WebGLBackend implements RendererBackend {
     gl.uniform1i(this.peelUniforms.lightCount, this.budget.lights);
     this.setPeelUniforms(frame);
     gl.bindVertexArray(this.peels.vao);
-    if (this.budget.membraneDepthPass && !this.opaqueSkin) {
+    if (this.nearestSkin) {
+      // Exact same invariant vertex positions in both passes. No depth bias:
+      // only the nearest thin surface colors the already rendered body, once.
+      gl.colorMask(false, false, false, false);
+      gl.depthMask(true);
+      gl.uniform1i(this.peelUniforms.depthOnly, 1);
+      gl.drawElements(gl.TRIANGLES, this.peels.count, gl.UNSIGNED_SHORT, 0);
+      gl.colorMask(true, true, true, true);
+      gl.depthMask(false);
+      gl.depthFunc(gl.EQUAL);
+    } else if (this.budget.membraneDepthPass && !this.opaqueSkin) {
       // Only opaque coat interiors compete for nearest depth, including curled
       // self-overlaps. Their soft fringes retain sorted premultiplied blending.
       gl.colorMask(false, false, false, false);

@@ -8,7 +8,7 @@ if (environment?.SAM_HOSTED_GRAPHICS !== "vf2" || environment.GITHUB_ACTIONS !==
 
 export default defineConfig({
   ...base,
-  testMatch: ["orb-vf5.spec.ts"],
+  testMatch: ["orb-vf6.spec.ts"],
   timeout: 300_000,
   globalTimeout: 330_000,
   workers: 1,

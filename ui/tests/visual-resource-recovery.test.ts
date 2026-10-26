@@ -10,6 +10,7 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
     "living-connected",
     "radial-shell-experimental",
     "bipolar-peel-experimental",
+    "bipolar-film-experimental",
   ] as const)
     for (const { failure, budget } of [
       ...(["second-program", "missing-uniform", "partial-buffer", "none"] as const).map(
@@ -31,7 +32,15 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
           draws = 0;
         let blending = false,
           depthWrite = true;
-        const drawStates: { blending: boolean; depthWrite: boolean }[] = [];
+        let colorWrite = true,
+          depthMode = 6,
+          offsets = 0;
+        const drawStates: {
+          blending: boolean;
+          depthWrite: boolean;
+          colorWrite: boolean;
+          depthMode: number;
+        }[] = [];
         const allocate = (kind: keyof typeof live) => {
           const value = {};
           live[kind].add(value);
@@ -43,6 +52,9 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
           COMPILE_STATUS: 3,
           LINK_STATUS: 4,
           BLEND: 5,
+          LESS: 6,
+          EQUAL: 7,
+          LEQUAL: 8,
           createShader: () => {
             shaders++;
             return allocate("shaders");
@@ -81,13 +93,22 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
           depthMask: (value: boolean) => {
             depthWrite = value;
           },
+          colorMask: (...flags: boolean[]) => {
+            colorWrite = flags.every(Boolean);
+          },
+          depthFunc: (mode: number) => {
+            depthMode = mode;
+          },
+          polygonOffset: () => {
+            offsets++;
+          },
           drawElements: () => {
             draws++;
-            drawStates.push({ blending, depthWrite });
+            drawStates.push({ blending, depthWrite, colorWrite, depthMode });
           },
           drawArrays: () => {
             draws++;
-            drawStates.push({ blending, depthWrite });
+            drawStates.push({ blending, depthWrite, colorWrite, depthMode });
           },
         };
         const gl = new Proxy(mock, {
@@ -112,15 +133,46 @@ describe("partially initialized renderer recovery (mock GL only)", () => {
             backend?.render(0);
             backend?.render(100);
             expect(draws).toBe(
-              2 * (budget.membraneDepthPass && appearance !== "bipolar-peel-experimental" ? 10 : 9),
+              2 *
+                (appearance === "bipolar-film-experimental" ||
+                (budget.membraneDepthPass && appearance !== "bipolar-peel-experimental")
+                  ? 10
+                  : 9),
             );
             if (appearance === "bipolar-peel-experimental") {
               for (const start of [0, 9]) {
-                expect(drawStates.slice(start + 2, start + 8)).toEqual(
-                  Array.from({ length: 6 }, () => ({ blending: false, depthWrite: true })),
-                );
-                expect(drawStates[start + 8]).toEqual({ blending: true, depthWrite: false });
+                expect(
+                  drawStates
+                    .slice(start + 2, start + 8)
+                    .map(({ blending, depthWrite }) => ({ blending, depthWrite })),
+                ).toEqual(Array.from({ length: 6 }, () => ({ blending: false, depthWrite: true })));
+                expect(drawStates[start + 8]).toMatchObject({ blending: true, depthWrite: false });
               }
+            }
+            if (appearance === "bipolar-film-experimental") {
+              for (const start of [0, 10]) {
+                expect(drawStates[start + 2]).toEqual({
+                  blending: true,
+                  depthWrite: true,
+                  colorWrite: false,
+                  depthMode: 6,
+                });
+                expect(drawStates.slice(start + 3, start + 9)).toEqual(
+                  Array.from({ length: 6 }, () => ({
+                    blending: true,
+                    depthWrite: false,
+                    colorWrite: true,
+                    depthMode: 7,
+                  })),
+                );
+                expect(drawStates[start + 9]).toEqual({
+                  blending: true,
+                  depthWrite: false,
+                  colorWrite: true,
+                  depthMode: 6,
+                });
+              }
+              expect(offsets).toBe(0);
             }
             expect(uploads).toBe(7);
             expect([shaders, buffers]).toEqual(allocationCounts);

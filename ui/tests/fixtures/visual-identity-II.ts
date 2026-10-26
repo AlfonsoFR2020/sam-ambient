@@ -8,7 +8,7 @@ import {
   type VisualForeground,
   type VisualInputV1,
 } from "../../src/visual-engine/types";
-import { WebGLBackend } from "../../src/visual-engine/webgl";
+import { appearanceShaderSources, WebGLBackend } from "../../src/visual-engine/webgl";
 import * as VF4 from "./bipolar-vf4-baseline";
 import { PALETTE_BEFORE } from "./palette-before";
 
@@ -86,6 +86,9 @@ export function fixture(
     /** Optical ablations only; never part of runtime appearance selection. */
     reverseSkinOrder?: boolean;
     legacyBipolarFilm?: boolean;
+    filmMaterial?: "vf5-opaque";
+    bodyProbe?: "black" | "white";
+    filmMask?: boolean;
   } = {},
 ) {
   const size = options.size ?? 720,
@@ -112,18 +115,31 @@ export function fixture(
     throw new Error("Headless WebGL2 unavailable");
   }
   if (options.reverseSkinOrder || options.legacyBipolarFilm) {
-    if (options.appearance !== "bipolar-peel-experimental" || options.depthPass !== false)
+    if (
+      (options.appearance !== "bipolar-peel-experimental" &&
+        options.appearance !== "bipolar-film-experimental") ||
+      options.depthPass !== false
+    )
       throw new Error("Optical ablation requires explicit bipolar/no-prepass fixture");
     const source = gl.shaderSource.bind(gl),
       locate = gl.getUniformLocation.bind(gl),
       bind = gl.useProgram.bind(gl),
-      draw = gl.drawElements.bind(gl);
+      draw = gl.drawElements.bind(gl),
+      setInt = gl.uniform1i.bind(gl);
     let skin: WebGLProgram | null = null,
       current: WebGLProgram | null = null;
+    let depthLocation: WebGLUniformLocation | null = null,
+      depthOnly = false;
     const pending: Parameters<WebGL2RenderingContext["drawElements"]>[] = [];
     gl.getUniformLocation = (program, name) => {
       if (name === "u_depth_only") skin = program;
-      return locate(program, name);
+      const value = locate(program, name);
+      if (name === "u_depth_only") depthLocation = value;
+      return value;
+    };
+    gl.uniform1i = (location, value) => {
+      if (location === depthLocation) depthOnly = value !== 0;
+      setInt(location, value);
     };
     gl.shaderSource = (shader, text) =>
       source(
@@ -141,13 +157,53 @@ export function fixture(
       }
     };
     gl.drawElements = (...args) => {
-      if (options.reverseSkinOrder && current === skin) {
+      if (options.reverseSkinOrder && current === skin && !depthOnly) {
         pending.push(args);
         if (pending.length === 6) {
           for (const call of pending.reverse()) draw(...call);
           pending.length = 0;
         }
       } else draw(...args);
+    };
+    if (options.appearance === "bipolar-film-experimental" && options.reverseSkinOrder) {
+      // Reverse the actual triplet submission as well as the six color draws;
+      // winding is preserved, so both depth selection and color are challenged.
+      const upload = gl.bufferData.bind(gl),
+        count = resolveOrbAppearance(options.appearance).skin.create(budget, 0x5a17).geometry
+          .indices.length;
+      gl.bufferData = (target, data, usage) => {
+        if (data instanceof Uint16Array && data.length === count) {
+          const reversed = new Uint16Array(data.length);
+          for (let k = 0; k < count; k += 3)
+            reversed.set(data.subarray(count - k - 3, count - k), k);
+          upload(target, reversed, usage);
+        } else if (typeof data === "number") upload(target, data, usage);
+        else upload(target, data, usage);
+      };
+    }
+  }
+  if (options.filmMaterial || options.bodyProbe || options.filmMask) {
+    const source = gl.shaderSource.bind(gl);
+    gl.shaderSource = (shader, text) => {
+      if (options.filmMaterial && text.includes("float fresnel=.04+")) {
+        const detail = text.match(/#define SAM_FINE_OCTAVES (\d)/)?.[1];
+        if (detail === undefined) throw new Error("Ablation must preserve actual tier detail");
+        text = appearanceShaderSources("bipolar-peel-experimental").skinFragment.replace(
+          "precision highp float;",
+          `precision highp float;\n#define SAM_FINE_OCTAVES ${detail}`,
+        );
+      }
+      if (options.bodyProbe)
+        text = text.replace(
+          "color=vec4(pow(linear,vec3(1./2.2)),1.);",
+          `color=vec4(vec3(${options.bodyProbe === "white" ? "1." : "0."}),1.)+vec4(pow(linear,vec3(1./2.2)),1.)*1.e-7;`,
+        );
+      if (options.filmMask)
+        text = text.replace(
+          "color=vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha);",
+          "color=vec4(1.)+vec4(pow(linear,vec3(1.0/2.2))*alpha,alpha)*1.e-7;",
+        );
+      source(shader, text);
     };
   }
   if (options.vf4Surface) {

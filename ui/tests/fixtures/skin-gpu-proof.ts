@@ -1,4 +1,5 @@
 import { type OrbAppearanceId, resolveOrbAppearance } from "../../src/visual-engine/appearance";
+import { bipolarCapUV } from "../../src/visual-engine/bipolar-film";
 import {
   bipolarCoordinates,
   bipolarIndex,
@@ -43,6 +44,19 @@ export function bipolarGPUProofDirections(): readonly SkinVector[] {
       [-1, -0.35, 0.35, 1].map((v) => bipolarParameter(p, t, v)),
     ),
   );
+}
+
+/** Every old rectangle sample remains, including analytic extension beyond the
+ * rounded cut; append actual cap and C1 width-shoulder coordinates. */
+export function bipolarFilmGPUProofDirections(): readonly SkinVector[] {
+  const samples = [...bipolarGPUProofDirections()];
+  for (const p of createBipolarPeels()) {
+    for (let k = 0; k <= 10; k++)
+      samples.push(bipolarParameter(p, ...bipolarCapUV(-Math.PI / 2 + (k * Math.PI) / 10)));
+    for (const u of [0.35, 0.65])
+      for (const v of [-1, -0.35, 0.35, 1]) samples.push(bipolarParameter(p, u, v));
+  }
+  return samples;
 }
 
 /** Transform feedback of the production coat map/normals against the CPU reference.
@@ -178,9 +192,12 @@ gl_Position=vec4(0.,0.,0.,1.);}`,
           }
     else if (strategy.id === "organic-peels")
       for (const n of organicGPUProofDirections()) directions.push(...n);
-    else if (strategy.id === "bipolar-peels")
-      for (const n of bipolarGPUProofDirections()) directions.push(...n);
-    else
+    else if (strategy.id === "bipolar-peels") {
+      for (const n of appearance === "bipolar-film-experimental"
+        ? bipolarFilmGPUProofDirections()
+        : bipolarGPUProofDirections())
+        directions.push(...n);
+    } else
       for (const p of createRadialShellWindows())
         for (const theta of [0, 1.7, 3.4, 5.1])
           for (const q of [0, 0.2, 0.7, 1]) {

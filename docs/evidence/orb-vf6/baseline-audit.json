@@ -1,0 +1,22 @@
+{
+  "startingHead": "3c35fe9dc1abf4c534f6c231e5820fc6be333753",
+  "remoteFeatureAtStart": "33b0d89ff7b2a5ab37823f9942b191bd7ee3d4e8",
+  "dev": "cc69bc2b90eac4068c929af4beb1bb95705b14af",
+  "closingCommitSourceChanges": false,
+  "frontendSourceCommit": "de87e526e0cc3675cb75ecf872b1911fabb33eb8",
+  "frontendInputs": 76,
+  "vF5EvidenceFilesVerified": 71,
+  "hostedProof": 40226839968,
+  "hostedCI": 40226840062,
+  "hostedConclusions": "success, checked through current API",
+  "protectedSourceSha256Lf": {
+    "ui/src/visual-engine/bipolar-peel.ts": "66a4175c2c98c54a89ca5385bacda7321194e490f9124e69247fe1da5af0f333",
+    "ui/src/visual-engine/living-field.ts": "402f0f3c546392c0569ddadcef82f2adf17eb5507945a7304c8b7ee226d25bf1",
+    "ui/src/visual-engine/living-material.ts": "974fa5e7a385da8641bc103690bcb68805d97f2308e32a1bc41f940b1bff1b77",
+    "ui/src/visual-engine/motion.ts": "8ccec751bd7b7e89696dbee8d7ca185546b3bcbf36f38fac1b976944ec646b9c",
+    "ui/src/visual-engine/quality.ts": "a69dd3dbdb81d8af88e15fd112e605cf2c3e066edc99b6156b6608c18e3b4605",
+    "ui/src/visual-engine/input.ts": "a6b29c1cef9e592713615d84625274a6b2395249dcbf9c76624d098df05e3115",
+    "ui/src/visual-engine/organic-peel.ts": "430767d867b99d9718833c6fa6aec57a38e73c8e6e4b34108d6c553f9d4d677e",
+    "ui/src/visual-engine/radial-shell.ts": "e119652062c234a7a88511f0c70d60c668cc1a809582f6d42f08e86829ff3e23"
+  }
+}

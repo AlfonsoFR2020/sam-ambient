@@ -87,7 +87,7 @@ export function renderVF2(sample: VF2Case, appearance: OrbAppearanceId, frame: M
     scene.render(frame, sample.yaw);
     let surface: ReturnType<typeof surfaceClearance> | undefined;
     if (sample.options.captureSkinVertices) {
-      if (appearance !== "bipolar-peel-experimental")
+      if (appearance !== "bipolar-peel-experimental" && appearance !== "bipolar-film-experimental")
         throw new Error("Surface atlas diagnostic is bipolar-only");
       const { points, geometry } = scene.readSkinVertices(),
         peels = createBipolarPeels();
